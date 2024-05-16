@@ -14,12 +14,7 @@ export const mapConfig = {
 }
 
 export const sources = {
-  region_boundaries: {
-    type: 'vector',
-    maxzoom: 8,
-    tiles: [`${tileHost}/services/region_boundaries/tiles/{z}/{x}/{y}.pbf`],
-  },
-  summary: {
+  map_units: {
     type: 'vector',
     maxzoom: 8,
     tiles: [`${tileHost}/services/map_units_summary/tiles/{z}/{x}/{y}.pbf`],

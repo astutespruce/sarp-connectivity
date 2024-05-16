@@ -1,9 +1,8 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { TimesCircle } from '@emotion-icons/fa-solid'
+import { ExclamationTriangle, TimesCircle } from '@emotion-icons/fa-solid'
 import { Box, Flex, Heading, Text } from 'theme-ui'
 import { op } from 'arquero'
-import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 
 import { barrierTypeLabels } from 'config'
 import { useCrossfilter } from 'components/Crossfilter'

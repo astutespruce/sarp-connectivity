@@ -19,111 +19,90 @@ out_dir = Path("tiles")
 tmp_dir = Path("/tmp")
 
 
-### Full analysis area and regions
+################################################################################
+### Create tiles for full analysis area and regions
+################################################################################
 print("Creating region tiles")
-df = gp.read_feather(src_dir / "region_boundary.feather").to_crs(GEO_CRS)
-bnd = df.loc[df.id == "total"].geometry.values[0]
+regions = gp.read_feather(src_dir / "region_boundary.feather")
+bnd = regions.loc[regions.id == "total"].geometry.values[0]
 outfilename = tmp_dir / "region_boundary.fgb"
-write_dataframe(df, outfilename)
-mbtiles_filename = tmp_dir / "boundary.mbtiles"
+write_dataframe(regions, outfilename)
+mbtiles_filename = tmp_dir / "region_boundary.mbtiles"
 ret = subprocess.run(
     tippecanoe_args
     + ["-Z", "0", "-z", "8"]
     + ["-l", "boundary"]
-    + get_col_types(df)
+    + get_col_types(regions)
     + ["-o", str(mbtiles_filename), outfilename]
 )
 ret.check_returncode()
 outfilename.unlink()
 
 
-### Mask of full analysis area and regions
-print("Creating mask tiles")
-df = gp.read_feather(src_dir / "region_mask.feather").to_crs(GEO_CRS)
-outfilename = tmp_dir / "region_mask.fgb"
-write_dataframe(df, outfilename)
-mbtiles_filename = tmp_dir / "mask.mbtiles"
-ret = subprocess.run(
-    tippecanoe_args
-    + ["-Z", "0", "-z", "8"]
-    + ["-l", "mask"]
-    + get_col_types(df)
-    + ["-o", str(mbtiles_filename), str(outfilename)]
-)
-ret.check_returncode()
-outfilename.unlink()
-
-
-### Fish Habitat Partnership boundaries
+################################################################################
+### Create tiles for Fish Habitat Partnership boundaries
+################################################################################
 print("Creating fish habitat partnership tiles")
-df = gp.read_feather(src_dir / "fhp_boundary.feather").to_crs(GEO_CRS)
+fhp = gp.read_feather(src_dir / "fhp_boundary.feather").to_crs(GEO_CRS)
 outfilename = tmp_dir / "fhp_boundary.fgb"
-write_dataframe(df, outfilename)
+write_dataframe(fhp, outfilename)
 mbtiles_filename = tmp_dir / "fhp_boundary.mbtiles"
 ret = subprocess.run(
     tippecanoe_args
     + ["-Z", "0", "-z", "8"]
     + ["-l", "fhp_boundary"]
-    + get_col_types(df)
-    + ["-o", str(mbtiles_filename), outfilename]
-)
-ret.check_returncode()
-outfilename.unlink()
-
-# create FHP boundary masks
-world = shapely.box(-180, -85, 180, 85)
-fhp_mask = df.copy()
-fhp_mask["geometry"] = shapely.normalize(shapely.difference(world, fhp_mask.geometry.values))
-outfilename = tmp_dir / "fhp_mask.fgb"
-write_dataframe(fhp_mask, outfilename)
-mbtiles_filename = tmp_dir / "fhp_mask.mbtiles"
-ret = subprocess.run(
-    tippecanoe_args
-    + ["-Z", "0", "-z", "8"]
-    + ["-l", "fhp_mask"]
-    + get_col_types(fhp_mask)
+    + get_col_types(fhp)
     + ["-o", str(mbtiles_filename), outfilename]
 )
 ret.check_returncode()
 outfilename.unlink()
 
 
-### Merge boundary and mask (final version uploaded to server)
-print("Merging boundary and mask tiles")
-ret = subprocess.run(
-    [
-        tile_join,
-        "-f",
-        "-pg",
-        "-o",
-        f"{out_dir}/region_boundaries.mbtiles",
-        f"{tmp_dir}/boundary.mbtiles",
-        f"{tmp_dir}/mask.mbtiles",
-        f"{tmp_dir}/fhp_boundary.mbtiles",
-        f"{tmp_dir}/fhp_mask.mbtiles",
-    ]
-)
-ret.check_returncode()
-
-
-### States
+################################################################################
+### Create state tiles
+################################################################################
 print("Creating state tiles")
-df = gp.read_feather(src_dir / "region_states.feather", columns=["geometry", "id"]).to_crs(GEO_CRS)
+states = gp.read_feather(src_dir / "region_states.feather", columns=["geometry", "id"]).to_crs(GEO_CRS)
 outfilename = tmp_dir / "region_states.fgb"
-write_dataframe(df, outfilename)
+write_dataframe(states, outfilename)
 mbtiles_filename = tile_dir / "State.mbtiles"
 ret = subprocess.run(
     tippecanoe_args
     + ["-Z", "0", "-z", "8"]
     + ["-l", "State"]
-    + get_col_types(df)
+    + get_col_types(states)
     + ["-o", f"{str(mbtiles_filename)}", str(outfilename)]
 )
 ret.check_returncode()
 outfilename.unlink()
 
 
+################################################################################
+### Create tiles of masks outside regions, FHPs, and states
+################################################################################
+print("Creating mask tiles")
+world = shapely.box(-180, -85, 180, 85)
+mask = pd.concat([regions[["id", "geometry"]], fhp[["id", "geometry"]], states[["id", "geometry"]]], ignore_index=True)
+mask["id"] = mask.id.values + "_mask"
+mask["geometry"] = shapely.normalize(shapely.difference(world, mask.geometry.values))
+
+outfilename = tmp_dir / "mask.fgb"
+write_dataframe(mask, outfilename)
+mbtiles_filename = tmp_dir / "mask.mbtiles"
+ret = subprocess.run(
+    tippecanoe_args
+    + ["-Z", "0", "-z", "8"]
+    + ["-l", "mask"]
+    + get_col_types(mask)
+    + ["-o", str(mbtiles_filename), str(outfilename)]
+)
+ret.check_returncode()
+outfilename.unlink()
+
+
+################################################################################
 ### Counties
+################################################################################
 print("Creating county tiles")
 df = gp.read_feather(src_dir / "region_counties.feather", columns=["geometry", "id", "name"]).to_crs(GEO_CRS)
 outfilename = tmp_dir / "region_counties.fgb"
@@ -140,7 +119,9 @@ ret.check_returncode()
 outfilename.unlink()
 
 
+################################################################################
 ## HUC2
+################################################################################
 print("Creating HUC2 tiles")
 df = gp.read_feather(src_dir / "HUC2.feather").rename(columns={"HUC2": "id"}).to_crs(GEO_CRS)
 outfilename = tmp_dir / "HUC2.fgb"
@@ -156,7 +137,10 @@ ret = subprocess.run(
 ret.check_returncode()
 outfilename.unlink()
 
+
+################################################################################
 ### HUC6 - HUC12
+################################################################################
 # have to render all to zoom 14 or boundaries mismatch
 huc_zoom_levels = {"HUC6": [0, 14], "HUC8": [0, 14], "HUC10": [6, 14], "HUC12": [8, 14]}
 
@@ -191,8 +175,9 @@ for huc, (minzoom, maxzoom) in huc_zoom_levels.items():
     ret.check_returncode()
     outfilename.unlink()
 
-
+################################################################################
 ### Combine all unit tiles into a single tileset
+################################################################################
 print("Merging all summary unit tiles")
 ret = subprocess.run(
     [
@@ -202,6 +187,11 @@ ret = subprocess.run(
         "--no-tile-size-limit",
         "-o",
         f"{tile_dir}/map_units.mbtiles",
+    ]
+    + [
+        f"{tmp_dir}/region_boundary.mbtiles",
+        f"{tmp_dir}/fhp_boundary.mbtiles",
+        f"{tmp_dir}/mask.mbtiles",
     ]
     + [f"{tile_dir}/{unit}.mbtiles" for unit in ["State", "County", "HUC2", "HUC6", "HUC8", "HUC10", "HUC12"]]
 )

@@ -11,7 +11,7 @@ from api.logger import log_request
 router = APIRouter()
 
 
-@router.get("/units/{layer}/{id}")
+@router.get("/units/{layer}/details/{id}")
 async def unit_details(request: Request, layer: Layers, id: str):
     log_request(request)
 

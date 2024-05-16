@@ -17,7 +17,7 @@ import { useQuery } from '@tanstack/react-query'
 
 import { fetchUnitDetails } from 'components/Data'
 import { Icon } from 'components/Icon'
-import { Chart, extractYearRemovedStats } from 'components/Restoration'
+import { Chart } from 'components/Restoration'
 import Downloader from 'components/Download/Downloader'
 import { Layout, SEO, PageError, PageLoading } from 'components/Layout'
 import { Link, ExternalLink } from 'components/Link'
@@ -27,7 +27,6 @@ import {
   CONNECTIVITY_TEAMS,
   STATE_DATA_PROVIDERS,
 } from 'config'
-import { toCamelCaseFields } from 'util/data'
 import { dynamicallyLoadImage } from 'util/dom'
 import { formatNumber, pluralize } from 'util/format'
 
@@ -75,21 +74,15 @@ const StateRoute = ({ params: { id } }) => {
     reconDams,
     removedDams,
     removedDamsGainMiles,
-    removedDamsByYear,
     totalSmallBarriers,
     smallBarriers,
     rankedSmallBarriers,
     removedSmallBarriers,
     removedSmallBarriersGainMiles,
-    removedSmallBarriersByYear,
     totalRoadCrossings,
     unsurveyedRoadCrossings,
-  } = toCamelCaseFields(data)
-
-  const removedBarriersByYear = extractYearRemovedStats(
-    removedDamsByYear,
-    removedSmallBarriersByYear
-  )
+    removedBarriersByYear,
+  } = data
 
   const hasRemovedBarriers =
     removedBarriersByYear.filter(({ dams: d, smallBarriers: sb }) => d + sb > 0)

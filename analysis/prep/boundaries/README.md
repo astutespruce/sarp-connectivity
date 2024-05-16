@@ -108,4 +108,4 @@ on 4/10/2024.
 
 ## 4. Create boundary vector tiles
 
-Vector tiles are are created for each of the boundary layers using `analysis/prep/boundaries/create_region_tiles.py`.
+Vector tiles are are created for each of the boundary layers using `analysis/prep/boundaries/create_map_unit_tiles.py`.

@@ -15,7 +15,6 @@ import PropTypes from 'prop-types'
 /* eslint-disable-next-line */
 import mapboxgl from '!mapbox-gl'
 
-import { useRegionBounds } from 'components/Data'
 import {
   Map,
   Legend,
@@ -27,25 +26,22 @@ import {
 } from 'components/Map'
 import { barrierTypeLabels, pointLegends, SUMMARY_UNIT_COLORS } from 'config'
 import { isEqual } from 'util/data'
-import { layers, removedPointLayer, regionLayers } from './layers'
+import { layers, removedPointLayer, regionMask, regionBoundary } from './layers'
 
 const barrierTypes = ['dams', 'small_barriers', 'combined_barriers']
 
 const RestorationMap = ({
   region,
-  bounds,
   system,
   focalBarrierType,
   summaryUnits,
   selectedBarrier,
   onSelectUnit,
   onSelectBarrier,
-  onCreateMap,
   children,
   ...props
 }) => {
   const barrierTypeLabel = barrierTypeLabels[focalBarrierType]
-  const regionBounds = useRegionBounds()
   const mapRef = useRef(null)
   const hoverFeatureRef = useRef(null)
   const selectedFeatureRef = useRef(null)
@@ -93,7 +89,7 @@ const RestorationMap = ({
 
           // base config for each layer
           const config = {
-            source: 'summary',
+            source: 'map_units',
             'source-layer': id,
             minzoom,
             maxzoom,
@@ -174,12 +170,14 @@ const RestorationMap = ({
       )
 
       // Add mask / boundary layers
-      regionLayers.forEach((l) => {
-        const layer = {
-          ...l,
-          filter: ['==', 'id', region],
-        }
-        map.addLayer(layer)
+      map.addLayer({
+        ...regionMask,
+        filter: ['==', 'id', `${region.id}_mask`],
+      })
+      map.addLayer({
+        ...regionBoundary,
+        'source-layer': region.layer,
+        filter: ['==', 'id', region.id],
       })
 
       // Add network layers
@@ -289,8 +287,8 @@ const RestorationMap = ({
 
         const { source, sourceLayer, properties } = feature
 
-        if (source === 'summary') {
-          // summary unit layer
+        if (source === 'map_units') {
+          // map units layer
           const { id } = properties
           onSelectUnit({ layer: sourceLayer, id })
         } else {
@@ -338,8 +336,6 @@ const RestorationMap = ({
           })
         }
       })
-
-      onCreateMap()
     },
     // hook deps are intentionally omitted here
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
@@ -538,32 +534,29 @@ const RestorationMap = ({
     }
   }, [system, focalBarrierType, zoom])
 
-  useLayoutEffect(
-    () => {
-      const { current: map } = mapRef
+  useLayoutEffect(() => {
+    const { current: map } = mapRef
 
-      if (!map) return
+    if (!map) return
 
-      regionLayers.forEach(({ id }) => {
-        map.setFilter(id, ['==', 'id', region])
-      })
+    map.addLayer({
+      ...regionMask,
+      filter: ['==', 'id', `${region.id}_mask`],
+    })
+    map.addLayer({
+      ...regionBoundary,
+      'source-layer': region.layer,
+      filter: ['==', 'id', region.id],
+    })
 
-      map.fitBounds(regionBounds[region], {
-        padding: 100,
-      })
-    },
-    // regionBounds deliberately omitted
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-    [region]
-  )
+    map.fitBounds(region.bounds, {
+      padding: 100,
+    })
+  }, [region])
 
   return (
     <>
-      <Map
-        onCreateMap={handleCreateMap}
-        {...props}
-        bounds={bounds || regionBounds[region]}
-      >
+      <Map onCreateMap={handleCreateMap} {...props} bounds={region.bounds}>
         <Legend
           title={layerTitle}
           subtitle={`number of ${barrierTypeLabel}`}
@@ -577,8 +570,11 @@ const RestorationMap = ({
 }
 
 RestorationMap.propTypes = {
-  region: PropTypes.string,
-  bounds: PropTypes.arrayOf(PropTypes.number),
+  region: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    layer: PropTypes.string.isRequired,
+    bounds: PropTypes.arrayOf(PropTypes.number).isRequired,
+  }).isRequired,
   system: PropTypes.string.isRequired,
   focalBarrierType: PropTypes.string.isRequired,
   summaryUnits: PropTypes.arrayOf(
@@ -589,7 +585,6 @@ RestorationMap.propTypes = {
   selectedBarrier: PropTypes.object,
   onSelectUnit: PropTypes.func.isRequired,
   onSelectBarrier: PropTypes.func.isRequired,
-  onCreateMap: PropTypes.func.isRequired,
   children: PropTypes.oneOfType([
     PropTypes.arrayOf(PropTypes.node),
     PropTypes.node,
@@ -597,8 +592,6 @@ RestorationMap.propTypes = {
 }
 
 RestorationMap.defaultProps = {
-  region: 'total',
-  bounds: null,
   summaryUnits: [],
   selectedBarrier: null,
   children: null,

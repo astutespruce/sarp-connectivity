@@ -96,7 +96,6 @@ NoNetworkInfo.propTypes = {
   in_network_type: PropTypes.bool,
   onloop: PropTypes.bool,
   snapped: PropTypes.bool,
-  diversion: PropTypes.number,
 }
 
 NoNetworkInfo.defaultProps = {
@@ -104,7 +103,6 @@ NoNetworkInfo.defaultProps = {
   in_network_type: false,
   onloop: false,
   snapped: false,
-  diversion: 0,
 }
 
 export default NoNetworkInfo

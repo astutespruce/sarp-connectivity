@@ -9,22 +9,21 @@ import {
   Divider,
   Grid,
   Heading,
-  Image,
   Paragraph,
   Text,
 } from 'theme-ui'
+import { useQuery } from '@tanstack/react-query'
 
-import { useRegionSummary } from 'components/Data'
+import { DataProviders, fetchUnitDetails } from 'components/Data'
 import { StateDownloadTable } from 'components/Download'
-import { Layout, SEO } from 'components/Layout'
+import { Layout, PageError, PageLoading, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { RegionActionLinks, RegionStats } from 'components/Regions'
 import { Chart } from 'components/Restoration'
 import { REGIONS, STATE_DATA_PROVIDERS } from 'config'
-import { dynamicallyLoadImage } from 'util/dom'
 import { formatNumber, pluralize } from 'util/format'
 
-const regionID = 'ak'
+const regionID = 'alaska'
 const {
   [regionID]: { name, states, inDevelopment },
 } = REGIONS
@@ -45,8 +44,36 @@ const AlaskaRegionPage = ({
   },
 }) => {
   const [metric, setMetric] = useState('gainmiles')
-  const { [regionID]: summary } = useRegionSummary()
-  const { removedBarriersByYear } = summary
+
+  const { isLoading, error, data } = useQuery({
+    queryKey: ['Region', regionID],
+    queryFn: async () => fetchUnitDetails('Region', regionID),
+
+    staleTime: 60 * 60 * 1000, // 60 minutes
+    // staleTime: 1, // use then reload to force refresh of underlying data during dev
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  })
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <PageLoading />
+      </Layout>
+    )
+  }
+
+  if (error) {
+    console.error(`Error loading region page: ${regionID}`)
+
+    return (
+      <Layout>
+        <PageError />
+      </Layout>
+    )
+  }
+
+  const { dams, smallBarriers, removedBarriersByYear } = data
 
   return (
     <Layout>
@@ -89,9 +116,9 @@ const AlaskaRegionPage = ({
               />
             </Box>
             <Text sx={{ fontSize: 1, color: 'grey.7' }}>
-              Map of {formatNumber(summary.dams)} inventoried dams and{' '}
-              {formatNumber(summary.smallBarriers)} road-related barriers likely
-              to impact aquatic organisms in the {name}
+              Map of {formatNumber(dams)} inventoried dams and{' '}
+              {formatNumber(smallBarriers)} road-related barriers likely to
+              impact aquatic organisms in the {name}
               region.
             </Text>
           </Box>
@@ -100,7 +127,7 @@ const AlaskaRegionPage = ({
               Includes {states.length} {pluralize('state', states.length)} with:
             </Heading>
 
-            <RegionStats {...summary} />
+            <RegionStats {...data} />
           </Box>
         </Grid>
 
@@ -128,7 +155,7 @@ const AlaskaRegionPage = ({
             Statistics by state:
           </Heading>
           <Box sx={{ mt: '0.5rem' }}>
-            <StateDownloadTable region={regionID} {...summary} />
+            <StateDownloadTable region={regionID} {...data} />
           </Box>
         </Box>
         {dataProviders.length > 0 ? (
@@ -137,27 +164,7 @@ const AlaskaRegionPage = ({
               Data Sources
             </Heading>
 
-            {dataProviders.map(({ key, description, logo, logoWidth }) => (
-              <Grid
-                key={key}
-                columns="2fr 1fr"
-                gap={5}
-                sx={{
-                  '&:not(:first-of-type)': {
-                    mt: '2rem',
-                  },
-                }}
-              >
-                <Box sx={{ fontSize: [2, 3] }}>
-                  <div dangerouslySetInnerHTML={{ __html: description }} />
-                </Box>
-                {logo ? (
-                  <Box sx={{ maxWidth: logoWidth }}>
-                    <Image src={dynamicallyLoadImage(logo)} />
-                  </Box>
-                ) : null}
-              </Grid>
-            ))}
+            <DataProviders dataProviders={dataProviders} />
           </Box>
         ) : null}
         <Divider sx={{ my: '4rem' }} />
@@ -202,7 +209,7 @@ export const pageQuery = graphql`
         )
       }
     }
-    map: file(relativePath: { eq: "maps/ak.png" }) {
+    map: file(relativePath: { eq: "maps/regions/alaska.png" }) {
       childImageSharp {
         gatsbyImageData(
           layout: FULL_WIDTH

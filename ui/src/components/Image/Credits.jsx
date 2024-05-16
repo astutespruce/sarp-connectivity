@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, NavLink } from 'theme-ui'
+import { Box } from 'theme-ui'
 
 import { OutboundLink } from 'components/Link'
 
@@ -37,7 +37,7 @@ Credits.propTypes = {
 }
 
 Credits.defaultProps = {
-  url: NavLink,
+  url: null,
   caption: null,
 }
 

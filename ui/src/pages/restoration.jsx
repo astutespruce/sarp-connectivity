@@ -1,10 +1,10 @@
-import React, { useState, useRef } from 'react'
+import React, { useMemo, useState, useRef } from 'react'
 import PropTypes from 'prop-types'
 import { Box, Flex, Spinner, Text } from 'theme-ui'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { fetchUnitDetails } from 'components/Data'
+import { fetchUnitDetails, useSummaryData } from 'components/Data'
 import {
   Layout,
   ClientOnly,
@@ -17,8 +17,7 @@ import { Sidebar } from 'components/Sidebar'
 import { TopBar } from 'components/Map'
 import { Map, UnitSummary, RegionSummary } from 'components/Restoration'
 import BarrierDetails from 'components/BarrierDetails'
-import { SYSTEMS } from 'config'
-import { toCamelCaseFields } from 'util/data'
+import { REGIONS, SYSTEMS, FISH_HABITAT_PARTNERSHIPS } from 'config'
 import { getQueryParams } from 'util/dom'
 
 const focalBarrierTypeOptions = [
@@ -33,8 +32,24 @@ const systemOptions = Object.entries(SYSTEMS).map(([value, label]) => ({
 }))
 
 const ProgressPage = ({ location }) => {
-  const { region = 'total', state: stateFromURL = null } =
-    getQueryParams(location)
+  const queryClient = useQueryClient()
+  const summary = useSummaryData()
+
+  const {
+    region = null,
+    state = null,
+    fishhabitatpartnership = null,
+  } = getQueryParams(location)
+
+  const urlItemId = state || fishhabitatpartnership || region
+  let urlItemType = null
+  if (region) {
+    urlItemType = 'Region'
+  } else if (state) {
+    urlItemType = 'State'
+  } else if (fishhabitatpartnership) {
+    urlItemType = 'FishHabitatPartnership'
+  }
 
   const [
     {
@@ -48,7 +63,7 @@ const ProgressPage = ({ location }) => {
     },
     setState,
   ] = useState(() => ({
-    system: stateFromURL !== null ? 'ADM' : 'HUC',
+    system: urlItemId !== null ? 'ADM' : 'HUC',
     focalBarrierType: 'dams', // options: dams, small_barriers, combined_barriers
     summaryUnits: [],
     selectedBarrier: null,
@@ -59,20 +74,19 @@ const ProgressPage = ({ location }) => {
 
   const summaryUnitsRef = useRef(new Set())
 
+  // load data for item specified in URL
   const {
     isLoading,
     error,
-    data: selectedStateFromURL = null,
+    data: selectedItem = null,
   } = useQuery({
-    queryKey: [stateFromURL],
-    queryFn: async () => fetchUnitDetails('State', stateFromURL),
-    enabled: stateFromURL !== null,
+    queryKey: [urlItemType, urlItemId],
+    queryFn: async () => fetchUnitDetails(urlItemType, urlItemId),
+    enabled: urlItemId !== null,
     staleTime: 10 * 60 * 1000, // 10 minutes
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   })
-
-  const queryClient = useQueryClient()
 
   const handleSetFocalBarrierType = (nextType) => {
     setState((prevState) => ({
@@ -93,16 +107,20 @@ const ProgressPage = ({ location }) => {
   }
 
   // Toggle selected unit in or out of selection
-  const handleSelectUnit = ({ layer, id, ...preFetchedUnitData }) => {
-    if (summaryUnitsRef.current.has(id)) {
+  const handleSelectUnit = ({
+    layer,
+    id: selectedId,
+    ...preFetchedUnitData
+  }) => {
+    if (summaryUnitsRef.current.has(selectedId)) {
       // remove it
-      summaryUnitsRef.current.delete(id)
+      summaryUnitsRef.current.delete(selectedId)
       setState((prevState) => ({
         ...prevState,
         isUnitError: false,
         isUnitLoading: false,
         summaryUnits: prevState.summaryUnits.filter(
-          ({ id: unitId }) => unitId !== id
+          ({ id: unitId }) => unitId !== selectedId
         ),
       }))
       return
@@ -112,17 +130,17 @@ const ProgressPage = ({ location }) => {
     // assume if unitData are present it was from a search feature and already
     // has necessary data loaded
     if (Object.keys(preFetchedUnitData).length > 0) {
-      summaryUnitsRef.current.add(id)
+      summaryUnitsRef.current.add(selectedId)
       setState((prevState) => ({
         ...prevState,
         isUnitError: false,
         isUnitLoading: false,
         summaryUnits: prevState.summaryUnits.concat([
-          toCamelCaseFields({
+          {
             layer,
-            id,
+            id: selectedId,
             ...preFetchedUnitData,
-          }),
+          },
         ]),
       }))
       return
@@ -130,11 +148,11 @@ const ProgressPage = ({ location }) => {
 
     queryClient
       .fetchQuery({
-        queryKey: [layer, id],
-        queryFn: async () => fetchUnitDetails(layer, id),
+        queryKey: [layer, selectedId],
+        queryFn: async () => fetchUnitDetails(layer, selectedId),
       })
       .then((unitData) => {
-        if (summaryUnitsRef.current.has(id)) {
+        if (summaryUnitsRef.current.has(selectedId)) {
           // if multiple requests resolved with this id due to slow requests
           setState((prevState) => ({
             ...prevState,
@@ -144,14 +162,12 @@ const ProgressPage = ({ location }) => {
           return
         }
 
-        summaryUnitsRef.current.add(id)
+        summaryUnitsRef.current.add(selectedId)
         setState((prevState) => ({
           ...prevState,
           isUnitError: false,
           isUnitLoading: false,
-          summaryUnits: prevState.summaryUnits.concat([
-            toCamelCaseFields(unitData),
-          ]),
+          summaryUnits: prevState.summaryUnits.concat([unitData]),
         }))
       })
       .catch(() => {
@@ -187,16 +203,57 @@ const ProgressPage = ({ location }) => {
     }))
   }
 
-  const handleCreateMap = () => {
-    if (selectedStateFromURL !== null) {
-      // NOTE: need to do this after map has loaded!
-      handleSelectUnit(selectedStateFromURL)
-    }
-  }
-
   const handleSetMetric = (newMetric) => {
     setState((prevState) => ({ ...prevState, metric: newMetric }))
   }
+
+  const regionData = useMemo(
+    () => {
+      if (selectedItem) {
+        const bounds = selectedItem.bbox.split(',').map((d) => parseFloat(d))
+        if (region) {
+          return {
+            ...selectedItem,
+            layer: 'boundary',
+            bounds,
+            name: `the ${REGIONS[region].name}`,
+            url: REGIONS[region].url,
+            urlLabel: 'view region page for more information',
+          }
+        }
+        if (fishhabitatpartnership) {
+          return {
+            ...selectedItem,
+            layer: 'fhp_boundary',
+            bounds,
+            name: `the ${FISH_HABITAT_PARTNERSHIPS[fishhabitatpartnership].name}`,
+            url: `/fhp/${fishhabitatpartnership}`,
+            urlLabel:
+              'view the Fish Habitat Partnership page for more information',
+          }
+        }
+        if (state) {
+          return {
+            ...selectedItem,
+            layer: 'State',
+            bounds,
+            url: `/states/${state}`,
+            urlLabel: `view state page for more information`,
+          }
+        }
+      }
+
+      return {
+        ...summary,
+        id: 'total',
+        name: 'full analysis region',
+        layer: 'boundary',
+      }
+    },
+    // ignore other deps intentionally
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+    [selectedItem]
+  )
 
   let sidebarContent = null
 
@@ -262,8 +319,9 @@ const ProgressPage = ({ location }) => {
   } else {
     sidebarContent = (
       <RegionSummary
-        region={region}
         barrierType={focalBarrierType}
+        region={region}
+        {...regionData}
         system={system}
         metric={metric}
         onSelectUnit={handleSelectUnit}
@@ -292,19 +350,13 @@ const ProgressPage = ({ location }) => {
                 }}
               >
                 <Map
-                  region={region}
-                  bounds={
-                    selectedStateFromURL !== null
-                      ? selectedStateFromURL.bbox.split(',').map(parseFloat)
-                      : null
-                  }
+                  region={regionData}
                   focalBarrierType={focalBarrierType}
                   system={system}
                   summaryUnits={summaryUnits}
                   selectedBarrier={selectedBarrier}
                   onSelectUnit={handleSelectUnit}
                   onSelectBarrier={handleSelectBarrier}
-                  onCreateMap={handleCreateMap}
                 >
                   <TopBar>
                     <Text sx={{ mr: '0.5rem' }}>Show networks for:</Text>

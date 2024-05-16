@@ -12,17 +12,18 @@ import {
   Paragraph,
   Text,
 } from 'theme-ui'
+import { useQuery } from '@tanstack/react-query'
 
-import { useRegionSummary, DataProviders } from 'components/Data'
+import { DataProviders, fetchUnitDetails } from 'components/Data'
 import { StateDownloadTable } from 'components/Download'
-import { Layout, SEO } from 'components/Layout'
+import { Layout, PageError, PageLoading, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { RegionActionLinks, RegionStats } from 'components/Regions'
 import { Chart } from 'components/Restoration'
 import { REGIONS, STATE_DATA_PROVIDERS } from 'config'
 import { formatNumber } from 'util/format'
 
-const regionID = 'ne'
+const regionID = 'northeast'
 const {
   [regionID]: { name, states, inDevelopment },
 } = REGIONS
@@ -43,8 +44,36 @@ const NortheastRegionPage = ({
   },
 }) => {
   const [metric, setMetric] = useState('gainmiles')
-  const { [regionID]: summary } = useRegionSummary()
-  const { removedBarriersByYear } = summary
+
+  const { isLoading, error, data } = useQuery({
+    queryKey: ['Region', regionID],
+    queryFn: async () => fetchUnitDetails('Region', regionID),
+
+    staleTime: 60 * 60 * 1000, // 60 minutes
+    // staleTime: 1, // use then reload to force refresh of underlying data during dev
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  })
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <PageLoading />
+      </Layout>
+    )
+  }
+
+  if (error) {
+    console.error(`Error loading region page: ${regionID}`)
+
+    return (
+      <Layout>
+        <PageError />
+      </Layout>
+    )
+  }
+
+  const { dams, smallBarriers, removedBarriersByYear } = data
 
   return (
     <Layout>
@@ -87,9 +116,9 @@ const NortheastRegionPage = ({
               />
             </Box>
             <Text sx={{ fontSize: 1, color: 'grey.7' }}>
-              Map of {formatNumber(summary.dams)} inventoried dams and{' '}
-              {formatNumber(summary.smallBarriers)} road-related barriers likely
-              to impact aquatic organisms in the {name}
+              Map of {formatNumber(dams)} inventoried dams and{' '}
+              {formatNumber(smallBarriers)} road-related barriers likely to
+              impact aquatic organisms in the {name}
               region.
             </Text>
           </Box>
@@ -98,7 +127,7 @@ const NortheastRegionPage = ({
               Includes {states.length - 1} states and Washington DC with:
             </Heading>
 
-            <RegionStats {...summary} />
+            <RegionStats {...data} />
           </Box>
         </Grid>
 
@@ -127,7 +156,7 @@ const NortheastRegionPage = ({
             Statistics by state:
           </Heading>
           <Box sx={{ mt: '0.5rem' }}>
-            <StateDownloadTable region={regionID} {...summary} />
+            <StateDownloadTable region={regionID} {...data} />
           </Box>
         </Box>
 
@@ -183,7 +212,7 @@ export const pageQuery = graphql`
         )
       }
     }
-    map: file(relativePath: { eq: "maps/ne.png" }) {
+    map: file(relativePath: { eq: "maps/regions/northeast.png" }) {
       childImageSharp {
         gatsbyImageData(
           layout: FULL_WIDTH

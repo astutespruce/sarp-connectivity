@@ -1,6 +1,6 @@
 export const maskFill = {
   id: 'mask',
-  source: 'region_boundaries',
+  source: 'map_units',
   'source-layer': 'mask',
   type: 'fill',
   filter: ['==', ['get', 'id'], 'total'],
@@ -12,7 +12,7 @@ export const maskFill = {
 
 export const maskOutline = {
   id: 'mask-outline',
-  source: 'region_boundaries',
+  source: 'map_units',
   'source-layer': 'boundary',
   type: 'line',
   filter: ['==', ['get', 'id'], 'total'],
@@ -26,7 +26,7 @@ export const maskOutline = {
 // Used to capture click events from the unit layer
 export const unitFill = {
   id: 'unit-fill',
-  source: 'summary',
+  source: 'map_units',
   // 'source-layer': '', // provided by specific layer
   // minzoom: 0, // provided by specific layer
   // maxzoom: 24, // provided by specific layer
@@ -41,7 +41,7 @@ export const unitFill = {
 
 export const unitOutline = {
   id: 'unit-outline',
-  source: 'summary',
+  source: 'map_units',
   // 'source-layer': '', // provided by specific layer
   // minzoom: 0, // provided by specific layer
   // maxzoom: 24, // provided by specific layer
@@ -66,7 +66,7 @@ export const unitOutline = {
 
 export const parentOutline = {
   id: 'unit-parent-outline',
-  source: 'summary',
+  source: 'map_units',
   // 'source-layer': '', // provided by specific layer
   // minzoom: 0, // provided by specific layer
   // maxzoom: 24, // provided by specific layer
@@ -92,7 +92,7 @@ export const parentOutline = {
 // highlight is visible at all scales
 export const unitHighlightFill = {
   id: 'unit-highlight-fill',
-  source: 'summary',
+  source: 'map_units',
   // 'source-layer': '', // provided by specific layer
   type: 'fill',
   minzoom: 0,
@@ -110,7 +110,7 @@ export const unitHighlightFill = {
 export const unitHighlightOutline = {
   id: 'unit-highlight-outline',
   type: 'line',
-  source: 'summary',
+  source: 'map_units',
   // 'source-layer': '', // provided by specific layer
   minzoom: 0,
   maxzoom: 24,
@@ -133,7 +133,7 @@ export const unitHighlightLayers = [unitHighlightFill, unitHighlightOutline]
 
 const priorityFillStyle = {
   // id: // provided by specific layer
-  source: 'summary',
+  source: 'map_units',
   'source-layer': 'HUC8',
   type: 'fill',
   minzoom: 0,
@@ -148,7 +148,7 @@ const priorityFillStyle = {
 const priorityOutlineStyle = {
   // id: // provided by specific layer
   'source-layer': 'HUC8',
-  source: 'summary',
+  source: 'map_units',
   type: 'line',
   minzoom: 0,
   maxzoom: 24,

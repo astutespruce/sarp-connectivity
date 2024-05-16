@@ -105,7 +105,7 @@ HeaderImage.propTypes = {
   title: PropTypes.string,
   subtitle: PropTypes.string,
   credits: PropTypes.shape({
-    url: PropTypes.string.isRequired,
+    url: PropTypes.string,
     author: PropTypes.string.isRequired,
   }),
   caption: PropTypes.string,

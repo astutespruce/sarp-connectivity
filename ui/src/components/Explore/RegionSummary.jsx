@@ -7,13 +7,12 @@ import { Box, Paragraph, Divider, Text } from 'theme-ui'
 
 import { Link } from 'components/Link'
 import { UnitSearch } from 'components/UnitSearch'
-// import { useSummaryData, useRegionSummary } from 'components/Data'
-import { REGIONS } from 'config'
 import { formatNumber } from 'util/format'
 
 const Summary = ({
   barrierType,
-  region,
+  url,
+  urlLabel,
   name,
   dams,
   reconDams,
@@ -38,34 +37,9 @@ const Summary = ({
     }
   }, [])
 
-  // let name = 'full analysis area'
-  // if (region !== 'total') {
-  //   name = REGIONS[region].name
-  // }
-
-  // const summary = useSummaryData()
-  // const regions = useRegionSummary()
-  const isRegion = region !== 'total'
-
-  // const {
-  //   dams,
-  //   reconDams,
-  //   rankedDams,
-  //   removedDams,
-  //   removedDamsGainMiles,
-  //   totalSmallBarriers,
-  //   smallBarriers,
-  //   rankedSmallBarriers,
-  //   removedSmallBarriers,
-  //   removedSmallBarriersGainMiles,
-  //   unsurveyedRoadCrossings,
-  // } = isRegion ? regions[region] : summary
-
   const unrankedDams = dams - rankedDams
   const unrankedBarriers = smallBarriers - rankedSmallBarriers
   const totalRoadBarriers = totalSmallBarriers + unsurveyedRoadCrossings
-
-  // const regionName = isRegion ? name : 'full analysis area'
 
   return (
     <Box
@@ -78,18 +52,15 @@ const Summary = ({
         height: '100%',
       }}
     >
-      {isRegion ? (
+      {url ? (
         <Box sx={{ mb: '1rem' }}>
-          <Link to={REGIONS[region].url}>
-            view region page for more information{' '}
-            <AngleDoubleRight size="1em" />
+          <Link to={url}>
+            {urlLabel} <AngleDoubleRight size="1em" />
           </Link>
         </Box>
       ) : null}
 
-      <Paragraph sx={{ fontSize: [3, 4] }}>
-        Across the {name}, there are:
-      </Paragraph>
+      <Paragraph sx={{ fontSize: [3, 4] }}>Across {name}, there are:</Paragraph>
 
       {barrierType === 'dams' || barrierType === 'combined_barriers' ? (
         <>
@@ -241,8 +212,9 @@ const Summary = ({
 }
 
 Summary.propTypes = {
-  region: PropTypes.string,
-  name: PropTypes.string,
+  url: PropTypes.string,
+  urlLabel: PropTypes.string,
+  name: PropTypes.string.isRequired,
   barrierType: PropTypes.string.isRequired,
   dams: PropTypes.number,
   reconDams: PropTypes.number,
@@ -260,8 +232,8 @@ Summary.propTypes = {
 }
 
 Summary.defaultProps = {
-  region: 'total',
-  name: 'full analysis area',
+  url: null,
+  urlLabel: null,
   dams: 0,
   reconDams: 0,
   rankedDams: 0,
