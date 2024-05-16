@@ -24,7 +24,6 @@ import {
   SubmitButton,
 } from 'components/Workflow'
 import { trackPrioritize } from 'util/analytics'
-import { toCamelCaseFields } from 'util/data'
 
 import Map from './Map'
 import Results from './Results'
@@ -169,11 +168,11 @@ const Prioritize = () => {
         isUnitError: false,
         isUnitLoading: false,
         summaryUnits: prevState.summaryUnits.concat([
-          toCamelCaseFields({
+          {
             layer: selectedUnitLayer,
             id,
             ...preFetchedUnitData,
-          }),
+          },
         ]),
       }))
       return
@@ -200,9 +199,7 @@ const Prioritize = () => {
           ...prevState,
           isUnitError: false,
           isUnitLoading: false,
-          summaryUnits: prevState.summaryUnits.concat([
-            toCamelCaseFields(unitData),
-          ]),
+          summaryUnits: prevState.summaryUnits.concat([unitData]),
         }))
       })
       .catch(() => {

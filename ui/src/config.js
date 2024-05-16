@@ -596,7 +596,7 @@ export const REGIONS = {
     url: '/regions/great_lakes',
     states: ['IA', 'IL', 'IN', 'MI', 'MN', 'OH', 'WI'],
   },
-  great_plains: {
+  great_plains_intermountain_west: {
     name: 'Great Plains & Intermountain West',
     url: '/regions/great_plains_intermountain_west',
     order: 1,

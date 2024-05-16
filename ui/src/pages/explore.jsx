@@ -22,7 +22,6 @@ import { TopBar } from 'components/Map'
 import { Map, RegionSummary, UnitSummary } from 'components/Explore'
 import BarrierDetails from 'components/BarrierDetails'
 import { REGIONS, SYSTEMS } from 'config'
-import { toCamelCaseFields } from 'util/data'
 import { getQueryParams } from 'util/dom'
 
 const focalBarrierTypeOptions = [
@@ -136,11 +135,11 @@ const ExplorePage = ({ location }) => {
         isUnitError: false,
         isUnitLoading: false,
         summaryUnits: prevState.summaryUnits.concat([
-          toCamelCaseFields({
+          {
             layer,
             id,
             ...preFetchedUnitData,
-          }),
+          },
         ]),
       }))
       return
@@ -167,9 +166,7 @@ const ExplorePage = ({ location }) => {
           ...prevState,
           isUnitError: false,
           isUnitLoading: false,
-          summaryUnits: prevState.summaryUnits.concat([
-            toCamelCaseFields(unitData),
-          ]),
+          summaryUnits: prevState.summaryUnits.concat([unitData]),
         }))
       })
       .catch(() => {
@@ -216,7 +213,7 @@ const ExplorePage = ({ location }) => {
 
   let regionData = {}
   if (fishhabitatpartnershipFromURL && selectedItemFromURL) {
-    regionData = toCamelCaseFields(selectedItemFromURL)
+    regionData = selectedItemFromURL
   } else if (region !== 'total') {
     regionData = {
       ...regions[region],

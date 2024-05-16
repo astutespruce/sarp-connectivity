@@ -1,9 +1,10 @@
 import { tableFromIPC } from '@apache-arrow/es2015-esm'
 import { fromArrow } from 'arquero'
 
-import { unpackBits } from 'util/data'
+import { unpackBits, toCamelCaseFields } from 'util/data'
 import { captureException } from 'util/log'
 import { siteMetadata, TIER_PACK_BITS } from 'config'
+import { extractYearRemovedStats } from 'components/Restoration/util'
 
 const { apiHost } = siteMetadata
 
@@ -154,8 +155,17 @@ export const fetchUnitDetails = async (layer, id) => {
       throw new Error(`Failed request to ${url}: ${response.statusText}`)
     }
 
-    const data = await response.json()
-    return data
+    const rawData = await response.json()
+
+    const { removedDamsByYear, removedSmallBarriersByYear, ...data } =
+      toCamelCaseFields(rawData)
+
+    const removedBarriersByYear = extractYearRemovedStats(
+      removedDamsByYear,
+      removedSmallBarriersByYear
+    )
+
+    return { ...data, removedBarriersByYear }
   } catch (err) {
     captureException(err)
 
@@ -180,6 +190,25 @@ export const searchUnits = async (layers, query) => {
       results: data.toArray().map((row) => row.toJSON()),
       remaining: parseInt(data.schema.metadata.get('count'), 10) - data.numRows,
     }
+  } catch (err) {
+    captureException(err)
+
+    throw err
+  }
+}
+
+export const fetchUnitList = async (layer, ids) => {
+  const url = `${apiHost}/api/v1/internal/units/${layer}/list?id=${ids.join(',')}`
+
+  try {
+    const response = await fetch(url)
+    if (response.status !== 200) {
+      throw new Error(`Failed request to ${url}: ${response.statusText}`)
+    }
+
+    const data = await tableFromIPC(response.arrayBuffer())
+
+    return data.toArray().map((row) => toCamelCaseFields(row.toJSON()))
   } catch (err) {
     captureException(err)
 

@@ -1,12 +1,12 @@
 import { useSummaryData } from './Summary'
 import { useRegionSummary } from './RegionSummary'
-import { useStateSummary } from './StateSummary'
 import {
   fetchBarrierInfo,
   fetchBarrierRanks,
   getDownloadURL,
   searchBarriers,
   fetchUnitDetails,
+  fetchUnitList,
 } from './API'
 import { Provider as BarrierTypeProvider, useBarrierType } from './BarrierType'
 import DataProviders from './DataProviders'
@@ -14,11 +14,11 @@ import DataProviders from './DataProviders'
 export {
   useSummaryData,
   useRegionSummary,
-  useStateSummary,
   fetchBarrierInfo,
   fetchBarrierRanks,
   searchBarriers,
   fetchUnitDetails,
+  fetchUnitList,
   BarrierTypeProvider,
   useBarrierType,
   getDownloadURL,

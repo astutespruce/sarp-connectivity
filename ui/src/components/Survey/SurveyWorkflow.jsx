@@ -22,8 +22,6 @@ import {
   unitLayerConfig,
 } from 'components/Workflow'
 
-import { toCamelCaseFields } from 'util/data'
-
 import Map from './Map'
 
 const MAX_RECORDS = 500000
@@ -125,11 +123,11 @@ const SurveyWorkflow = () => {
         isUnitError: false,
         isUnitLoading: false,
         summaryUnits: prevState.summaryUnits.concat([
-          toCamelCaseFields({
+          {
             layer: selectedUnitLayer,
             id,
             ...preFetchedUnitData,
-          }),
+          },
         ]),
       }))
       return
@@ -156,9 +154,7 @@ const SurveyWorkflow = () => {
           ...prevState,
           isUnitError: false,
           isUnitLoading: false,
-          summaryUnits: prevState.summaryUnits.concat([
-            toCamelCaseFields(unitData),
-          ]),
+          summaryUnits: prevState.summaryUnits.concat([unitData]),
         }))
       })
       .catch(() => {

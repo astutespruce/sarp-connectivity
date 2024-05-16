@@ -37,7 +37,7 @@ Credits.propTypes = {
 }
 
 Credits.defaultProps = {
-  url: NavLink,
+  url: null,
   caption: null,
 }
 

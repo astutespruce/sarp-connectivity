@@ -1,8 +1,10 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Grid, Paragraph } from 'theme-ui'
+import { Box, Flex, Grid, Paragraph, Spinner, Text } from 'theme-ui'
+import { useQuery } from '@tanstack/react-query'
+import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 
-import { useStateSummary } from 'components/Data'
+import { fetchUnitList } from 'components/Data'
 import { Link } from 'components/Link'
 import { REGIONS, STATES, ANALYSIS_STATES } from 'config'
 import { groupBy } from 'util/data'
@@ -22,7 +24,6 @@ const StateDownloadTable = ({
   totalSmallBarriers,
   sx,
 }) => {
-  const stateData = groupBy(useStateSummary(), 'id')
   let states = []
   if (region === 'total') {
     states = ANALYSIS_STATES
@@ -32,6 +33,49 @@ const StateDownloadTable = ({
 
   const unrankedDams = dams - rankedDams
   const unrankedBarriers = smallBarriers - rankedSmallBarriers
+
+  const { isLoading, error, data } = useQuery({
+    queryKey: ['StatesList', states],
+    queryFn: async () => fetchUnitList('State', states),
+
+    staleTime: 60 * 60 * 1000, // 60 minutes
+    // staleTime: 1, // use then reload to force refresh of underlying data during dev
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  })
+
+  if (isLoading) {
+    return (
+      <Flex sx={{ justifyContent: 'center' }}>
+        <Spinner />
+      </Flex>
+    )
+  }
+
+  if (error) {
+    console.error(`Error loading state table for states: ${states.join(',')}`)
+    return (
+      <Flex
+        sx={{
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '1rem',
+          color: 'highlight',
+        }}
+      >
+        <Box>
+          <ExclamationTriangle size="2em" />
+        </Box>
+        <Text>
+          Whoops! There was an error loading the states in this region
+        </Text>
+      </Flex>
+    )
+  }
+
+  console.log('data', data)
+
+  const stateData = groupBy(data, 'id')
 
   return (
     <Box sx={sx}>

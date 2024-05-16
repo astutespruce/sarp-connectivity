@@ -43,7 +43,7 @@ const Regions = () => {
         }
       }
 
-      northest: file(relativePath: { eq: "maps/regions/northeast.png" }) {
+      northeast: file(relativePath: { eq: "maps/regions/northeast.png" }) {
         childImageSharp {
           gatsbyImageData(
             layout: FULL_WIDTH

@@ -18,7 +18,6 @@ import { TopBar } from 'components/Map'
 import { Map, UnitSummary, RegionSummary } from 'components/Restoration'
 import BarrierDetails from 'components/BarrierDetails'
 import { SYSTEMS } from 'config'
-import { toCamelCaseFields } from 'util/data'
 import { getQueryParams } from 'util/dom'
 
 const focalBarrierTypeOptions = [
@@ -118,11 +117,11 @@ const ProgressPage = ({ location }) => {
         isUnitError: false,
         isUnitLoading: false,
         summaryUnits: prevState.summaryUnits.concat([
-          toCamelCaseFields({
+          {
             layer,
             id,
             ...preFetchedUnitData,
-          }),
+          },
         ]),
       }))
       return
@@ -149,9 +148,7 @@ const ProgressPage = ({ location }) => {
           ...prevState,
           isUnitError: false,
           isUnitLoading: false,
-          summaryUnits: prevState.summaryUnits.concat([
-            toCamelCaseFields(unitData),
-          ]),
+          summaryUnits: prevState.summaryUnits.concat([unitData]),
         }))
       })
       .catch(() => {
