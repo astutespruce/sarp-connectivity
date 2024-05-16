@@ -1,5 +1,4 @@
 import { useSummaryData } from './Summary'
-import { useRegionSummary } from './RegionSummary'
 import {
   fetchBarrierInfo,
   fetchBarrierRanks,
@@ -13,7 +12,6 @@ import DataProviders from './DataProviders'
 
 export {
   useSummaryData,
-  useRegionSummary,
   fetchBarrierInfo,
   fetchBarrierRanks,
   searchBarriers,
@@ -24,10 +22,3 @@ export {
   getDownloadURL,
   DataProviders,
 }
-
-export const useRegionBounds = () => ({
-  total: useSummaryData().bounds,
-  ...Object.fromEntries(
-    Object.entries(useRegionSummary()).map(([id, { bounds }]) => [id, bounds])
-  ),
-})

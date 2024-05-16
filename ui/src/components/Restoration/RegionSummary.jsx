@@ -7,17 +7,24 @@ import { Box, Paragraph, Divider, Text } from 'theme-ui'
 
 import { Link } from 'components/Link'
 import { UnitSearch } from 'components/UnitSearch'
-import { useSummaryData, useRegionSummary } from 'components/Data'
-import { REGIONS } from 'config'
 import { formatNumber, pluralize } from 'util/format'
 
 import Chart from './Chart'
 
 const Summary = ({
-  region,
+  url,
+  urlLabel,
+  name,
   barrierType,
   system,
   metric,
+  dams,
+  removedDams,
+  removedDamsGainMiles,
+  totalSmallBarriers,
+  removedSmallBarriers,
+  removedSmallBarriersGainMiles,
+  removedBarriersByYear,
   onSelectUnit,
   onChangeMetric,
 }) => {
@@ -30,27 +37,6 @@ const Summary = ({
     }
   }, [])
 
-  let name = 'full analysis area'
-  if (region !== 'total') {
-    name = REGIONS[region].name
-  }
-
-  const summary = useSummaryData()
-  const regions = useRegionSummary()
-  const isRegion = region !== 'total'
-
-  const {
-    dams,
-    removedDams,
-    removedDamsGainMiles,
-    totalSmallBarriers,
-    removedSmallBarriers,
-    removedSmallBarriersGainMiles,
-    removedBarriersByYear,
-  } = isRegion ? regions[region] : summary
-
-  const regionName = isRegion ? name : 'full analysis area'
-
   return (
     <Box
       ref={contentNodeRef}
@@ -62,19 +48,15 @@ const Summary = ({
         height: '100%',
       }}
     >
-      {isRegion ? (
+      {url ? (
         <Box sx={{ mb: '1rem' }}>
-          <Link to={REGIONS[region].url}>
-            view region page for more information{' '}
-            <AngleDoubleRight size="1em" />
+          <Link to={url}>
+            {urlLabel} <AngleDoubleRight size="1em" />
           </Link>
         </Box>
       ) : null}
 
-      <Paragraph sx={{ fontSize: [3, 4] }}>
-        Across the {regionName}
-        {region !== 'total' ? ' Region' : null}, there are:
-      </Paragraph>
+      <Paragraph sx={{ fontSize: [3, 4] }}>Across {name}, there are:</Paragraph>
 
       {barrierType === 'dams' || barrierType === 'combined_barriers' ? (
         <>
@@ -223,16 +205,33 @@ const Summary = ({
 }
 
 Summary.propTypes = {
-  region: PropTypes.string,
+  url: PropTypes.string,
+  urlLabel: PropTypes.string,
+  name: PropTypes.string.isRequired,
   barrierType: PropTypes.string.isRequired,
   system: PropTypes.string.isRequired,
   metric: PropTypes.string.isRequired,
+  dams: PropTypes.number,
+  removedDams: PropTypes.number,
+  removedDamsGainMiles: PropTypes.number,
+  totalSmallBarriers: PropTypes.number,
+  removedSmallBarriers: PropTypes.number,
+  removedSmallBarriersGainMiles: PropTypes.number,
+  removedBarriersByYear: PropTypes.array, // validated by Chart.jsx
   onSelectUnit: PropTypes.func.isRequired,
   onChangeMetric: PropTypes.func.isRequired,
 }
 
 Summary.defaultProps = {
-  region: 'total',
+  url: null,
+  urlLabel: null,
+  dams: 0,
+  removedDams: 0,
+  removedDamsGainMiles: 0,
+  totalSmallBarriers: 0,
+  removedSmallBarriers: 0,
+  removedSmallBarriersGainMiles: 0,
+  removedBarriersByYear: null,
 }
 
 export default Summary

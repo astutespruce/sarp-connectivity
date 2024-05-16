@@ -5,7 +5,7 @@ import geopandas as gp
 import numpy as np
 import pandas as pd
 
-from analysis.constants import STATES, REGION_STATES
+from analysis.constants import STATES
 from analysis.post.lib.removed_barriers import calc_year_removed_bin, pack_year_removed_stats
 
 
@@ -144,60 +144,3 @@ stats = {
 
 with open(ui_data_dir / "summary_stats.json", "w") as outfile:
     _ = outfile.write(json.dumps(stats))
-
-
-### Calculate stats for regions
-# NOTE: these are groupings of states and some states may be in multiple regions
-region_stats = []
-for region, region_states in REGION_STATES.items():
-    region_dams = dams.loc[dams.State.isin(region_states)]
-    region_barriers = barriers.loc[barriers.State.isin(region_states)]
-    region_crossings = crossings.loc[crossings.State.isin(region_states)]
-
-    region_stats.append(
-        {
-            "id": region,
-            "bounds": bounds[region],
-            "dams": len(region_dams),
-            "ranked_dams": int(region_dams.Ranked.sum()),
-            "recon_dams": int((region_dams.Recon > 0).sum()),
-            "removed_dams": int(region_dams.Removed.sum()),
-            "removed_dams_gain_miles": round(region_dams.RemovedGainMiles.sum().item(), 1),
-            "removed_dams_by_year": pack_year_removed_stats(region_dams),
-            "total_small_barriers": len(region_barriers),
-            "small_barriers": int(region_barriers.Included.sum()),
-            "ranked_small_barriers": int(region_barriers.Ranked.sum()),
-            "removed_small_barriers": int(region_barriers.Removed.sum()),
-            "removed_small_barriers_gain_miles": round(region_barriers.RemovedGainMiles.sum().item(), 1),
-            "removed_small_barriers_by_year": pack_year_removed_stats(region_barriers),
-            "total_road_crossings": len(region_crossings),
-            "unsurveyed_road_crossings": int((region_crossings.NearestBarrierID == "").sum()),
-        }
-    )
-
-with open(ui_data_dir / "region_stats.json", "w") as outfile:
-    _ = outfile.write(json.dumps(region_stats))
-
-
-### Calculate stats for states; these are used for state download tables
-# (state pages use API data instead)
-state_stats = []
-for state, name in sorted(STATES.items(), key=lambda x: x[1]):
-    state_dams = dams.loc[dams.State == state]
-    state_barriers = barriers.loc[barriers.State == state]
-    state_crossings = crossings.loc[crossings.State == state]
-
-    state_stats.append(
-        {
-            "id": state,
-            "dams": len(state_dams),
-            "ranked_dams": int(state_dams.Ranked.sum()),
-            "recon_dams": int((state_dams.Recon > 0).sum()),
-            "small_barriers": int(state_barriers.Included.sum()),
-            "ranked_small_barriers": int(state_barriers.Ranked.sum()),
-            "total_small_barriers": int(len(state_barriers)),
-        }
-    )
-
-with open(ui_data_dir / "state_stats.json", "w") as outfile:
-    _ = outfile.write(json.dumps(state_stats))

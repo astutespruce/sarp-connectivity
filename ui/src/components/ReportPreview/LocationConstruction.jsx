@@ -352,12 +352,12 @@ const LocationConstruction = ({
           <Text>Fish Habitat Partnerships working in this area:</Text>
           <Text sx={{ mt: '0.25rem', ml: '1rem' }}>
             {fishhabitatpartnership.split(',').map((code, i) => (
-              <>
+              <React.Fragment key={code}>
                 {i > 0 ? ', ' : null}
                 <OutboundLink to={FISH_HABITAT_PARTNERSHIPS[code].url}>
                   {FISH_HABITAT_PARTNERSHIPS[code].name}
                 </OutboundLink>
-              </>
+              </React.Fragment>
             ))}
           </Text>
         </Box>

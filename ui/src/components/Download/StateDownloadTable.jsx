@@ -73,8 +73,6 @@ const StateDownloadTable = ({
     )
   }
 
-  console.log('data', data)
-
   const stateData = groupBy(data, 'id')
 
   return (
