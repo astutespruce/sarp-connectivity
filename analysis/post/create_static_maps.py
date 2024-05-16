@@ -144,12 +144,12 @@ fhp_dir.mkdir(exist_ok=True)
 
 ### Render region maps
 df = gp.read_feather("data/boundaries/region_boundary.feather").to_crs(GEO_CRS).set_index("id")
-df = df.loc[df.id != "total"]
+df = df.loc[df.index != "total"]
 
 for id, row in df.bounds.iterrows():
     print(f"Rendering map for {id}")
     style = deepcopy(STYLE)
-    style["layers"][-2]["filter"] = ["==", "id", id]
+    style["layers"][-2]["filter"] = ["==", "id", f"{id}_mask"]
     style["layers"][-1]["source-layer"] = "boundary"
     style["layers"][-1]["filter"] = ["==", "id", id]
 
@@ -182,7 +182,7 @@ df = gp.GeoDataFrame(
 for id, row in df.iterrows():
     print(f"Rendering map for {id}")
     style = deepcopy(STYLE)
-    style["layers"][-2]["filter"] = ["==", "id", id]
+    style["layers"][-2]["filter"] = ["==", "id", f"{id}_mask"]
     style["layers"][-1]["source-layer"] = "State"
     style["layers"][-1]["filter"] = ["==", "id", id]
 
@@ -215,7 +215,7 @@ df = gp.GeoDataFrame(df.groupby(level=0).agg({"geometry": shapely.multipolygons}
 for id, row in df.bounds.iterrows():
     print(f"Rendering map for {id}")
     style = deepcopy(STYLE)
-    style["layers"][-2]["filter"] = ["==", "id", id]
+    style["layers"][-2]["filter"] = ["==", "id", f"{id}_mask"]
     style["layers"][-1]["source-layer"] = "fhp_boundary"
     style["layers"][-1]["filter"] = ["==", "id", id]
 
