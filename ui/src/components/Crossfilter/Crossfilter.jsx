@@ -135,6 +135,7 @@ export const Crossfilter = (filterConfig) => {
 
       const hasFilters =
         Object.entries(filters).filter(
+          /* eslint-disable-next-line no-unused-vars */
           ([_, filter]) => filter && filter.size > 0
         ).length > 0
 

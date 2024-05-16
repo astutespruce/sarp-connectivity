@@ -91,7 +91,9 @@ export const getLegendEntries = ({ name, networkType, visibleLayers }) => {
 
   if (visibleLayers) {
     const flowlineElements = Object.entries(flowlineSymbols)
+      /* eslint-disable-next-line no-unused-vars */
       .filter(([key, _]) => visibleLayers.has(key))
+      /* eslint-disable-next-line no-unused-vars */
       .map(([_, symbol]) => symbol)
     entries.push(...flowlineElements)
   } else {

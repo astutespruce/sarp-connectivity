@@ -366,7 +366,6 @@ Network.propTypes = {
   in_network_type: PropTypes.bool.isRequired,
   excluded: PropTypes.bool,
   onloop: PropTypes.bool,
-  diversion: PropTypes.number,
   totalupstreammiles: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
   alteredupstreammiles: PropTypes.number,
@@ -394,7 +393,6 @@ Network.propTypes = {
 Network.defaultProps = {
   excluded: false,
   onloop: false,
-  diversion: 0,
   totalupstreammiles: 0,
   perennialupstreammiles: 0,
   alteredupstreammiles: 0,
