@@ -177,7 +177,6 @@ const DamDetails = ({
           stateregulated={stateregulated}
           fedregulatoryagency={fedregulatoryagency}
           waterright={waterright}
-          // disadvantagedcommunity={disadvantagedcommunity}
           ejtract={ejtract}
           ejtribal={ejtribal}
           fishhabitatpartnership={fishhabitatpartnership}

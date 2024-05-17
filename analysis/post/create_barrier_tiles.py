@@ -566,12 +566,12 @@ df = (
         results_dir / "road_crossings.feather",
         columns=["geometry", "SARPID", "Name"]
         + ROAD_CROSSING_TILE_FILTER_FIELDS
-        + ["COUNTYFIPS", "StreamOrder", "OnLoop", "offnetwork_flowline"],
+        + ["COUNTYFIPS", "StreamOrder", "OnNetwork"],
     )
     .sort_values(
         # sort so that assumed culverts are first and bridges are last
-        by=["CrossingType", "StreamOrder", "OnLoop", "offnetwork_flowline"],
-        ascending=[False, False, True, True],
+        by=["CrossingType", "StreamOrder", "OnNetwork"],
+        ascending=False,
     )
     .drop(columns=["County"])
     .rename(columns={"COUNTYFIPS": "County"})
@@ -581,7 +581,7 @@ fill_na_fields(df)
 
 # # Below zoom 8, we only need filter fields and only show on-network crossings
 # print("Creating tiles for road crossings for zooms 3-7")
-tmp = df.loc[~df.offnetwork_flowline & (df.OnLoop == 0)][["geometry"] + ROAD_CROSSING_TILE_FILTER_FIELDS]
+tmp = df.loc[df.OnNetwork][["geometry"] + ROAD_CROSSING_TILE_FILTER_FIELDS]
 # snap to a 500m grid (aggressive!) and drop duplicate points
 tmp["geometry"] = shapely.set_precision(tmp.geometry.values, 500)
 tmp = gp.GeoDataFrame(tmp.groupby("geometry").first().reset_index(), crs=df.crs)
@@ -608,9 +608,7 @@ ret.check_returncode()
 
 # For zooms 8-10, also show name, but not off-network road crossings
 print("Creating tiles for road crossings for zooms 8-10")
-tmp = df.loc[~df.offnetwork_flowline & (df.OnLoop == 0)][
-    ["geometry"] + ROAD_CROSSING_TILE_FILTER_FIELDS + ["SARPIDName"]
-]
+tmp = df.loc[df.OnNetwork][["geometry"] + ROAD_CROSSING_TILE_FILTER_FIELDS + ["SARPIDName"]]
 # # snap to a 100m grid and drop duplicate points
 tmp["geometry"] = shapely.set_precision(tmp.geometry.values, 100)
 tmp = gp.GeoDataFrame(tmp.groupby("geometry").first().reset_index(), crs=df.crs)

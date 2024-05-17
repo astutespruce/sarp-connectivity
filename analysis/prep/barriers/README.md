@@ -98,6 +98,12 @@ Barriers are deduplicated against dams and waterfalls.
 
 Road crossings were downloaded from https://www.sciencebase.gov/catalog/item/6128fbf2d34e40dd9c061360 on 2/16/2022.
 
+Road crossings are based on TIGER 2020 roads data. The roads data were downloaded
+from https://www2.census.gov/geo/tiger/TGRGDB20/ on 5/17/2024 and used to link
+in road ownership type used to derive BarrierOwnerType.
+
+TODO: NBI linking
+
 These are processed in advance for a given snapshot of the road crossings input
 dataset ("stream_crossings_united_states_feb_2022.gpkg") using
 `analysis/prep/barriers/special/prep_raw_road_crossings.py`. These go through

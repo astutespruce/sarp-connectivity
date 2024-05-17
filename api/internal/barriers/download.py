@@ -87,7 +87,7 @@ async def download(
                 log.warn("too many items requested")
                 raise HTTPException(status_code=400, detail="Too many items requested")
 
-            warnings = "this dataset includes road/stream crossings (potential barriers) derived from the USGS Road Crossings dataset (2022) that have not yet been assessed for impacts to aquatic organisms.  These only include those that were snapped to the aquatic network and should not be taken as a comprehensive survey of all possible road-related barriers."
+            warnings = "this dataset includes road/stream crossings (potential barriers) derived from the USGS Road Crossings dataset (2022) or USFS National Road / Stream crossings dataset (2024) that have not yet been assessed for impacts to aquatic organisms.  These only include those that were snapped to the aquatic network and should not be taken as a comprehensive survey of all possible road-related barriers."
 
         else:
             # drop species habitat columns that have no useful data

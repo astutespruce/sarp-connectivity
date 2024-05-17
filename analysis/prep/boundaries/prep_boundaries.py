@@ -155,7 +155,7 @@ region_geo_df["bbox"] = encode_bbox(region_geo_df.geometry.values)
 region_geo_df["in_region"] = True
 region_geo_df["state"] = ""
 region_geo_df["layer"] = "Region"
-region_geo_df["priority"] = np.uint16(99)  # not used in search
+region_geo_df["priority"] = np.uint8(99)  # not used in search
 region_geo_df["name"] = ""  # not used
 region_geo_df["key"] = region_geo_df.id
 
@@ -181,7 +181,7 @@ state_geo_df["bbox"] = encode_bbox(state_geo_df.geometry.values)
 state_geo_df["in_region"] = state_geo_df.id.isin(STATES)
 state_geo_df["state"] = ""  # state_geo_df.id
 state_geo_df["layer"] = "State"
-state_geo_df["priority"] = np.uint16(1)
+state_geo_df["priority"] = np.uint8(1)
 state_geo_df["key"] = state_geo_df["name"]
 
 # Unwrap Alaska counties around antimeridian
@@ -209,7 +209,7 @@ county_geo_df = gp.GeoDataFrame(
 county_geo_df["name"] = county_geo_df["name"] + " County"
 county_geo_df["bbox"] = encode_bbox(county_geo_df.geometry.values)
 county_geo_df["layer"] = "County"
-county_geo_df["priority"] = np.uint16(2)
+county_geo_df["priority"] = np.uint8(2)
 county_geo_df["key"] = county_geo_df["name"] + " " + county_geo_df.state_name
 
 print("Processing fish habitat partnerships")
@@ -226,7 +226,7 @@ fhp_geo_df["bbox"] = encode_bbox(fhp_geo_df.geometry.values)
 fhp_geo_df["in_region"] = True
 fhp_geo_df["state"] = ""  # not used
 fhp_geo_df["layer"] = "FishHabitatPartnership"
-fhp_geo_df["priority"] = np.uint16(99)  # not used in search
+fhp_geo_df["priority"] = np.uint8(99)  # not used in search
 fhp_geo_df["key"] = fhp_geo_df["name"]
 
 
@@ -247,7 +247,7 @@ for i, unit in enumerate(["HUC2", "HUC6", "HUC8", "HUC10", "HUC12"]):
 
     df["bbox"] = encode_bbox(df.geometry.values)
     df["layer"] = unit
-    df["priority"] = np.uint16(i + 2)
+    df["priority"] = np.uint8(i + 2)
 
     # only keep those that overlap the boundary
     tree = shapely.STRtree(df.geometry.values)

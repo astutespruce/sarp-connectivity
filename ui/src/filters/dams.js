@@ -267,7 +267,6 @@ export const dams = [
         field: 'barrierownertype',
         title: 'Barrier ownership type',
         sort: true,
-        // hideMissingValues: true,
         ...getEntries(BARRIEROWNERTYPE),
       },
     ],

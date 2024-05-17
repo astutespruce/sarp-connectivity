@@ -293,8 +293,7 @@ const SurveyMap = ({
           },
         } = feature
 
-        if (source === 'summary') {
-          console.log('click', sourceLayer, properties)
+        if (source === 'map_units') {
           onSelectUnit({ layer: sourceLayer, id: properties.id })
           return
         }
@@ -302,7 +301,7 @@ const SurveyMap = ({
         if (map.getZoom() < 8) {
           // don't allow selection of points below zoom 8
           const [unitLayerFeature] = features.filter(
-            ({ source: lyrSource }) => lyrSource === 'summary'
+            ({ source: lyrSource }) => lyrSource === 'map_units'
           )
           if (unitLayerFeature) {
             onSelectUnit({

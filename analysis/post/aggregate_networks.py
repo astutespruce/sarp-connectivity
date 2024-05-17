@@ -427,6 +427,9 @@ print("Processing road crossings")
 crossings = gp.read_feather(barriers_dir / "road_crossings.feather").set_index("id").rename(columns=rename_cols)
 fill_flowline_cols(crossings)
 
+crossings["OnNetwork"] = ~(crossings.OnLoop | crossings.offnetwork_flowline)
+
+
 tmp = crossings.copy()
 tmp["BarrierType"] = "road_crossings"
 search_barriers = pd.concat(
@@ -440,9 +443,7 @@ for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
 
 print("Saving crossings for tiles and API")
 # Save full results for tiles, etc
-crossings[ROAD_CROSSING_API_FIELDS + ["offnetwork_flowline", "geometry"]].reset_index().to_feather(
-    results_dir / "road_crossings.feather"
-)
+crossings[ROAD_CROSSING_API_FIELDS + ["geometry"]].reset_index().to_feather(results_dir / "road_crossings.feather")
 
 tmp = crossings[ROAD_CROSSING_API_FIELDS].reset_index()
 verify_domains(tmp)

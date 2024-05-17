@@ -391,7 +391,7 @@ const PriorityMap = ({
           },
         } = feature
 
-        if (source === 'summary') {
+        if (source === 'map_units') {
           onSelectUnit({ layer: sourceLayer, id: properties.id })
           return
         }
@@ -399,7 +399,7 @@ const PriorityMap = ({
         if (map.getZoom() < 8) {
           // don't allow selection of points below zoom 8
           const [unitLayerFeature] = features.filter(
-            ({ source: lyrSource }) => lyrSource === 'summary'
+            ({ source: lyrSource }) => lyrSource === 'map_units'
           )
           if (unitLayerFeature) {
             onSelectUnit({

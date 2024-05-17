@@ -2,7 +2,7 @@
 Extract road-related barriers from original data source, process for use in network analysis, and convert to feather format.
 1. Cleanup data values (as needed)
 2. Filter out barriers not to be included in analysis (based on Potential_Project and ManualReview)
-3. Snap to USGS road crossings and flowlines
+3. Snap to USGS and USFS road crossings and flowlines
 4. Remove duplicate barriers
 5. Remove barriers that duplicate dams
 6. Mark barriers that co-occur with waterfalls (waterfalls have higher precedence)
@@ -471,13 +471,13 @@ for group, crossing_types in [
     df.loc[ix, "snap_dist"] = matches.snap_dist.values
     df.loc[ix, "lineID"] = matches.lineID.values
     df.loc[ix, "snap_log"] = (
-        f"snapped: within {SNAP_TOLERANCE['default']}m tolerance of snapped USGS road crossing ({group})"
+        f"snapped: within {SNAP_TOLERANCE['default']}m tolerance of snapped USGS/USFS road crossing ({group})"
     )
     df.loc[ix, "NearestCrossingID"] = matches.crossing_SARPID.values
 
     to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
 
-    print(f"{len(ix):,} barriers snapped to USGS road crossings within {SNAP_TOLERANCE['default']}m ({group})")
+    print(f"{len(ix):,} barriers snapped to USGS/USFS road crossings within {SNAP_TOLERANCE['default']}m ({group})")
 
     # mark the crossing by the closest of any snapped barriers
     nearest_barriers = (

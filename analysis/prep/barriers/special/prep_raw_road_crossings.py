@@ -2,7 +2,7 @@
 Preprocess road / stream crossings into data needed by tippecanoe for creating vector tiles.
 
 Input:
-* USGS Road / Stream crossings, projected to match SARP standard projection (Albers CONUS).
+* USGS and USFS Road / Stream crossings, projected to match SARP standard projection (Albers CONUS).
 * pre-processed and snapped small barriers
 
 
@@ -12,11 +12,12 @@ Outputs:
 
 from pathlib import Path
 from time import time
+import warnings
 
 import geopandas as gp
 import pandas as pd
 import shapely
-from pyogrio import read_dataframe, write_dataframe
+from pyogrio import read_dataframe
 import numpy as np
 
 from analysis.constants import (
@@ -30,18 +31,10 @@ from analysis.lib.io import read_feathers
 from analysis.prep.barriers.lib.snap import snap_to_flowlines
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 
+warnings.filterwarnings("ignore", message="Measured \(M\) geometry types are not supported")
 
 SNAP_TOLERANCE = 10
 DUPLICATE_TOLERANCE = 5
-
-start = time()
-
-data_dir = Path("data")
-boundaries_dir = data_dir / "boundaries"
-nhd_dir = data_dir / "nhd"
-barriers_dir = data_dir / "barriers"
-src_dir = barriers_dir / "source"
-qa_dir = barriers_dir / "qa"
 
 
 def dedup_crossings(df):
@@ -59,7 +52,13 @@ def dedup_crossings(df):
 
     # note: components accounts for self-intersections and symmetric pairs
     groups, values = g.flat_components()
-    groups = pd.DataFrame({"group": groups, "id": values}).astype(df.id.dtype)
+    # sort into deterministic order
+    groups = (
+        pd.DataFrame({"group": groups, "id": values})
+        .astype(df.id.dtype)
+        .join(df.set_index("id").dup_sort, on="id")
+        .sort_values(by=["group", "dup_sort", "id"])
+    )
 
     keep_ids = groups.groupby("group").first().id.values.astype("uint64")
 
@@ -67,12 +66,28 @@ def dedup_crossings(df):
     return df.loc[df.id.isin(keep_ids)].copy()
 
 
+start = time()
+
+data_dir = Path("data")
+boundaries_dir = data_dir / "boundaries"
+nhd_dir = data_dir / "nhd"
+barriers_dir = data_dir / "barriers"
+src_dir = barriers_dir / "source"
+qa_dir = barriers_dir / "qa"
+
+usgs_gpkg = src_dir / "stream_crossings_united_states_feb_2022.gpkg"
+huc4 = gp.read_feather(boundaries_dir / "huc4.feather", columns=["geometry", "HUC4"])
+
+
+################################################################################
+### Read USGS road crossings
+################################################################################
 print("Reading road crossings")
 
 # rename columns to match small barriers
 # NOTE: tiger2020_feature_names is a combination of multiple road names
 df = read_dataframe(
-    src_dir / "stream_crossings_united_states_feb_2022.gpkg",
+    usgs_gpkg,
     layer="stream_crossing_sites",
     columns=[
         "stream_crossing_id",
@@ -80,33 +95,34 @@ df = read_dataframe(
         "nhdhr_gnis_stream_name",
         "nhdhr_permanent_identifier",
         "crossing_type",
+        "tiger2020_linearids",
     ],
     use_arrow=True,
 ).rename(
     columns={
         "tiger2020_feature_names": "Road",
         "nhdhr_gnis_stream_name": "River",
-        "stream_crossing_id": "SARPID",
         "crossing_type": "CrossingType",
     }
 )
 print(f"Read {len(df):,} road crossings")
 
-
 df["Source"] = "USGS Database of Stream Crossings in the United States (2022)"
 
 
 # project HUC4 to match crossings
-huc4 = gp.read_feather(boundaries_dir / "huc4.feather", columns=["geometry", "HUC4"]).to_crs(df.crs)
+proj_huc4 = huc4.to_crs(df.crs)
 tree = shapely.STRtree(df.geometry.values)
-left, right = tree.query(huc4.geometry.values, predicate="intersects")
+left, right = tree.query(proj_huc4.geometry.values, predicate="intersects")
 huc4_join = (
-    pd.DataFrame({"HUC4": huc4.HUC4.values.take(left)}, index=df.index.values.take(right)).groupby(level=0).HUC4.first()
+    pd.DataFrame({"HUC4": proj_huc4.HUC4.values.take(left)}, index=df.index.values.take(right))
+    .groupby(level=0)
+    .HUC4.first()
 )
 
 df = df.join(huc4_join, how="inner").reset_index(drop=True)
 df["HUC2"] = df.HUC4.str[:2]
-print(f"Selected {len(df):,} road crossings in region")
+print(f"Selected {len(df):,} USGS road crossings in region")
 
 # use original latitude / longitude (NAD83) values
 lon, lat = shapely.get_coordinates(df.geometry.values).astype("float32").T
@@ -116,8 +132,255 @@ df["lat"] = lat
 # project to match SARP CRS
 df = df.to_crs(CRS)
 
+# match dtype of SARPID elsewhere
+df["SARPID"] = "crUSGS:" + df.stream_crossing_id.round().astype(int).astype(str)
+
+### Cleanup fields
+df.River = df.River.str.strip().fillna("")
+df.Road = df.Road.str.strip().fillna("")
+
+
+# update crossingtype and set as domain
+df["CrossingType"] = df.CrossingType.fillna("").str.lower()
+df.loc[df.CrossingType.isin(["culvert", "tiger2020 road"]), "CrossingType"] = "assumed culvert"
+df["CrossingType"] = df.CrossingType.map(CROSSING_TYPE_TO_DOMAIN).astype("uint8")
+
+
+### read observation data to use for barrier ownership information
+print("Extracting crossing owner type from USGS observed data")
+usgs_obs = read_dataframe(
+    usgs_gpkg,
+    layer="observation_data",
+    columns=["stream_crossing_id", "observation_year", "crossing_structure_owner"],
+    use_arrow=True,
+).to_crs(CRS)
+# only keep those with crossing_owner_type
+usgs_obs["crossing_structure_owner"] = usgs_obs.crossing_structure_owner.fillna("").str.strip()
+usgs_obs["observation_year"] = usgs_obs.observation_year.fillna(0).astype("uint16")
+usgs_obs = usgs_obs.loc[usgs_obs.crossing_structure_owner != ""].set_index("stream_crossing_id")
+
+# only keep those that are within 100m
+tmp = df[["stream_crossing_id", "geometry"]].join(usgs_obs, on="stream_crossing_id", how="inner", rsuffix="_obs")
+del usgs_obs
+tmp["dist"] = shapely.distance(tmp.geometry.values, tmp.geometry_obs.values)
+tmp = (
+    tmp.loc[tmp.dist <= 100]
+    .sort_values(by=["stream_crossing_id", "dist", "observation_year"], ascending=[True, True, False])
+    .groupby("stream_crossing_id")[["crossing_structure_owner"]]
+    .first()
+)
+
+tmp["BarrierOwnerType"] = (
+    tmp.crossing_structure_owner.map(
+        {
+            "56": 0,
+            "57": 0,
+            "58": 0,
+            "78": 0,
+            "79": 0,
+            "Air Force": 1,
+            "Army": 1,
+            "Bureau of Fish and Wildlife": 1,
+            "Bureau of Indian Affairs": 1,
+            "Bureau of Land Management": 1,
+            "Bureau of Reclamation": 1,
+            "City or Municipal Highway Agency": 3,
+            "Civil Corps of Engineers": 1,
+            "County Highway Agency": 3,
+            "Indian Tribal Government": 6,
+            "Local Park Forest or Reservation Agency": 3,
+            "Local Toll Authority": 3,
+            "Metropolitan Washington Airports Service": 3,
+            "NASA": 1,
+            "National Park Service": 1,
+            "Navy or Marines": 1,
+            "Other Federal Agencies": 1,
+            "Other Local Agencies": 3,
+            "Other State Agencies": 2,
+            "Private other than railroad": 7,
+            "Railroad": 7,
+            "State Highway Agency": 2,
+            "State Park Forest or Reservation Agency": 2,
+            "State Toll Authority": 2,
+            "Tennessee Valley Authority": 4,
+            "Town or Township Highway Agency": 3,
+            "U.S. Forest Service": 1,
+            "Unknown": 0,
+        }
+    )
+    .fillna(0)
+    .astype("uint8")
+)
+
+df = df.join(tmp.BarrierOwnerType, on="stream_crossing_id")
+df["BarrierOwnerType"] = df.BarrierOwnerType.fillna(0).astype("uint8")
+
+
+### Use TIGER roads data to try and backfill barrier owner type
+print("Extracting attributes from TIGER roads")
+tiger = read_dataframe(
+    src_dir / "tlgdb_2020_a_us_roads.gdb",
+    columns=["LINEARID", "RTTYP"],
+    where=""" "RTTYP" IS NOT NULL """,
+    use_arrow=True,
+    read_geometry=False,
+).set_index("LINEARID")
+# assume that states are responsible party for interstate / US routes
+# other types are unknown re: ownership, so don't bother to map them to codes
+tiger["BarrierOwnerType"] = tiger.RTTYP.map({"C": 3, "I": 2, "S": 2, "U": 2}).fillna(0).astype("uint8")
+tiger = tiger.loc[tiger.BarrierOwnerType > 0].copy()
+
+tmp = df[["stream_crossing_id", "tiger2020_linearids"]].copy()
+tmp["tiger2020_linearids"] = tmp.tiger2020_linearids.str.replace(" ", "").str.split(",")
+tmp = tmp.explode("tiger2020_linearids")
+tmp = (
+    tmp.join(tiger.BarrierOwnerType, on="tiger2020_linearids", how="inner")
+    .sort_values(by=["stream_crossing_id", "BarrierOwnerType"], ascending=True)
+    .groupby("stream_crossing_id")[["BarrierOwnerType"]]
+    .first()
+)
+del tiger
+
+df = df.join(tmp.BarrierOwnerType.rename("tiger_BarrierOwnerType"), on="stream_crossing_id")
+ix = (df.BarrierOwnerType == 0) & df.tiger_BarrierOwnerType.notnull()
+df.loc[ix, "BarrierOwnerType"] = df.loc[ix].tiger_BarrierOwnerType.values.astype("uint8")
+
+df = df.drop(columns=["stream_crossing_id", "tiger_BarrierOwnerType"])
+
+df["dup_sort"] = 1
+
+usgs = df
+
+
+################################################################################
+### Read USFS road crossings
+################################################################################
+df = read_dataframe(
+    src_dir / "USFS_Crossings_Raw_2024.gdb",
+    layer="FS_RdsOnly_Xings_National",
+    columns=["FID_National_FS_roads", "NAME", "gnis_name", "permanent_identifier", "PRIMARY_MA"],
+    use_arrow=True,
+).rename(
+    columns={
+        "NAME": "Road",
+        "gnis_name": "River",
+        "FID_National_FS_roads": "SARPID",
+        "permanent_identifier": "nhdhr_permanent_identifier",
+        "PRIMARY_MA": "maintainer",
+    }
+)
+
+df["geometry"] = shapely.force_2d(df.geometry.values)
+df = df.to_crs(CRS)
+
+lon, lat = shapely.get_coordinates(df.to_crs("EPSG:4326").geometry.values).astype("float32").T
+df["lon"] = lon
+df["lat"] = lat
+
+df["SARPID"] = "crUSFS:" + df.SARPID.astype(str)
+
+
+def capitalizeRoad(road):
+    # parts of name after Spur should remain all caps
+    spur = " SPUR "
+    if spur in road:
+        ix = road.index(spur)
+        return road[:ix].title() + " Spur " + road[ix + 6 :]
+    else:
+        return road.title()
+
+
+df["Road"] = df.Road.fillna("").str.strip().apply(capitalizeRoad)
+df["River"] = df.River.fillna("").str.strip()
+
+# assume all are assumed culvert
+df["CrossingType"] = np.uint8(CROSSING_TYPE_TO_DOMAIN["assumed culvert"])
+
+df["Source"] = "USFS National Road / Stream Crossings (2024)"
+
+df["maintainer"] = df.maintainer.fillna("").str.strip()
+df["BarrierOwnerType"] = df.maintainer.map(
+    {
+        "": 0,
+        "BIA - BUREAU OF INDIAN AFFAIRS": 1,
+        "BLM - BUREAU OF LAND MANAGEMENT": 1,
+        "BOR - BUREAU OF RECLAMATION": 1,
+        "BPA - BONNEVILLE POWER ADMIN": 4,
+        "BR - BUREAU OF RECLAMATION": 1,
+        "C - COUNTY, PARISH, BOROUGH": 3,
+        "C - FLATHEAD COUNTY": 3,
+        "CO - COOPERATOR": 7,
+        "CO - COOPERATOR (INDSTRL CST SHARE)": 7,
+        "CO - COOPERATOR INDSTRL CST SHARE": 7,
+        "CO - PLUM CREEK": 7,
+        "COE - CORPS OF ENGINEERS": 1,
+        "CU - AMERADA HESS OIL CO": 7,
+        "CU - BASIC EARTH SCI.": 7,
+        "CU - BTA OIL": 7,
+        "CU - CITATION OIL CO": 7,
+        "CU - COMMERCIAL USER": 7,
+        "CU - CONTINENTAL": 7,
+        "CU - CROWN OIL CO": 7,
+        "CU - HEADINGTON": 7,
+        "CU - MERIT ENERGY COMPANY": 7,
+        "CU - MISSOURI BASIN": 7,
+        "CU - NANCE PETROLEUM": 7,
+        "CU - PETRO HUNT": 7,
+        "CU - PRIDE ENERGY": 7,
+        "CU - RITTER, LABOR, & ASSOCIATES": 7,
+        "CU - SINCLAIR OIL": 7,
+        "CU - SLAWSON OIL CO": 7,
+        "CU - SUMMIT RESOURCES": 7,
+        "CU - TRUE OIL CO": 7,
+        "CU - UPTON": 7,
+        "CU - WHITING": 7,
+        "CU - WINSTON/MARSHALL OIL CO": 7,
+        "DOD - DEFENSE DEPARTMENT": 1,
+        "DOE - DEPARTMENT OF ENERGY": 1,
+        "FAA - FEDERAL AVIATION ADMINISTRATION": 1,
+        "FS - FOREST SERVICE": 1,
+        "L - LOCAL": 3,
+        "NPS - NATIONAL PARK SERVICE": 1,
+        "OF - OTHER FEDERAL AGENCIES": 1,
+        "OGM - OIL, GAS, MINERAL": 0,
+        "P - NORTHERN LIGHTS": 7,
+        "P - PRIVATE": 7,
+        "P - STIMSON": 7,
+        "P - WEYERHAEUSER": 7,
+        "PGE - PACIFIC GAS AND ELECTRIC": 4,
+        "S - STATE": 2,
+        "SCE - SOUTHERN CALIFORNIA EDISON": 4,
+        "SH - STATE HIGHWAY": 2,
+        "SLR - STATE LANDS ROAD": 2,
+        "UNK - UNKNOWN": 0,
+    }
+).astype("uint8")
+
+tree = shapely.STRtree(df.geometry.values)
+left, right = tree.query(huc4.geometry.values, predicate="intersects")
+huc4_join = (
+    pd.DataFrame({"HUC4": huc4.HUC4.values.take(left)}, index=df.index.values.take(right)).groupby(level=0).HUC4.first()
+)
+df = df.join(huc4_join, how="inner").reset_index(drop=True)
+df["HUC2"] = df.HUC4.str[:2]
+print(f"Selected {len(df):,} USFS road crossings in region")
+
+# per guidance from Kat on 5/16, USFS crossings have lower precedence in dedup
+df["dup_sort"] = 2
+
+usfs = df
+
+################################################################################
+### Merge crossings
+################################################################################
+df = pd.concat([usgs, usfs], ignore_index=True).sort_values("dup_sort", ascending=True)
 df["id"] = (df.index.values + CROSSINGS_ID_OFFSET).astype("uint64")
 df = df.set_index("id", drop=False)
+
+# add name field
+df["Name"] = ""
+df.loc[(df.River != "") & (df.Road != ""), "Name"] = df.River + " / " + df.Road
+
 
 # There are a bunch of crossings with identical coordinates, remove them
 # NOTE: they have different labels, but that seems like it is a result of
@@ -139,27 +402,12 @@ print("Removing nearby road crossings...")
 df = dedup_crossings(df)
 print(f"now have {len(df):,} road crossings")
 
-### Cleanup fields
-# match dtype of SARPID elsewhere
-df.SARPID = "cr" + df.SARPID.round().astype(int).astype(str)
-
-df.River = df.River.str.strip().fillna("")
-df.Road = df.Road.str.strip().fillna("")
-
-df.loc[(df.River != "") & (df.Road != ""), "Name"] = df.River + " / " + df.Road
-df.Name = df.Name.fillna("")
-
-# update crossingtype and set as domain
-df["CrossingType"] = df.CrossingType.fillna("").str.lower()
-df.loc[df.CrossingType.isin(["culvert", "tiger2020 road"]), "CrossingType"] = "assumed culvert"
-df["CrossingType"] = df.CrossingType.map(CROSSING_TYPE_TO_DOMAIN).astype("uint8")
-
 
 # Snap to flowlines
 df["snapped"] = False
 df["snap_log"] = "not snapped"
 df["lineID"] = np.nan  # line to which dam was snapped
-df["snap_tolerance"] = SNAP_TOLERANCE
+df["snap_tolerance"] = np.uint8(SNAP_TOLERANCE)
 
 snap_start = time()
 to_snap = df.copy()
@@ -257,7 +505,6 @@ for field in ["AnnualVelocity", "AnnualFlow", "TotDASqKm"]:
     df[field] = df[field].astype("float32")
 
 df.reset_index(drop=True).to_feather(src_dir / "road_crossings.feather")
-write_dataframe(df, qa_dir / "raw_road_crossings.fgb")
 
 
 print(f"Done in {time() - start:.2f}")

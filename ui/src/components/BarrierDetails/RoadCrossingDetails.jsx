@@ -18,6 +18,7 @@ const RoadCrossingDetails = ({
   sarpid,
   lat,
   lon,
+  barrierownertype,
   basin,
   crossingtype,
   ejtract,
@@ -67,6 +68,7 @@ const RoadCrossingDetails = ({
         subwatershed={subwatershed}
         huc12={huc12}
         ownertype={ownertype}
+        barrierownertype={barrierownertype}
         ejtract={ejtract}
         ejtribal={ejtribal}
         fishhabitatpartnership={fishhabitatpartnership}
@@ -138,6 +140,7 @@ RoadCrossingDetails.propTypes = {
   sarpid: PropTypes.string.isRequired,
   lat: PropTypes.number.isRequired,
   lon: PropTypes.number.isRequired,
+  barrierownertype: PropTypes.number,
   basin: PropTypes.string,
   crossingtype: PropTypes.number,
   ejtract: PropTypes.bool,
@@ -174,6 +177,7 @@ RoadCrossingDetails.defaultProps = {
   intermittent: -1,
   nativeterritories: null,
   onloop: false,
+  barrierownertype: null,
   ownertype: null,
   regionalsgcnspp: 0,
   road: null,

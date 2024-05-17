@@ -279,6 +279,7 @@ ROAD_CROSSING_FILTER_FIELDS = [
     "Intermittent",
     "CrossingType",
     "OwnerType",
+    "BarrierOwnerType",
     "TESppClass",
     "StateSGCNSppClass",
     "Trout",
@@ -287,6 +288,7 @@ ROAD_CROSSING_FILTER_FIELDS = [
     "DisadvantagedCommunity",
     "FishHabitatPartnership",
     "Surveyed",
+    "OnNetwork",
     # "SlopeClass",
 ]
 ROAD_CROSSING_FILTER_FIELD_MAP = {f.lower(): f for f in ROAD_CROSSING_FILTER_FIELDS}
@@ -483,7 +485,7 @@ ROAD_CROSSING_CORE_FIELDS = (
         "RegionalSGCNSpp",
         "Trout",
         "OwnerType",
-        # "BarrierOwnerType", # not available
+        "BarrierOwnerType",
         "ProtectedLand",
         "EJTract",
         "EJTribal",
@@ -500,7 +502,7 @@ ROAD_CROSSING_CORE_FIELDS = (
         # specific to crossings
         "NearestBarrierID",
         "Surveyed",
-        "OnLoop",
+        "OnNetwork",
     ]
     + UNIT_FIELDS
 )
@@ -1284,7 +1286,7 @@ FIELD_DEFINITIONS = {
     "RegionalSGCNSpp": "Number of regionally-listed Species of Greatest Conservation Need (SGCN), compiled from element occurrence data within the same subwatershed (HUC12) as the {type}.  Note: rare species information is based on occurrences within the same subwatershed as the {type}.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
     "Trout": "Identifies if one or more interior or eastern native trout species (Apache, brook, bull, cutthroat, Gila, lake, and redband) are present within the same subwatershed (HUC12) as the {type} based on in available natural heritage data.  Note: absence means that occurrences were not present in the available natural heritage data and should not be interpreted as true absences.",
     "OwnerType": "Land ownership type. This information is derived from the BLM Surface Management Agency dataset for federal lands and CBI Protected Areas Database and TNC Secured Lands Database for non-federal lands, to highlight ownership types of particular importance to partners.  NOTE: does not include most private land.",
-    "BarrierOwnerType": "Barrier ownership type, if available.",
+    "BarrierOwnerType": "Barrier ownership type, if available.  For unsurveyed road / stream crossings, this information is derived from the National Bridge Inventory, US Census TIGER Roads route type, and USFS National Forest road / stream crossings database ownership information, and may not be fully accurate.",
     "ProtectedLand": "Indicates if the {type} occurs on public land as represented within the BLM Surface Management Agency dataset, CBI Protected Areas Database of the U.S., or TNC Secured Lands Database.",
     "EJTract": "Within an overburdened and underserved Census tracts a defined by the Climate and Environmental Justice Screening tool.",
     "EJTribal": "Within a disadvantaged tribal community as defined by the Climate and Environmental Justice Screening tool based on American Indian and Alaska Native areas as defined by the US Census Bureau.  Note: all tribal communities considered disadvantaged by the Climate and Environmental Justice Screening tool.",
