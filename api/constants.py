@@ -1195,6 +1195,7 @@ DOMAINS = {
     "RoadType": ROAD_TYPE_DOMAIN,
     # crossing fields
     "Surveyed": SURVEYED_CROSSING_DOMAIN,
+    "OnNetwork": BOOLEAN_DOMAIN,
 }
 
 # domain values are stored as comma-delimited values in a string field
@@ -1271,6 +1272,7 @@ FIELD_DEFINITIONS = {
     # crossing-specific fields
     "NearestBarrierID": "The SARPID of the nearest assessed road/stream crossing within 50-100m (depending on data source)",
     "Surveyed": "Indicates if the crossing has likely been surveyed according to assessed road/stream crossing data.  'likely': inventoried barrier within 50-100m (depending on data source), 'not likely': no inventoried barrier within 50-100m.",
+    "OnNetwork": "if yes, this {type} was snapped to the aquatic network and does not occur on a loop within the NHD High Resolution aquatic network and is not snapped to an off-network canal or ditch; if no, this {type} is either on a loop or an off-network canal or ditch considered off-network for purposes of network analysis and ranking",
     # other general fields
     "Recon": "Field reconnaissance notes, if available.",
     "Passability": "passability of the {type}, if known.   Note: assessment dates are not known.",
