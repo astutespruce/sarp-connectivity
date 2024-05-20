@@ -85,12 +85,10 @@ export const fetchBarrierInfo = async (barrierType, summaryUnits) => {
  * Fetch and parse Feather data from API for dams or small barriers
  */
 export const fetchBarrierRanks = async (barrierType, summaryUnits, filters) => {
-  const url = `${apiHost}/api/v1/internal/${barrierType}/rank/?${apiQueryParams(
-    {
-      summaryUnits,
-      filters,
-    }
-  )}`
+  const url = `${apiHost}/api/v1/internal/${barrierType}/rank?${apiQueryParams({
+    summaryUnits,
+    filters,
+  })}`
 
   // Unpack bit-packed tiers
   const { data: packedTiers, bounds } = await fetchFeather(url, undefined)
