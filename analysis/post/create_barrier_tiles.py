@@ -564,9 +564,7 @@ print("\n\n-----------------Creating road crossing tiles------------------------
 df = (
     gp.read_feather(
         results_dir / "road_crossings.feather",
-        columns=["geometry", "SARPID", "Name"]
-        + ROAD_CROSSING_TILE_FILTER_FIELDS
-        + ["COUNTYFIPS", "StreamOrder", "OnNetwork"],
+        columns=["geometry", "SARPID", "Name"] + ROAD_CROSSING_TILE_FILTER_FIELDS + ["COUNTYFIPS", "StreamOrder"],
     )
     .sort_values(
         # sort so that assumed culverts are first and bridges are last
