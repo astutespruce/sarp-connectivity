@@ -121,6 +121,38 @@ const Inventory = () => {
           </Paragraph>
         </Box>
       </Grid>
+
+      <Heading as="h4" sx={{ mt: '2rem' }}>
+        Map services
+      </Heading>
+      <Paragraph sx={{ mt: '0.5rem' }}>
+        If you would like to access map services of a recent version of the
+        aquatic barriers and connectivity results (may not match the exact
+        version here), you can import one of the following connectivity analysis
+        map services into your GIS tool of choice:
+      </Paragraph>
+      <Box as="ul" sx={{ mt: '0.5rem' }}>
+        <li>
+          <OutboundLink to="https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Aquatic_Barrier_Prioritization_Dams_v360/FeatureServer">
+            Dams
+          </OutboundLink>{' '}
+          based on networks that are cut by dams and waterfalls.
+        </li>
+        <li>
+          <OutboundLink to="https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Aquatic_Barrier_Prioritization_RoadBarriers_v360/FeatureServer">
+            Assessed road crossings
+          </OutboundLink>{' '}
+          based on networks that are cut by dams, waterfalls, and assessed
+          crossings.
+        </li>
+        <li>
+          <OutboundLink to="https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Aquatic_Barrier_Prioritization_Dams_Crossings_Indicators_05242024/FeatureServer">
+            Dams and assessed road crossings
+          </OutboundLink>{' '}
+          based on networks that are cut by dams, waterfalls, and assessed
+          crossings.
+        </li>
+      </Box>
     </Box>
   )
 }
