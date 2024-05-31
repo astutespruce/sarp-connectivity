@@ -264,6 +264,7 @@ DAM_FILTER_FIELDS = FILTER_FIELDS + [
     "LowheadDam",
     "WaterbodySizeClass",
     "Removed",
+    "CostClass",
 ]
 DAM_FILTER_FIELD_MAP = {f.lower(): f for f in DAM_FILTER_FIELDS}
 
@@ -386,7 +387,17 @@ DAM_API_FIELDS = unique(
     DAM_CORE_FIELDS
     + STATE_TIER_FIELDS
     + DAM_FILTER_FIELDS
-    + ["upNetID", "downNetID", "COUNTYFIPS", "Unranked", "in_network_type"]
+    + [
+        "upNetID",
+        "downNetID",
+        "COUNTYFIPS",
+        "Unranked",
+        "in_network_type",
+        # NOTE: cost columns are excluded from download
+        "CostLower",
+        "CostMean",
+        "CostUpper",
+    ]
 )
 
 # Public API does not include tier or filter fields

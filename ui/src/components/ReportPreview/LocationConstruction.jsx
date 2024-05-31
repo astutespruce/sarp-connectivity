@@ -20,7 +20,6 @@ import {
   FISH_HABITAT_PARTNERSHIPS,
   STATE_REGULATED,
   WATER_RIGHT,
-  DISADVANTAGED_COMMUNITY,
   PURPOSE,
   PASSABILITY,
   SMALL_BARRIER_SEVERITY,
@@ -48,7 +47,6 @@ const LocationConstruction = ({
   stateregulated,
   fedregulatoryagency,
   waterright,
-  disadvantagedcommunity,
   hazard,
   construction,
   lowheaddam,
@@ -72,6 +70,9 @@ const LocationConstruction = ({
   waterbodysizeclass,
   invasive,
   removed,
+  costlower,
+  costmean,
+  costupper,
   ejtract,
   ejtribal,
   fishhabitatpartnership,
@@ -222,13 +223,15 @@ const LocationConstruction = ({
             </Entry>
           ) : null}
 
-          {disadvantagedcommunity ? (
+          {costmean && costmean > 0 ? (
             <Entry>
-              Climate and environmental justice:{' '}
-              {disadvantagedcommunity
-                .split(',')
-                .map((type) => DISADVANTAGED_COMMUNITY[type].toLowerCase())
-                .join(', ')}
+              Average estimated cost of removal: ${formatNumber(costmean)}
+              <br /> (${formatNumber(costlower)} - ${formatNumber(costupper)})
+              <Text sx={{ mt: '0.5rem', fontSize: 0, color: 'grey.7' }}>
+                Note: costs are modeled based on dam characteristics and are a
+                very rough estimate only; please use with caution. Source:
+                Jumani et. al. (in prep).
+              </Text>
             </Entry>
           ) : null}
         </Box>
@@ -380,7 +383,6 @@ LocationConstruction.propTypes = {
   stateregulated: PropTypes.number,
   fedregulatoryagency: PropTypes.string,
   waterright: PropTypes.number,
-  disadvantagedcommunity: PropTypes.string,
   height: PropTypes.number,
   width: PropTypes.number,
   yearcompleted: PropTypes.number,
@@ -404,6 +406,9 @@ LocationConstruction.propTypes = {
   waterbodysizeclass: PropTypes.number,
   invasive: PropTypes.bool,
   removed: PropTypes.bool,
+  costlower: PropTypes.number,
+  costmean: PropTypes.number,
+  costupper: PropTypes.number,
   ejtract: PropTypes.bool,
   ejtribal: PropTypes.bool,
   fishhabitatpartnership: PropTypes.string,
@@ -423,7 +428,6 @@ LocationConstruction.defaultProps = {
   stateregulated: null,
   fedregulatoryagency: null,
   waterright: null,
-  disadvantagedcommunity: null,
   height: 0,
   width: 0,
   hazard: null,
@@ -447,6 +451,9 @@ LocationConstruction.defaultProps = {
   waterbodysizeclass: null,
   invasive: false,
   removed: false,
+  costlower: 0,
+  costmean: 0,
+  costupper: 0,
   ejtract: false,
   ejtribal: false,
   fishhabitatpartnership: null,

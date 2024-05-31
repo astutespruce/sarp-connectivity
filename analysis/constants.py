@@ -236,8 +236,6 @@ DAM_FS_COLS = [
     "Link",
     "ManualReview",
     "EditDate",
-    "Cost_95_Lower",
-    "Cost_95_Upper",
     "Priority_Identified",
 ]
 

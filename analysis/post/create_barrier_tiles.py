@@ -107,6 +107,7 @@ ret = subprocess.run(
     + [str(outfilename)]
 )
 ret.check_returncode()
+outfilename.unlink()
 
 
 ### Create tiles for ranked dams with networks
@@ -134,7 +135,7 @@ ret = subprocess.run(
     + [str(outfilename)]
 )
 ret.check_returncode()
-
+outfilename.unlink()
 
 ### Create tiles for unranked dams
 # these are invasive barriers that have networks but are not filtered or ranked
@@ -163,7 +164,7 @@ ret = subprocess.run(
     + [str(outfilename)]
 )
 ret.check_returncode()
-
+outfilename.unlink()
 
 ### Create tiles for removed dams (including off-network)
 # these are not filtered
@@ -188,7 +189,7 @@ ret = subprocess.run(
     + [str(outfilename)]
 )
 ret.check_returncode()
-
+outfilename.unlink()
 
 ### Create tiles for all other dams
 # these include remaining off-network / excluded dams; these are not filtered
@@ -214,6 +215,7 @@ ret = subprocess.run(
     + [str(outfilename)]
 )
 ret.check_returncode()
+outfilename.unlink()
 
 del df
 
@@ -276,6 +278,7 @@ ret = subprocess.run(
     + [str(outfilename)]
 )
 ret.check_returncode()
+outfilename.unlink()
 
 ### Create tiles for ranked small barriers
 print(f"Creating tiles for {len(ranked_barriers):,} ranked small barriers with networks")
@@ -298,6 +301,7 @@ ret = subprocess.run(
     + [str(outfilename)],
 )
 ret.check_returncode()
+outfilename.unlink()
 
 
 ### Create tiles for unranked barriers with networks
@@ -327,6 +331,7 @@ ret = subprocess.run(
     + [str(outfilename)]
 )
 ret.check_returncode()
+outfilename.unlink()
 
 
 ### Create tiles for removed small barriers
@@ -352,6 +357,7 @@ ret = subprocess.run(
     + [str(outfilename)]
 )
 ret.check_returncode()
+outfilename.unlink()
 
 ### Create tiles all other small barriers
 other_barriers = df.loc[(~df.HasNetwork) & (~df.Removed), ["geometry", "id", "SARPIDName", "symbol"]]
@@ -376,6 +382,7 @@ ret = subprocess.run(
     + [str(outfilename)]
 )
 ret.check_returncode()
+outfilename.unlink()
 
 del df
 
@@ -438,6 +445,7 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
         + [str(outfilename)]
     )
     ret.check_returncode()
+    outfilename.unlink()
 
     ranked_barriers = ranked_barriers.drop(columns=["TotDASqKm"])
 
@@ -462,6 +470,7 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
         + [str(outfilename)]
     )
     ret.check_returncode()
+    outfilename.unlink()
 
     ### Create tiles for unranked combined barriers with networks
     unranked_barriers = df.loc[
@@ -489,6 +498,7 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
         + [str(outfilename)]
     )
     ret.check_returncode()
+    outfilename.unlink()
 
     ### Create tiles for removed barriers
     removed_barriers = df.loc[
@@ -516,6 +526,7 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
         + [str(outfilename)]
     )
     ret.check_returncode()
+    outfilename.unlink()
 
     ### Create tiles for all other barriers; these don't have network info
     other_barriers = df.loc[
@@ -542,6 +553,7 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
         + [str(outfilename)]
     )
     ret.check_returncode()
+    outfilename.unlink()
 
     del df
 
@@ -554,7 +566,6 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
         mbtiles_file.unlink()
 
     print(f"Created {network_type} tiles in {time() - start:,.2f}s")
-
 
 ####################################################################
 ### Create road crossing tiles
@@ -602,6 +613,7 @@ ret = subprocess.run(
     + [str(outfilename)]
 )
 ret.check_returncode()
+outfilename.unlink()
 
 
 # For zooms 8-10, also show name, but not off-network road crossings
@@ -629,6 +641,8 @@ ret = subprocess.run(
     + [str(outfilename)]
 )
 ret.check_returncode()
+outfilename.unlink()
+
 
 print("Creating tiles for road crossings for zooms 11+")
 df = df[["geometry"] + ROAD_CROSSING_TILE_FILTER_FIELDS + ["SARPIDName"]].to_crs("EPSG:4326")
@@ -648,6 +662,7 @@ ret = subprocess.run(
     + [str(outfilename)]
 )
 ret.check_returncode()
+outfilename.unlink()
 
 
 del df
@@ -718,3 +733,4 @@ ret = subprocess.run(
     + [str(outfilename)]
 )
 ret.check_returncode()
+outfilename.unlink()

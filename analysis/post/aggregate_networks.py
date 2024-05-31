@@ -7,7 +7,7 @@ import pandas as pd
 from analysis.constants import SEVERITY_TO_PASSABILITY
 from analysis.lib.util import get_signed_dtype, append
 from analysis.rank.lib.networks import get_network_results, get_removed_network_results
-from analysis.rank.lib.metrics import classify_streamorder, classify_spps
+from analysis.rank.lib.metrics import classify_streamorder, classify_spps, classify_cost
 from api.constants import (
     GENERAL_API_FIELDS1,
     UNIT_FIELDS,
@@ -84,6 +84,8 @@ dams["StreamOrderClass"] = classify_streamorder(dams.StreamOrder)
 for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
     dams[f"{col}Class"] = classify_spps(dams[col])
 
+dams["CostClass"] = classify_cost(dams.CostMean.fillna(-1))
+
 
 # export removed dams for separate API endpoint
 # NOTE: these don't have network stats for removed dams
@@ -141,6 +143,7 @@ verify_domains(tmp)
 # downcast id to uint32 or it breaks in UI
 tmp["id"] = tmp.id.astype("uint32")
 tmp.sort_values("SARPID").to_feather(api_dir / "dams.feather")
+
 
 #########################################################################################
 ###
@@ -271,6 +274,7 @@ fill_columns = [
     "WaterbodySizeClass",
     "Width",
     "YearCompleted",
+    "CostClass",  # limited to dams for now
     # small barrier columns
     "Constriction",
     "CrossingType",
