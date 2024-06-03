@@ -554,6 +554,10 @@ ix = (df.YearRemoved > 0) & (df.YearRemoved <= datetime.today().year) & ~(df.dro
 df.loc[ix, "removed"] = True
 df.loc[ix, "log"] = f"removed: YearRemoved is set and <= {datetime.today().year}"
 
+# clear out cost columns for removed dams since they are no longer applicable
+for col in ["CostMean", "CostUpper", "CostLower"]:
+    df.loc[df.removed, col] = np.nan
+
 
 # if YearFishPass is set and Passability indicates no barrier, mark as removed (fully mitigated)
 # (per direction from Kat 3/12/2024)
