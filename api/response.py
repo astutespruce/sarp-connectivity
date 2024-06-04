@@ -48,9 +48,7 @@ def feather_response(df, bounds=None):
     table = df.rename_columns(cols)
 
     # discard pandas metadata and set bounds
-    table = table.replace_schema_metadata(
-        {"bounds": ",".join(str(b) for b in bounds) if bounds is not None else ""}
-    )
+    table = table.replace_schema_metadata({"bounds": ",".join(str(b) for b in bounds) if bounds is not None else ""})
 
     stream = BytesIO()
     write_feather(
@@ -59,16 +57,12 @@ def feather_response(df, bounds=None):
         # Feather format in JS Arrow lib does not yet support compressed
         compression="uncompressed",
     )
-    response = Response(
-        content=stream.getvalue(), media_type="application/octet-stream"
-    )
+    response = Response(content=stream.getvalue(), media_type="application/octet-stream")
 
     return response
 
 
-def zip_csv_response(
-    df, filename, extra_str=None, extra_path=None, cache_filename=None
-):
+def zip_csv_response(df, filename, extra_str=None, extra_path=None, cache_filename=None):
     """Write data frame into CSV and include optional files within zip file.
 
     Parameters
@@ -112,15 +106,5 @@ def zip_csv_response(
     return Response(
         content=zip_stream.getvalue(),
         media_type="application/zip",
-        headers={
-            "Content-Disposition": f"attachment; filename={filename.replace('.csv', '.zip')}"
-        },
-    )
-
-
-def zip_file_response(src_filename, out_filename):
-    return FileResponse(
-        src_filename,
-        media_type="application/zip",
-        filename=out_filename,
+        headers={"Content-Disposition": f"attachment; filename={filename.replace('.csv', '.zip')}"},
     )

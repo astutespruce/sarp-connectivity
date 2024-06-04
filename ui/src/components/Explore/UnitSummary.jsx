@@ -204,24 +204,14 @@ const UnitSummary = ({
     }
     case 'combined_barriers': {
       downloadButtons = (
-        <Flex sx={{ justifyContent: 'space-between', gap: '1rem' }}>
-          <Downloader
-            barrierType="dams"
-            label={barrierTypeLabels.dams}
-            config={downloaderConfig}
-            disabled={dams === 0}
-            showOptions={false}
-            includeUnranked
-          />
-          <Downloader
-            barrierType="small_barriers"
-            label={barrierTypeLabels.small_barriers}
-            config={downloaderConfig}
-            disabled={totalSmallBarriers === 0}
-            showOptions={false}
-            includeUnranked
-          />
-        </Flex>
+        <Downloader
+          barrierType="combined_barriers"
+          label={barrierTypeLabels.combined_barriers}
+          config={downloaderConfig}
+          disabled={dams + totalSmallBarriers === 0}
+          showOptions={false}
+          includeUnranked
+        />
       )
       break
     }

@@ -1,10 +1,15 @@
+from io import BytesIO
 from pathlib import Path
 from time import time
+from zipfile import ZipFile, ZIP_DEFLATED
 
 import geopandas as gp
+import numpy as np
 import pandas as pd
+from pyarrow.dataset import dataset
+from pyarrow.csv import write_csv
 
-from analysis.constants import SEVERITY_TO_PASSABILITY
+from analysis.constants import SEVERITY_TO_PASSABILITY, STATES
 from analysis.lib.util import get_signed_dtype, append
 from analysis.rank.lib.networks import get_network_results, get_removed_network_results
 from analysis.rank.lib.metrics import classify_streamorder, classify_spps
@@ -17,8 +22,15 @@ from api.constants import (
     WF_API_FIELDS,
     ROAD_CROSSING_API_FIELDS,
     BARRIER_SEARCH_RESULT_FIELDS,
+    CUSTOM_TIER_FIELDS,
+    DAM_EXPORT_FIELDS,
+    SB_EXPORT_FIELDS,
+    COMBINED_EXPORT_FIELDS,
     verify_domains,
 )
+from api.internal.barriers.download import LOGO_PATH
+from api.metadata import get_readme, get_terms
+from api.lib.domains import unpack_domains
 from analysis.constants import NETWORK_TYPES
 
 
@@ -30,7 +42,8 @@ api_dir = data_dir / "api"
 api_dir.mkdir(exist_ok=True, parents=True)
 results_dir = data_dir / "barriers/networks"
 results_dir.mkdir(exist_ok=True, parents=True)
-
+zip_dir = api_dir / "downloads"
+zip_dir.mkdir(exist_ok=True)
 
 # columns for removed dams API public endpoint
 removed_dam_cols = (
@@ -462,3 +475,54 @@ search_barriers["priority"] = search_barriers.BarrierType.map(
     {"dams": 0, "waterfalls": 1, "small_barriers": 2, "road_crossings": 3}
 ).astype("uint8")
 search_barriers.sort_values(by=["priority", "SARPID"]).to_feather(api_dir / "search_barriers.feather")
+
+
+################################################################################
+### Pre-create zip files for national downloads
+################################################################################
+url = "https://aquaticbarriers.org"
+filename = "aquatic_barrier_ranks.csv"
+unit_ids = {"State": np.array(sorted(STATES.keys()))}
+
+for barrier_type in ["dams", "small_barriers", "combined_barriers"]:
+    print(f"Creating {zip_dir}/{barrier_type}.zip...")
+
+    columns = ["id"]
+    match barrier_type:
+        case "dams":
+            columns += DAM_EXPORT_FIELDS
+        case "small_barriers":
+            columns += SB_EXPORT_FIELDS
+        case "combined_barriers" | "largefish_barriers" | "smallfish_barriers":
+            columns += COMBINED_EXPORT_FIELDS
+        # case "road_crossings":
+        #     columns += ROAD_CROSSING_EXPORT_FIELDS
+
+    columns = [c for c in columns if c not in CUSTOM_TIER_FIELDS]
+
+    df = dataset(api_dir / f"{barrier_type}.feather", format="feather").to_table(columns=columns).combine_chunks()
+    df = df.sort_by([("HasNetwork", "descending")])
+    df = unpack_domains(df.drop(["id"]))
+
+    # TODO: add warnings if road crossings are included in downloads
+    warnings = None
+
+    ### Get metadata
+    readme = get_readme(
+        filename=filename,
+        barrier_type=barrier_type,
+        fields=df.column_names,
+        url=url,
+        unit_ids=unit_ids,
+        warnings=warnings,
+    )
+    terms = get_terms(url=url)
+
+    with ZipFile(zip_dir / f"{barrier_type}.zip", "w", compression=ZIP_DEFLATED, compresslevel=9) as out:
+        csv_stream = BytesIO()
+        write_csv(df, csv_stream)
+        out.writestr(filename, csv_stream.getvalue())
+
+        out.writestr("README.txt", readme)
+        out.writestr("TERMS_OF_USE.txt", terms)
+        out.write(LOGO_PATH, "SARP_logo.png")

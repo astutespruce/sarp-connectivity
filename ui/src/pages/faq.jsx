@@ -249,6 +249,21 @@ const FAQPage = ({ data: { headerImage } }) => (
       </Box>
 
       <Box>
+        <Heading as="h2">How can I download all available barriers?</Heading>
+        <Paragraph>
+          Use the download button on the bottom left of the{' '}
+          <Link to="/explore">
+            <b>Explore &amp; Download</b>
+          </Link>{' '}
+          page or the{' '}
+          <Link to="/restoration">
+            <b>Restoration</b>
+          </Link>{' '}
+          page to download all available dams and / or road-related barriers.
+        </Paragraph>
+      </Box>
+
+      <Box>
         <Heading as="h2">
           How can I access map services to display barriers in a GIS
           application?
