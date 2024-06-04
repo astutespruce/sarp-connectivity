@@ -6,12 +6,14 @@ import { Box, Button, Flex, Text } from 'theme-ui'
 import { getDownloadURL } from 'components/Data'
 import { OutboundLink } from 'components/Link'
 import Modal from 'components/Modal'
-import { barrierTypeLabels } from 'config'
+import { barrierTypeLabels, siteMetadata } from 'config'
 import { getFromStorage } from 'util/dom'
 import { trackDownload } from 'util/analytics'
 
 import UserInfoForm, { FIELDS } from './UserInfoForm'
 import DownloadOptions from './Options'
+
+const { apiHost } = siteMetadata
 
 const Downloader = ({
   barrierType,
@@ -59,33 +61,44 @@ const Downloader = ({
   const handleDownload = () => {
     const { summaryUnits, filters, scenario } = config
 
-    const downloadURL = getDownloadURL({
-      barrierType,
-      summaryUnits,
-      filters,
-      includeUnranked:
-        barrierType !== 'road_crossings'
-          ? downloadOptions.includeUnranked
-          : null,
-      sort: scenario ? scenario.toUpperCase() : null,
-      customRank,
-    })
+    let downloadURL = null
+
+    if (summaryUnits) {
+      downloadURL = getDownloadURL({
+        barrierType,
+        summaryUnits,
+        filters,
+        includeUnranked:
+          barrierType !== 'road_crossings'
+            ? downloadOptions.includeUnranked
+            : null,
+        sort: scenario ? scenario.toUpperCase() : null,
+        customRank,
+      })
+    } else {
+      downloadURL = `${apiHost}/api/v1/internal/${barrierType}/csv/national`
+    }
 
     window.open(downloadURL)
     setIsOpen(false)
 
-    const formattedIds = Object.entries(summaryUnits)
-      .map(([key, values]) => `${key}: ${values.join(',')}`)
-      .join(';')
+    // track to Google analytics
+    if (summaryUnits) {
+      const formattedIds = Object.entries(summaryUnits)
+        .map(([key, values]) => `${key}: ${values.join(',')}`)
+        .join(';')
 
-    trackDownload({
-      barrierType,
-      details: `ids: [${formattedIds}], filters: ${
-        filters ? Object.keys(filters) : 'none'
-      }, scenario: ${scenario}, include unranked: ${
-        downloadOptions.includeUnranked
-      }`,
-    })
+      trackDownload({
+        barrierType,
+        details: `ids: [${formattedIds}], filters: ${
+          filters ? Object.keys(filters) : 'none'
+        }, scenario: ${scenario}, include unranked: ${
+          downloadOptions.includeUnranked
+        }`,
+      })
+    } else {
+      trackDownload({ barrierType, unitType: 'national', details: {} })
+    }
   }
 
   const showUserInfoForm = isOpen && !haveUserInfo
@@ -215,7 +228,7 @@ Downloader.propTypes = {
     summaryUnits: PropTypes.objectOf(PropTypes.array),
     filters: PropTypes.object,
     scenario: PropTypes.string,
-  }).isRequired,
+  }),
   customRank: PropTypes.bool,
   asButton: PropTypes.bool,
   label: PropTypes.string,
@@ -225,6 +238,7 @@ Downloader.propTypes = {
 }
 
 Downloader.defaultProps = {
+  config: {}, // empty config means national data
   customRank: false,
   label: null,
   asButton: true,

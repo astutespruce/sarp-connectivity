@@ -1445,6 +1445,14 @@ export const CONNECTIVITY_TEAMS = {
   },
 }
 
+export const MAP_SERVICES = {
+  dams: 'https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Aquatic_Barrier_Prioritization_Dams_v360/FeatureServer',
+  small_barriers:
+    'https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Aquatic_Barrier_Prioritization_RoadBarriers_v360/FeatureServer',
+  combined_barriers:
+    'https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Aquatic_Barrier_Prioritization_Dams_Crossings_Indicators_05242024/FeatureServer',
+}
+
 export const SYSTEMS = {
   ADM: 'State / County',
   HUC: 'Hydrologic unit',

@@ -178,7 +178,7 @@ const UnitSummary = ({
     }
     case 'small_barriers': {
       downloadButtons = (
-        <Flex sx={{ justifyContent: 'space-between', gap: '1rem' }}>
+        <>
           <Downloader
             barrierType="small_barriers"
             label={barrierTypeLabels.small_barriers}
@@ -198,30 +198,20 @@ const UnitSummary = ({
             showOptions={false}
             includeUnranked
           />
-        </Flex>
+        </>
       )
       break
     }
     case 'combined_barriers': {
       downloadButtons = (
-        <Flex sx={{ justifyContent: 'space-between', gap: '1rem' }}>
-          <Downloader
-            barrierType="dams"
-            label={barrierTypeLabels.dams}
-            config={downloaderConfig}
-            disabled={dams === 0}
-            showOptions={false}
-            includeUnranked
-          />
-          <Downloader
-            barrierType="small_barriers"
-            label={barrierTypeLabels.small_barriers}
-            config={downloaderConfig}
-            disabled={totalSmallBarriers === 0}
-            showOptions={false}
-            includeUnranked
-          />
-        </Flex>
+        <Downloader
+          barrierType="combined_barriers"
+          label={barrierTypeLabels.combined_barriers}
+          config={downloaderConfig}
+          disabled={dams + totalSmallBarriers === 0}
+          showOptions={false}
+          includeUnranked
+        />
       )
       break
     }
@@ -522,14 +512,12 @@ const UnitSummary = ({
         ) : null}
       </Box>
 
-      <Box
+      <Flex
         sx={{
           flex: '0 0 auto',
-          display:
-            barrierType === 'dams' || barrierType === 'combined_barriers'
-              ? 'flex'
-              : null,
+          flexWrap: barrierType === 'small_barriers' ? 'wrap' : 'nowrap',
           alignItems: 'center',
+          gap: '1rem',
           pt: '0.5rem',
           px: '1rem',
           pb: '1rem',
@@ -542,18 +530,18 @@ const UnitSummary = ({
           },
         }}
       >
-        <Text sx={{ lineHeight: 1, flex: '0 0 auto' }}>Download:</Text>
+        <Text sx={{ lineHeight: 1, flex: '1 1 auto' }}>Download:</Text>
         <Flex
           sx={{
-            flex: '1 1 auto',
-            mt: '0.5rem',
-            justifyContent:
-              barrierType === 'small_barriers' ? 'center' : 'flex-end',
+            flex: '0 0 auto',
+            width: barrierType === 'small_barriers' ? '100%' : 'auto',
+            justifyContent: 'space-between',
+            gap: '1rem',
           }}
         >
           {downloadButtons}
         </Flex>
-      </Box>
+      </Flex>
     </Flex>
   )
 }

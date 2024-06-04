@@ -2,10 +2,12 @@ from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.requests import Request
+from fastapi.responses import FileResponse
 import pyarrow as pa
 import pyarrow.compute as pc
 
 from api.constants import (
+    CoreBarrierTypes,
     BarrierTypes,
     Scenarios,
     Formats,
@@ -15,6 +17,7 @@ from api.constants import (
     COMBINED_EXPORT_FIELDS,
     ROAD_CROSSING_EXPORT_FIELDS,
 )
+from api.data import data_dir
 from api.lib.domains import unpack_domains
 from api.lib.tiers import calculate_tiers
 from api.logger import log, log_request
@@ -31,6 +34,27 @@ MAX_CROSSINGS = 1e6  # limit to 1M crossings in downloads
 
 
 router = APIRouter()
+
+
+@router.get("/{barrier_type}/{format}/national")
+async def download_national(
+    request: Request,
+    barrier_type: CoreBarrierTypes,
+    format: Formats = "csv",
+):
+    log_request(request)
+
+    filename = data_dir / f"downloads/{barrier_type}.zip"
+
+    if format == "csv":
+        return FileResponse(
+            filename,
+            media_type="application/zip",
+            # headers={"Content-Disposition": "attachment"},
+            filename="aquatic_barrier_ranks.zip",
+        )
+
+    raise NotImplementedError("Other formats not yet supported")
 
 
 @router.get("/{barrier_type}/{format}")
