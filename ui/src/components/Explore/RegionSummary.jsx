@@ -5,12 +5,14 @@ import PropTypes from 'prop-types'
 import { AngleDoubleRight } from '@emotion-icons/fa-solid'
 import { Box, Paragraph, Divider, Text } from 'theme-ui'
 
-import { Link } from 'components/Link'
+import { MAP_SERVICES } from 'config'
+import { Link, OutboundLink } from 'components/Link'
 import { UnitSearch } from 'components/UnitSearch'
 import { formatNumber } from 'util/format'
 
 const Summary = ({
   barrierType,
+  region,
   url,
   urlLabel,
   name,
@@ -207,11 +209,25 @@ const Summary = ({
           from the analysis.
         </Paragraph>
       ) : null}
+
+      {!region ? (
+        <Box sx={{ mt: '2rem' }}>
+          To access an ArcGIS map service of a recent version of these barriers
+          and associated connectivity results,{' '}
+          <OutboundLink to={MAP_SERVICES[barrierType]}>click here</OutboundLink>
+          .
+          <Text variant="help">
+            Note: may not match the exact version available for download in this
+            tool
+          </Text>
+        </Box>
+      ) : null}
     </Box>
   )
 }
 
 Summary.propTypes = {
+  region: PropTypes.string,
   url: PropTypes.string,
   urlLabel: PropTypes.string,
   name: PropTypes.string.isRequired,
@@ -232,6 +248,7 @@ Summary.propTypes = {
 }
 
 Summary.defaultProps = {
+  region: null,
   url: null,
   urlLabel: null,
   dams: 0,

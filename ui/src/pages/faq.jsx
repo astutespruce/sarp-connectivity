@@ -1,9 +1,9 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Container, Heading, Paragraph } from 'theme-ui'
-
 import { graphql } from 'gatsby'
 
+import { MAP_SERVICES } from 'config'
 import { Layout, SEO } from 'components/Layout'
 import { Link, OutboundLink } from 'components/Link'
 import { HeaderImage } from 'components/Image'
@@ -246,6 +246,39 @@ const FAQPage = ({ data: { headerImage } }) => (
           your area of interest. You can then download all dams, road-related
           barriers, or both types for that area.
         </Paragraph>
+      </Box>
+
+      <Box>
+        <Heading as="h2">
+          How can I access map services to display barriers in a GIS
+          application?
+        </Heading>
+        <Paragraph sx={{ mt: '0.5rem' }}>
+          If you would like to access map services of a recent version of the
+          aquatic barriers and connectivity results (may not match the exact
+          version here), you can import one of the following connectivity
+          analysis map services into your GIS tool of choice:
+        </Paragraph>
+        <Box as="ul" sx={{ mt: '0.5rem' }}>
+          <li>
+            <OutboundLink to={MAP_SERVICES.dams}>Dams</OutboundLink> based on
+            networks that are cut by dams and waterfalls.
+          </li>
+          <li>
+            <OutboundLink to={MAP_SERVICES.small_barriers}>
+              Assessed road crossings
+            </OutboundLink>{' '}
+            based on networks that are cut by dams, waterfalls, and assessed
+            crossings.
+          </li>
+          <li>
+            <OutboundLink to={MAP_SERVICES.combined_barriers}>
+              Dams and assessed road crossings
+            </OutboundLink>{' '}
+            based on networks that are cut by dams, waterfalls, and assessed
+            crossings.
+          </li>
+        </Box>
       </Box>
     </Container>
   </Layout>

@@ -3,7 +3,7 @@ import { Box, Grid, Paragraph, Heading, Text } from 'theme-ui'
 
 import { Link, OutboundLink } from 'components/Link'
 import { HighlightBox } from 'components/Layout'
-import { siteMetadata, ANALYSIS_STATES } from 'config'
+import { siteMetadata, ANALYSIS_STATES, MAP_SERVICES } from 'config'
 import { formatNumber } from 'util/format'
 import { useSummaryData } from 'components/Data'
 
@@ -133,20 +133,18 @@ const Inventory = () => {
       </Paragraph>
       <Box as="ul" sx={{ mt: '0.5rem' }}>
         <li>
-          <OutboundLink to="https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Aquatic_Barrier_Prioritization_Dams_v360/FeatureServer">
-            Dams
-          </OutboundLink>{' '}
-          based on networks that are cut by dams and waterfalls.
+          <OutboundLink to={MAP_SERVICES.dams}>Dams</OutboundLink> based on
+          networks that are cut by dams and waterfalls.
         </li>
         <li>
-          <OutboundLink to="https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Aquatic_Barrier_Prioritization_RoadBarriers_v360/FeatureServer">
+          <OutboundLink to={MAP_SERVICES.small_barriers}>
             Assessed road crossings
           </OutboundLink>{' '}
           based on networks that are cut by dams, waterfalls, and assessed
           crossings.
         </li>
         <li>
-          <OutboundLink to="https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Aquatic_Barrier_Prioritization_Dams_Crossings_Indicators_05242024/FeatureServer">
+          <OutboundLink to={MAP_SERVICES.combined_barriers}>
             Dams and assessed road crossings
           </OutboundLink>{' '}
           based on networks that are cut by dams, waterfalls, and assessed
