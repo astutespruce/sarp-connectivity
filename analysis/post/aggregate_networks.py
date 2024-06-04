@@ -26,6 +26,7 @@ from api.constants import (
     DAM_EXPORT_FIELDS,
     SB_EXPORT_FIELDS,
     COMBINED_EXPORT_FIELDS,
+    ROAD_CROSSING_EXPORT_FIELDS,
     verify_domains,
 )
 from api.internal.barriers.download import LOGO_PATH
@@ -484,8 +485,10 @@ url = "https://aquaticbarriers.org"
 filename = "aquatic_barrier_ranks.csv"
 unit_ids = {"State": np.array(sorted(STATES.keys()))}
 
-for barrier_type in ["dams", "small_barriers", "combined_barriers"]:
+for barrier_type in ["dams", "small_barriers", "combined_barriers", "road_crossings"]:
     print(f"Creating {zip_dir}/{barrier_type}.zip...")
+
+    warnings = None
 
     columns = ["id"]
     match barrier_type:
@@ -495,17 +498,17 @@ for barrier_type in ["dams", "small_barriers", "combined_barriers"]:
             columns += SB_EXPORT_FIELDS
         case "combined_barriers" | "largefish_barriers" | "smallfish_barriers":
             columns += COMBINED_EXPORT_FIELDS
-        # case "road_crossings":
-        #     columns += ROAD_CROSSING_EXPORT_FIELDS
+        case "road_crossings":
+            columns += ROAD_CROSSING_EXPORT_FIELDS
+            warnings = "this dataset includes road/stream crossings (potential barriers) derived from the USGS Road Crossings dataset (2022) or USFS National Road / Stream crossings dataset (2024) that have not yet been assessed for impacts to aquatic organisms.  These only include those that were snapped to the aquatic network and should not be taken as a comprehensive survey of all possible road-related barriers."
 
     columns = [c for c in columns if c not in CUSTOM_TIER_FIELDS]
 
     df = dataset(api_dir / f"{barrier_type}.feather", format="feather").to_table(columns=columns).combine_chunks()
-    df = df.sort_by([("HasNetwork", "descending")])
-    df = unpack_domains(df.drop(["id"]))
+    if barrier_type != "road_crossings":
+        df = df.sort_by([("HasNetwork", "descending")])
 
-    # TODO: add warnings if road crossings are included in downloads
-    warnings = None
+    df = unpack_domains(df.drop(["id"]))
 
     ### Get metadata
     readme = get_readme(

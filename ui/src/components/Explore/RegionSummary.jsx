@@ -236,8 +236,8 @@ const Summary = ({
         <Flex
           sx={{
             flex: '0 0 auto',
+            flexWrap: barrierType === 'small_barriers' ? 'wrap' : 'nowrap',
             alignItems: 'center',
-            // justifyContent: 'space-between',
             gap: '1rem',
             pt: '0.5rem',
             px: '1rem',
@@ -253,14 +253,28 @@ const Summary = ({
         >
           <Text sx={{ lineHeight: 1, flex: '1 1 auto' }}>Download:</Text>
 
-          <Box sx={{ flex: '0 0 auto' }}>
+          <Flex
+            sx={{
+              flex: '0 0 auto',
+              width: barrierType === 'small_barriers' ? '100%' : 'auto',
+              justifyContent: 'space-between',
+              gap: '1rem',
+            }}
+          >
             <Downloader
               barrierType={barrierType}
               label={barrierTypeLabels[barrierType]}
               showOptions={false}
-              includeUnranked
             />
-          </Box>
+
+            {barrierType === 'small_barriers' ? (
+              <Downloader
+                barrierType="road_crossings"
+                label={barrierTypeLabels.road_crossings}
+                showOptions={false}
+              />
+            ) : null}
+          </Flex>
         </Flex>
       ) : null}
     </Flex>

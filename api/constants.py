@@ -6,6 +6,7 @@ class CoreBarrierTypes(str, Enum):
     dams = "dams"
     small_barriers = "small_barriers"
     combined_barriers = "combined_barriers"
+    road_crossings = "road_crossings"
 
 
 class BarrierTypes(str, Enum):
