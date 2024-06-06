@@ -43,8 +43,7 @@ async def search_units(request: Request, layer: str, query: str):
         filter=pc.field("layer").isin(layers) & pc.match_substring(pc.field("key"), query.lower(), ignore_case=True)
     )
 
-    # discard pandas metadata and store count
-    matches = matches.replace_schema_metadata({"count": str(len(matches))})
+    total_count = len(matches)
 
     # find those where the substring is closest to the left of the name and
     # have the shortest names, based on priority order of different unit types
@@ -65,6 +64,7 @@ async def search_units(request: Request, layer: str, query: str):
             ]
         )
         .select(SUMMARY_UNIT_FIELDS)[:10]
+        .replace_schema_metadata({"count": str(total_count)})
     )
 
     stream = BytesIO()

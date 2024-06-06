@@ -185,7 +185,7 @@ export const searchUnits = async (layers, query) => {
     const data = await tableFromIPC(response.arrayBuffer())
 
     return {
-      results: data.toArray().map((row) => row.toJSON()),
+      results: data.toArray().map((row) => toCamelCaseFields(row.toJSON())),
       remaining: parseInt(data.schema.metadata.get('count'), 10) - data.numRows,
     }
   } catch (err) {
