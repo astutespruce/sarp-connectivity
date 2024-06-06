@@ -26,7 +26,7 @@ const UnitSearch = ({
   const {
     isLoading,
     error,
-    data: { results = [], meta: { remaining = 0 } = {} } = {},
+    data: { results = [], remaining = 0 } = {},
   } = useQuery({
     queryKey: ['search', system, layer, query],
     queryFn: async () => {
@@ -35,6 +35,7 @@ const UnitSearch = ({
       }
 
       const layers = layer !== null ? [layer] : SYSTEM_UNITS[system]
+
       return searchUnits(layers, query)
     },
 
