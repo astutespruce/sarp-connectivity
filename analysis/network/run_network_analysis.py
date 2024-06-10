@@ -34,6 +34,8 @@ FLOWLINE_COLS = [
     "sizeclass",
     "length",
     "AreaSqKm",
+    "TotDASqKm",
+    "StreamOrder",
 ]
 
 
@@ -130,6 +132,8 @@ for group_huc2s in groups:
         .to_pandas()
         .set_index("lineID")
     )
+    # calculate free-flowing reaches
+    flowlines["free_flowing"] = ~(flowlines.waterbody & flowlines.altered)
 
     for network_type in NETWORK_TYPES:
         print(f"-------------------------\nCreating networks for {network_type}")
@@ -172,6 +176,7 @@ for group_huc2s in groups:
     # all flowlines without networks marked -1
     for network_type in NETWORK_TYPES:
         flowlines[network_type] = flowlines[network_type].fillna(-1).astype("int64")
+        flowlines[f"{network_type}_mainstem"] = flowlines[f"{network_type}_mainstem"].fillna(-1).astype("int64")
 
     # save network segments in the HUC2 where they are located
     print("Serializing network segments")

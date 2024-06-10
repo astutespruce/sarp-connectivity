@@ -12,18 +12,23 @@ out_dir = Path("/tmp/sarp")
 out_dir.mkdir(exist_ok=True, parents=True)
 
 
-scenario = "dams"  # "dams", "combined_barriers", "largefish_barriers", "smallfish_barriers"
+# full network scenarios are: "dams", "combined_barriers", "largefish_barriers", "smallfish_barriers"
+scenario = "dams"
+mainstem = True
 ext = "fgb"
 driver = "FlatGeobuf"
 # ext = "gdb"
 # driver = "OpenFileGDB"
+
+
+scenario_suffix = "_mainstem" if mainstem else ""
 
 groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
 
 export_hucs = {
     # "01",
     # "02",
-    # "03"
+    "03"
     # "04",
     # "05",
     # "06",
@@ -31,7 +36,10 @@ export_hucs = {
     # "08",
     # "09",
     # "14",
-    "18",
+    # "15",
+    # "16",
+    # "17",
+    # "18",
     # "21"
 }
 
@@ -47,26 +55,28 @@ floodplains = (
 floodplains["natfldpln"] = (100 * floodplains.natfldkm2 / floodplains.fldkm2).astype("float32")
 
 
+# FIXME:
 # for group in groups_df.groupby("group").HUC2.apply(set).values:
-# for group in [{"01", "02"}]:
-# for group in [{"05", "06", "07", "08", "10", "11"}]:
-# for group in [{"14", "15"}]:
-for group in [{"18"}]:
+for group in [{"03"}]:
     group = sorted(group)
 
+    networkID_col = f"{scenario}{scenario_suffix}"
     segments = (
         read_feathers(
             [src_dir / "clean" / huc2 / "network_segments.feather" for huc2 in group],
-            columns=["lineID", scenario],
+            columns=["lineID", networkID_col],
         )
-        .rename(columns={scenario: "networkID"})
+        .rename(columns={networkID_col: "networkID"})
         .set_index("lineID")
     )
+    if mainstem:
+        segments = segments.loc[segments.networkID != -1]
 
     stats = read_feathers(
         [src_dir / "clean" / huc2 / f"{scenario}_network_stats.feather" for huc2 in group],
         columns=[
             "networkID",
+            # full functional network miles
             "total_miles",
             "perennial_miles",
             "intermittent_miles",
@@ -86,9 +96,25 @@ for group in [{"18"}]:
             "natfldpln",
             "sizeclasses",
             "barrier",
+            "invasive_network",  # true if upstream of an invasive barrier
+            # upstream mainstem network miles
+            "total_mainstem_miles",
+            "perennial_mainstem_miles",
+            "intermittent_mainstem_miles",
+            "altered_mainstem_miles",
+            "unaltered_mainstem_miles",
+            "perennial_unaltered_mainstem_miles",
+            # downstream linear network miles (downstream to next barrier / outlet)
+            "total_linear_downstream_miles",
+            "free_linear_downstream_miles",
+            "free_perennial_linear_downstream_miles",
+            "free_intermittent_linear_downstream_miles",
+            "free_altered_linear_downstream_miles",
+            "free_unaltered_linear_downstream_miles",
+            # downstream linear network to outlet
+            "miles_to_outlet",
             "flows_to_ocean",
             "flows_to_great_lakes",
-            "invasive_network",
         ],
     ).set_index("networkID")
 
@@ -139,7 +165,7 @@ for group in [{"18"}]:
         ).set_index("lineID")
 
         flowlines = (
-            flowlines.join(segments)
+            flowlines.join(segments, how="inner")
             .join(floodplains, on="NHDPlusID")
             .join(stats[["flows_to_ocean", "flows_to_great_lakes", "invasive_network"]], on="networkID")
         )
@@ -165,7 +191,9 @@ for group in [{"18"}]:
 
         ### To export flowline segments
         print(f"Serializing {len(flowlines):,} network segments...")
-        write_dataframe(flowlines, out_dir / f"region{huc2}_{scenario}_network_segments.{ext}", driver=driver)
+        write_dataframe(
+            flowlines, out_dir / f"region{huc2}_{scenario}{scenario_suffix}_network_segments.{ext}", driver=driver
+        )
 
         ### To export dissolved networks
         networks = (
@@ -195,4 +223,4 @@ for group in [{"18"}]:
         # ] = "altered_intermittent"
 
         print(f"Serializing {len(networks):,} dissolved networks...")
-        write_dataframe(networks, out_dir / f"region{huc2}_{scenario}_networks.{ext}", driver=driver)
+        write_dataframe(networks, out_dir / f"region{huc2}_{scenario}{scenario_suffix}_networks.{ext}", driver=driver)
