@@ -688,4 +688,11 @@ def create_barrier_networks(barriers, barrier_joins, focal_barrier_joins, joins,
 
     barrier_networks["PercentResilient"] = barrier_networks.PercentResilient.round().astype("int8")
 
-    return barrier_networks, network_stats, flowlines
+    # assign downstream linear networks to barrier IDs
+    downstream_linear_networks = (
+        focal_barrier_joins[["downstream_id"]]
+        .join(downstream_linear_networks.reset_index().set_index("networkID"), on="downstream_id", how="inner")
+        .lineID.reset_index()
+    )
+
+    return barrier_networks, network_stats, flowlines, downstream_linear_networks, downstream_stats

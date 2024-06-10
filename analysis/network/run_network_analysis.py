@@ -144,14 +144,21 @@ for group_huc2s in groups:
 
         focal_barrier_joins = barrier_joins.loc[barrier_joins.kind.isin(breaking_kinds) & barrier_joins[col]]
 
-        barrier_networks, network_stats, flowlines = create_barrier_networks(
-            barriers,
-            barrier_joins,
-            focal_barrier_joins,
-            joins,
-            flowlines,
-            network_type,
+        barrier_networks, network_stats, flowlines, downstream_linear_networks, downstream_stats = (
+            create_barrier_networks(
+                barriers,
+                barrier_joins,
+                focal_barrier_joins,
+                joins,
+                flowlines,
+                network_type,
+            )
         )
+
+        # tag downstream networks to HUC2 based on the HUC2 of the barrier at top of downstream network
+        tmp = barriers.set_index("id").HUC2
+        downstream_linear_networks = downstream_linear_networks.join(tmp, on="id")
+        downstream_stats = downstream_stats.join(tmp)
 
         # save network stats to the HUC2 where the network originates
         for huc2 in sorted(network_stats.origin_HUC2.unique()):
@@ -159,12 +166,19 @@ for group_huc2s in groups:
                 out_dir / huc2 / f"{network_type}_network_stats.feather"
             )
 
-        # save barriers by the HUC2 where they are located
+        # save barriers by the HUC2 where they are located and downstream linear networks
+        # based on the HUC2 where the barrier is located
         for huc2 in group_huc2s:
-            tmp = (
-                barrier_networks.loc[barrier_networks.HUC2 == huc2]
-                .reset_index()
-                .to_feather(out_dir / huc2 / f"{network_type}_network.feather")
+            barrier_networks.loc[barrier_networks.HUC2 == huc2].reset_index().to_feather(
+                out_dir / huc2 / f"{network_type}_network.feather"
+            )
+
+            downstream_linear_networks.loc[downstream_linear_networks.HUC2 == huc2, ["id", "lineID"]].to_feather(
+                out_dir / huc2 / f"{network_type}_downstream_linear_segments.feather"
+            )
+
+            downstream_stats.loc[downstream_stats.HUC2 == huc2].drop(columns=["HUC2"]).reset_index().to_feather(
+                out_dir / huc2 / f"{network_type}_downstream_linear_network_stats.feather"
             )
 
     print("-------------------------\n")
