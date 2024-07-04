@@ -164,7 +164,7 @@ GEO_CRS = "EPSG:4326"
 # 0 = unknown
 # 1 = <= 1999
 # NOTE: need to include 1 year beyond current
-YEAR_REMOVED_BINS = [0, 1, 2000, 2010, 2020, 2021, 2022, 2023, 2024, 2025]
+YEAR_REMOVED_BINS = [0, 1, 2000, 2010, 2020, 2021, 2022, 2023, 2024, 2025, 2026]
 
 
 # distance within which points snapping to a line will snap to endpoint of the line
@@ -239,6 +239,8 @@ DAM_FS_COLS = [
     "Cost_95_Lower",
     "Cost_95_Upper",
     "Priority_Identified",
+    "NORMSTOR",
+    "FEDERAL_ID",  # new NID federal ID
 ]
 
 

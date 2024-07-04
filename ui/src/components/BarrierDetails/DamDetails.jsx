@@ -68,6 +68,7 @@ const DamDetails = ({
   lowheaddam,
   milestooutlet,
   nativeterritories,
+  nidfederalid,
   nidid,
   onloop,
   ownertype,
@@ -395,6 +396,7 @@ const DamDetails = ({
           sarpid={sarpid}
           lat={lat}
           lon={lon}
+          nidfederalid={nidfederalid}
           nidid={nidid}
           source={source}
           sourceid={sourceid}
@@ -445,6 +447,7 @@ DamDetails.propTypes = {
   lowheaddam: PropTypes.number,
   milestooutlet: PropTypes.number,
   nativeterritories: PropTypes.string,
+  nidfederalid: PropTypes.string,
   nidid: PropTypes.string,
   onloop: PropTypes.bool,
   ownertype: PropTypes.number,
@@ -578,6 +581,7 @@ DamDetails.defaultProps = {
   lowheaddam: null,
   milestooutlet: 0,
   nativeterritories: null,
+  nidfederalid: null,
   nidid: null,
   onloop: false,
   ownertype: null,

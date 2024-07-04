@@ -53,6 +53,7 @@ async def download_dams(token):
                 "SARPUniqueID": "SARPID",
                 "SourceDBID": "SourceID",
                 "UNIQUE_ID": "PartnerID",
+                "FEDERAL_ID": "NIDFederalID",
                 "PotentialFeasibility": "Feasibility",
                 "Barrier_Name": "Name",
                 "Other_Barrier_Name": "OtherName",
@@ -76,6 +77,7 @@ async def download_dams(token):
                 "WIDTH": "Width",
                 "LENGTH": "Length",
                 "Priority_Identified": "IsPriority",
+                "NORMSTOR": "StorageVolume",
             }
         )
 

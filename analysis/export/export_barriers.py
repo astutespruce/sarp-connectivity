@@ -13,7 +13,6 @@ from api.constants import (
     ROAD_CROSSING_EXPORT_FIELDS,
     unique,
 )
-from api.lib.tiers import calculate_tiers
 from analysis.export.lib.domains import unpack_domains
 
 
