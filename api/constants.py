@@ -240,6 +240,7 @@ FILTER_FIELDS = [
     "SalmonidESU",
     "SalmonidESUCount",
     "StreamOrderClass",
+    "AnnualFlowClass",
     "PercentAlteredClass",
     "PercentResilientClass",
     "OwnerType",
@@ -283,6 +284,7 @@ COMBINED_FILTER_FIELD_MAP = {f.lower(): f for f in COMBINED_FILTER_FIELDS}
 
 ROAD_CROSSING_FILTER_FIELDS = [
     "StreamOrderClass",
+    "AnnualFlowClass",
     "Intermittent",
     "CrossingType",
     "OwnerType",

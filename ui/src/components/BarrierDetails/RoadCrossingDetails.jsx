@@ -18,6 +18,7 @@ const RoadCrossingDetails = ({
   sarpid,
   lat,
   lon,
+  annualflow,
   barrierownertype,
   basin,
   crossingtype,
@@ -63,6 +64,7 @@ const RoadCrossingDetails = ({
 
       <LocationInfo
         barrierType={barrierType}
+        annualflow={annualflow}
         reachName={river}
         basin={basin}
         subwatershed={subwatershed}
@@ -135,6 +137,7 @@ const RoadCrossingDetails = ({
 )
 
 RoadCrossingDetails.propTypes = {
+  annualflow: PropTypes.number,
   barrierType: PropTypes.string.isRequired,
   networkType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
@@ -168,6 +171,7 @@ RoadCrossingDetails.propTypes = {
 }
 
 RoadCrossingDetails.defaultProps = {
+  annualflow: null,
   basin: null,
   crossingtype: null,
   ejtract: false,

@@ -36,6 +36,7 @@ const DamDetails = ({
   lat,
   lon,
   alteredupstreammiles,
+  annualflow,
   barrierownertype,
   basin,
   condition,
@@ -169,6 +170,7 @@ const DamDetails = ({
 
         <LocationInfo
           barrierType={barrierType}
+          annualflow={annualflow}
           reachName={river}
           basin={basin}
           subwatershed={subwatershed}
@@ -417,6 +419,7 @@ DamDetails.propTypes = {
   lat: PropTypes.number.isRequired,
   lon: PropTypes.number.isRequired,
   alteredupstreammiles: PropTypes.number,
+  annualflow: PropTypes.number,
   barrierownertype: PropTypes.number,
   basin: PropTypes.string,
   condition: PropTypes.number,
@@ -553,6 +556,7 @@ DamDetails.propTypes = {
 
 DamDetails.defaultProps = {
   alteredupstreammiles: 0,
+  annualflow: null,
   barrierownertype: null,
   basin: null,
   condition: null,

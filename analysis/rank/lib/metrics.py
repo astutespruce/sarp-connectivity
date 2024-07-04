@@ -45,3 +45,9 @@ def classify_downstream_barriers(series):
     """classify barriers downstream to ocean / Great Lakes into bins 1...5; 0 is reserved for missing values"""
     bins = [-1, 0, 1, 2, 5, 10] + [series.max() + 1]
     return np.asarray(pd.cut(series, bins, right=False, labels=np.arange(0, len(bins) - 1))).astype("uint8")
+
+
+def classify_annual_flow(series):
+    """classify barriers by the annual flow rate of the flowline where they snapped; 0 indicates missing values"""
+    bins = [-1, 0, 1, 3, 5, 10, 50, 100] + [series.max() + 1]
+    return np.asarray(pd.cut(series, bins, right=False, labels=np.arange(0, len(bins) - 1))).astype("uint8")

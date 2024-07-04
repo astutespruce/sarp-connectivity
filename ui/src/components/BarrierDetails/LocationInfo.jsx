@@ -20,6 +20,7 @@ import { formatNumber } from 'util/format'
 import { isEmptyString } from 'util/string'
 
 const LocationInfo = ({
+  annualflow,
   barrierType,
   reachName,
   huc12,
@@ -98,6 +99,15 @@ const LocationInfo = ({
           </Field>
         </Entry>
       ) : null}
+
+      {annualflow !== null && annualflow >= 0 ? (
+        <Entry>
+          <Field label="Stream reach annual flow rate">
+            {formatNumber(annualflow)} CFS
+          </Field>
+        </Entry>
+      ) : null}
+
       {ownertype !== null && ownertype > 0 ? (
         <Entry>
           <Field label="Conservation land type">{OWNERTYPE[ownertype]}</Field>
@@ -191,6 +201,7 @@ const LocationInfo = ({
 }
 
 LocationInfo.propTypes = {
+  annualflow: PropTypes.number,
   barrierType: PropTypes.string.isRequired,
   reachName: PropTypes.string,
   huc12: PropTypes.string.isRequired,
@@ -215,6 +226,7 @@ LocationInfo.propTypes = {
 }
 
 LocationInfo.defaultProps = {
+  annualflow: null,
   reachName: null,
   ownertype: 0,
   barrierownertype: 0,

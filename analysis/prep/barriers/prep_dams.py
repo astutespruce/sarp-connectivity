@@ -904,8 +904,9 @@ df["loop"] = df.loop.fillna(0).astype("bool")
 df["offnetwork_flowline"] = df.offnetwork_flowline.fillna(0).astype("bool")
 df["sizeclass"] = df.sizeclass.fillna("")
 df["FCode"] = df.FCode.fillna(-1).astype("int32")
-# -9998.0 values likely indicate AnnualVelocity data is not available, equivalent to null
+# -9998.0 - 0 values likely indicate AnnualVelocity / AnnualFlow data is not available, equivalent to null
 df.loc[df.AnnualVelocity < 0, "AnnualVelocity"] = np.nan
+df.loc[df.AnnualFlow <= 0, "AnnualFlow"] = np.nan
 
 # cast fields with missing values to float32
 for field in ["AnnualVelocity", "AnnualFlow", "TotDASqKm"]:

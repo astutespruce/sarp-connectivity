@@ -37,6 +37,7 @@ const { version: dataVersion } = siteMetadata
 const LocationConstruction = ({
   barrierType,
   sarpid,
+  annualflow,
   river,
   intermittent,
   subbasin,
@@ -191,6 +192,12 @@ const LocationConstruction = ({
               }{' '}
               km
               <sup>2</sup>)
+            </Entry>
+          ) : null}
+
+          {annualflow !== null && annualflow >= 0 ? (
+            <Entry>
+              Stream reach annual flow rate: {formatNumber(annualflow)} CFS
             </Entry>
           ) : null}
 
@@ -376,6 +383,7 @@ const LocationConstruction = ({
 LocationConstruction.propTypes = {
   barrierType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
+  annualflow: PropTypes.number,
   river: PropTypes.string,
   intermittent: PropTypes.number,
   subbasin: PropTypes.string,
@@ -420,6 +428,7 @@ LocationConstruction.propTypes = {
 }
 
 LocationConstruction.defaultProps = {
+  annualflow: null,
   river: null,
   intermittent: 0,
   subbasin: null,

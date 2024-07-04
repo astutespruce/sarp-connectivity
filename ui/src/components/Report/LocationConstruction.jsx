@@ -36,6 +36,7 @@ const { version: dataVersion } = siteMetadata
 const Location = ({
   barrierType,
   sarpid,
+  annualflow,
   hazard,
   construction,
   purpose,
@@ -218,6 +219,14 @@ const Location = ({
                   <br />
                   (drainage area:{' '}
                   {STREAM_SIZECLASS_DRAINAGE_AREA[streamsizeclass]} km2)
+                </Text>
+              </Entry>
+            ) : null}
+
+            {annualflow !== null && annualflow >= 0 ? (
+              <Entry>
+                <Text>
+                  Stream reach annual flow rate: {formatNumber(annualflow)} CFS
                 </Text>
               </Entry>
             ) : null}
@@ -485,6 +494,7 @@ const Location = ({
 Location.propTypes = {
   barrierType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
+  annualflow: PropTypes.number,
   height: PropTypes.number,
   width: PropTypes.number,
   yearcompleted: PropTypes.number,
@@ -528,6 +538,7 @@ Location.propTypes = {
 }
 
 Location.defaultProps = {
+  annualflow: null,
   height: 0,
   width: 0,
   yearcompleted: 0,
