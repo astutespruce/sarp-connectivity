@@ -36,6 +36,7 @@ const LocationInfo = ({
   fishhabitatpartnership,
   nativeterritories,
   intermittent,
+  storagevolume,
   streamorder,
   streamsizeclass,
   waterbodysizeclass,
@@ -58,6 +59,13 @@ const LocationInfo = ({
       </Entry>
       {intermittent === 1 ? (
         <Entry>This {barrierTypeLabel} is on an intermittent reach</Entry>
+      ) : null}
+      {storagevolume !== null ? (
+        <Entry>
+          <Field label="Normal storage volume">
+            {formatNumber(storagevolume)} acre/feet
+          </Field>
+        </Entry>
       ) : null}
       {waterbodysizeclass > 0 ? (
         <Entry>
@@ -199,6 +207,7 @@ LocationInfo.propTypes = {
   fishhabitatpartnership: PropTypes.string,
   nativeterritories: PropTypes.string,
   intermittent: PropTypes.number,
+  storagevolume: PropTypes.number,
   streamorder: PropTypes.number,
   streamsizeclass: PropTypes.string,
   waterbodysizeclass: PropTypes.number,
@@ -218,6 +227,7 @@ LocationInfo.defaultProps = {
   fishhabitatpartnership: null,
   nativeterritories: null,
   intermittent: 0,
+  storagevolume: null,
   streamorder: 0,
   streamsizeclass: null,
   waterbodysizeclass: null,

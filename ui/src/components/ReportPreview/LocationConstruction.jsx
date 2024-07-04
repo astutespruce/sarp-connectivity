@@ -68,6 +68,7 @@ const LocationConstruction = ({
   diversion,
   streamorder,
   streamsizeclass,
+  storagevolume,
   waterbodykm2,
   waterbodysizeclass,
   invasive,
@@ -152,6 +153,12 @@ const LocationConstruction = ({
             <Entry>
               This {barrierTypeLabel} on a reach that has intermittent or
               ephemeral flow
+            </Entry>
+          ) : null}
+
+          {storagevolume !== null ? (
+            <Entry>
+              Normal storage volume: {formatNumber(storagevolume)} acre/feet
             </Entry>
           ) : null}
 
@@ -400,6 +407,7 @@ LocationConstruction.propTypes = {
   lowheaddam: PropTypes.number,
   streamorder: PropTypes.number,
   streamsizeclass: PropTypes.string,
+  storagevolume: PropTypes.number,
   waterbodykm2: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
   invasive: PropTypes.bool,
@@ -441,6 +449,7 @@ LocationConstruction.defaultProps = {
   sarp_score: -1,
   diversion: 0,
   lowheaddam: null,
+  storagevolume: null,
   streamorder: 0,
   streamsizeclass: null,
   waterbodykm2: -1,

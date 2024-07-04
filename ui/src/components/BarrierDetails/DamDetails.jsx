@@ -90,6 +90,7 @@ const DamDetails = ({
   sourceid,
   stateregulated,
   statesgcnspp,
+  storagevolume,
   streamorder,
   streamsizeclass,
   subwatershed,
@@ -183,6 +184,7 @@ const DamDetails = ({
           fishhabitatpartnership={fishhabitatpartnership}
           nativeterritories={nativeterritories}
           intermittent={intermittent}
+          storagevolume={storagevolume}
           streamorder={streamorder}
           streamsizeclass={streamsizeclass}
           waterbodysizeclass={waterbodysizeclass}
@@ -469,6 +471,7 @@ DamDetails.propTypes = {
   sourceid: PropTypes.string,
   stateregulated: PropTypes.number,
   statesgcnspp: PropTypes.number,
+  storagevolume: PropTypes.number,
   streamorder: PropTypes.number,
   streamsizeclass: PropTypes.string,
   subwatershed: PropTypes.string,
@@ -603,6 +606,7 @@ DamDetails.defaultProps = {
   sourceid: null,
   stateregulated: null,
   statesgcnspp: 0,
+  storagevolume: null,
   streamorder: 0,
   streamsizeclass: null,
   subwatershed: null,
