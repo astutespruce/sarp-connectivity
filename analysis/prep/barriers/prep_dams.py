@@ -237,6 +237,7 @@ df["IsPriority"] = df.IsPriority == 1
 for column in (
     "River",
     "NIDID",
+    "NIDFederalID",
     "Source",
     "Name",
     "OtherName",
@@ -274,11 +275,7 @@ df.loc[(df.YearFishPass > 0) & (df.YearFishPass < 1900), "YearFishPass"] = np.ui
 
 
 # Use float32 instead of float64 (still can hold nulls)
-for column in (
-    "ImpoundmentType",
-    "Recon2",
-    "Recon3",
-):
+for column in ("ImpoundmentType", "Recon2", "Recon3", "StorageVolume"):
     df[column] = df[column].astype("float32")
 
 
@@ -460,7 +457,13 @@ df.BarrierOwnerType = df.BarrierOwnerType.fillna(0).map(BARRIEROWNERTYPE_TO_DOMA
 
 # Cleanup FERCRegulated and StateRegulated
 df["FERCRegulated"] = df.FERCRegulated.fillna(0).astype("uint8").map(FERCREGULATED_TO_DOMAIN).astype("uint8")
-df["StateRegulated"] = df.StateRegulated.fillna("0").astype("uint8")
+
+df["StateRegulated"] = df.StateRegulated.fillna("0")
+# FIXME: temporary: handle Yes / No values; these should instead be coded using their domain values
+ix = df.StateRegulated.isin(["Yes", "No"])
+df.loc[ix, "StateRegulated"] = df.loc[ix].StateRegulated.map({"Yes": "1", "No": "2"})
+df["StateRegulated"] = df.StateRegulated.astype("uint8")
+
 df["WaterRight"] = df.WaterRight.fillna(0).astype("uint8")
 
 # Recode Hazard (note: original value of 4 = unknown)
@@ -917,8 +920,9 @@ df["loop"] = df.loop.fillna(0).astype("bool")
 df["offnetwork_flowline"] = df.offnetwork_flowline.fillna(0).astype("bool")
 df["sizeclass"] = df.sizeclass.fillna("")
 df["FCode"] = df.FCode.fillna(-1).astype("int32")
-# -9998.0 values likely indicate AnnualVelocity data is not available, equivalent to null
+# -9998.0 - 0 values likely indicate AnnualVelocity / AnnualFlow data is not available, equivalent to null
 df.loc[df.AnnualVelocity < 0, "AnnualVelocity"] = np.nan
+df.loc[df.AnnualFlow <= 0, "AnnualFlow"] = np.nan
 
 # cast fields with missing values to float32
 for field in ["AnnualVelocity", "AnnualFlow", "TotDASqKm"]:

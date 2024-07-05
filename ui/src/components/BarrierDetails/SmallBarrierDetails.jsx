@@ -56,6 +56,7 @@ const BarrierDetails = ({
   lon,
 
   alteredupstreammiles,
+  annualflow,
   barrierownertype,
   barrierseverity,
   basin,
@@ -152,6 +153,7 @@ const BarrierDetails = ({
 
         <LocationInfo
           barrierType={barrierType}
+          annualflow={annualflow}
           reachName={river}
           basin={basin}
           subwatershed={subwatershed}
@@ -351,6 +353,7 @@ BarrierDetails.propTypes = {
   lat: PropTypes.number.isRequired,
   lon: PropTypes.number.isRequired,
   alteredupstreammiles: PropTypes.number,
+  annualflow: PropTypes.number,
   barrierownertype: PropTypes.number,
   barrierseverity: PropTypes.number,
   basin: PropTypes.string,
@@ -477,6 +480,7 @@ BarrierDetails.propTypes = {
 
 BarrierDetails.defaultProps = {
   alteredupstreammiles: 0,
+  annualflow: null,
   barrierownertype: null,
   barrierseverity: null,
   basin: null,

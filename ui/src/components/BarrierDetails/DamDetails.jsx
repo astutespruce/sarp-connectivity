@@ -36,6 +36,7 @@ const DamDetails = ({
   lat,
   lon,
   alteredupstreammiles,
+  annualflow,
   barrierownertype,
   basin,
   condition,
@@ -71,6 +72,7 @@ const DamDetails = ({
   lowheaddam,
   milestooutlet,
   nativeterritories,
+  nidfederalid,
   nidid,
   onloop,
   ownertype,
@@ -92,6 +94,7 @@ const DamDetails = ({
   sourceid,
   stateregulated,
   statesgcnspp,
+  storagevolume,
   streamorder,
   streamsizeclass,
   subwatershed,
@@ -170,6 +173,7 @@ const DamDetails = ({
 
         <LocationInfo
           barrierType={barrierType}
+          annualflow={annualflow}
           reachName={river}
           basin={basin}
           subwatershed={subwatershed}
@@ -188,6 +192,7 @@ const DamDetails = ({
           fishhabitatpartnership={fishhabitatpartnership}
           nativeterritories={nativeterritories}
           intermittent={intermittent}
+          storagevolume={storagevolume}
           streamorder={streamorder}
           streamsizeclass={streamsizeclass}
           waterbodysizeclass={waterbodysizeclass}
@@ -401,6 +406,7 @@ const DamDetails = ({
           sarpid={sarpid}
           lat={lat}
           lon={lon}
+          nidfederalid={nidfederalid}
           nidid={nidid}
           source={source}
           sourceid={sourceid}
@@ -419,6 +425,7 @@ DamDetails.propTypes = {
   lat: PropTypes.number.isRequired,
   lon: PropTypes.number.isRequired,
   alteredupstreammiles: PropTypes.number,
+  annualflow: PropTypes.number,
   barrierownertype: PropTypes.number,
   basin: PropTypes.string,
   condition: PropTypes.number,
@@ -454,6 +461,7 @@ DamDetails.propTypes = {
   lowheaddam: PropTypes.number,
   milestooutlet: PropTypes.number,
   nativeterritories: PropTypes.string,
+  nidfederalid: PropTypes.string,
   nidid: PropTypes.string,
   onloop: PropTypes.bool,
   ownertype: PropTypes.number,
@@ -475,6 +483,7 @@ DamDetails.propTypes = {
   sourceid: PropTypes.string,
   stateregulated: PropTypes.number,
   statesgcnspp: PropTypes.number,
+  storagevolume: PropTypes.number,
   streamorder: PropTypes.number,
   streamsizeclass: PropTypes.string,
   subwatershed: PropTypes.string,
@@ -556,6 +565,7 @@ DamDetails.propTypes = {
 
 DamDetails.defaultProps = {
   alteredupstreammiles: 0,
+  annualflow: null,
   barrierownertype: null,
   basin: null,
   condition: null,
@@ -590,6 +600,7 @@ DamDetails.defaultProps = {
   lowheaddam: null,
   milestooutlet: 0,
   nativeterritories: null,
+  nidfederalid: null,
   nidid: null,
   onloop: false,
   ownertype: null,
@@ -611,6 +622,7 @@ DamDetails.defaultProps = {
   sourceid: null,
   stateregulated: null,
   statesgcnspp: 0,
+  storagevolume: null,
   streamorder: 0,
   streamsizeclass: null,
   subwatershed: null,

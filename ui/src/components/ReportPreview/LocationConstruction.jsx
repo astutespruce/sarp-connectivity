@@ -36,6 +36,7 @@ const { version: dataVersion } = siteMetadata
 const LocationConstruction = ({
   barrierType,
   sarpid,
+  annualflow,
   river,
   intermittent,
   subbasin,
@@ -66,6 +67,7 @@ const LocationConstruction = ({
   diversion,
   streamorder,
   streamsizeclass,
+  storagevolume,
   waterbodykm2,
   waterbodysizeclass,
   invasive,
@@ -156,6 +158,12 @@ const LocationConstruction = ({
             </Entry>
           ) : null}
 
+          {storagevolume !== null ? (
+            <Entry>
+              Normal storage volume: {formatNumber(storagevolume)} acre/feet
+            </Entry>
+          ) : null}
+
           {barrierType === 'dams' &&
           waterbodysizeclass !== null &&
           waterbodysizeclass > 0 ? (
@@ -185,6 +193,12 @@ const LocationConstruction = ({
               }{' '}
               km
               <sup>2</sup>)
+            </Entry>
+          ) : null}
+
+          {annualflow !== null && annualflow >= 0 ? (
+            <Entry>
+              Stream reach annual flow rate: {formatNumber(annualflow)} CFS
             </Entry>
           ) : null}
 
@@ -372,6 +386,7 @@ const LocationConstruction = ({
 LocationConstruction.propTypes = {
   barrierType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
+  annualflow: PropTypes.number,
   river: PropTypes.string,
   intermittent: PropTypes.number,
   subbasin: PropTypes.string,
@@ -402,6 +417,7 @@ LocationConstruction.propTypes = {
   lowheaddam: PropTypes.number,
   streamorder: PropTypes.number,
   streamsizeclass: PropTypes.string,
+  storagevolume: PropTypes.number,
   waterbodykm2: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
   invasive: PropTypes.bool,
@@ -417,6 +433,7 @@ LocationConstruction.propTypes = {
 }
 
 LocationConstruction.defaultProps = {
+  annualflow: null,
   river: null,
   intermittent: 0,
   subbasin: null,
@@ -445,6 +462,7 @@ LocationConstruction.defaultProps = {
   sarp_score: -1,
   diversion: 0,
   lowheaddam: null,
+  storagevolume: null,
   streamorder: 0,
   streamsizeclass: null,
   waterbodykm2: -1,

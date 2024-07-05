@@ -240,6 +240,7 @@ FILTER_FIELDS = [
     "SalmonidESU",
     "SalmonidESUCount",
     "StreamOrderClass",
+    "AnnualFlowClass",
     "PercentAlteredClass",
     "PercentResilientClass",
     "OwnerType",
@@ -284,6 +285,7 @@ COMBINED_FILTER_FIELD_MAP = {f.lower(): f for f in COMBINED_FILTER_FIELDS}
 
 ROAD_CROSSING_FILTER_FIELDS = [
     "StreamOrderClass",
+    "AnnualFlowClass",
     "Intermittent",
     "CrossingType",
     "OwnerType",
@@ -354,6 +356,7 @@ DAM_CORE_FIELDS = (
     GENERAL_API_FIELDS1
     + [
         "NIDID",
+        "NIDFederalID",
         "PartnerID",
         "Estimated",
         "AnnualVelocity",
@@ -378,6 +381,7 @@ DAM_CORE_FIELDS = (
         "Recon",
         "Diversion",
         "LowheadDam",
+        "StorageVolume",
         "WaterbodyKM2",
         "WaterbodySizeClass",
     ]
@@ -1252,7 +1256,8 @@ FIELD_DEFINITIONS = {
     "SourceID": "Identifier of this {type} in the source database",
     "PartnerID": "Identifier used by local partners for this {type}",
     # dam-specific fields
-    "NIDID": "National Inventory of Dams Identifier.",
+    "NIDID": "National Inventory of Dams Identifier (legacy ID).",
+    "NIDFederalID": "National Inventory of Dams Federal Identifier (new ID).",
     "Link": "Link to additional information about this {type}",
     "FERCRegulated": "Identifies if the {type} is regulated by the Federal Energy Regulatory Commission, if known.",
     "StateRegulated": "Identifies if the {type} is regulated at the state level, if known.",
@@ -1275,6 +1280,7 @@ FIELD_DEFINITIONS = {
     "Feasibility": "feasibility of {type} removal, based on reconnaissance.  Note: reconnaissance information is available only for a small number of {type}s.",
     "Diversion": "Identifies if dam is known to be a diversion.  Note: diversion information is available only for a small number of dams.",
     "LowheadDam": "Identifies if dam is known or estimated to be a lowhead dam.  Note: lowhead dam information is available only for a small number of dams.",
+    "StorageVolume": "Identifies the reported normal storage volume of the impounded waterbody (acre/feet), if known.",
     "WaterbodyKM2": "area of associated waterbody in square kilometers.  -1 = no associated waterbody",
     "WaterbodySizeClass": "size class of associated waterbody.  -1 = no associated waterbody",
     # barrier-specific fields

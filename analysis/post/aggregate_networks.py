@@ -12,7 +12,7 @@ from pyarrow.csv import write_csv
 from analysis.constants import SEVERITY_TO_PASSABILITY, STATES
 from analysis.lib.util import get_signed_dtype, append
 from analysis.rank.lib.networks import get_network_results, get_removed_network_results
-from analysis.rank.lib.metrics import classify_streamorder, classify_spps, classify_cost
+from analysis.rank.lib.metrics import classify_streamorder, classify_spps, classify_annual_flow, classify_cost
 from api.constants import (
     GENERAL_API_FIELDS1,
     UNIT_FIELDS,
@@ -99,6 +99,7 @@ for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
     dams[f"{col}Class"] = classify_spps(dams[col])
 
 dams["CostClass"] = classify_cost(dams.CostMean.fillna(-1))
+dams["AnnualFlowClass"] = classify_annual_flow(dams.AnnualFlow)
 
 
 # export removed dams for separate API endpoint
@@ -174,6 +175,7 @@ small_barriers["StreamOrderClass"] = classify_streamorder(small_barriers.StreamO
 for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
     small_barriers[f"{col}Class"] = classify_spps(small_barriers[col])
 
+small_barriers["AnnualFlowClass"] = classify_annual_flow(small_barriers.AnnualFlow)
 
 # NOTE: not calculating state ranks, per guidance from SARP
 # (not enough barriers to have appropriate ranks)
@@ -458,6 +460,8 @@ search_barriers = pd.concat(
 crossings["StreamOrderClass"] = classify_streamorder(crossings.StreamOrder)
 for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
     crossings[f"{col}Class"] = classify_spps(crossings[col])
+
+crossings["AnnualFlowClass"] = classify_annual_flow(crossings.AnnualFlow)
 
 print("Saving crossings for tiles and API")
 # Save full results for tiles, etc

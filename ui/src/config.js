@@ -891,6 +891,17 @@ export const STREAMORDER = {
   6: '>= 6',
 }
 
+export const ANNUAL_FLOW = {
+  0: 'unknown',
+  1: '< 1 cubic feet per second',
+  2: '1 - 3 cubic feet per second',
+  3: '3 - 5 cubic feet per second',
+  4: '5 - 10 cubic feet per second',
+  5: '10 - 50 cubic feet per second',
+  6: '50 - 100 cubic feet per second',
+  7: '>= 100 cubic feet per second',
+}
+
 export const DOWNSTREAM_OCEAN_DAMS_DOMAIN = {
   0: 'not on an aquatic network known to flow into the ocean',
   1: 'no dams',
@@ -1518,6 +1529,7 @@ export const YEAR_REMOVED_BINS = {
   6: '2022',
   7: '2023',
   8: '2024',
+  9: '2025',
 }
 
 export const SPECIES_HABITAT_FIELDS = {
