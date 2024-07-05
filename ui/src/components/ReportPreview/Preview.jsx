@@ -33,7 +33,8 @@ import IDInfo from './IDInfo'
 import InvasiveSpecies from './InvasiveSpecies'
 import Legend from './Legend'
 import { Attribution, LocatorMap, Map } from './Map'
-import Network from './Network'
+import FunctionalNetworkInfo from './FunctionalNetworkInfo'
+import MainstemNetworkInfo from './MainstemNetworkInfo'
 import Scores from './Scores'
 import SpeciesHabitat from './SpeciesHabitat'
 import SpeciesWatershedPresence from './SpeciesWatershedPresence'
@@ -54,6 +55,7 @@ const Preview = ({ networkType, data }) => {
     milestooutlet,
     invasive,
     invasivenetwork,
+    totalupstreammainstemmiles = 0,
   } = data
 
   const barrierType =
@@ -275,7 +277,7 @@ const Preview = ({ networkType, data }) => {
             {...data}
           />
 
-          <Network
+          <FunctionalNetworkInfo
             sx={{ mt: '3rem' }}
             barrierType={barrierType}
             networkType={networkType}
@@ -304,6 +306,15 @@ const Preview = ({ networkType, data }) => {
             <DiadromousInfo
               sx={{ mt: '3rem' }}
               barrierType={barrierType}
+              {...data}
+            />
+          ) : null}
+
+          {hasnetwork && totalupstreammainstemmiles > 0 ? (
+            <MainstemNetworkInfo
+              sx={{ mt: '3rem' }}
+              barrierType={barrierType}
+              networkType={networkType}
               {...data}
             />
           ) : null}
@@ -352,6 +363,7 @@ Preview.propTypes = {
     milestooutlet: PropTypes.number,
     invasive: PropTypes.bool,
     invasivenetwork: PropTypes.number,
+    totalupstreammainstemmiles: PropTypes.number,
     // other props validated by subcomponents
   }).isRequired,
 }

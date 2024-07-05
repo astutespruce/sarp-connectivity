@@ -15,7 +15,8 @@ import InvasiveSpecies from './InvasiveSpecies'
 import Legend from './Legend'
 import LocationConstruction from './LocationConstruction'
 import { LocatorMap, Map } from './Map'
-import Network from './Network'
+import FunctionalNetworkInfo from './FunctionalNetworkInfo'
+import MainstemNetworkInfo from './MainstemNetworkInfo'
 import Scores from './Scores'
 import SpeciesHabitat from './SpeciesHabitat'
 import SpeciesWatershedPresence from './SpeciesWatershedPresence'
@@ -57,6 +58,7 @@ const Report = ({
     removed,
     invasive,
     invasivenetwork,
+    totalupstreammainstemmiles = 0,
   } = data
 
   const habitat = hasnetwork ? extractHabitat(data) : []
@@ -93,7 +95,7 @@ const Report = ({
           {...data}
         />
 
-        <Network
+        <FunctionalNetworkInfo
           style={{ marginTop: 24 }}
           barrierType={barrierType}
           networkType={networkType}
@@ -124,6 +126,15 @@ const Report = ({
           <DiadromousInfo
             style={{ marginTop: 32 }}
             barrierType={barrierType}
+            {...data}
+          />
+        ) : null}
+
+        {hasnetwork && totalupstreammainstemmiles > 0 ? (
+          <MainstemNetworkInfo
+            style={{ marginTop: 32 }}
+            barrierType={barrierType}
+            networkType={networkType}
             {...data}
           />
         ) : null}
