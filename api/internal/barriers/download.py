@@ -151,7 +151,9 @@ async def download(
 
         df = unpack_domains(df.drop(["id"]))
 
-    filename = f"aquatic_barrier_ranks.{format}"
+    filename = (
+        f"road_stream_crossings.{format}" if barrier_type == "road_crossings" else f"aquatic_barrier_ranks.{format}"
+    )
 
     url = f"{request.base_url.scheme}://{request.base_url.netloc}"
 
