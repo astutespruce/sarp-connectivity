@@ -47,9 +47,7 @@ def flatten_series(series):
     Series
         index will have duplicate values for each entry in the original iterable for that index
     """
-    return pd.Series(
-        np.concatenate(series.values), index=np.repeat(series.index, series.apply(len))
-    )
+    return pd.Series(np.concatenate(series.values), index=np.repeat(series.index, series.apply(len)))
 
 
 def ndarray_append_strings(*args):
@@ -57,9 +55,7 @@ def ndarray_append_strings(*args):
         raise ValueError("Must have at least 2 values to append per element")
 
     def get_str(value):
-        if (
-            isinstance(value, np.ndarray) or isinstance(value, pd.Series)
-        ) and not value.dtype == "O":
+        if (isinstance(value, np.ndarray) or isinstance(value, pd.Series)) and not value.dtype == "O":
             return value.astype("str")
         return str(value)
 
@@ -97,7 +93,3 @@ def get_signed_dtype(dtype):
         return f"int{bits}"
 
     return dtype
-
-
-def snake_to_title_case(text):
-    return text.title().replace("_", "")

@@ -20,7 +20,8 @@ import {
 import DiadromousInfo from './DiadromousInfo'
 import IDInfo from './IDInfo'
 import LocationInfo from './LocationInfo'
-import NetworkInfo from './NetworkInfo'
+import FunctionalNetworkInfo from './FunctionalNetworkInfo'
+import MainstemNetworkInfo from './MainstemNetworkInfo'
 import NoNetworkInfo from './NoNetworkInfo'
 import SpeciesWatershedPresenceInfo from './SpeciesWatershedPresenceInfo'
 import SpeciesHabitatInfo from './SpeciesHabitatInfo'
@@ -56,6 +57,7 @@ const BarrierDetails = ({
   lon,
 
   alteredupstreammiles,
+  alteredupstreammainstemmiles,
   annualflow,
   barrierownertype,
   barrierseverity,
@@ -70,9 +72,13 @@ const BarrierDetails = ({
   flowstoocean,
   flowstogreatlakes,
   freealtereddownstreammiles,
+  freealteredlineardownstreammiles,
   freedownstreammiles,
+  freelineardownstreammiles,
   freeperennialdownstreammiles,
+  freeperenniallineardownstreammiles,
   freeunaltereddownstreammiles,
+  freeunalteredlineardownstreammiles,
   freeresilientdownstreammiles,
   hasnetwork,
   huc12,
@@ -91,6 +97,7 @@ const BarrierDetails = ({
   passagefacility,
   percentresilient,
   perennialupstreammiles,
+  perennialupstreammainstemmiles,
   regionalsgcnspp,
   removed,
   road,
@@ -113,8 +120,10 @@ const BarrierDetails = ({
   totaldownstreamsmallbarriers,
   totaldownstreamwaterfalls,
   totalupstreammiles,
+  totalupstreammainstemmiles,
   trout,
   unalteredupstreammiles,
+  unalteredupstreammainstemmiles,
   unranked,
   waterbodykm2,
   waterbodysizeclass,
@@ -242,7 +251,7 @@ const BarrierDetails = ({
         ) : null}
 
         {hasnetwork ? (
-          <NetworkInfo
+          <FunctionalNetworkInfo
             barrierType={barrierType}
             networkType={networkType}
             totalupstreammiles={totalupstreammiles}
@@ -295,6 +304,33 @@ const BarrierDetails = ({
             totaldownstreamsmallbarriers={totaldownstreamsmallbarriers}
             totaldownstreamwaterfalls={totaldownstreamwaterfalls}
             {...props}
+          />
+        </Section>
+      ) : null}
+
+      {hasnetwork && totalupstreammainstemmiles > 0 ? (
+        <Section title="Mainstem network information">
+          <MainstemNetworkInfo
+            barrierType={barrierType}
+            networkType={networkType}
+            removed={removed}
+            flowstoocean={flowstoocean}
+            flowstogreatlakes={flowstogreatlakes}
+            totaldownstreamdams={totaldownstreamdams}
+            totaldownstreamsmallbarriers={totaldownstreamsmallbarriers}
+            totaldownstreamwaterfalls={totaldownstreamwaterfalls}
+            totalupstreammainstemmiles={totalupstreammainstemmiles}
+            perennialupstreammainstemmiles={perennialupstreammainstemmiles}
+            alteredupstreammainstemmiles={alteredupstreammainstemmiles}
+            unalteredupstreammainstemmiles={unalteredupstreammainstemmiles}
+            freelineardownstreammiles={freelineardownstreammiles}
+            freeperenniallineardownstreammiles={
+              freeperenniallineardownstreammiles
+            }
+            freealteredlineardownstreammiles={freealteredlineardownstreammiles}
+            freeunalteredlineardownstreammiles={
+              freeunalteredlineardownstreammiles
+            }
           />
         </Section>
       ) : null}
@@ -353,6 +389,7 @@ BarrierDetails.propTypes = {
   lat: PropTypes.number.isRequired,
   lon: PropTypes.number.isRequired,
   alteredupstreammiles: PropTypes.number,
+  alteredupstreammainstemmiles: PropTypes.number,
   annualflow: PropTypes.number,
   barrierownertype: PropTypes.number,
   barrierseverity: PropTypes.number,
@@ -367,9 +404,13 @@ BarrierDetails.propTypes = {
   flowstoocean: PropTypes.number,
   flowstogreatlakes: PropTypes.number,
   freealtereddownstreammiles: PropTypes.number,
+  freealteredlineardownstreammiles: PropTypes.number,
   freedownstreammiles: PropTypes.number,
+  freelineardownstreammiles: PropTypes.number,
   freeperennialdownstreammiles: PropTypes.number,
+  freeperenniallineardownstreammiles: PropTypes.number,
   freeunaltereddownstreammiles: PropTypes.number,
+  freeunalteredlineardownstreammiles: PropTypes.number,
   freeresilientdownstreammiles: PropTypes.number,
   hasnetwork: PropTypes.bool.isRequired,
   huc12: PropTypes.string,
@@ -387,6 +428,7 @@ BarrierDetails.propTypes = {
   passagefacility: PropTypes.number,
   percentresilient: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
+  perennialupstreammainstemmiles: PropTypes.number,
   regionalsgcnspp: PropTypes.number,
   removed: PropTypes.bool,
   road: PropTypes.string,
@@ -409,8 +451,10 @@ BarrierDetails.propTypes = {
   totaldownstreamsmallbarriers: PropTypes.number,
   totaldownstreamwaterfalls: PropTypes.number,
   totalupstreammiles: PropTypes.number,
+  totalupstreammainstemmiles: PropTypes.number,
   trout: PropTypes.number,
   unalteredupstreammiles: PropTypes.number,
+  unalteredupstreammainstemmiles: PropTypes.number,
   unranked: PropTypes.bool,
   waterbodykm2: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
@@ -480,6 +524,7 @@ BarrierDetails.propTypes = {
 
 BarrierDetails.defaultProps = {
   alteredupstreammiles: 0,
+  alteredupstreammainstemmiles: 0,
   annualflow: null,
   barrierownertype: null,
   barrierseverity: null,
@@ -494,9 +539,13 @@ BarrierDetails.defaultProps = {
   flowstoocean: 0,
   flowstogreatlakes: 0,
   freealtereddownstreammiles: 0,
+  freealteredlineardownstreammiles: 0,
   freedownstreammiles: 0,
+  freelineardownstreammiles: 0,
   freeperennialdownstreammiles: 0,
+  freeperenniallineardownstreammiles: 0,
   freeunaltereddownstreammiles: 0,
+  freeunalteredlineardownstreammiles: 0,
   freeresilientdownstreammiles: 0,
   huc12: null,
   in_network_type: false,
@@ -513,6 +562,7 @@ BarrierDetails.defaultProps = {
   passagefacility: null,
   percentresilient: 0,
   perennialupstreammiles: 0,
+  perennialupstreammainstemmiles: 0,
   regionalsgcnspp: 0,
   removed: false,
   road: null,
@@ -535,8 +585,10 @@ BarrierDetails.defaultProps = {
   totaldownstreamsmallbarriers: 0,
   totaldownstreamwaterfalls: 0,
   totalupstreammiles: 0,
+  totalupstreammainstemmiles: 0,
   trout: 0,
   unalteredupstreammiles: 0,
+  unalteredupstreammainstemmiles: 0,
   unranked: false,
   waterbodykm2: -1,
   waterbodysizeclass: null,

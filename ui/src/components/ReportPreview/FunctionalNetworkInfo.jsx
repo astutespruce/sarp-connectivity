@@ -9,7 +9,7 @@ import { formatNumber, formatPercent } from 'util/format'
 
 const { version: dataVersion } = siteMetadata
 
-const Network = ({
+const FunctionalNetworkInfo = ({
   barrierType,
   networkType,
   sarpid,
@@ -162,6 +162,15 @@ const Network = ({
   return (
     <Box sx={sx}>
       {header}
+
+      <Paragraph variant="help" sx={{ fontSize: 0 }}>
+        Functional networks are the full upstream dendritic network to the
+        upstream-most points on the network or upstream barriers. The downstream
+        network is the upstream functional network of the next barrier
+        immediately downstream or downstream-most point on that network, and
+        includes any tributaries up to their upstream-most points or other
+        barriers.
+      </Paragraph>
 
       {removed ? (
         <Text>
@@ -358,7 +367,7 @@ const Network = ({
   )
 }
 
-Network.propTypes = {
+FunctionalNetworkInfo.propTypes = {
   barrierType: PropTypes.string.isRequired,
   networkType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
@@ -390,7 +399,7 @@ Network.propTypes = {
   sx: PropTypes.object,
 }
 
-Network.defaultProps = {
+FunctionalNetworkInfo.defaultProps = {
   excluded: false,
   onloop: false,
   totalupstreammiles: 0,
@@ -417,4 +426,4 @@ Network.defaultProps = {
   sx: null,
 }
 
-export default Network
+export default FunctionalNetworkInfo

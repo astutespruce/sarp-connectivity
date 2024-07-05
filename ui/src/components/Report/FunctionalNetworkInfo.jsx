@@ -15,7 +15,7 @@ const columnCSS = {
   borderLeft: '1px solid #cfd3d6',
 }
 
-const Network = ({
+const FunctionalNetworkInfo = ({
   sarpid,
   barrierType,
   networkType,
@@ -176,8 +176,23 @@ const Network = ({
       wrap={false}
       marginBottom={6}
     >
+      <Text
+        style={{
+          color: '#7f8a93',
+          fontSize: 10,
+          marginBottom: '6pt',
+        }}
+      >
+        Functional networks are the full upstream dendritic network to the
+        upstream-most points on the network or upstream barriers. The downstream
+        network is the upstream functional network of the next barrier
+        immediately downstream or downstream-most point on that network, and
+        includes any tributaries up to their upstream-most points or other
+        barriers.
+      </Text>
+
       {removed ? (
-        <Text style={{ marginBottom: `12pt` }}>
+        <Text style={{ marginBottom: '12pt' }}>
           {yearremoved !== null && yearremoved > 0
             ? `This barrier was removed or mitigated in ${yearremoved}.`
             : 'This barrier has been removed or mitigated.'}
@@ -191,7 +206,7 @@ const Network = ({
           }}
         >
           <Text>
-            <Bold>{formatNumber(gainmiles, 2, true)} total miles</Bold>
+            <Bold>{formatNumber(gainmiles, 2, true)} total miles</Bold>{' '}
             {removed ? 'were' : 'could be'} reconnected by removing this{' '}
             {barrierTypeLabel} including{' '}
             <Bold>{formatNumber(perennialGainMiles, 2, true)} miles</Bold> of
@@ -461,7 +476,7 @@ const Network = ({
   )
 }
 
-Network.propTypes = {
+FunctionalNetworkInfo.propTypes = {
   sarpid: PropTypes.string.isRequired,
   barrierType: PropTypes.string.isRequired,
   networkType: PropTypes.string.isRequired,
@@ -493,7 +508,7 @@ Network.propTypes = {
   totaldownstreamwaterfalls: PropTypes.number,
 }
 
-Network.defaultProps = {
+FunctionalNetworkInfo.defaultProps = {
   excluded: false,
   onloop: false,
   diversion: 0,
@@ -520,4 +535,4 @@ Network.defaultProps = {
   totaldownstreamwaterfalls: 0,
 }
 
-export default Network
+export default FunctionalNetworkInfo

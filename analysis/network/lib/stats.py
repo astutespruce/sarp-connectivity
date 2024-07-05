@@ -219,7 +219,7 @@ def calculate_geometry_stats(df):
     Parameters
     ----------
     df : DataFrame
-        must have length, waterbody, altered, and perennial, and be indexed on
+        must have length, free_flowing, and perennial, and be indexed on
         networkID
 
     Returns
@@ -245,54 +245,60 @@ def calculate_geometry_stats(df):
         df["resilient"] = df.resilient.fillna(0).astype("bool")
 
     # total lengths used for upstream network
-    total_length = df["length"].groupby(level=0).sum().rename("total")
-    perennial_length = df.loc[~df.intermittent, "length"].groupby(level=0).sum().rename("perennial")
-    intermittent_length = df.loc[df.intermittent, "length"].groupby(level=0).sum().rename("intermittent")
-    altered_length = df.loc[df.altered, "length"].groupby(level=0).sum().rename("altered")
-    unaltered_length = df.loc[~df.altered, "length"].groupby(level=0).sum().rename("unaltered")
-    perennial_unaltered_length = (
-        df.loc[~(df.intermittent | df.altered), "length"].groupby(level=0).sum().rename("perennial_unaltered")
+    total_miles = (df["length"].groupby(level=0).sum() * METERS_TO_MILES).rename("total_miles")
+    perennial_miles = (df.loc[~df.intermittent, "length"].groupby(level=0).sum() * METERS_TO_MILES).rename(
+        "perennial_miles"
     )
-    resilient_length = df.loc[df.resilient, "length"].groupby(level=0).sum().rename("resilient")
+    intermittent_miles = (df.loc[df.intermittent, "length"].groupby(level=0).sum() * METERS_TO_MILES).rename(
+        "intermittent_miles"
+    )
+    altered_miles = (df.loc[df.altered, "length"].groupby(level=0).sum() * METERS_TO_MILES).rename("altered_miles")
+    unaltered_miles = (df.loc[~df.altered, "length"].groupby(level=0).sum() * METERS_TO_MILES).rename("unaltered_miles")
+    perennial_unaltered_miles = (
+        df.loc[~(df.intermittent | df.altered), "length"].groupby(level=0).sum() * METERS_TO_MILES
+    ).rename("perennial_unaltered_miles")
+    resilient_miles = (df.loc[df.resilient, "length"].groupby(level=0).sum() * METERS_TO_MILES).rename(
+        "resilient_miles"
+    )
 
     # free lengths used for downstream network; these deduct lengths in altered waterbodies
-    free_flowing = ~(df.waterbody & df.altered)
-    free_length = df.loc[free_flowing, "length"].groupby(level=0).sum().rename("free")
-    free_perennial = df.loc[free_flowing & ~df.intermittent, "length"].groupby(level=0).sum().rename("free_perennial")
-    free_intermittent = (
-        df.loc[free_flowing & df.intermittent, "length"].groupby(level=0).sum().rename("free_intermittent")
-    )
-    free_altered_length = df.loc[free_flowing & df.altered, "length"].groupby(level=0).sum().rename("free_altered")
-    free_unaltered_length = df.loc[free_flowing & ~df.altered, "length"].groupby(level=0).sum().rename("free_unaltered")
-    free_perennial_unaltered = (
-        df.loc[free_flowing & ~(df.intermittent | df.altered), "length"]
-        .groupby(level=0)
-        .sum()
-        .rename("free_perennial_unaltered")
-    )
-    free_resilient_length = (
-        df.loc[free_flowing & df.resilient, "length"].groupby(level=0).sum().rename("free_resilient")
-    )
+    free_miles = (df.loc[df.free_flowing, "length"].groupby(level=0).sum() * METERS_TO_MILES).rename("free_miles")
+    free_perennial_miles = (
+        df.loc[df.free_flowing & ~df.intermittent, "length"].groupby(level=0).sum() * METERS_TO_MILES
+    ).rename("free_perennial_miles")
+    free_intermittent_miles = (
+        df.loc[df.free_flowing & df.intermittent, "length"].groupby(level=0).sum() * METERS_TO_MILES
+    ).rename("free_intermittent_miles")
+    free_altered_miles = (
+        df.loc[df.free_flowing & df.altered, "length"].groupby(level=0).sum() * METERS_TO_MILES
+    ).rename("free_altered_miles")
+    free_unaltered_miles = (
+        df.loc[df.free_flowing & ~df.altered, "length"].groupby(level=0).sum() * METERS_TO_MILES
+    ).rename("free_unaltered_miles")
+    free_perennial_unaltered_miles = (
+        df.loc[df.free_flowing & ~(df.intermittent | df.altered), "length"].groupby(level=0).sum() * METERS_TO_MILES
+    ).rename("free_perennial_unaltered_miles")
+    free_resilient_miles = (
+        df.loc[df.free_flowing & df.resilient, "length"].groupby(level=0).sum() * METERS_TO_MILES
+    ).rename("free_resilient_miles")
 
     lengths = (
-        pd.DataFrame(total_length)
-        .join(perennial_length)
-        .join(intermittent_length)
-        .join(altered_length)
-        .join(unaltered_length)
-        .join(perennial_unaltered_length)
-        .join(resilient_length)
-        .join(free_length)
-        .join(free_perennial)
-        .join(free_intermittent)
-        .join(free_altered_length)
-        .join(free_unaltered_length)
-        .join(free_perennial_unaltered)
-        .join(free_resilient_length)
+        pd.DataFrame(total_miles)
+        .join(perennial_miles)
+        .join(intermittent_miles)
+        .join(altered_miles)
+        .join(unaltered_miles)
+        .join(perennial_unaltered_miles)
+        .join(resilient_miles)
+        .join(free_miles)
+        .join(free_perennial_miles)
+        .join(free_intermittent_miles)
+        .join(free_altered_miles)
+        .join(free_unaltered_miles)
+        .join(free_perennial_unaltered_miles)
+        .join(free_resilient_miles)
         .fillna(0)
-        * METERS_TO_MILES
     ).astype("float32")
-    lengths.columns = [f"{c}_miles" for c in lengths.columns]
 
     # calculate percent altered
     lengths["pct_unaltered"] = (100.0 * (lengths.unaltered_miles / lengths.total_miles)).clip(0, 100).astype("float32")
@@ -362,8 +368,7 @@ def calculate_species_habitat_stats(df):
 
     habitat_cols = habitat.columns
 
-    habitat = df[["NHDPlusID", "length", "waterbody", "altered"]].join(habitat, on="NHDPlusID")
-    free_flowing = ~(habitat.waterbody & habitat.altered)
+    habitat = df[["NHDPlusID", "length", "free_flowing"]].join(habitat, on="NHDPlusID")
 
     # drop any columns not present in this set of HUC2s
     habitat_cols = habitat_cols[habitat[habitat_cols].max()].to_list()
@@ -374,7 +379,7 @@ def calculate_species_habitat_stats(df):
     for col in habitat_cols:
         habitat[col] = habitat[col].fillna(0).astype("bool")
         total_miles = (habitat[col] * habitat.length).groupby(level=0).sum().rename(f"{col}_miles") * METERS_TO_MILES
-        free_miles = ((habitat[col] & free_flowing) * habitat.length).groupby(level=0).sum().rename(
+        free_miles = ((habitat[col] & df.free_flowing) * habitat.length).groupby(level=0).sum().rename(
             f"free_{col}_miles"
         ) * METERS_TO_MILES
         habitat_miles = pd.DataFrame(total_miles).join(free_miles)
@@ -387,6 +392,50 @@ def calculate_species_habitat_stats(df):
     return pd.DataFrame([], index=np.unique(df.index.values)).join(out).fillna(0)
 
 
+def calculate_upstream_mainstem_stats(df):
+    """Calculate total network miles, total perennial miles, total unaltered
+    perennial miles based on the upstream mainstem functional network.
+
+    Parameters
+    ----------
+    df : DataFrame
+        must have length, free_flowing, and perennial, and be indexed on
+        networkID
+
+    Returns
+    -------
+    DataFrame
+        contains mainstem_*_miles columns
+    """
+
+    total_miles = (df["length"].groupby(level=0).sum() * METERS_TO_MILES).rename("total_mainstem_miles")
+    perennial_miles = (df.loc[~df.intermittent, "length"].groupby(level=0).sum() * METERS_TO_MILES).rename(
+        "perennial_mainstem_miles"
+    )
+    intermittent_miles = (df.loc[df.intermittent, "length"].groupby(level=0).sum() * METERS_TO_MILES).rename(
+        "intermittent_mainstem_miles"
+    )
+    altered_miles = (df.loc[df.altered, "length"].groupby(level=0).sum() * METERS_TO_MILES).rename(
+        "altered_mainstem_miles"
+    )
+    unaltered_miles = (df.loc[~df.altered, "length"].groupby(level=0).sum() * METERS_TO_MILES).rename(
+        "unaltered_mainstem_miles"
+    )
+    perennial_unaltered_miles = (
+        df.loc[~(df.intermittent | df.altered), "length"].groupby(level=0).sum() * METERS_TO_MILES
+    ).rename("perennial_unaltered_mainstem_miles")
+
+    return (
+        pd.DataFrame(total_miles)
+        .join(perennial_miles)
+        .join(intermittent_miles)
+        .join(altered_miles)
+        .join(unaltered_miles)
+        .join(perennial_unaltered_miles)
+        .fillna(0)
+    ).astype("float32")
+
+
 def calculate_downstream_stats(
     down_network_df,
     focal_barrier_joins,
@@ -395,8 +444,9 @@ def calculate_downstream_stats(
     great_lake_ids,
     exit_ids,
 ):
-    """Calculate downstream statistics for each barrier.  Downstream networks
-    are linear from the barrier to the downstream terminal.
+    """Calculate downstream statistics for each barrier based on its linear
+    downstream network (to next barrier downstream or terminal / outlet) and
+    total downstream (to final terminal / outlet).
 
     Parameters
     ----------
@@ -404,6 +454,7 @@ def calculate_downstream_stats(
         downstream linear networks indexed on networkID of the lineID downstream
         of the barrier. Includes:
         * length
+        * free_flowing
 
     focal_barrier_joins : Pandas DataFrame
         limited to the barrier joins that cut the network type being analyzed
@@ -437,7 +488,7 @@ def calculate_downstream_stats(
     # TODO: avoid the reindexing
     down_network_df = down_network_df.reset_index().set_index("lineID")
 
-    # re-rederive all focal barriers joins from barrier joins to keep confluences
+    # re-derive all focal barriers joins from barrier joins to keep confluences
     # which are otherwise filtered out before calling here
     # TODO: is there a way we can avoid removing these before calling into stats?
     all_focal_barrier_joins = barrier_joins.loc[barrier_joins.index.isin(focal_barrier_joins.index.unique())]
@@ -472,8 +523,48 @@ def calculate_downstream_stats(
         if kind not in ln_downstream_counts.columns:
             ln_downstream_counts[kind] = 0
 
-    # calculate total length of each downstream network
-    ln_downstream_length = down_network_df.groupby("networkID").length.sum()
+    # calculate total length of each individual downstream network (to next barrier downstream)
+    total_miles = (down_network_df.groupby("networkID").length.sum() * METERS_TO_MILES).rename(
+        "total_linear_downstream_miles"
+    )
+
+    free_miles = (
+        down_network_df.loc[down_network_df.free_flowing].groupby("networkID").length.sum() * METERS_TO_MILES
+    ).rename("free_linear_downstream_miles")
+    free_perennial_miles = (
+        down_network_df.loc[(~down_network_df.intermittent) & down_network_df.free_flowing]
+        .groupby("networkID")
+        .length.sum()
+        * METERS_TO_MILES
+    ).rename("free_perennial_linear_downstream_miles")
+    free_intermittent_miles = (
+        down_network_df.loc[down_network_df.intermittent & down_network_df.free_flowing]
+        .groupby("networkID")
+        .length.sum()
+        * METERS_TO_MILES
+    ).rename("free_intermittent_linear_downstream_miles")
+    free_altered_miles = (
+        down_network_df.loc[down_network_df.altered & down_network_df.free_flowing].groupby("networkID").length.sum()
+        * METERS_TO_MILES
+    ).rename("free_altered_linear_downstream_miles")
+    free_unaltered_miles = (
+        down_network_df.loc[(~down_network_df.altered) & down_network_df.free_flowing].groupby("networkID").length.sum()
+        * METERS_TO_MILES
+    ).rename("free_unaltered_linear_downstream_miles")
+
+    # join individual network lengths to barrier downstreams
+    barrier_downstream_miles = (
+        focal_barrier_joins[["downstream_id"]]
+        .join(total_miles, on="downstream_id")
+        .join(free_miles, on="downstream_id")
+        .join(free_perennial_miles, on="downstream_id")
+        .join(free_intermittent_miles, on="downstream_id")
+        .join(free_altered_miles, on="downstream_id")
+        .join(free_unaltered_miles, on="downstream_id")
+        .drop(columns=["downstream_id"])
+        .fillna(0)
+        .astype("float32")
+    )
 
     ### Use a graph of network joins facing downward to aggregate these to a
     # total count per barrier
@@ -545,30 +636,28 @@ def calculate_downstream_stats(
         .pivot(index="id", columns="kind", values="count")
     )
 
-    downstream_stats = (
+    total_downstream_stats = (
         downstreams.join(ln_downstream_counts, on="downstream_network")
-        .join(ln_downstream_length, on="downstream_network")
+        .join(total_miles.rename("miles_to_outlet"), on="downstream_network")
         .drop(columns=["downstream_network"])
         .groupby(level=0)
         .sum()
         .join(self_counts, rsuffix="_self")
         .fillna(0)
     )
-    downstream_stats["length"] = downstream_stats["length"] * METERS_TO_MILES
 
     # subtract barrier type of the upstream network from the stats
-    self_cols = [c for c in downstream_stats.columns if c.endswith("_self")]
+    self_cols = [c for c in total_downstream_stats.columns if c.endswith("_self")]
     for col in self_cols:
         main_col = col.replace("_self", "")
-        downstream_stats[main_col] = downstream_stats[main_col] - downstream_stats[col]
+        total_downstream_stats[main_col] = total_downstream_stats[main_col] - total_downstream_stats[col]
 
-    downstream_stats = downstream_stats.drop(columns=self_cols).rename(
+    total_downstream_stats = total_downstream_stats.drop(columns=self_cols).rename(
         columns={
             "dam": "totd_dams",
             "waterfall": "totd_waterfalls",
             "small_barrier": "totd_small_barriers",
             "road_crossing": "totd_road_crossings",
-            "length": "miles_to_outlet",
         }
     )
 
@@ -657,7 +746,8 @@ def calculate_downstream_stats(
 
     results = (
         focal_barrier_joins[[]]
-        .join(downstream_stats)
+        .join(barrier_downstream_miles)
+        .join(total_downstream_stats)
         .join(to_ocean)
         .join(to_great_lakes)
         .join(exits_region)
@@ -665,7 +755,7 @@ def calculate_downstream_stats(
     )
 
     # set appropriate nodata
-    count_cols = [c for c in downstream_stats.columns if c.startswith("totd_")]
+    count_cols = [c for c in total_downstream_stats.columns if c.startswith("totd_")]
     results[count_cols] = results[count_cols].fillna(0).astype("uint32")
     results.miles_to_outlet = results.miles_to_outlet.fillna(0)
 
