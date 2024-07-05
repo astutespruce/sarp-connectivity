@@ -20,6 +20,7 @@ import { formatNumber } from 'util/format'
 import { isEmptyString } from 'util/string'
 
 const LocationInfo = ({
+  annualflow,
   barrierType,
   reachName,
   huc12,
@@ -36,6 +37,7 @@ const LocationInfo = ({
   fishhabitatpartnership,
   nativeterritories,
   intermittent,
+  storagevolume,
   streamorder,
   streamsizeclass,
   waterbodysizeclass,
@@ -58,6 +60,13 @@ const LocationInfo = ({
       </Entry>
       {intermittent === 1 ? (
         <Entry>This {barrierTypeLabel} is on an intermittent reach</Entry>
+      ) : null}
+      {storagevolume !== null ? (
+        <Entry>
+          <Field label="Normal storage volume">
+            {formatNumber(storagevolume)} acre/feet
+          </Field>
+        </Entry>
       ) : null}
       {waterbodysizeclass > 0 ? (
         <Entry>
@@ -90,6 +99,15 @@ const LocationInfo = ({
           </Field>
         </Entry>
       ) : null}
+
+      {annualflow !== null && annualflow >= 0 ? (
+        <Entry>
+          <Field label="Stream reach annual flow rate">
+            {formatNumber(annualflow)} CFS
+          </Field>
+        </Entry>
+      ) : null}
+
       {ownertype !== null && ownertype > 0 ? (
         <Entry>
           <Field label="Conservation land type">{OWNERTYPE[ownertype]}</Field>
@@ -183,6 +201,7 @@ const LocationInfo = ({
 }
 
 LocationInfo.propTypes = {
+  annualflow: PropTypes.number,
   barrierType: PropTypes.string.isRequired,
   reachName: PropTypes.string,
   huc12: PropTypes.string.isRequired,
@@ -199,6 +218,7 @@ LocationInfo.propTypes = {
   fishhabitatpartnership: PropTypes.string,
   nativeterritories: PropTypes.string,
   intermittent: PropTypes.number,
+  storagevolume: PropTypes.number,
   streamorder: PropTypes.number,
   streamsizeclass: PropTypes.string,
   waterbodysizeclass: PropTypes.number,
@@ -206,6 +226,7 @@ LocationInfo.propTypes = {
 }
 
 LocationInfo.defaultProps = {
+  annualflow: null,
   reachName: null,
   ownertype: 0,
   barrierownertype: 0,
@@ -218,6 +239,7 @@ LocationInfo.defaultProps = {
   fishhabitatpartnership: null,
   nativeterritories: null,
   intermittent: 0,
+  storagevolume: null,
   streamorder: 0,
   streamsizeclass: null,
   waterbodysizeclass: null,

@@ -36,6 +36,7 @@ const { version: dataVersion } = siteMetadata
 const Location = ({
   barrierType,
   sarpid,
+  annualflow,
   hazard,
   construction,
   purpose,
@@ -67,6 +68,7 @@ const Location = ({
   diversion,
   streamorder,
   streamsizeclass,
+  storagevolume,
   waterbodykm2,
   waterbodysizeclass,
   invasive,
@@ -178,6 +180,14 @@ const Location = ({
               </Entry>
             ) : null}
 
+            {storagevolume !== null ? (
+              <Entry>
+                <Text>
+                  Normal storage volume: {formatNumber(storagevolume)} acre/feet
+                </Text>
+              </Entry>
+            ) : null}
+
             {barrierType === 'dams' &&
             waterbodysizeclass !== null &&
             waterbodysizeclass > 0 ? (
@@ -209,6 +219,14 @@ const Location = ({
                   <br />
                   (drainage area:{' '}
                   {STREAM_SIZECLASS_DRAINAGE_AREA[streamsizeclass]} km2)
+                </Text>
+              </Entry>
+            ) : null}
+
+            {annualflow !== null && annualflow >= 0 ? (
+              <Entry>
+                <Text>
+                  Stream reach annual flow rate: {formatNumber(annualflow)} CFS
                 </Text>
               </Entry>
             ) : null}
@@ -476,6 +494,7 @@ const Location = ({
 Location.propTypes = {
   barrierType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
+  annualflow: PropTypes.number,
   height: PropTypes.number,
   width: PropTypes.number,
   yearcompleted: PropTypes.number,
@@ -505,6 +524,7 @@ Location.propTypes = {
   sarp_score: PropTypes.number,
   diversion: PropTypes.number,
   lowheaddam: PropTypes.number,
+  storagevolume: PropTypes.number,
   streamorder: PropTypes.number,
   streamsizeclass: PropTypes.string,
   waterbodykm2: PropTypes.number,
@@ -518,6 +538,7 @@ Location.propTypes = {
 }
 
 Location.defaultProps = {
+  annualflow: null,
   height: 0,
   width: 0,
   yearcompleted: 0,
@@ -547,6 +568,7 @@ Location.defaultProps = {
   sarp_score: -1,
   diversion: 0,
   lowheaddam: null,
+  storagevolume: null,
   streamorder: 0,
   streamsizeclass: null,
   waterbodykm2: -1,

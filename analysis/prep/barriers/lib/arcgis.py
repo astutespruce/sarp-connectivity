@@ -78,7 +78,10 @@ async def get_json(client, url, params=None, token=None):
     if "f" not in params:
         params["f"] = "json"
 
-    response = await client.get(url, params={**params, "token": token})
+    if token is not None:
+        params["token"] = token
+
+    response = await client.get(url, params=params)
     response.raise_for_status()
     content = response.json()
     if "error" in content:
@@ -104,7 +107,11 @@ async def list_services(client, url, token=None):
         contains {'name': <>, 'type': <>, 'url': <>} for each service
     """
 
-    return await get_json(client, url, params={"f": "json", "token": token})["services"]
+    params = {"f": "json"}
+    if token is not None:
+        params["token"] = token
+
+    return await get_json(client, url, params=params)["services"]
 
 
 async def download_fs(client, url, fields=None, token=None, target_wkid=None):

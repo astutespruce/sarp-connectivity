@@ -9,6 +9,7 @@ import {
   STREAMORDER,
   INTERMITTENT,
   GAINMILES,
+  ANNUAL_FLOW,
   HAZARD,
   CONDITION,
   PASSABILITY,
@@ -207,6 +208,13 @@ export const dams = [
         sort: false,
         help: 'Note: intermittent / ephemeral status is assigned in the underlying NHD data and is not consistently assigned for all stream reaches.  Non-intermittent reaches may have perennial flow or be assigned to a different stream reach type which precludes intermittent / ephemeral status.',
         ...getEntries(INTERMITTENT),
+      },
+      {
+        field: 'annualflowclass',
+        title: 'Stream reach annual flow rate',
+        sort: false,
+        help: 'Note: annual flow rate is estimated at the downstream endpoint of the stream reach to which this dam snapped and is not available for all reaches within the underlying NHD data.',
+        ...getEntries(ANNUAL_FLOW),
       },
       {
         field: 'waterbodysizeclass',

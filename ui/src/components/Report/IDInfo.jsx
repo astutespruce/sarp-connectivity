@@ -11,6 +11,7 @@ const { version: dataVersion } = siteMetadata
 
 const IDInfo = ({
   sarpid,
+  nidfederalid,
   nidid,
   source,
   sourceid,
@@ -22,6 +23,46 @@ const IDInfo = ({
   const fromWDFW = source && source.startsWith('WDFW')
   const fromODFW = source && source.startsWith('ODFW')
 
+  let NIDSection = null
+  if (!isEmptyString(nidfederalid) || !isEmptyString(nidid)) {
+    // if both are present and equal, only show the latest one
+    if (nidfederalid === nidid || (nidfederalid && isEmptyString(nidid))) {
+      NIDSection = (
+        <Entry>
+          <Text>
+            National inventory of dams ID:
+            <Link
+              href={`https://nid.sec.usace.army.mil/#/dams/system/${nidfederalid}/summary`}
+            >
+              <Text>{nidfederalid}</Text>
+            </Link>
+          </Text>
+        </Entry>
+      )
+    } else if (!isEmptyString(nidfederalid) && !isEmptyString(nidid)) {
+      // if both are present and not equal, show each
+      NIDSection = (
+        <Entry>
+          <Text>
+            National inventory of dams ID:{' '}
+            <Link
+              href={`https://nid.sec.usace.army.mil/#/dams/system/${nidfederalid}/summary`}
+            >
+              <Text>{nidfederalid}</Text>
+            </Link>{' '}
+            (legacy ID: {nidid})
+          </Text>
+        </Entry>
+      )
+    } else {
+      NIDSection = (
+        <Entry>
+          <Text>National inventory of dams ID: {nidid} (legacy ID)</Text>
+        </Entry>
+      )
+    }
+  }
+
   return (
     <Section title="Data sources" {...props} wrap={false}>
       <Entries>
@@ -31,11 +72,7 @@ const IDInfo = ({
           </Text>
         </Entry>
 
-        {!isEmptyString(nidid) ? (
-          <Entry>
-            <Text>National inventory of dams ID: {nidid}</Text>
-          </Entry>
-        ) : null}
+        {NIDSection}
 
         {!isEmptyString(source) ? (
           <Entry>
@@ -107,6 +144,7 @@ const IDInfo = ({
 
 IDInfo.propTypes = {
   sarpid: PropTypes.string.isRequired,
+  nidfederalid: PropTypes.string,
   nidid: PropTypes.string,
   source: PropTypes.string,
   sourceid: PropTypes.string,
@@ -116,6 +154,7 @@ IDInfo.propTypes = {
 }
 
 IDInfo.defaultProps = {
+  nidfederalid: null,
   nidid: null,
   source: null,
   sourceid: null,

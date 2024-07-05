@@ -23,6 +23,7 @@ const WaterfallDetails = ({
   lon,
 
   alteredupstreammiles,
+  annualflow,
   basin,
   excluded,
   falltype,
@@ -85,6 +86,7 @@ const WaterfallDetails = ({
       <Section title="Location">
         <LocationInfo
           barrierType={barrierType}
+          annualflow={annualflow}
           reachName={river}
           basin={basin}
           subwatershed={subwatershed}
@@ -222,6 +224,7 @@ WaterfallDetails.propTypes = {
 
   hasnetwork: PropTypes.bool.isRequired,
   alteredupstreammiles: PropTypes.number,
+  annualflow: PropTypes.number,
   basin: PropTypes.string,
   excluded: PropTypes.bool,
   falltype: PropTypes.string,
@@ -331,6 +334,7 @@ WaterfallDetails.propTypes = {
 
 WaterfallDetails.defaultProps = {
   alteredupstreammiles: 0,
+  annualflow: null,
   basin: null,
   excluded: false,
   falltype: null,
