@@ -488,7 +488,7 @@ def calculate_downstream_stats(
     # TODO: avoid the reindexing
     down_network_df = down_network_df.reset_index().set_index("lineID")
 
-    # re-rederive all focal barriers joins from barrier joins to keep confluences
+    # re-derive all focal barriers joins from barrier joins to keep confluences
     # which are otherwise filtered out before calling here
     # TODO: is there a way we can avoid removing these before calling into stats?
     all_focal_barrier_joins = barrier_joins.loc[barrier_joins.index.isin(focal_barrier_joins.index.unique())]

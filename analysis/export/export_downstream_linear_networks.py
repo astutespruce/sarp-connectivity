@@ -19,10 +19,10 @@ out_dir.mkdir(exist_ok=True, parents=True)
 
 # full network scenarios are: "dams", "combined_barriers", "largefish_barriers", "smallfish_barriers"
 scenario = "dams"
-# ext = "fgb"
-# driver = "FlatGeobuf"
-ext = "gdb"
-driver = "OpenFileGDB"
+ext = "fgb"
+driver = "FlatGeobuf"
+# ext = "gdb"
+# driver = "OpenFileGDB"
 
 
 groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
@@ -30,7 +30,7 @@ groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
 export_hucs = {
     # "01",
     # "02",
-    "03"
+    # "03"
     # "04",
     # "05",
     # "06",
@@ -40,12 +40,12 @@ export_hucs = {
     # "14",
     # "15",
     # "16",
-    # "17",
+    "17",
     # "18",
     # "21"
 }
 
-for group in [{"03"}]:
+for group in [{"17"}]:
     group = sorted(group)
 
     segments = (

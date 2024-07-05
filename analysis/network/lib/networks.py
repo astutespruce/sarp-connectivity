@@ -256,10 +256,10 @@ def create_networks(joins, barrier_joins, flowlines):
         )
 
     ### Extract mainstem networks facing upstream
-    # drop upstream joins < 1 square mile drainage area, stream order 1, or any
+    # drop upstream joins < 1 square mile drainage area or any
     # join where the upstream StreamOrder is different than downstream
     # (avoids smaller incoming tributaries)
-    mainstem_ids = flowlines.loc[(flowlines.TotDASqKm >= 2.58999) & (flowlines.StreamOrder > 1)].index.values
+    mainstem_ids = flowlines.loc[(flowlines.TotDASqKm >= 2.58999)].index.values
     upstream_mainstem_joins = (
         upstream_joins.loc[
             upstream_joins.downstream_id.isin(mainstem_ids) & upstream_joins.upstream_id.isin(mainstem_ids)
@@ -468,10 +468,8 @@ def create_barrier_networks(barriers, barrier_joins, focal_barrier_joins, joins,
     ### Join upstream network stats to downstream network stats
     # NOTE: a network will only have downstream stats if it is upstream of a
     # barrier
-    network_stats = (
-        upstream_stats.join(upstream_mainstem_stats)
-        # .fillna(0)
-        .join(downstream_stats.join(focal_barrier_joins.upstream_id).set_index("upstream_id"))
+    network_stats = upstream_stats.join(upstream_mainstem_stats).join(
+        downstream_stats.join(focal_barrier_joins.upstream_id).set_index("upstream_id")
     )
     network_stats.index.name = "networkID"
 
@@ -537,22 +535,22 @@ def create_barrier_networks(barriers, barrier_joins, focal_barrier_joins, joins,
         )
     )
 
-    # these are the downstream FUNCTIONAL networks, not linear networks
-    downstream_cols = [c for c in network_stats if c.startswith("free_") or c == "total_miles"]
-    downstream_networks = (
+    downstream_functional_network_cols = [
+        c for c in network_stats if (c.startswith("free_") or c == "total_miles") and "linear" not in c
+    ]
+    downstream_functional_network_stats = (
+        # find the network that contains the segment immediately downstream of the barrier;
+        # this is the downstream functional network
         focal_barrier_joins[["downstream_id"]]
         .join(
             up_network_df.reset_index().set_index("lineID").networkID,
             on="downstream_id",
         )
         .join(
-            network_stats[downstream_cols].rename(
+            network_stats[downstream_functional_network_cols].rename(
                 columns={
-                    c: c.title()
-                    .replace("_Linear_Downstream_Miles", "LinearDownstreamMiles")
-                    .replace("_Miles", "DownstreamMiles")
-                    .replace("_", "")
-                    for c in [col for col in downstream_cols if col.endswith("_miles")]
+                    c: c.title().replace("_Miles", "DownstreamMiles").replace("_", "")
+                    for c in [col for col in downstream_functional_network_cols if col.endswith("_miles")]
                 }
             ),
             on="networkID",
@@ -561,11 +559,35 @@ def create_barrier_networks(barriers, barrier_joins, focal_barrier_joins, joins,
         .drop(columns=["downstream_id"])
     )
 
+    # downstream stats are indexed on barrier ID
+    downstream_linear_network_cols = [
+        c
+        for c in downstream_stats
+        if "linear" in c and c.endswith("_miles") and (c.startswith("free_") or c == "total_linear_downstream_miles")
+    ]
+    downstream_linear_network_stats = downstream_stats[downstream_linear_network_cols].rename(
+        columns={
+            c: c.title().replace("_Linear_Downstream_Miles", "LinearDownstreamMiles").replace("_", "")
+            for c in downstream_linear_network_cols
+        }
+    )
+
     # Note: the join creates duplicates if there are multiple upstream or downstream
     # networks for a given barrier, so we drop these duplicates after the join just to be sure.
     barrier_networks = (
-        upstream_networks.join(downstream_networks)
-        .join(downstream_stats)
+        upstream_networks.join(downstream_functional_network_stats)
+        .join(downstream_linear_network_stats)
+        .join(
+            downstream_stats[
+                list(
+                    {
+                        c
+                        for c in downstream_stats.columns
+                        if c not in set(downstream_functional_network_cols + downstream_linear_network_cols)
+                    }
+                )
+            ]
+        )
         .join(barriers.set_index("id")[["kind", "HUC2"]])
     )
 

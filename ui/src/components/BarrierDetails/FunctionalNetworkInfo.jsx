@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Paragraph, Text } from 'theme-ui'
+import { Box, Text } from 'theme-ui'
 
 import { barrierTypeLabelSingular } from 'config'
 import { Table, Row } from 'components/Table'
@@ -15,7 +15,7 @@ const inactiveSideCSS = {
   visibility: 'hidden',
 }
 
-const NetworkInfo = ({
+const FunctionalNetworkInfo = ({
   barrierType,
   networkType,
   totalupstreammiles,
@@ -81,6 +81,14 @@ const NetworkInfo = ({
 
   return (
     <Box {...props}>
+      <Text variant="help" sx={{ fontSize: 0, mx: '0.5rem', mb: '1rem' }}>
+        Functional networks are the full upstream dendritic network to the
+        upstream-most points on the network or upstream barriers. The downstream
+        network is the upstream functional network of the next barrier
+        immediately downstream or downstream-most point on that network, and
+        includes any tributaries up to their upstream-most points or other
+        barriers.
+      </Text>
       <Entry sx={{ pb: '.5rem', mx: '-0.5rem' }}>
         <Table sx={{ fontSize }} columns="11rem 1fr 1fr">
           <Row sx={{ px: '0.5rem' }}>
@@ -433,18 +441,18 @@ const NetworkInfo = ({
 
       {unranked && !invasive ? (
         <Entry>
-          <Paragraph variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
+          <Text variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
             Note: this {barrierTypeLabel} excluded from ranking based on field
             reconnaissance, manual review of aerial imagery, or other
             information about this {barrierTypeLabel}.
-          </Paragraph>
+          </Text>
         </Entry>
       ) : null}
     </Box>
   )
 }
 
-NetworkInfo.propTypes = {
+FunctionalNetworkInfo.propTypes = {
   fontSize: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   headerFontSize: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   barrierType: PropTypes.string.isRequired,
@@ -472,7 +480,7 @@ NetworkInfo.propTypes = {
   totaldownstreamwaterfalls: PropTypes.number,
 }
 
-NetworkInfo.defaultProps = {
+FunctionalNetworkInfo.defaultProps = {
   fontSize: 1,
   headerFontSize: 0,
   totalupstreammiles: 0,
@@ -498,4 +506,4 @@ NetworkInfo.defaultProps = {
   totaldownstreamwaterfalls: 0,
 }
 
-export default NetworkInfo
+export default FunctionalNetworkInfo
