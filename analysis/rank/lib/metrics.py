@@ -51,3 +51,9 @@ def classify_annual_flow(series):
     """classify barriers by the annual flow rate of the flowline where they snapped; 0 indicates missing values"""
     bins = [-1, 0, 1, 3, 5, 10, 50, 100] + [series.max() + 1]
     return np.asarray(pd.cut(series, bins, right=False, labels=np.arange(0, len(bins) - 1))).astype("uint8")
+
+
+def classify_cost(series):
+    """classify dams by CostMean values into bins 1...8; 0 is reserved for missing values (small barriers)"""
+    bins = [-1, 0, 100_000, 250_000, 500_000, 750_000, 1_000_000, 2_000_000] + [series.max() + 1]
+    return np.asarray(pd.cut(series, bins, right=False, labels=np.arange(1, len(bins)))).astype("uint8")

@@ -41,6 +41,9 @@ const DamDetails = ({
   basin,
   condition,
   construction,
+  costlower,
+  costmean,
+  costupper,
   diversion,
   ejtract,
   ejtribal,
@@ -181,6 +184,9 @@ const DamDetails = ({
           stateregulated={stateregulated}
           fedregulatoryagency={fedregulatoryagency}
           waterright={waterright}
+          costlower={costlower}
+          costmean={costmean}
+          costupper={costupper}
           ejtract={ejtract}
           ejtribal={ejtribal}
           fishhabitatpartnership={fishhabitatpartnership}
@@ -424,6 +430,9 @@ DamDetails.propTypes = {
   basin: PropTypes.string,
   condition: PropTypes.number,
   construction: PropTypes.number,
+  costlower: PropTypes.number,
+  costmean: PropTypes.number,
+  costupper: PropTypes.number,
   diversion: PropTypes.number,
   ejtract: PropTypes.bool,
   ejtribal: PropTypes.bool,
@@ -561,6 +570,9 @@ DamDetails.defaultProps = {
   basin: null,
   condition: null,
   construction: null,
+  costlower: 0,
+  costmean: 0,
+  costupper: 0,
   diversion: 0,
   ejtract: false,
   ejtribal: false,

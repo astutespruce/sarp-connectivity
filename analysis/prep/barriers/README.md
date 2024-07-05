@@ -56,6 +56,14 @@ NABD dams are prepared using `special/prep_nabd.py`.
 
 ## Dams
 
+### Dam removal costs
+
+Estimated dam costs were modeled by Suman Jumani (TNC) and provided to Kat Hoenke on 1/16/2024,
+saved to `data/barriers/source/sarp_dam_costpred_V2.xlsx`.
+
+We extracted Mean and 95% upper / lower prediction intervals and saved to a Feather file for faster joins later.
+These were post-processed using `analysis/prep/barriers/special/extract_cost_estimates.py`.
+
 ### Processing
 
 Dams are downloaded from the user-edited national dataset hosted

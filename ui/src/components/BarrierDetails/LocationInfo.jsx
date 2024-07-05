@@ -32,6 +32,9 @@ const LocationInfo = ({
   stateregulated,
   fedregulatoryagency,
   waterright,
+  costlower,
+  costmean,
+  costupper,
   ejtract,
   ejtribal,
   fishhabitatpartnership,
@@ -157,6 +160,20 @@ const LocationInfo = ({
         </Entry>
       ) : null}
 
+      {costmean && costmean > 0 ? (
+        <Entry>
+          <Field label="Estimated cost of removal">
+            ${formatNumber(costmean)} (average)
+            <br /> (${formatNumber(costlower)} - ${formatNumber(costupper)})
+          </Field>
+          <Text sx={{ mt: '0.5rem', fontSize: 0, color: 'grey.7' }}>
+            Note: costs are modeled based on dam characteristics and are a very
+            rough estimate only; please use with caution. Source: Jumani et. al.
+            (in prep).
+          </Text>
+        </Entry>
+      ) : null}
+
       {ejtract || ejtribal ? (
         <Entry>
           <Field label="Climate and environmental justice">
@@ -213,6 +230,9 @@ LocationInfo.propTypes = {
   stateregulated: PropTypes.number,
   fedregulatoryagency: PropTypes.string,
   waterright: PropTypes.number,
+  costlower: PropTypes.number,
+  costmean: PropTypes.number,
+  costupper: PropTypes.number,
   ejtract: PropTypes.bool,
   ejtribal: PropTypes.bool,
   fishhabitatpartnership: PropTypes.string,
@@ -234,6 +254,9 @@ LocationInfo.defaultProps = {
   stateregulated: null,
   fedregulatoryagency: null,
   waterright: null,
+  costlower: 0,
+  costmean: 0,
+  costupper: 0,
   ejtract: false,
   ejtribal: false,
   fishhabitatpartnership: null,

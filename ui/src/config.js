@@ -1215,6 +1215,18 @@ export const DISADVANTAGED_COMMUNITY = {
   tribal: 'Within a tribal community',
 }
 
+export const COST_CLASS = {
+  0: 'not applicable (road-related barrier)',
+  1: 'Unknown',
+  2: '<$100,000',
+  3: '$100,000 - $250,000',
+  4: '$250,000 - $500,000',
+  5: '$500,000 - $750,000',
+  6: '$750,000 - $1M',
+  7: '$1M - $2M',
+  8: '>=$2M',
+}
+
 // NOTE: these are encoded into a comma-delimited field
 export const FISH_HABITAT_PARTNERSHIPS = {
   ACFHP: {

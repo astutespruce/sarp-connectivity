@@ -6,6 +6,7 @@ from pathlib import Path
 import pandas as pd
 import pyarrow as pa
 from pyarrow.csv import write_csv
+from pyogrio import write_dataframe
 
 from api.constants import (
     DAM_EXPORT_FIELDS,
@@ -41,6 +42,10 @@ cols = [c for c in EXPORT_FIELDS[barrier_type] + ["upNetID", "downNetID"] if c i
 
 df = unpack_domains(df[cols])
 
-df = pa.Table.from_pandas(df)
+# df = pa.Table.from_pandas(df)
+# write_csv(df, out_dir / f"{barrier_type}{suffix}__{datetime.today().strftime('%m_%d_%Y')}.csv")
 
-write_csv(df, out_dir / f"{barrier_type}{suffix}__{datetime.today().strftime('%m_%d_%Y')}.csv")
+# Kat needs these as FGDB
+write_dataframe(
+    df, out_dir / f"{barrier_type}{suffix}__{datetime.today().strftime('%m_%d_%Y')}.gdb", driver="OpenFileGDB"
+)

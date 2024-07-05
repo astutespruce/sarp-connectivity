@@ -94,8 +94,20 @@ start = time()
 ### Read dams for analysis region states states and merge
 print("Reading dams in analysis region states")
 
-df = gp.read_feather(src_dir / "sarp_dams.feather")
+# FIXME: remove drop of cost columns after next run of download
+df = gp.read_feather(src_dir / "sarp_dams.feather").drop(columns=["Cost_95_Upper", "Cost_95_Lower"], errors="ignore")
 print(f"Read {len(df):,} dams in region states")
+
+# join in cost columns, but only where height is within tolerance because height
+# may have been updated for a given dam after it was run through the analysis
+cost = pd.read_feather(src_dir / "sarp_dam_costpred_v2.feather").set_index("SARPID")
+df = df.join(cost, on="SARPID")
+df["height_m"] = df.Height.fillna(0) * (1 / 3.281)
+ix = ~(df.CostMean.notnull() & np.isclose(df.height_m, df.DamHt_m, atol=1))
+for col in ["CostMean", "CostUpper", "CostLower"]:
+    df.loc[ix, col] = np.nan
+
+df = df.drop(columns=["height_m", "DamHt_m"])
 
 
 ### Read in dams that have been manually reviewed
@@ -544,6 +556,10 @@ for field, values in removed_fields.items():
 ix = (df.YearRemoved > 0) & (df.YearRemoved <= datetime.today().year) & ~(df.dropped | df.removed)
 df.loc[ix, "removed"] = True
 df.loc[ix, "log"] = f"removed: YearRemoved is set and <= {datetime.today().year}"
+
+# clear out cost columns for removed dams since they are no longer applicable
+for col in ["CostMean", "CostUpper", "CostLower"]:
+    df.loc[df.removed, col] = np.nan
 
 
 # if YearFishPass is set and Passability indicates no barrier, mark as removed (fully mitigated)

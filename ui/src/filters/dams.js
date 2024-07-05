@@ -30,6 +30,7 @@ import {
   DISADVANTAGED_COMMUNITY,
   INVASIVE_NETWORK,
   FISH_HABITAT_PARTNERSHIPS,
+  COST_CLASS,
 } from 'config'
 
 import { getEntries, hasDiadromousData } from './common'
@@ -114,7 +115,7 @@ export const dams = [
   },
   {
     id: 'regulatory',
-    title: 'Regulatory',
+    title: 'Regulatory & Removal Cost',
     filters: [
       {
         field: 'fercregulated',
@@ -135,6 +136,12 @@ export const dams = [
         title: 'Has an associated water right?',
         help: 'Note: water right information is only available for a small number of dams.',
         ...getEntries(WATER_RIGHT, (v) => v >= 0),
+      },
+      {
+        field: 'costclass',
+        title: 'Estimated cost of removal (average)',
+        help: 'Note: estimated removal cost is modeled based on dam characteristics and is only available for a small number of dams.  Filter is based on the average estimated cost, but estimated costs may have a wide range so please use this with caution.  Source: Jumani et. al. (in prep).',
+        ...getEntries(COST_CLASS, (v) => v > 0),
       },
     ],
   },
