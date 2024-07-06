@@ -861,6 +861,16 @@ export const GAINMILES = {
   5: '>= 100 miles',
 }
 
+export const MAINSTEM_GAINMILES = {
+  '-1': 'not on a mainstem network',
+  0: '< 1 miles',
+  1: '1 - 2 miles',
+  2: '2 - 5 miles',
+  3: '5 - 10 miles',
+  4: '10 - 25 miles',
+  5: '>= 25 miles',
+}
+
 export const DOWNSTREAM_OCEAN_MILES = {
   0: 'not on an aquatic network known to flow into the ocean',
   1: '< 1 miles',

@@ -8,6 +8,7 @@ import numpy as np
 from analysis.lib.io import read_arrow_tables
 from analysis.rank.lib.metrics import (
     classify_gain_miles,
+    classify_mainstem_gain_miles,
     classify_downstream_miles,
     classify_percent_altered,
     classify_percent_resilient,
@@ -228,6 +229,13 @@ def get_network_results(df, network_type, state_ranks=False):
 
     ### Calculate classes used for filtering
     networks["GainMilesClass"] = classify_gain_miles(networks.GainMiles)
+
+    # TODO: not available yet for removed barriers, so fill with -1
+    if networks.MainstemGainMiles.notnull().sum() > 0:
+        networks["MainstemGainMilesClass"] = classify_mainstem_gain_miles(networks.MainstemGainMiles)
+    else:
+        networks["MainstemGainMilesClass"] = np.int8(-1)
+
     networks["PercentAlteredClass"] = classify_percent_altered(networks.PercentAltered)
     networks["PercentResilientClass"] = classify_percent_resilient(networks.PercentResilient)
 

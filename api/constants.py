@@ -255,6 +255,7 @@ SPECIES_HABITAT_FIELDS = [
 
 FILTER_FIELDS = [
     "GainMilesClass",
+    "MainstemGainMilesClass",
     "Condition",
     "TESppClass",
     "StateSGCNSppClass",

@@ -9,6 +9,7 @@ import {
   STREAMORDER,
   INTERMITTENT,
   GAINMILES,
+  MAINSTEM_GAINMILES,
   ANNUAL_FLOW,
   HAZARD,
   CONDITION,
@@ -89,6 +90,12 @@ export const dams = [
         field: 'gainmilesclass',
         title: 'Miles gained',
         ...getEntries(GAINMILES),
+      },
+      {
+        field: 'mainstemgainmilesclass',
+        title: 'Mainstem miles gained',
+        help: 'Upstream mainstem networks include the stream reaches upstream that are the same stream order as the one associated with this barrier with at least 1 square mile of drainage area. Downstream mainstem networks are based on the linear flow direction network from this barrier to the next barrier downstream or downstream-most point on that network.',
+        ...getEntries(MAINSTEM_GAINMILES),
       },
       {
         field: 'percentalteredclass',

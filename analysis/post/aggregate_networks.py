@@ -445,6 +445,9 @@ tmp.to_feather(api_dir / "waterfalls.feather")
 # NOTE: these don't currently have network data, but share logic with above
 print("Processing road crossings")
 crossings = gp.read_feather(barriers_dir / "road_crossings.feather").set_index("id").rename(columns=rename_cols)
+# FIXME: remove on next rerun of prep_raw_road_crossings.py
+crossings.loc[crossings.AnnualFlow < 0, "AnnualFlow"] = np.nan
+
 fill_flowline_cols(crossings)
 
 crossings["OnNetwork"] = ~(crossings.OnLoop | crossings.offnetwork_flowline)
@@ -460,6 +463,7 @@ search_barriers = pd.concat(
 crossings["StreamOrderClass"] = classify_streamorder(crossings.StreamOrder)
 for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
     crossings[f"{col}Class"] = classify_spps(crossings[col])
+
 
 crossings["AnnualFlowClass"] = classify_annual_flow(crossings.AnnualFlow)
 

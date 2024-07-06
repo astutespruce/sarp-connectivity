@@ -638,6 +638,9 @@ def create_barrier_networks(barriers, barrier_joins, focal_barrier_joins, joins,
 
     barrier_networks.sizeclasses = barrier_networks.sizeclasses.astype("uint8")
 
+    # copy to degragment data frame
+    barrier_networks = barrier_networks.copy()
+
     ### Calculate miles GAINED if barrier is removed
     # this is the lesser of the upstream or free downstream lengths.
     # Non-free miles downstream (downstream waterbodies) are omitted from this analysis.

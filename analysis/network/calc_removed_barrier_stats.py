@@ -155,6 +155,9 @@ for network_type in network_types:
                 "sizeclass",
                 "length",
                 "AreaSqKm",
+                "StreamOrder",
+                "TotDASqKm",
+                "free_flowing",
                 "HUC2",
                 network_type,
             ],
@@ -254,7 +257,7 @@ for network_type in network_types:
         ]
 
         # Create networks based on all barriers active in this year
-        networks, _, network_segments = create_barrier_networks(
+        networks, _, network_segments, _, _ = create_barrier_networks(
             barriers=active_focal_removed_barriers,
             barrier_joins=active_barrier_joins,
             focal_barrier_joins=active_focal_barrier_joins,
@@ -298,9 +301,9 @@ for network_type in network_types:
         # mark which side a given network used to derive its gain miles
         cur_networks["EffectiveGainMiles"] = cur_networks.GainMiles
         cur_networks["GainMilesSide"] = "upstream"
-        cur_networks.loc[
-            cur_networks.TotalUpstreamMiles > cur_networks.FreeDownstreamMiles, "GainMilesSide"
-        ] = "downstream"
+        cur_networks.loc[cur_networks.TotalUpstreamMiles > cur_networks.FreeDownstreamMiles, "GainMilesSide"] = (
+            "downstream"
+        )
         cur_networks["EffectivePerennialGainMiles"] = cur_networks.PerennialGainMiles
         cur_networks["PerennialGainMilesSide"] = "upstream"
         cur_networks.loc[

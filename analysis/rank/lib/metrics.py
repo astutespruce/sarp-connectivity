@@ -7,6 +7,16 @@ def classify_gain_miles(series):
     return np.asarray(pd.cut(series, bins, right=False, labels=np.arange(-1, len(bins) - 2))).astype("int8")
 
 
+def classify_mainstem_gain_miles(series):
+    """classify mainstem gain miles.  NOTE: -1 indicates not on a mainstem"""
+    bins = [-1, 0, 1, 2, 5, 10, 25]
+    last_bin = series.max() + 1
+    if last_bin > bins[-1]:
+        bins.append(last_bin)
+
+    return np.asarray(pd.cut(series, bins, right=False, labels=np.arange(-1, len(bins) - 2))).astype("int8")
+
+
 def classify_spps(series):
     """classify species counts into 0...4; 0 means 0 instead of missing"""
     bins = [0, 1, 2, 5, 10] + [series.max() + 1]
