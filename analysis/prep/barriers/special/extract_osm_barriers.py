@@ -21,7 +21,7 @@ warnings.filterwarnings("ignore", message=".*invalid value encountered.*")
 TOLERANCE = 250
 
 # date downloaded from GeoFabrik
-OSM_DATE = "09/06/2023"
+OSM_DATE = "07/08/2024"
 
 
 def get_height(value):
@@ -61,9 +61,7 @@ str_cols = ["Name", "OSMSource", "waterway", "natural", "other_tags"]
 
 set_gdal_config_options(
     {
-        "OSM_CONFIG_FILE": Path(
-            "analysis/prep/barriers/special/osmconf.ini"
-        ).absolute(),
+        "OSM_CONFIG_FILE": Path("analysis/prep/barriers/special/osmconf.ini").absolute(),
         "OGR_INTERLEAVED_READING": True,
     }
 )
@@ -141,11 +139,7 @@ for df in [points, lines, poly]:
     df["Source"] = "OpenStreetMap (https://opendatacommons.org/licenses/odbl/)"
     df["OSMDate"] = OSM_DATE
     df["tags"] = df.other_tags.apply(
-        lambda x: dict(
-            [tag.split("=>") for tag in x.replace('"', "").split(",") if "=>" in tag]
-        )
-        if x
-        else {}
+        lambda x: dict([tag.split("=>") for tag in x.replace('"', "").split(",") if "=>" in tag]) if x else {}
     )
 
 
@@ -155,23 +149,17 @@ for df in [points, lines, poly]:
 waterfalls = points.loc[(points.waterway == "waterfall")]
 
 # drop any that we likely already have
-wf = gp.read_feather(
-    "data/barriers/source/waterfalls.feather", columns=["geometry"]
-).to_crs(CRS)
+wf = gp.read_feather("data/barriers/source/waterfalls.feather", columns=["geometry"]).to_crs(CRS)
 
 tree = shapely.STRtree(waterfalls.geometry.values)
-ix = np.unique(
-    tree.query(wf.geometry.values, predicate="dwithin", distance=TOLERANCE)[1]
-)
+ix = np.unique(tree.query(wf.geometry.values, predicate="dwithin", distance=TOLERANCE)[1])
 print(f"Found {len(ix):,} OSM waterfalls within {TOLERANCE}m of existing waterfalls")
 
 waterfalls = waterfalls.loc[~waterfalls.index.isin(waterfalls.index.values.take(ix))]
 print(f"Found {len(waterfalls):,} OSM waterfalls we don't likely already have")
 
 # extract height
-waterfalls["height_meters"] = waterfalls.tags.apply(
-    lambda x: get_height(x.get("height", ""))
-)
+waterfalls["height_meters"] = waterfalls.tags.apply(lambda x: get_height(x.get("height", "")))
 
 write_dataframe(
     waterfalls.drop(columns=["tags", "other_tags", "natural", "waterway"]),
@@ -186,18 +174,14 @@ write_dataframe(
 ### (used manually by SARP to set fish passage presence for dam)
 ################################################################################
 write_dataframe(
-    points.loc[points.waterway == "fish_pass"].drop(
-        columns=["other_tags", "natural", "waterway"]
-    ),
+    points.loc[points.waterway == "fish_pass"].drop(columns=["other_tags", "natural", "waterway"]),
     outfilename,
     layer="fish_pass_pts",
     driver="OpenFileGDB",
 )
 
 write_dataframe(
-    lines.loc[lines.waterway == "fish_pass"].drop(
-        columns=["other_tags", "natural", "waterway"]
-    ),
+    lines.loc[lines.waterway == "fish_pass"].drop(columns=["other_tags", "natural", "waterway"]),
     out_dir / "osm_barriers.gdb",
     layer="fish_pass_line",
     driver="OpenFileGDB",
@@ -221,9 +205,7 @@ for df in [dam_pts, dam_lines, dam_poly]:
 ## Extract dam points
 # drop any we likely already have
 tree = shapely.STRtree(dam_pts.geometry.values)
-ix = np.unique(
-    tree.query(dams_master.geometry.values, predicate="dwithin", distance=TOLERANCE)[1]
-)
+ix = np.unique(tree.query(dams_master.geometry.values, predicate="dwithin", distance=TOLERANCE)[1])
 dam_pts = dam_pts.loc[~dam_pts.index.isin(dam_pts.index.values.take(ix))]
 print(f"Found {len(ix):,} OSM dam points within {TOLERANCE}m of existing dams")
 print(f"Found {len(dam_pts):,} OSM dam points we don't likely already have")
@@ -243,19 +225,13 @@ tree = shapely.STRtree(dam_lines.geometry.values)
 ix = np.unique(
     np.concatenate(
         [
-            tree.query(
-                dams_master.geometry.values, predicate="dwithin", distance=TOLERANCE
-            )[1],
-            tree.query(
-                dam_pts.geometry.values, predicate="dwithin", distance=TOLERANCE
-            )[1],
+            tree.query(dams_master.geometry.values, predicate="dwithin", distance=TOLERANCE)[1],
+            tree.query(dam_pts.geometry.values, predicate="dwithin", distance=TOLERANCE)[1],
         ]
     )
 )
 dam_lines = dam_lines.loc[~dam_lines.index.isin(dam_lines.index.values.take(ix))]
-print(
-    f"Found {len(ix):,} OSM dam lines within {TOLERANCE}m of OSM dam points or existing dams"
-)
+print(f"Found {len(ix):,} OSM dam lines within {TOLERANCE}m of OSM dam points or existing dams")
 
 # attribute to HUC2
 tree = shapely.STRtree(dam_lines.geometry.values)
@@ -270,9 +246,7 @@ pairs = (
     .first()
 )
 dam_lines = dam_lines.join(pairs, how="inner")
-print(
-    f"Kept {len(dam_lines):,} OSM dam lines we don't likely already have within HUC4 analysis regions"
-)
+print(f"Kept {len(dam_lines):,} OSM dam lines we don't likely already have within HUC4 analysis regions")
 
 
 ### Extract dam lines
@@ -281,22 +255,14 @@ tree = shapely.STRtree(dam_poly.geometry.values)
 ix = np.unique(
     np.concatenate(
         [
-            tree.query(
-                dams_master.geometry.values, predicate="dwithin", distance=TOLERANCE
-            )[1],
-            tree.query(
-                dam_pts.geometry.values, predicate="dwithin", distance=TOLERANCE
-            )[1],
-            tree.query(
-                dam_lines.geometry.values, predicate="dwithin", distance=TOLERANCE
-            )[1],
+            tree.query(dams_master.geometry.values, predicate="dwithin", distance=TOLERANCE)[1],
+            tree.query(dam_pts.geometry.values, predicate="dwithin", distance=TOLERANCE)[1],
+            tree.query(dam_lines.geometry.values, predicate="dwithin", distance=TOLERANCE)[1],
         ]
     )
 )
 dam_poly = dam_poly.loc[~dam_poly.index.isin(dam_poly.index.values.take(ix))]
-print(
-    f"Found {len(ix):,} OSM dam polygons within {TOLERANCE}m of OSM dam points / lines or existing dams"
-)
+print(f"Found {len(ix):,} OSM dam polygons within {TOLERANCE}m of OSM dam points / lines or existing dams")
 
 # attribute to HUC2
 tree = shapely.STRtree(dam_poly.geometry.values)
@@ -311,9 +277,7 @@ pairs = (
     .first()
 )
 dam_poly = dam_poly.join(pairs, how="inner")
-print(
-    f"Kept {len(dam_poly):,} OSM dam polygons we don't likely already have within HUC4 analysis regions"
-)
+print(f"Kept {len(dam_poly):,} OSM dam polygons we don't likely already have within HUC4 analysis regions")
 
 merged = None
 for huc2 in sorted(huc4.HUC2.unique()):
@@ -365,9 +329,7 @@ for huc2 in sorted(huc4.HUC2.unique()):
                 ]
             )
         )
-        df[
-            "notes"
-        ] = "derived from intersection of OSM dam / weir line and NHD HR flowline"
+        df["notes"] = "derived from intersection of OSM dam / weir line and NHD HR flowline"
 
         merged = append(merged, df)
 
@@ -403,9 +365,7 @@ for huc2 in sorted(huc4.HUC2.unique()):
                 return ids
 
             # multiple segments, find the dowstream ones
-            dam_joins = find_joins(
-                j, ids, downstream_col="downstream_id", upstream_col="upstream_id"
-            )
+            dam_joins = find_joins(j, ids, downstream_col="downstream_id", upstream_col="upstream_id")
             return dam_joins.loc[
                 dam_joins.downstream_id.isin(ids) & ~dam_joins.upstream_id.isin(ids)
             ].downstream_id.unique()
@@ -450,9 +410,7 @@ for huc2 in sorted(huc4.HUC2.unique()):
 
         ix = df.pt.isnull()
         tmp = shapely.get_geometry(
-            shapely.intersection(
-                df.loc[ix].geometry.values, df.loc[ix].flowline.values
-            ),
+            shapely.intersection(df.loc[ix].geometry.values, df.loc[ix].flowline.values),
             0,
         )
         tmp_ix = shapely.get_type_id(tmp) == 1
@@ -469,9 +427,7 @@ for huc2 in sorted(huc4.HUC2.unique()):
         # Few should be dropped at this point, since all should have overlapped at least by a point
         errors = df.pt.isnull()
         if errors.max():
-            print(
-                f"{errors.sum():,} dam / flowline joins could not be represented as points and were dropped"
-            )
+            print(f"{errors.sum():,} dam / flowline joins could not be represented as points and were dropped")
 
         df = (
             df.loc[df.pt.notnull(), ["SourceDBID", "lineID", "pt"]]
@@ -494,9 +450,7 @@ for huc2 in sorted(huc4.HUC2.unique()):
             .drop(columns=["lineID"])
         )
 
-        df[
-            "notes"
-        ] = "derived from intersection of OSM dam / weir polygon and NHD HR flowline"
+        df["notes"] = "derived from intersection of OSM dam / weir polygon and NHD HR flowline"
 
         df = gp.GeoDataFrame(df, geometry="geometry", crs=CRS)
 

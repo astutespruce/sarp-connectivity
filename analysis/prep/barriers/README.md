@@ -34,7 +34,7 @@ You must set `AGOL_TOKEN` in an `.env` file in the root of this project. It must
 
 ### Prep: Download and extract OpenStreetMap dams
 
-OpenStreetMap (OSM) data for the U.S. was downloaded from https://download.geofabrik.de/north-america.html on 9/6/2023.
+OpenStreetMap (OSM) data for the U.S. was downloaded from https://download.geofabrik.de/north-america.html on 7/8/2024.
 
 OSM data are very slow to process. Features of interest are first extracted to a GPKG file using the following command-line commands:
 
