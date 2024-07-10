@@ -120,13 +120,9 @@ urls = (
 
 df = df.join(urls)
 
-# TODO: remove rename of Stream on next full run of prep raw road crossings
-crossings = (
-    gp.read_feather(src_dir / "road_crossings.feather").set_index("id", drop=False).rename(columns={"Stream": "River"})
-)
+crossings = gp.read_feather(src_dir / "road_crossings.feather").set_index("id", drop=False)
 crossings["NearestBarrierID"] = ""
 crossings["Surveyed"] = np.uint8(0)
-crossings["SourceID"] = crossings.SARPID.str[2:]
 crossings["EJTract"] = crossings.EJTract.astype("bool")
 crossings["EJTribal"] = crossings.EJTribal.astype("bool")
 print(f"Read {len(crossings):,} road crossings")

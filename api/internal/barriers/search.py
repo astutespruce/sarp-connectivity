@@ -16,7 +16,7 @@ from api.logger import log_request
 router = APIRouter()
 
 
-SARPID_REGEX = re.compile("^\S\S(USGS:|USFS:)?\d+")
+SARPID_REGEX = re.compile("^\S\S\d+")
 
 NUM_BARRIER_SEARCH_RESULTS = 10
 
@@ -52,9 +52,6 @@ async def search(request: Request, query: str):
         )[: 1000 + NUM_BARRIER_SEARCH_RESULTS]
 
         total = len(matches)
-
-        # FIXME: remove
-        print(f"found {len(matches)} for '{query}'")
 
         # discard pandas metadata and store count, then limit to top 10
         matches = matches.replace_schema_metadata({"count": str(len(matches))})

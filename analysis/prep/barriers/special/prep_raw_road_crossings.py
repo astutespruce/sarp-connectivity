@@ -36,6 +36,9 @@ warnings.filterwarnings("ignore", message="Measured \(M\) geometry types are not
 SNAP_TOLERANCE = 10
 DUPLICATE_TOLERANCE = 5
 
+# deduplicate USFS points within this amount of USGS points
+USFS_USGS_TOLERANCE = 30
+
 
 def dedup_crossings(df):
     # we only want to dedup those that are really close, and some may be in chains of
@@ -108,6 +111,7 @@ df = read_dataframe(
 print(f"Read {len(df):,} road crossings")
 
 df["Source"] = "USGS Database of Stream Crossings in the United States (2022)"
+df["SourceID"] = df.stream_crossing_id.astype("str")
 
 
 # project HUC4 to match crossings
@@ -132,8 +136,6 @@ df["lat"] = lat
 # project to match SARP CRS
 df = df.to_crs(CRS)
 
-# match dtype of SARPID elsewhere
-df["SARPID"] = "crUSGS:" + df.stream_crossing_id.round().astype(int).astype(str)
 
 ### Cleanup fields
 df.River = df.River.str.strip().fillna("")
@@ -273,11 +275,18 @@ df = read_dataframe(
 df["geometry"] = shapely.force_2d(df.geometry.values)
 df = df.to_crs(CRS)
 
+# drop any USFS crossings within tolerance of USGS crossings
+left = np.unique(
+    shapely.STRtree(usgs.geometry.values).query(df.geometry.values, predicate="dwithin", distance=USFS_USGS_TOLERANCE)[
+        0
+    ]
+)
+print(f"Dropping {len(left)} USFS crossings within {USFS_USGS_TOLERANCE}m of USGS crossings")
+
+
 lon, lat = shapely.get_coordinates(df.to_crs("EPSG:4326").geometry.values).astype("float32").T
 df["lon"] = lon
 df["lat"] = lat
-
-df["SARPID"] = "crUSFS:" + df.SARPID.astype(str)
 
 
 def capitalizeRoad(road):
@@ -295,8 +304,9 @@ df["River"] = df.River.fillna("").str.strip()
 
 # assume all are assumed culvert
 df["CrossingType"] = np.uint8(CROSSING_TYPE_TO_DOMAIN["assumed culvert"])
-
 df["Source"] = "USFS National Road / Stream Crossings (2024)"
+# not applicable
+df["SourceID"] = ""
 
 df["maintainer"] = df.maintainer.fillna("").str.strip()
 df["BarrierOwnerType"] = df.maintainer.map(
@@ -377,25 +387,28 @@ df = pd.concat([usgs, usfs], ignore_index=True).sort_values("dup_sort", ascendin
 df["id"] = (df.index.values + CROSSINGS_ID_OFFSET).astype("uint64")
 df = df.set_index("id", drop=False)
 
-# add name field
-df["Name"] = ""
-df.loc[(df.River != "") & (df.Road != ""), "Name"] = df.River + " / " + df.Road
-
+# calculate crossing code to match NAACC scheme
+df["CrossingCode"] = (
+    "xy"
+    + (df.lat * 1e7).round(0).astype("int").abs().astype("str")
+    + (df.lon * 1e7).round(0).astype("int").abs().astype("str")
+)
 
 # There are a bunch of crossings with identical coordinates, remove them
 # NOTE: they have different labels, but that seems like it is a result of
 # them methods used to identify the crossings (e.g., named highways, roads, etc)
 print("Removing duplicate crossings at same location...")
+orig_count = len(df)
+df = gp.GeoDataFrame(df.groupby("CrossingCode").first().reset_index(), geometry="geometry", crs=df.crs)
+print(f"Dropped {orig_count - len(df):,} duplicate road crossings")
 
-# round to int
-x, y = shapely.get_coordinates(df.geometry.values).astype("int").T
-df["x"] = x
-df["y"] = y
+# match dtype of SARPID elsewhere
+df["SARPID"] = "cr" + df.CrossingCode.str[2:]
 
-keep_ids = df[["x", "y", "id"]].groupby(["x", "y"]).first().reset_index().id
-print(f"Dropping {len(df) - len(keep_ids):,} duplicate road crossings")
+# add name field
+df["Name"] = ""
+df.loc[(df.River != "") & (df.Road != ""), "Name"] = df.River + " / " + df.Road
 
-df = df.loc[keep_ids].copy()
 
 ### Remove crossings that are very close
 print("Removing nearby road crossings...")

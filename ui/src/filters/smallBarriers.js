@@ -128,7 +128,7 @@ export const smallBarriers = [
         field: 'condition',
         title: 'Barrier condition',
         sort: true,
-        ...getEntries(CONDITION),
+        ...getEntries(CONDITION, (v) => v <= 4),
       },
       {
         field: 'passagefacilityclass',
