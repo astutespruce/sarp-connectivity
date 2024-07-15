@@ -1280,8 +1280,8 @@ FIELD_DEFINITIONS = {
     "SourceID": "Identifier of this {type} in the source database",
     "PartnerID": "Identifier used by local partners for this {type}",
     # dam-specific fields
-    "NIDID": "National Inventory of Dams Identifier (legacy ID).",
-    "NIDFederalID": "National Inventory of Dams Federal Identifier (new ID).",
+    "NIDID": "National Inventory of Dams Identifier (legacy ID); this value was provided in earlier versions of NID or partner databases and may no longer match the latest ID, and may also have duplicate IDs or incorrectly-associated IDs.",
+    "NIDFederalID": "National Inventory of Dams Federal Identifier (new ID) that can be used to join to the latest version of NID.",
     "Link": "Link to additional information about this {type}",
     "FERCRegulated": "Identifies if the {type} is regulated by the Federal Energy Regulatory Commission, if known.",
     "StateRegulated": "Identifies if the {type} is regulated at the state level, if known.",
@@ -1304,7 +1304,7 @@ FIELD_DEFINITIONS = {
     "Feasibility": "feasibility of {type} removal, based on reconnaissance.  Note: reconnaissance information is available only for a small number of {type}s.",
     "Diversion": "Identifies if dam is known to be a diversion.  Note: diversion information is available only for a small number of dams.",
     "LowheadDam": "Identifies if dam is known or estimated to be a lowhead dam.  Note: lowhead dam information is available only for a small number of dams.",
-    "StorageVolume": "Identifies the reported normal storage volume of the impounded waterbody (acre/feet), if known.",
+    "StorageVolume": "Identifies the reported normal storage volume of the impounded waterbody (acre/feet), from NID NormStor attribute, if known.  ",
     "WaterbodyKM2": "area of associated waterbody in square kilometers.  -1 = no associated waterbody",
     "WaterbodySizeClass": "size class of associated waterbody.  -1 = no associated waterbody",
     # barrier-specific fields
