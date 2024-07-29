@@ -18,7 +18,6 @@ import {
   FISH_HABITAT_PARTNERSHIPS,
   STATE_REGULATED,
   WATER_RIGHT,
-  DISADVANTAGED_COMMUNITY,
   PASSAGEFACILITY,
   PURPOSE,
   PASSABILITY,
@@ -28,6 +27,7 @@ import {
   WATERBODY_SIZECLASS,
 } from 'config'
 import { formatNumber } from 'util/format'
+import { isEmptyString } from 'util/string'
 
 import { Flex, Entry, Entries, Section } from './elements'
 
@@ -77,6 +77,11 @@ const Location = ({
   ejtribal,
   fishhabitatpartnership,
   nativeterritories,
+  costlower,
+  costmean,
+  costupper,
+  fatality,
+  protocolused,
   ...props
 }) => {
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
@@ -279,14 +284,32 @@ const Location = ({
               </Entry>
             ) : null}
 
-            {disadvantagedcommunity ? (
+            {fatality > 0 ? (
               <Entry>
                 <Text>
-                  Climate and environmental justice:{' '}
-                  {disadvantagedcommunity
-                    .split(',')
-                    .map((type) => DISADVANTAGED_COMMUNITY[type].toLowerCase())
-                    .join(', ')}
+                  Number of fatalities recorded: {formatNumber(fatality)}
+                </Text>
+                <Text style={{ fontSize: '10pt', color: '#7f8a93' }}>
+                  (based on data provided by{' '}
+                  <Link href="https://krcproject.groups.et.byu.net/browse.php">
+                    Fatalities at Submerged Hydraulic Jumps
+                  </Link>
+                  )
+                </Text>
+              </Entry>
+            ) : null}
+
+            {costmean && costmean > 0 ? (
+              <Entry>
+                <Text>
+                  Average estimated cost of removal: ${formatNumber(costmean)}
+                  <br /> (${formatNumber(costlower)} - $
+                  {formatNumber(costupper)})
+                </Text>
+                <Text style={{ fontSize: '10pt', color: '#7f8a93' }}>
+                  Note: costs are modeled based on dam characteristics and are a
+                  very rough estimate only; please use with caution. Source:
+                  Jumani et. al. (in prep).
                 </Text>
               </Entry>
             ) : null}
@@ -432,6 +455,11 @@ const Location = ({
                     {formatNumber(sarp_score, 1)} (
                     {classifySARPScore(sarp_score)})
                   </Text>
+                  {!isEmptyString(protocolused) ? (
+                    <Text style={{ marginTop: '6pt' }}>
+                      Protocol used: {protocolused}
+                    </Text>
+                  ) : null}
                 </Entry>
               ) : null}
 
@@ -535,6 +563,11 @@ Location.propTypes = {
   ejtribal: PropTypes.bool,
   fishhabitatpartnership: PropTypes.string,
   nativeterritories: PropTypes.string,
+  costlower: PropTypes.number,
+  costmean: PropTypes.number,
+  costupper: PropTypes.number,
+  fatality: PropTypes.number,
+  protocolused: PropTypes.string,
 }
 
 Location.defaultProps = {
@@ -579,6 +612,11 @@ Location.defaultProps = {
   ejtribal: false,
   fishhabitatpartnership: null,
   nativeterritories: null,
+  costlower: 0,
+  costmean: 0,
+  costupper: 0,
+  fatality: 0,
+  protocolused: null,
 }
 
 export default Location

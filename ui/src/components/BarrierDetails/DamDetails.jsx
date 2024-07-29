@@ -51,6 +51,7 @@ const DamDetails = ({
   ejtribal,
   estimated,
   excluded,
+  fatality,
   feasibilityclass,
   fedregulatoryagency,
   fercregulated,
@@ -206,6 +207,7 @@ const DamDetails = ({
           streamsizeclass={streamsizeclass}
           waterbodysizeclass={waterbodysizeclass}
           waterbodykm2={waterbodykm2}
+          fatality={fatality}
         />
       </Section>
 
@@ -476,6 +478,7 @@ DamDetails.propTypes = {
   ejtribal: PropTypes.bool,
   estimated: PropTypes.bool,
   excluded: PropTypes.bool,
+  fatality: PropTypes.number,
   feasibilityclass: PropTypes.number,
   fedregulatoryagency: PropTypes.string,
   fercregulated: PropTypes.number,
@@ -620,6 +623,7 @@ DamDetails.defaultProps = {
   costmean: 0,
   costupper: 0,
   diversion: 0,
+  fatality: 0,
   ejtract: false,
   ejtribal: false,
   estimated: false,

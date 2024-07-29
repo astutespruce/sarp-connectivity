@@ -144,6 +144,7 @@ async def download_small_barriers(token):
                 "StreamName": "River",
                 "Year_Removed": "YearRemoved",
                 "OwnerType": "BarrierOwnerType",
+                "Protocol_Used": "ProtocolUsed",
             }
         )
 

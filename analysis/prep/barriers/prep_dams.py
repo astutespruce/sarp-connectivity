@@ -262,6 +262,7 @@ for column in (
     "FishScreen",
     "ScreenType",
     "StructureCategory",
+    "Fatality",
 ):
     df[column] = df[column].fillna(0).astype("uint8")
 

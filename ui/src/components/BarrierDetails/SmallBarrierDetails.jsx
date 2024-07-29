@@ -98,6 +98,7 @@ const BarrierDetails = ({
   percentresilient,
   perennialupstreammiles,
   perennialupstreammainstemmiles,
+  protocolused,
   regionalsgcnspp,
   removed,
   road,
@@ -225,6 +226,11 @@ const BarrierDetails = ({
                 ({classifySARPScore(sarp_score)})
               </Text>
             </Field>
+            {!isEmptyString(protocolused) ? (
+              <Box sx={{ mt: '1rem' }}>
+                <Field label="Protocol used">{protocolused}</Field>
+              </Box>
+            ) : null}
           </Entry>
         ) : null}
         {passagefacility !== null &&
@@ -429,6 +435,7 @@ BarrierDetails.propTypes = {
   percentresilient: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
   perennialupstreammainstemmiles: PropTypes.number,
+  protocolused: PropTypes.string,
   regionalsgcnspp: PropTypes.number,
   removed: PropTypes.bool,
   road: PropTypes.string,
@@ -563,6 +570,7 @@ BarrierDetails.defaultProps = {
   percentresilient: 0,
   perennialupstreammiles: 0,
   perennialupstreammainstemmiles: 0,
+  protocolused: null,
   regionalsgcnspp: 0,
   removed: false,
   road: null,

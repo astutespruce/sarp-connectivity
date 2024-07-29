@@ -45,6 +45,7 @@ const LocationInfo = ({
   streamsizeclass,
   waterbodysizeclass,
   waterbodykm2,
+  fatality,
 }) => {
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
   const hasReachName =
@@ -160,6 +161,21 @@ const LocationInfo = ({
         </Entry>
       ) : null}
 
+      {fatality > 0 ? (
+        <Entry>
+          <Field label="Number of fatalities recorded">
+            {formatNumber(fatality)}
+          </Field>
+          <Text sx={{ fontSize: 0, color: 'grey.7' }}>
+            (based on data provided by{' '}
+            <OutboundLink to="https://krcproject.groups.et.byu.net/browse.php">
+              Fatalities at Submerged Hydraulic Jumps
+            </OutboundLink>
+            )
+          </Text>
+        </Entry>
+      ) : null}
+
       {costmean && costmean > 0 ? (
         <Entry>
           <Field label="Estimated cost of removal">
@@ -243,6 +259,7 @@ LocationInfo.propTypes = {
   streamsizeclass: PropTypes.string,
   waterbodysizeclass: PropTypes.number,
   waterbodykm2: PropTypes.number,
+  fatality: PropTypes.number,
 }
 
 LocationInfo.defaultProps = {
@@ -267,6 +284,7 @@ LocationInfo.defaultProps = {
   streamsizeclass: null,
   waterbodysizeclass: null,
   waterbodykm2: null,
+  fatality: 0,
 }
 
 export default LocationInfo

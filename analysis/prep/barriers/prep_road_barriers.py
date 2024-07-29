@@ -232,8 +232,8 @@ df.loc[(df.YearFishPass > 0) & (df.YearFishPass < 1900), "YearFishPass"] = np.ui
 
 
 #########  Fill NaN fields and set data types
-for column in ["SourceID", "PartnerID", "CrossingCode", "Source", "Link"]:
-    df[column] = df[column].fillna("").str.strip()
+for column in ["SourceID", "PartnerID", "CrossingCode", "Source", "Link", "ProtocolUsed"]:
+    df[column] = df[column].fillna("").str.strip().replace("<Null>", "")
 
 
 # if SourceID is negative, assume it is null (per guidance from Kat on 2/16/2024)
@@ -259,6 +259,33 @@ df.loc[
     df.PotentialProject.isin(["Potential Project", "Proposed Project"]) & (df.SARP_Score != -1),
     "BarrierSeverity",
 ] = 6
+
+
+# Cleanu,p ProtocolUsed
+df["ProtocolUsed"] = (
+    df.ProtocolUsed.str.strip(".")
+    .str.replace("  ", "")
+    .str.replace("Protocol", "", case=False)
+    .str.replace("Judgement", "judgement")
+    .str.replace(" 2009", " (2009)")
+    .str.replace(" 2001", " (2001)")
+    .str.replace("Crossings2003", "Crossings (2003)")
+    .str.replace(" (PAD)", "")
+    .replace("SARP NAACC", "NAACC/SARP")
+    .replace("SARP/NAACC", "NAACC/SARP")
+    .replace("NAACC/SARP Coarse Protocol", "NAACC/SARP Coarse")
+    .replace("GLSCI", "Great Lakes Stream Crossing Inventory")
+    .replace("San Dimas AOP Inventory", "San Dimas")
+    .replace(
+        "Road-Stream Crossing Inventory and AOP Assessment - WMNF",
+        "WMNF Road-Stream Crossing Inventory and AOP Assessment",
+    )
+    .str.strip(" ")
+)
+
+
+# per guidance from Kat (7/25/2024), when protocol used isn't SARP, set SARP score to -1
+df.loc[~df.ProtocolUsed.str.contains("SARP"), "SARP_Score"] = -1
 
 
 # Calculate PassageFacility class

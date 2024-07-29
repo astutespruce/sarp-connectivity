@@ -29,6 +29,7 @@ import {
 } from 'config'
 import { OutboundLink } from 'components/Link'
 import { formatNumber } from 'util/format'
+import { isEmptyString } from 'util/string'
 import { Entry } from './elements'
 
 const { version: dataVersion } = siteMetadata
@@ -79,6 +80,8 @@ const LocationConstruction = ({
   ejtribal,
   fishhabitatpartnership,
   nativeterritories,
+  fatality,
+  protocolused,
   sx,
 }) => {
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
@@ -237,6 +240,19 @@ const LocationConstruction = ({
             </Entry>
           ) : null}
 
+          {fatality > 0 ? (
+            <Entry>
+              Number of fatalities recorded: {formatNumber(fatality)}
+              <Text sx={{ fontSize: 0, color: 'grey.7' }}>
+                (based on data provided by{' '}
+                <OutboundLink to="https://krcproject.groups.et.byu.net/browse.php">
+                  Fatalities at Submerged Hydraulic Jumps
+                </OutboundLink>
+                )
+              </Text>
+            </Entry>
+          ) : null}
+
           {costmean && costmean > 0 ? (
             <Entry>
               Average estimated cost of removal: ${formatNumber(costmean)}
@@ -322,9 +338,16 @@ const LocationConstruction = ({
 
               {!removed && sarp_score >= 0 ? (
                 <Entry>
-                  SARP Aquatic Organism Passage Score:{' '}
-                  {formatNumber(sarp_score, 1)} ({classifySARPScore(sarp_score)}
-                  )
+                  <Text>
+                    SARP Aquatic Organism Passage Score:{' '}
+                    {formatNumber(sarp_score, 1)} (
+                    {classifySARPScore(sarp_score)})
+                  </Text>
+                  {!isEmptyString(protocolused) ? (
+                    <Text sx={{ mt: '1rem' }}>
+                      Protocol used: {protocolused}
+                    </Text>
+                  ) : null}
                 </Entry>
               ) : null}
 
@@ -429,6 +452,8 @@ LocationConstruction.propTypes = {
   ejtribal: PropTypes.bool,
   fishhabitatpartnership: PropTypes.string,
   nativeterritories: PropTypes.string,
+  fatality: PropTypes.number,
+  protocolused: PropTypes.string,
   sx: PropTypes.object,
 }
 
@@ -476,6 +501,8 @@ LocationConstruction.defaultProps = {
   ejtribal: false,
   fishhabitatpartnership: null,
   nativeterritories: null,
+  fatality: 0,
+  protocolused: null,
   sx: null,
 }
 

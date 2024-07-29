@@ -239,6 +239,7 @@ DAM_FS_COLS = [
     "Priority_Identified",
     "NORMSTOR",
     "FEDERAL_ID",  # new NID federal ID
+    "Fatality",
 ]
 
 
@@ -257,6 +258,7 @@ SMALL_BARRIER_COLS = [
     "Potential_Project",
     "Source",
     "SARP_Score",
+    "Protocol_Used",
     "Year_Removed",
     "YearFishPass",
     "EditDate",

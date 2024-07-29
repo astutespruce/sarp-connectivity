@@ -407,6 +407,7 @@ DAM_CORE_FIELDS = (
         "StorageVolume",
         "WaterbodyKM2",
         "WaterbodySizeClass",
+        "Fatality",
     ]
     + GENERAL_API_FIELDS2
 )
@@ -470,6 +471,7 @@ SB_CORE_FIELDS = (
         "PotentialProject",
         "BarrierSeverity",
         "SARP_Score",
+        "ProtocolUsed",
         "Recon",
     ]
     + GENERAL_API_FIELDS2
@@ -1307,6 +1309,7 @@ FIELD_DEFINITIONS = {
     "StorageVolume": "Identifies the reported normal storage volume of the impounded waterbody (acre/feet), from NID NormStor attribute, if known.  ",
     "WaterbodyKM2": "area of associated waterbody in square kilometers.  -1 = no associated waterbody",
     "WaterbodySizeClass": "size class of associated waterbody.  -1 = no associated waterbody",
+    "Fatality": "number of fatalities recorded at this location from Locations of Fatalities at Submerged Hydraulic Jumps (https://krcproject.groups.et.byu.net/browse.php)",
     # barrier-specific fields
     "CrossingCode": "crossing identifier.",
     "NearestCrossingID": "The SARPID of the nearest road/stream crossing point, if any are found within 10 meters",
@@ -1317,6 +1320,7 @@ FIELD_DEFINITIONS = {
     "PotentialProject": "reconnaissance information about the crossing, including severity of the barrier and / or potential for removal project.",
     "BarrierSeverity": "barrier severity of the {type}, if known.   Note: assessment dates are not known.",
     "SARP_Score": "The best way to consider the aquatic passability scores is that they represent the degree to which crossings deviate from an ideal crossing. We assume that those crossings that are very close to the ideal (scores > 0.6) will present only a minor or insignificant barrier to aquatic organisms. Those structures that are farthest from the ideal (scores < 0.4) are likely to be either significant or severe barriers. These are, however, arbitrary distinctions imposed on a continuous scoring system and should be used with that in mind. -1 = not available.",
+    "ProtocolUsed": "Name of survey protocol used",
     # crossing-specific fields
     "NearestBarrierID": "The SARPID of the nearest assessed road/stream crossing within 50-100m (depending on data source)",
     "Surveyed": "Indicates if the crossing has likely been surveyed according to assessed road/stream crossing data.  'likely': inventoried barrier within 50-100m (depending on data source), 'not likely': no inventoried barrier within 50-100m.",
