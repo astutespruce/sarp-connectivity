@@ -445,15 +445,13 @@ tmp.to_feather(api_dir / "waterfalls.feather")
 # NOTE: these don't currently have network data, but share logic with above
 print("Processing road crossings")
 crossings = gp.read_feather(barriers_dir / "road_crossings.feather").set_index("id").rename(columns=rename_cols)
-# FIXME: remove on next rerun of prep_raw_road_crossings.py
-crossings.loc[crossings.AnnualFlow < 0, "AnnualFlow"] = np.nan
 
 fill_flowline_cols(crossings)
 
 crossings["OnNetwork"] = ~(crossings.OnLoop | crossings.offnetwork_flowline)
 
-
-tmp = crossings.copy()
+# only index non-surveyed crossings; surveyed ones already indexed as small barriers
+tmp = crossings.loc[crossings.Surveyed == 0].copy()
 tmp["BarrierType"] = "road_crossings"
 search_barriers = pd.concat(
     [search_barriers, tmp[BARRIER_SEARCH_RESULT_FIELDS].reset_index(drop=True)], ignore_index=True
@@ -469,7 +467,9 @@ crossings["AnnualFlowClass"] = classify_annual_flow(crossings.AnnualFlow)
 
 print("Saving crossings for tiles and API")
 # Save full results for tiles, etc
-crossings[ROAD_CROSSING_API_FIELDS + ["geometry"]].reset_index().to_feather(results_dir / "road_crossings.feather")
+crossings[ROAD_CROSSING_API_FIELDS + ["geometry", "symbol"]].reset_index().to_feather(
+    results_dir / "road_crossings.feather"
+)
 
 tmp = crossings[ROAD_CROSSING_API_FIELDS].reset_index()
 verify_domains(tmp)

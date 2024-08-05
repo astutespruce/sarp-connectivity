@@ -575,7 +575,9 @@ print("\n\n-----------------Creating road crossing tiles------------------------
 df = (
     gp.read_feather(
         results_dir / "road_crossings.feather",
-        columns=["geometry", "SARPID", "Name"] + ROAD_CROSSING_TILE_FILTER_FIELDS + ["COUNTYFIPS", "StreamOrder"],
+        columns=["geometry", "SARPID", "Name"]
+        + ROAD_CROSSING_TILE_FILTER_FIELDS
+        + ["COUNTYFIPS", "StreamOrder", "symbol"],
     )
     .sort_values(
         # sort so that assumed culverts are first and bridges are last
@@ -590,7 +592,7 @@ fill_na_fields(df)
 
 # # Below zoom 8, we only need filter fields and only show on-network crossings
 # print("Creating tiles for road crossings for zooms 3-7")
-tmp = df.loc[df.OnNetwork][["geometry"] + ROAD_CROSSING_TILE_FILTER_FIELDS]
+tmp = df.loc[df.OnNetwork][["geometry"] + ROAD_CROSSING_TILE_FILTER_FIELDS + ["symbol"]]
 # snap to a 500m grid (aggressive!) and drop duplicate points
 tmp["geometry"] = shapely.set_precision(tmp.geometry.values, 500)
 tmp = gp.GeoDataFrame(tmp.groupby("geometry").first().reset_index(), crs=df.crs)
@@ -618,7 +620,7 @@ outfilename.unlink()
 
 # For zooms 8-10, also show name, but not off-network road crossings
 print("Creating tiles for road crossings for zooms 8-10")
-tmp = df.loc[df.OnNetwork][["geometry"] + ROAD_CROSSING_TILE_FILTER_FIELDS + ["SARPIDName"]]
+tmp = df.loc[df.OnNetwork][["geometry"] + ROAD_CROSSING_TILE_FILTER_FIELDS + ["SARPIDName", "symbol"]]
 # # snap to a 100m grid and drop duplicate points
 tmp["geometry"] = shapely.set_precision(tmp.geometry.values, 100)
 tmp = gp.GeoDataFrame(tmp.groupby("geometry").first().reset_index(), crs=df.crs)
@@ -645,7 +647,7 @@ outfilename.unlink()
 
 
 print("Creating tiles for road crossings for zooms 11+")
-df = df[["geometry"] + ROAD_CROSSING_TILE_FILTER_FIELDS + ["SARPIDName"]].to_crs("EPSG:4326")
+df = df[["geometry"] + ROAD_CROSSING_TILE_FILTER_FIELDS + ["SARPIDName", "symbol"]].to_crs("EPSG:4326")
 outfilename = tmp_dir / "road_crossings_ge_z11.fgb"
 mbtiles_filename = tmp_dir / "road_crossings_ge_z11.mbtiles"
 mbtiles_files.append(mbtiles_filename)

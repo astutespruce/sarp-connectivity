@@ -461,6 +461,7 @@ SB_CORE_FIELDS = (
         "CrossingCode",
         "PartnerID",
         "NearestCrossingID",
+        "NearestUSGSCrossingID",
         "AnnualVelocity",
         "AnnualFlow",
         "TotDASqKm",
@@ -525,6 +526,19 @@ ROAD_CROSSING_CORE_FIELDS = (
     GENERAL_API_FIELDS1
     + [
         "CrossingCode",
+        "USGSCrossingID",  # original USGS ID, blank for USFS crossings
+        # for parity with small barriers
+        "Removed",
+        "YearRemoved",
+        "Constriction",
+        "PotentialProject",
+        "BarrierSeverity",
+        "SARP_Score",
+        "ProtocolUsed",
+        "Excluded",
+        "Invasive",
+        "OnLoop",
+        # other standard fields
         "AnnualVelocity",
         "AnnualFlow",
         "TotDASqKm",
@@ -548,7 +562,6 @@ ROAD_CROSSING_CORE_FIELDS = (
         "Intermittent",
         "StreamOrder",
         # specific to crossings
-        "NearestBarrierID",
         "Surveyed",
         "OnNetwork",
     ]
@@ -1312,7 +1325,8 @@ FIELD_DEFINITIONS = {
     "Fatality": "number of fatalities recorded at this location from Locations of Fatalities at Submerged Hydraulic Jumps (https://krcproject.groups.et.byu.net/browse.php)",
     # barrier-specific fields
     "CrossingCode": "crossing identifier.",
-    "NearestCrossingID": "The SARPID of the nearest road/stream crossing point, if any are found within 10 meters",
+    "NearestCrossingID": "The SARPID of the nearest road/stream crossing point, if any are found within 50 meters",
+    "NearestUSGSCrossingID": "The ID of the nearest road/stream crossing point in the USGS Database of Stream Crossings in the United States (2022), if any are found within 50 meters.  Will be blank for crossings from other sources",
     "Road": "road name, if available.",
     "RoadType": "type of road, if available.",
     "CrossingType": "type of road / stream crossing, if known.",
@@ -1322,9 +1336,9 @@ FIELD_DEFINITIONS = {
     "SARP_Score": "The best way to consider the aquatic passability scores is that they represent the degree to which crossings deviate from an ideal crossing. We assume that those crossings that are very close to the ideal (scores > 0.6) will present only a minor or insignificant barrier to aquatic organisms. Those structures that are farthest from the ideal (scores < 0.4) are likely to be either significant or severe barriers. These are, however, arbitrary distinctions imposed on a continuous scoring system and should be used with that in mind. -1 = not available.",
     "ProtocolUsed": "Name of survey protocol used",
     # crossing-specific fields
-    "NearestBarrierID": "The SARPID of the nearest assessed road/stream crossing within 50-100m (depending on data source)",
-    "Surveyed": "Indicates if the crossing has likely been surveyed according to assessed road/stream crossing data.  'likely': inventoried barrier within 50-100m (depending on data source), 'not likely': no inventoried barrier within 50-100m.",
+    "Surveyed": "Indicates if the crossing has likely been surveyed according to assessed road/stream crossing data.  'likely': inventoried barrier within 50m, 'not likely': no inventoried barrier within 50m.",
     "OnNetwork": "if yes, this {type} was snapped to the aquatic network and does not occur on a loop within the NHD High Resolution aquatic network and is not snapped to an off-network canal or ditch; if no, this {type} is either on a loop or an off-network canal or ditch considered off-network for purposes of network analysis and ranking",
+    "USGSCrossingID": "The ID of the road/stream crossing point in the USGS Database of Stream Crossings in the United States (2022); will be blank for crossings from other sources.",
     # other general fields
     "Recon": "Field reconnaissance notes, if available.",
     "Passability": "passability of the {type}, if known.   Note: assessment dates are not known.",

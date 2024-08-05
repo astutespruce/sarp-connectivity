@@ -9,12 +9,11 @@ Extract road-related barriers from original data source, process for use in netw
 
 NOTE: this must be run AFTER running prep_dams.py and prep_waterfalls.py, because it deduplicates against existing dams and waterfalls.
 
-This creates 2 files for small barriers and 3 for road crossings:
+This creates 2 files for small barriers and 2 for road crossings:
 - `barriers/master/small_barriers.feather` - master barriers dataset, including coordinates updated from snapping
 - `barriers/snapped/small_barriers.feather` - snapped barriers dataset for network analysis
 - `barriers/master/road_crossings.feather` - master road crossings dataset for snapped road crossings
 - `barriers/snapped/road_crossings.feather` - snapped road crossings for network analysis
-- `data/api/road_crossings.feather` - road crossings data for use in the API
 
 This creates several QA/QC files:
 - `barriers/qa/small_barriers_pre_snap_to_post_snap.fgb`: lines between the original coordinate and the snapped coordinate (snapped barriers only)
@@ -92,7 +91,6 @@ start = time()
 
 print("Reading data")
 df = gp.read_feather(src_dir / "sarp_small_barriers.feather")
-df["NearestCrossingID"] = ""
 
 # TODO: remove once field is added to ArcGIS service
 if "PartnerID" not in df.columns:
@@ -120,11 +118,27 @@ urls = (
 
 df = df.join(urls)
 
-crossings = gp.read_feather(src_dir / "road_crossings.feather").set_index("id", drop=False)
-crossings["NearestBarrierID"] = ""
+crossings = (
+    gp.read_feather(src_dir / "road_crossings.feather")
+    .set_index("id", drop=False)
+    .drop(columns=["maintainer", "tiger2020_linearids", "nhdhr_permanent_identifier"])
+)
+# save original USGS ID because SourceID gets overwritten on match with road barrier
+crossings["USGSCrossingID"] = crossings.SourceID.values
 crossings["Surveyed"] = np.uint8(0)
+crossings["excluded"] = False
+crossings["removed"] = False
+crossings["invasive"] = False
+crossings["YearRemoved"] = np.uint16(0)
 crossings["EJTract"] = crossings.EJTract.astype("bool")
 crossings["EJTribal"] = crossings.EJTribal.astype("bool")
+# fill road barrier fields to match schema
+crossings["BarrierSeverity"] = np.uint8(0)
+crossings["PotentialProject"] = ""
+crossings["Constriction"] = np.uint8(0)
+crossings["SARP_Score"] = np.float32(-1.0)
+crossings["ProtocolUsed"] = ""
+crossings["PartnerID"] = ""
 print(f"Read {len(crossings):,} road crossings")
 
 # if assumed culvert crossings are on larger stream orders (except loops), assume
@@ -152,7 +166,7 @@ print(
 )
 
 
-### Make sure there are not duplicates
+### Make sure there are not any duplicates
 s = df.groupby("SARPID").size()
 if s.max() > 1:
     print(s[s > 1].index)
@@ -190,7 +204,7 @@ df.loc[df.PotentialProject == "Insignficant Barrier", "PotentialProject"] = "Ins
 df.loc[df.PotentialProject == "No", "PotentialProject"] = "No Barrier"
 
 # mark missing and a few specific codes as unassessed, per guidance from SARP
-ix = df.PotentialProject.isin(["", "Unknown", "Small Project", "NA"])
+ix = df.PotentialProject.isin(["", "Unknown", "Small Project"])
 df.loc[ix, "PotentialProject"] = "Unassessed"
 
 # per guidance from Kat, anything where SARP_Score is 0 and potential project is
@@ -261,7 +275,7 @@ df.loc[
 ] = 6
 
 
-# Cleanu,p ProtocolUsed
+# Cleanup ProtocolUsed
 df["ProtocolUsed"] = (
     df.ProtocolUsed.str.strip(".")
     .str.replace("  ", "")
@@ -273,6 +287,7 @@ df["ProtocolUsed"] = (
     .str.replace(" (PAD)", "")
     .replace("SARP NAACC", "NAACC/SARP")
     .replace("SARP/NAACC", "NAACC/SARP")
+    .replace("NAACC / SARP", "NAACC/SARP")
     .replace("NAACC/SARP Coarse Protocol", "NAACC/SARP Coarse")
     .replace("GLSCI", "Great Lakes Stream Crossing Inventory")
     .replace("San Dimas AOP Inventory", "San Dimas")
@@ -282,7 +297,6 @@ df["ProtocolUsed"] = (
     )
     .str.strip(" ")
 )
-
 
 # per guidance from Kat (7/25/2024), when protocol used isn't SARP, set SARP score to -1
 df.loc[~df.ProtocolUsed.str.contains("SARP"), "SARP_Score"] = -1
@@ -453,62 +467,60 @@ for field, values in exclude_snap_fields.items():
 to_snap = df.loc[~exclude_snap_ix].copy()
 
 
-# DEBUG
+# # DEBUG
 # df.to_feather("/tmp/small_barriers.feather")
 # to_snap.to_feather("/tmp/to_snap.feather")
+# crossings.to_feather("/tmp/crossings.feather")
 
 
 ### Snap to nearest crossing (all of which are already snapped to flowlines)
-# do this by groups of crossing type to prevent snapping culverts to bridges
-for group, crossing_types in [
-    # only snap bridges to bridge road / stream crossings (allow inventoried bridges to snap against any road crossings)
-    ("bridges", [5, 98, 99]),
-    ("non-bridges", [0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 99]),
-]:
-    tmp_crossings = crossings.loc[crossings.CrossingType.isin(crossing_types)]
-    tmp = to_snap.loc[to_snap.CrossingType.isin(crossing_types)]
+# NOTE: we previously were trying to prevent snapping unrelated crossing types
+# to each other (e.g., bridge to culvert and vice-versa), but due to differences
+# in coding of crossing type in inventoried barriers vs road crossings, that
+# excluded seemingly valid matches.
 
-    tree = shapely.STRtree(tmp_crossings.geometry.values)
-    (left, right), distance = tree.query_nearest(
-        tmp.geometry.values,
-        max_distance=SNAP_TOLERANCE["default"],
-        return_distance=True,
-        all_matches=False,
-    )
+tree = shapely.STRtree(crossings.geometry.values)
+(left, right), distance = tree.query_nearest(
+    to_snap.geometry.values,
+    max_distance=SNAP_TOLERANCE["default"],
+    return_distance=True,
+    all_matches=False,
+)
 
-    matches = pd.DataFrame(
-        {
-            "crossing_id": tmp_crossings.index.values.take(right),
-            "crossing_SARPID": tmp_crossings.SARPID.values.take(right),
-            "geometry": tmp_crossings.geometry.values.take(right),
-            "lineID": tmp_crossings.lineID.values.take(right),
-            "barrier_SARPID": tmp.SARPID.values.take(left),
-            "snap_dist": distance,
-        },
-        index=tmp.index.values.take(left),
-    )
+matches = pd.DataFrame(
+    {
+        "crossing_id": crossings.index.values.take(right),
+        "crossing_USGSCrossingID": crossings.USGSCrossingID.values.take(right),
+        "crossing_CrossingType": crossings.CrossingType.values.take(right),
+        "geometry": crossings.geometry.values.take(right),
+        "lineID": crossings.lineID.values.take(right),
+        # intentionally using id instead of SARPID to avoid issues when there are
+        # duplicate SARPIDs
+        "barrier_id": to_snap.id.values.take(left),
+        "barrier_CrossingType": to_snap.CrossingType.values.take(left),
+        "snap_dist": distance,
+    },
+    index=to_snap.index.values.take(left),
+)
 
-    ix = matches.index
-    df.loc[ix, "snapped"] = True
-    df.loc[ix, "geometry"] = matches.geometry.values
-    df.loc[ix, "snap_dist"] = matches.snap_dist.values
-    df.loc[ix, "lineID"] = matches.lineID.values
-    df.loc[ix, "snap_log"] = (
-        f"snapped: within {SNAP_TOLERANCE['default']}m tolerance of snapped USGS/USFS road crossing ({group})"
-    )
-    df.loc[ix, "NearestCrossingID"] = matches.crossing_SARPID.values
 
-    to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
+ix = matches.index
+df.loc[ix, "snapped"] = True
+df.loc[ix, "geometry"] = matches.geometry.values
+df.loc[ix, "snap_dist"] = matches.snap_dist.values
+df.loc[ix, "lineID"] = matches.lineID.values
+df.loc[ix, "snap_log"] = f"snapped: within {SNAP_TOLERANCE['default']}m tolerance of snapped USGS/USFS road crossing"
+df.loc[ix, "crossing_id"] = matches.crossing_id.values
 
-    print(f"{len(ix):,} barriers snapped to USGS/USFS road crossings within {SNAP_TOLERANCE['default']}m ({group})")
+to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
 
-    # mark the crossing by the closest of any snapped barriers
-    nearest_barriers = (
-        matches.sort_values(by=["crossing_id", "snap_dist"]).groupby("crossing_id").barrier_SARPID.first()
-    )
-    ix = nearest_barriers.index
-    crossings.loc[ix, "NearestBarrierID"] = nearest_barriers.values
-    crossings.loc[ix, "Surveyed"] = np.uint8(1)
+print(f"{len(ix):,} barriers snapped to USGS/USFS road crossings within {SNAP_TOLERANCE['default']}m")
+
+# mark the crossing by the closest of any snapped barriers
+# this will be updated after barrier deduplication below
+nearest_barriers = matches.sort_values(by=["crossing_id", "snap_dist"]).groupby("crossing_id").barrier_id.first()
+ix = nearest_barriers.index
+crossings.loc[ix, "barrier_id"] = nearest_barriers.values
 
 
 ### Snap to flowlines
@@ -527,34 +539,71 @@ df = snap_to_flowlines(
 print("Snapping non-culverts")
 df = snap_to_flowlines(df, to_snap.loc[to_snap.CrossingType != 8].copy(), find_nearest_nonloop=False)[0]
 
-
 print(f"Snapped {df.snapped.sum():,} small barriers in {time() - snap_start:.2f}s")
-
-print("---------------------------------")
-print("\nSnapping statistics")
-print(df.groupby("snap_log").size())
-print("---------------------------------\n")
-
-
-### Save results from snapping for QA
-export_snap_dist_lines(df.loc[df.snapped], original_locations, qa_dir, prefix="small_barriers_")
 
 
 print("\n--------------\n")
 
+################################################################################
 ### Remove duplicates after snapping, in case any snapped to the same position
-print("Removing duplicates...")
+################################################################################
+print("Marking duplicates...")
+dedup_start = time()
 
 df["duplicate"] = False
 df["dup_group"] = np.nan
 df["dup_count"] = np.nan
 df["dup_log"] = "not a duplicate"
-
 # Set dup_sort from BarrierSeverity, but put unknown at the end
 df["dup_sort"] = np.where(df.BarrierSeverity == 0, 9999, df.BarrierSeverity)
+# give removed barriers highest priority to retain them during deduplication
+df.loc[df.removed, "dup_sort"] = np.uint8(0)
 
-dedup_start = time()
-df, to_dedup = find_duplicates(df, to_dedup=df.loc[df.snapped & ~df.dropped].copy(), tolerance=DUPLICATE_TOLERANCE)
+# for any barriers that snapped to crossings, deduplicate those at the same crossing
+multiple_per_crossing = df.loc[df.crossing_id.notnull()].groupby("crossing_id").size().rename("dup_count")
+multiple_per_crossing = multiple_per_crossing[multiple_per_crossing > 1].reset_index()
+multiple_per_crossing["dup_group"] = multiple_per_crossing.index.values
+# assign dup_group so these behave like those deduplicated in reuglar way
+multiple_per_crossing = multiple_per_crossing.set_index("crossing_id")
+ix = df.crossing_id.isin(multiple_per_crossing.index.values)
+df.loc[ix, "dup_group"] = df.loc[ix].crossing_id.map(multiple_per_crossing.dup_group)
+df.loc[ix, "dup_count"] = df.loc[ix].crossing_id.map(multiple_per_crossing.dup_count)
+
+grouped = df.loc[ix].sort_values(by=["dup_sort", "SARPID"]).groupby("dup_group").agg({"id": "first", "excluded": "max"})
+keep_ids = grouped.id
+drop_ix = ix & ~df.id.isin(keep_ids)
+df.loc[drop_ix, "duplicate"] = True
+df.loc[drop_ix, "dup_log"] = "duplicate: other barriers snapped to same road crossing point"
+df.loc[df.id.isin(keep_ids), "dup_log"] = "kept: other barriers snapped to same road crossing point"
+
+# Exclude all records from groups that have an excluded record unless the retained one is trusted because it has a barrier severity set
+trusted_keepers = df.loc[
+    df.id.isin(keep_ids) & ~(df.dropped | df.excluded) & (df.BarrierSeverity > 0) & (df.BarrierSeverity <= 7)
+].id.values
+
+exclude_groups = grouped.loc[grouped.excluded & ~(grouped.id.isin(trusted_keepers))].index
+
+count_excluded = len(df.loc[df.dup_group.isin(exclude_groups) & ~df.excluded])
+print(f"Excluded {count_excluded:,} barriers that were in duplicate groups with barriers that were excluded")
+
+ix = df.dup_group.isin(exclude_groups)
+df.loc[ix, "excluded"] = True
+df.loc[ix, "dup_log"] = "excluded: at least one of duplicates marked to exclude"
+
+
+# fix road crossing side for any deduplicated above
+mapping = df.loc[drop_ix, ["dup_group"]].join(keep_ids, on="dup_group").id
+ix = crossings.barrier_id.isin(mapping.index.values)
+crossings.loc[ix, "barrier_id"] = crossings.loc[ix].barrier_id.map(mapping).values
+
+
+# only use full dedup methods those not already deduplicated above by crossing.
+df, to_dedup = find_duplicates(
+    df,
+    to_dedup=df.loc[df.snapped & df.crossing_id.isnull() & ~df.dropped].copy(),
+    tolerance=DUPLICATE_TOLERANCE,
+    next_group_id=df.dup_group.max() + 1,
+)
 print(f"Found {df.duplicate.sum():,} total duplicates in {time() - dedup_start:.2f}s")
 
 print("---------------------------------")
@@ -591,6 +640,105 @@ ix = df.index.isin(near_wf) & (~(df.excluded | df.dropped | df.removed))
 df.loc[ix, "excluded"] = True
 df.loc[ix, "log"] = "excluded: co-occurs with a waterfall"
 
+################################################################################
+### Sync attributes between barriers and road crossings they snapped to
+################################################################################
+
+# Per direction from Kat on 7/30/2024, copy across several of the fields from the nearest barrier to the crossing
+# NOTE: CrossingCode of the crossing is intentionally retained
+copy_cols = [
+    "SARPID",
+    "CrossingCode",
+    "CrossingType",
+    "BarrierOwnerType",
+    "Source",
+    "SourceID",
+    "Road",
+    "River",
+    "Name",
+    "excluded",
+    "invasive",
+    "removed",
+    "YearRemoved",
+    "BarrierSeverity",
+    "PotentialProject",
+    "Constriction",
+    "SARP_Score",
+    "ProtocolUsed",
+    "PartnerID",
+]
+crossings = crossings.join(
+    df[copy_cols].rename(columns={c: f"{c}_barrier" for c in copy_cols}),
+    on="barrier_id",
+)
+surveyed = crossings.barrier_id.notnull()
+crossings.loc[surveyed, "Surveyed"] = np.uint8(1)
+
+# override CrossingCode if present in inventoried barrier
+ix = surveyed & (crossings.CrossingCode_barrier != "")
+crossings.loc[ix, "CrossingCode"] = crossings.loc[ix].CrossingCode_barrier
+
+# always override with values from inventoried barrier
+for col in [
+    "SARPID",
+    "Source",
+    "SourceID",
+    "excluded",
+    "invasive",
+    "removed",
+    "YearRemoved",
+    "BarrierSeverity",
+    "PotentialProject",
+    "Constriction",
+    "SARP_Score",
+    "ProtocolUsed",
+    "PartnerID",
+]:
+    crossings.loc[surveyed, col] = crossings.loc[surveyed, f"{col}_barrier"].astype(crossings[col].dtype)
+
+# only override if value is not unknown from inventoried barrier
+for col in ["CrossingType", "BarrierOwnerType"]:
+    ix = surveyed & (crossings[col] != 0)
+    crossings.loc[ix, col] = crossings.loc[ix, f"{col}_barrier"]
+
+# override only if blank
+for col in ["Road", "River", "Name"]:
+    ix = surveyed & (crossings[col] == "") & (crossings[f"{col}_barrier"] != "")
+    crossings.loc[ix, col] = crossings.loc[ix, f"{col}_barrier"]
+
+crossings = crossings.drop(
+    columns=[f"{c}_barrier" for c in copy_cols],
+)
+
+# now update the corresponding fields on the inventoried barriers side to match
+df = df.join(
+    crossings[["SARPID", "USGSCrossingID"]].rename(
+        columns={"SARPID": "NearestCrossingID", "USGSCrossingID": "NearestUSGSCrossingID"}
+    ),
+    on="crossing_id",
+)
+
+for col in ["NearestCrossingID", "NearestUSGSCrossingID"]:
+    df[col] = df[col].fillna("")
+
+
+################################################################################
+### Cleanup for export
+################################################################################
+
+print("---------------------------------")
+print("\nSnapping statistics")
+print(df.groupby("snap_log").size())
+print("---------------------------------\n")
+
+
+### Save results from snapping for QA
+export_snap_dist_lines(df.loc[df.snapped], original_locations, qa_dir, prefix="small_barriers_")
+
+
+################################################################################
+### Cleanup for export
+################################################################################
 
 ### update data types
 df["dup_sort"] = df.dup_sort.astype("uint8")
@@ -685,22 +833,9 @@ for field in ["AnnualVelocity", "AnnualFlow", "TotDASqKm"]:
 print(df.groupby("loop").size())
 
 ################################################################################
-### prepare road crossings
+### Fill remaining fields and export
 ################################################################################
 print("-----------------")
-
-# for any road crossings that didn't have an inventoried barrier snap to them
-# and are within DUPLICATE_TOLERANCE, mark them with the nearest barrier SARPID
-# NOTE: all barriers selected here will already be marked with NearestCrossingID
-tmp = crossings.loc[crossings.NearestBarrierID == ""]
-tree = shapely.STRtree(df.geometry.values)
-
-# find nearest inventoried barrier
-left, right = tree.query_nearest(tmp.geometry.values, max_distance=DUPLICATE_TOLERANCE, all_matches=False)
-
-ix = tmp.index.values.take(left)
-barriers_ix = df.index.values.take(right)
-crossings.loc[ix, "NearestBarrierID"] = df.loc[barriers_ix].SARPID.values
 
 
 ### Add lat / lon
@@ -714,8 +849,10 @@ df = df.join(geo[["lat", "lon"]])
 ### Assign map symbol for use in (some) tiles
 df["symbol"] = 0
 df.loc[df.invasive, "symbol"] = 4
+# BarrierSeverity = 4 => minor barrier (only breaks networks in small-bodied fish scenario and displayed separately on map otherwise)
 df.loc[df.BarrierSeverity == 4, "symbol"] = 3
-df.loc[df.nobarrier, "symbol"] = 2
+# BarrierSeverity = 8 => not a barrier
+df.loc[df.BarrierSeverity == 8, "symbol"] = 2
 df.loc[~df.snapped, "symbol"] = 1
 # intentionally give removed barriers higher precedence
 df.loc[df.removed, "symbol"] = 5
@@ -748,14 +885,13 @@ print("Serializing {:,} small barriers".format(len(df)))
 df.to_feather(master_dir / "small_barriers.feather")
 write_dataframe(df, qa_dir / "small_barriers.fgb")
 
+### Extract out only the snapped ones not on loops
+to_analyze = df.loc[df.primary_network | df.largefish_network | df.smallfish_network].reset_index(drop=True)
+to_analyze.lineID = to_analyze.lineID.astype("uint32")
+to_analyze.NHDPlusID = to_analyze.NHDPlusID.astype("uint64")
 
-# Extract out only the snapped ones not on loops
-df = df.loc[df.primary_network | df.largefish_network | df.smallfish_network].reset_index(drop=True)
-df.lineID = df.lineID.astype("uint32")
-df.NHDPlusID = df.NHDPlusID.astype("uint64")
-
-print("Serializing {:,} snapped small barriers".format(len(df)))
-df[
+print("Serializing {:,} snapped small barriers".format(len(to_analyze)))
+to_analyze[
     [
         "geometry",
         "id",
@@ -772,17 +908,42 @@ df[
 ].to_feather(
     snapped_dir / "small_barriers.feather",
 )
-write_dataframe(df, qa_dir / "snapped_small_barriers.fgb")
+write_dataframe(to_analyze, qa_dir / "snapped_small_barriers.fgb")
 
-
+################################################################################
 ### Output road crossings
-crossings = crossings.reset_index(drop=True)
+################################################################################
+
+### Merge in road barriers that have no associated crossing
+tmp = df.loc[
+    (~(df.dropped | df.duplicate)) & (~df.SARPID.isin(crossings.SARPID.values)),
+    list(set(crossings.columns).intersection(df.columns)),
+].reset_index(drop=True)
+tmp["Surveyed"] = np.uint8(1)
+print(f"Merging {len(tmp):,} inventoried barriers into crossings that have no associated crossing point")
+
+crossings = pd.concat([crossings.reset_index(drop=True), tmp], ignore_index=True, sort=True)
+
+# sanity check
+if crossings.groupby("SARPID").size().max() > 1:
+    raise ValueError("ERROR: multiple SARPIDs now present for crossings")
+
 
 # NOTE: road crossings are always excluded from network analysis but cut networks
 # so they can be counted within networks
 crossings["primary_network"] = False
 crossings["largefish_network"] = False
 crossings["smallfish_network"] = False
+
+# Assign map symbol for use in tiles
+crossings["symbol"] = 0
+crossings.loc[crossings.invasive, "symbol"] = 4
+crossings.loc[crossings.BarrierSeverity == 4, "symbol"] = 3
+crossings.loc[crossings.BarrierSeverity == 8, "symbol"] = 2
+# intentionally give removed barriers higher precedence
+crossings.loc[crossings.removed, "symbol"] = 5
+crossings.symbol = crossings.symbol.astype("uint8")
+
 
 print(f"Serializing {len(crossings):,} road crossings")
 crossings.to_feather(master_dir / "road_crossings.feather")
@@ -793,7 +954,7 @@ write_dataframe(crossings, qa_dir / "road_crossings.fgb")
 # NOTE: any that were not snapped were dropped in earlier processing
 print(f"Serializing {crossings.snapped.sum():,} snapped road crossings")
 snapped_crossings = crossings.loc[
-    crossings.snapped & (~(crossings.loop | crossings.offnetwork_flowline | (crossings.NearestBarrierID != ""))),
+    crossings.snapped & (~(crossings.loop | crossings.offnetwork_flowline) & (crossings.Surveyed == 0)),
     [
         "geometry",
         "id",

@@ -33,8 +33,9 @@ def find_duplicates(df, to_dedup, tolerance, next_group_id=0):
                 tolerance,
             )
         )
-        .join(df[["dropped", "excluded", "ManualReview", "dup_sort"]])
-        .sort_values(by="dup_sort")
+        .join(df[["dropped", "excluded", "ManualReview", "dup_sort", "SARPID"]])
+        # sort by SARPID so that results are deterministic within dup_sort
+        .sort_values(by=["dup_sort", "SARPID"])
     )
 
     # reset drop status of those that were dropped because they were duplicates
@@ -73,14 +74,10 @@ def find_duplicates(df, to_dedup, tolerance, next_group_id=0):
     trusted_keepers = keep.loc[keep_ix]
 
     drop_groups = grouped.dropped.max()
-    drop_groups = drop_groups.loc[
-        drop_groups & ~drop_groups.index.isin(trusted_keepers.index)
-    ].index
+    drop_groups = drop_groups.loc[drop_groups & ~drop_groups.index.isin(trusted_keepers.index)].index
 
     count_dropped = len(df.loc[df.dup_group.isin(drop_groups) & ~df.dropped])
-    print(
-        f"Dropped {count_dropped:,} barriers that were in duplicate groups with barriers that were dropped"
-    )
+    print(f"Dropped {count_dropped:,} barriers that were in duplicate groups with barriers that were dropped")
 
     ix = df.dup_group.isin(drop_groups)
     df.loc[ix, "dropped"] = True
@@ -88,14 +85,10 @@ def find_duplicates(df, to_dedup, tolerance, next_group_id=0):
 
     # Exclude all records from groups that have an excluded record
     exclude_groups = grouped.excluded.max()
-    exclude_groups = exclude_groups.loc[
-        exclude_groups & ~exclude_groups.index.isin(trusted_keepers.index)
-    ].index
+    exclude_groups = exclude_groups.loc[exclude_groups & ~exclude_groups.index.isin(trusted_keepers.index)].index
 
     count_excluded = len(df.loc[df.dup_group.isin(exclude_groups) & ~df.excluded])
-    print(
-        f"Excluded {count_excluded:,} barriers that were in duplicate groups with barriers that were excluded"
-    )
+    print(f"Excluded {count_excluded:,} barriers that were in duplicate groups with barriers that were excluded")
 
     ix = df.dup_group.isin(exclude_groups)
     df.loc[ix, "excluded"] = True

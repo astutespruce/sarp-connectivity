@@ -313,7 +313,8 @@ UNRANKED_POTENTIAL_PROJECT = ["No Upstream Channel", "No Upstream Habitat"]
 REMOVED_POTENTIAL_PROJECT = ["Past Project", "Completed Project"]
 
 # These are DROPPED from all analysis and mapping
-DROP_POTENTIAL_PROJECT = ["No Crossing"]
+# NA are modeled road / stream crossings from WDFW, drop them per direction from Kat (8/1/2024)
+DROP_POTENTIAL_PROJECT = ["No Crossing", "NA"]
 
 # NOTE: everything other than above is marked as excluded from analysis
 

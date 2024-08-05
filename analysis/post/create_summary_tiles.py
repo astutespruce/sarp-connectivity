@@ -180,7 +180,7 @@ smallfish_barriers["Region"] = smallfish_barriers.State.map(state_regions)
 ### Read road / stream crossings
 # NOTE: crossings are already de-duplicated against each other and against
 # barriers
-crossings = pd.read_feather(src_dir / "road_crossings.feather", columns=["id", "NearestBarrierID"] + SUMMARY_UNITS)
+crossings = pd.read_feather(src_dir / "road_crossings.feather", columns=["id", "Surveyed"] + SUMMARY_UNITS)
 crossings["FishHabitatPartnership"] = crossings.FishHabitatPartnership.str.split(",")
 crossings["Region"] = crossings.State.map(state_regions)
 
@@ -300,7 +300,7 @@ for unit in SUMMARY_UNITS + ["Region"]:
 
     total_crossing_stats = crossings_by_unit[[unit, "id"]].groupby(unit).size().rename("total_road_crossings")
     unsurveyed_crossing_stats = (
-        crossings_by_unit.loc[crossings_by_unit.NearestBarrierID == ""][[unit, "id"]]
+        crossings_by_unit.loc[crossings_by_unit.Surveyed == 0][[unit, "id"]]
         .groupby(unit)
         .size()
         .rename("unsurveyed_road_crossings")

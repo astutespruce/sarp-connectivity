@@ -74,7 +74,7 @@ barriers.loc[(barriers.YearRemoved > 0) & (barriers.YearRemoved < 2000), "YearRe
 barriers["YearRemoved"] = calc_year_removed_bin(barriers.YearRemoved)
 
 
-# barriers that were not  excluded are likely to have impacts
+# barriers that were not excluded are likely to have impacts
 # (dropped / duplicates are already removed from above)
 barriers["Included"] = ~barriers.excluded
 
@@ -91,7 +91,7 @@ smallfish_barriers = pd.read_feather(
 
 
 ### Read road / stream crossings
-crossings = pd.read_feather(src_dir / "road_crossings.feather", columns=["id", "State", "NearestBarrierID"])
+crossings = pd.read_feather(src_dir / "road_crossings.feather", columns=["id", "State", "Surveyed"])
 
 bounds = (
     gp.read_feather(data_dir / "boundaries/region_boundary.feather")
@@ -139,7 +139,7 @@ stats = {
     "removed_small_barriers_gain_miles": round(analysis_barriers.RemovedGainMiles.sum().item(), 1),
     "removed_small_barriers_by_year": pack_year_removed_stats(analysis_barriers),
     "total_road_crossings": int(len(analysis_crossings)),
-    "unsurveyed_road_crossings": int((crossings.NearestBarrierID == "").sum()),
+    "unsurveyed_road_crossings": int((crossings.Surveyed == 0).sum()),
 }
 
 with open(ui_data_dir / "summary_stats.json", "w") as outfile:
