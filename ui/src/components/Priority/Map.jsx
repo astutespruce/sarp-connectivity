@@ -644,7 +644,9 @@ const PriorityMap = ({
       showRanks ? 'visible' : 'none'
     )
 
-    const { source, sourceLayer } = map.getLayer(prioritizedPointLayer.id)
+    const { source, 'source-layer': sourceLayer } = map.getLayer(
+      prioritizedPointLayer.id
+    )
     const prevRankedBarriers = rankedBarriersRef.current
 
     // unset feature state for all ranked points
