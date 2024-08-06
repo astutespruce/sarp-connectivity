@@ -940,6 +940,7 @@ crossings["symbol"] = 0
 crossings.loc[crossings.invasive, "symbol"] = 4
 crossings.loc[crossings.BarrierSeverity == 4, "symbol"] = 3
 crossings.loc[crossings.BarrierSeverity == 8, "symbol"] = 2
+crossings.loc[~crossings.snapped, "symbol"] = 1
 # intentionally give removed barriers higher precedence
 crossings.loc[crossings.removed, "symbol"] = 5
 crossings.symbol = crossings.symbol.astype("uint8")

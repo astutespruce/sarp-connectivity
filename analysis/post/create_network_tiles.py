@@ -210,7 +210,6 @@ for i, level in enumerate(national_levels):
     mbtiles_filename = tmp_dir / f"flowlines_{minzoom}_{maxzoom}.mbtiles"
     mbtiles_files.append(mbtiles_filename)
 
-    # FIXME: remove
     if mbtiles_filename.exists():
         continue
 
@@ -277,7 +276,6 @@ for huc2 in huc2s:
         mbtiles_filename = tmp_dir / f"region{huc2}_flowlines_{minzoom}_{maxzoom}.mbtiles"
         mbtiles_files.append(mbtiles_filename)
 
-        # FIXME: remove
         if mbtiles_filename.exists():
             continue
 

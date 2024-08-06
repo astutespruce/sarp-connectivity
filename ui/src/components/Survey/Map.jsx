@@ -42,8 +42,6 @@ import {
 } from 'components/Workflow/layers'
 import {
   rankedPointLayer,
-  unrankedPointLayer,
-  removedBarrierPointLayer,
   otherBarrierPointLayer,
   excludedPointLayer,
   includedPointLayer,
@@ -109,11 +107,8 @@ const SurveyMap = ({
         waterfallsLayer.id,
         excludedPointLayer.id,
         includedPointLayer.id,
-        // give surveyed barriers higher precedence in hover / click
-        removedBarrierPointLayer.id,
-        otherBarrierPointLayer.id,
-        unrankedPointLayer.id,
-        rankedPointLayer.id,
+        // NOTE: other barrier types not added because they are already
+        // present in road crossings tiles
       ]
 
       const clickLayers = pointLayers.concat(
@@ -189,12 +184,6 @@ const SurveyMap = ({
       map.addLayer(excludedPointLayer)
       map.addLayer(includedPointLayer)
 
-      // add inventoried small barriers for reference
-      map.addLayer(otherBarrierPointLayer)
-      map.addLayer(removedBarrierPointLayer)
-      map.addLayer(unrankedPointLayer)
-      map.addLayer(rankedPointLayer)
-
       // add hover and tooltip to point layers
       const tooltip = new mapboxgl.Popup({
         closeButton: false,
@@ -211,6 +200,7 @@ const SurveyMap = ({
 
           const {
             geometry: { coordinates },
+            properties,
           } = feature
 
           setBarrierHighlight(map, hoverFeatureRef.current, false)
@@ -225,12 +215,10 @@ const SurveyMap = ({
             .setLngLat(coordinates)
             .setHTML(
               getBarrierTooltip(
-                feature.source === 'combined_barriers' ||
-                  feature.source === 'largefish_barriers' ||
-                  feature.source === 'smallfish_barriers'
-                  ? feature.properties.barriertype
+                properties.sarpidname && properties.sarpidname.startsWith('sm')
+                  ? 'small_barriers'
                   : feature.source,
-                feature.properties
+                properties
               )
             )
             .addTo(map)
@@ -315,10 +303,8 @@ const SurveyMap = ({
         const removed = sourceLayer.startsWith('removed_')
 
         const thisBarrierType =
-          source === 'combined_barriers' ||
-          source === 'largefish_barriers' ||
-          source === 'smallfish_barriers'
-            ? properties.barriertype
+          properties.sarpidname && properties.sarpidname.startsWith('sm')
+            ? 'small_barriers'
             : source
 
         const networkType =
