@@ -123,7 +123,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
     removed = data.removed
     yearremoved = data.yearremoved
     isPriority = data.ispriority
-    isSurveyed = !!data.nearestbarrierid
+    isSurveyed = data.surveyed == 1
 
     let details = null
     switch (barrierType) {

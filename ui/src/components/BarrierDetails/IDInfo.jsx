@@ -24,8 +24,8 @@ const IDInfo = ({
   source,
   sourceid,
   partnerid,
+  nearestusgscrossingid,
   link,
-  nearestcrossingid,
   lat,
   lon,
   attachments: rawAttachments,
@@ -169,10 +169,10 @@ const IDInfo = ({
         </Entry>
       ) : null}
 
-      {!isEmptyString(nearestcrossingid) ? (
+      {!isEmptyString(nearestusgscrossingid) ? (
         <Entry>
           <Field label="USGS Database of Stream Crossings ID">
-            {nearestcrossingid.replace('cr', '')}
+            {nearestusgscrossingid}
           </Field>
           <Text sx={{ fontSize: 0, color: 'grey.7', mt: '0.5rem' }}>
             Note: this crossing is close to the location of this barrier, but it
@@ -270,8 +270,8 @@ IDInfo.propTypes = {
   source: PropTypes.string,
   sourceid: PropTypes.string,
   partnerid: PropTypes.string,
+  nearestusgscrossingid: PropTypes.string,
   link: PropTypes.string,
-  nearestcrossingid: PropTypes.string,
   lat: PropTypes.number.isRequired,
   lon: PropTypes.number.isRequired,
   attachments: PropTypes.string,
@@ -284,8 +284,8 @@ IDInfo.defaultProps = {
   source: null,
   sourceid: null,
   partnerid: null,
+  nearestusgscrossingid: null,
   link: null,
-  nearestcrossingid: null,
   attachments: null,
 }
 

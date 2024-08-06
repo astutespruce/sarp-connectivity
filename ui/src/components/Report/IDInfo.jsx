@@ -17,7 +17,7 @@ const IDInfo = ({
   sourceid,
   partnerid,
   link,
-  nearestcrossingid,
+  nearestusgscrossingid,
   ...props
 }) => {
   const fromWDFW = source && source.startsWith('WDFW')
@@ -95,11 +95,10 @@ const IDInfo = ({
           </Entry>
         ) : null}
 
-        {!isEmptyString(nearestcrossingid) ? (
+        {!isEmptyString(nearestusgscrossingid) ? (
           <Entry>
             <Text>
-              USGS Database of Stream Crossings ID:{' '}
-              {nearestcrossingid.replace('cr', '')}
+              USGS Database of Stream Crossings ID: {nearestusgscrossingid}
             </Text>
             <Text style={{ color: '#7f8a93', marginTop: 6, fontSize: 10 }}>
               Note: this crossing is close to the location of this barrier, but
@@ -150,7 +149,7 @@ IDInfo.propTypes = {
   sourceid: PropTypes.string,
   partnerid: PropTypes.string,
   link: PropTypes.string,
-  nearestcrossingid: PropTypes.string,
+  nearestusgscrossingid: PropTypes.string,
 }
 
 IDInfo.defaultProps = {
@@ -160,7 +159,7 @@ IDInfo.defaultProps = {
   sourceid: null,
   partnerid: null,
   link: null,
-  nearestcrossingid: null,
+  nearestusgscrossingid: null,
 }
 
 export default IDInfo

@@ -90,7 +90,6 @@ const BarrierDetails = ({
   link,
   milestooutlet,
   nativeterritories,
-  nearestcrossingid,
   onloop,
   ownertype,
   partnerid,
@@ -126,6 +125,7 @@ const BarrierDetails = ({
   unalteredupstreammiles,
   unalteredupstreammainstemmiles,
   unranked,
+  nearestusgscrossingid,
   waterbodykm2,
   waterbodysizeclass,
   yearremoved,
@@ -380,7 +380,7 @@ const BarrierDetails = ({
           sourceid={sourceid}
           partnerid={partnerid}
           link={link}
-          nearestcrossingid={nearestcrossingid}
+          nearestusgscrossingid={nearestusgscrossingid}
           attachments={attachments}
         />
       </Section>
@@ -427,7 +427,6 @@ BarrierDetails.propTypes = {
   link: PropTypes.string,
   milestooutlet: PropTypes.number,
   nativeterritories: PropTypes.string,
-  nearestcrossingid: PropTypes.string,
   onloop: PropTypes.bool,
   ownertype: PropTypes.number,
   partnerid: PropTypes.string,
@@ -463,6 +462,7 @@ BarrierDetails.propTypes = {
   unalteredupstreammiles: PropTypes.number,
   unalteredupstreammainstemmiles: PropTypes.number,
   unranked: PropTypes.bool,
+  nearestusgscrossingid: PropTypes.string,
   waterbodykm2: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
   yearremoved: PropTypes.number,
@@ -562,7 +562,6 @@ BarrierDetails.defaultProps = {
   link: null,
   milestooutlet: 0,
   nativeterritories: null,
-  nearestcrossingid: null,
   onloop: false,
   ownertype: null,
   partnerid: null,
@@ -598,6 +597,7 @@ BarrierDetails.defaultProps = {
   unalteredupstreammiles: 0,
   unalteredupstreammainstemmiles: 0,
   unranked: false,
+  nearestusgscrossingid: null,
   waterbodykm2: -1,
   waterbodysizeclass: null,
   yearremoved: 0,
