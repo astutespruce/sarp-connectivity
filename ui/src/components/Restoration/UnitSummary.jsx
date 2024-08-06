@@ -121,11 +121,10 @@ const UnitSummary = ({
         dams: curDams = 0,
         removedDams: curRemovedDams = 0,
         removedDamsGainMiles: curRemovedDamsGainMiles = 0,
-        removedDamsByYear: curRemovedDamsByYear = '',
         totalSmallBarriers: curTotalSmallBarriers = 0,
         removedSmallBarriers: curRemovedSmallBarriers = 0,
         removedSmallBarriersGainMiles: curRemovedSmallBarriersGainMiles = 0,
-        removedSmallBarriersByYear: curRemovedSmallBarriersByYear = '',
+        removedBarriersByYear: curRemovedBarriersByYear,
       }) => {
         dams += curDams
         removedDams += curRemovedDams
@@ -133,11 +132,6 @@ const UnitSummary = ({
         totalSmallBarriers += curTotalSmallBarriers
         removedSmallBarriers += curRemovedSmallBarriers
         removedSmallBarriersGainMiles += curRemovedSmallBarriersGainMiles
-
-        const curRemovedBarriersByYear = extractYearRemovedStats(
-          curRemovedDamsByYear,
-          curRemovedSmallBarriersByYear
-        )
 
         if (removedBarriersByYear.length === 0) {
           removedBarriersByYear = curRemovedBarriersByYear
@@ -507,11 +501,10 @@ UnitSummary.propTypes = {
       dams: PropTypes.number,
       removedDams: PropTypes.number,
       removedDamsGainMiles: PropTypes.number,
-      removedDamsByYear: PropTypes.string,
       totalSmallBarriers: PropTypes.number,
       removedSmallBarriers: PropTypes.number,
       removedSmallBarriersGainMiles: PropTypes.number,
-      removedSmallBarriersByYear: PropTypes.string,
+      removedBarriersByYear: PropTypes.array,
     })
   ).isRequired,
   metric: PropTypes.string.isRequired,
