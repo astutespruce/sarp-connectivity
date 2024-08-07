@@ -68,7 +68,18 @@ const IDInfo = ({
         </Entry>
         {NIDSection}
 
-        {!isEmptyString(source) ? <Entry>Source: {source}</Entry> : null}
+        {!isEmptyString(source) ? (
+          <Entry>
+            Source:{' '}
+            {source.startsWith('OpenStreetMap') ? (
+              <OutboundLink to="https://www.openstreetmap.org/copyright">
+                OpenStreetMap
+              </OutboundLink>
+            ) : (
+              source
+            )}
+          </Entry>
+        ) : null}
         {!isEmptyString(sourceid) ? <Entry>Source ID: {sourceid}</Entry> : null}
         {!isEmptyString(link) ? (
           <Entry>

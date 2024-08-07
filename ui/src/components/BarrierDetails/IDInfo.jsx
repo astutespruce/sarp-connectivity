@@ -117,7 +117,15 @@ const IDInfo = ({
       {!isEmptyString(source) ? (
         <Entry>
           <Field label="Source">
-            <Text sx={{ textAlign: 'right' }}>{source}</Text>
+            <Text sx={{ textAlign: 'right' }}>
+              {source.startsWith('OpenStreetMap') ? (
+                <OutboundLink to="https://www.openstreetmap.org/copyright">
+                  OpenStreetMap
+                </OutboundLink>
+              ) : (
+                source
+              )}
+            </Text>
           </Field>
         </Entry>
       ) : null}

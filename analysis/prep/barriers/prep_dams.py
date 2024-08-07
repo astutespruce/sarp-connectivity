@@ -250,6 +250,16 @@ for column in (
 ):
     df[column] = df[column].fillna("").str.strip()
 
+# If source is Open Street Map, update
+df["Source"] = (
+    df.Source.replace("Open Street Map", "OpenStreetMap (https://opendatacommons.org/licenses/odbl/)")
+    .replace("SEACAP Master", "SEACAP")
+    .replace("NID 2023 Mar192023", "NID March19 2023")
+    .replace("NID May312023", "NID May 31 2023")
+    .replace("Field Assessment", "Field assessment")
+    .replace("Field Assessments", "Field assessment")
+)
+
 
 for column in (
     "Construction",

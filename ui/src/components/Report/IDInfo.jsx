@@ -76,7 +76,16 @@ const IDInfo = ({
 
         {!isEmptyString(source) ? (
           <Entry>
-            <Text>Source: {source}</Text>
+            <Text>
+              Source:{' '}
+              {source.startsWith('OpenStreetMap') ? (
+                <Link href="https://www.openstreetmap.org/copyright">
+                  OpenStreetMap
+                </Link>
+              ) : (
+                source
+              )}
+            </Text>
           </Entry>
         ) : null}
 
