@@ -15,10 +15,8 @@ export const includedPointLayer = {
       [
         'match',
         ['get', 'symbol'],
-        // 0, // default
-        // pointColors.included.color,
         1, // unsnapped
-        pointColors.offNetwork.strokeColor,
+        pointColors.offNetwork.color,
         2, // non-barrier
         pointColors.nonBarrier.color,
         3, // minor barrier
@@ -183,20 +181,4 @@ export const waterfallsLayer = {
       ],
     },
   },
-}
-
-// NOTE: the remaining types are not added as map layers, but are included so that
-// we can show them in the legend
-
-export const rankedPointLayer = {
-  id: 'point-ranked',
-  minzoom: 10,
-  maxzoom: 24,
-}
-
-// Other barriers are those that are not ranked and not marked as unranked;
-// they include: off-network barriers, non-barriers, minor barriers
-export const otherBarrierPointLayer = {
-  minzoom: 10,
-  maxzoom: 24,
 }

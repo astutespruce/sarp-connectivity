@@ -41,8 +41,6 @@ import {
   priorityWatershedLegends,
 } from 'components/Workflow/layers'
 import {
-  rankedPointLayer,
-  otherBarrierPointLayer,
   excludedPointLayer,
   includedPointLayer,
   waterfallsLayer,
@@ -500,21 +498,6 @@ const SurveyMap = ({
   }, [])
 
   const getLegend = () => {
-    const pointLayers = [
-      includedPointLayer,
-      excludedPointLayer,
-      rankedPointLayer,
-      otherBarrierPointLayer,
-    ]
-
-    const isWithinZoom = pointLayers.reduce(
-      (prev, { id, minzoom, maxzoom }) =>
-        Object.assign(prev, {
-          [id]: zoom >= minzoom && zoom <= maxzoom,
-        }),
-      {}
-    )
-
     const {
       included: includedLegend,
       excluded: excludedLegend,
@@ -550,7 +533,19 @@ const SurveyMap = ({
       ]
     }
 
-    let footnote = null
+    if (allowUnitSelect) {
+      patches.push({
+        id: 'summaryAreas',
+        entries: [
+          {
+            color: 'rgba(0,0,0,0.15)',
+            label: `area with no mapped ${barrierTypeLabel}`,
+          },
+        ],
+      })
+    }
+
+    const footnote = zoom < 10 ? `zoom in to see ${barrierTypeLabel}` : null
 
     if (Math.max(...Object.values(priorityLayerState))) {
       Object.entries(priorityLayerState)
@@ -561,83 +556,62 @@ const SurveyMap = ({
         })
     }
 
-    // if no layer is selected for choosing summary areas
-    if (activeLayer === null) {
-      if (!isWithinZoom[excludedPointLayer.id]) {
-        footnote = `zoom in to see ${barrierTypeLabel}`
-      } else {
+    if (zoom >= 10) {
+      // if no layer is selected for choosing summary areas
+      if (activeLayer === null) {
         circles.push({
           ...includedLegend.getSymbol(barrierType),
           label: `${barrierTypeLabel}`,
         })
       }
-    } else {
       // either in select units or filter step
-      if (isWithinZoom[includedPointLayer.id]) {
-        circles.push({
-          ...includedLegend.getSymbol(barrierType),
-          label: includedLegend
-            .getLabel(barrierTypeLabel)
-            .replace('included in prioritization', 'selected for download'),
-        })
-      } else {
-        footnote = `zoom in to see ${barrierTypeLabel}`
-      }
-
-      if (isWithinZoom[excludedPointLayer.id]) {
-        circles.push({
-          ...excludedLegend.getSymbol(barrierType),
-          label: excludedLegend
-            .getLabel(barrierTypeLabel)
-            .replace(
-              'not included in prioritization',
-              'not selected for download'
-            ),
-        })
-      }
-
-      if (allowUnitSelect) {
-        patches.push({
-          id: 'summaryAreas',
-          entries: [
+      else {
+        circles.push(
+          ...[
             {
-              color: 'rgba(0,0,0,0.15)',
-              label: `area with no mapped ${barrierTypeLabel}`,
+              ...includedLegend.getSymbol(barrierType),
+              label: includedLegend
+                .getLabel(barrierTypeLabel)
+                .replace('included in prioritization', 'selected for download'),
             },
-          ],
-        })
-      }
-    }
+            {
+              ...excludedLegend.getSymbol(barrierType),
+              label: excludedLegend
+                .getLabel(barrierTypeLabel)
+                .replace(
+                  'not included in prioritization',
+                  'not selected for download'
+                ),
+            },
+            {
+              id: 'majorBarrier',
+              label: 'major or worse barrier based on field assessment',
+              radius: 6,
+              color: `${pointColors.majorBarrier.color}`,
+              borderColor: `${pointColors.majorBarrier.strokeColor}`,
+              borderWidth: 1,
+            },
+          ]
+        )
 
-    if (isWithinZoom[rankedPointLayer.id]) {
-      circles.push({
-        id: 'majorBarrier',
-        label: 'major or worse barrier based on field assessment',
-        radius: 6,
-        color: `${pointColors.majorBarrier.color}`,
-        borderColor: `${pointColors.majorBarrier.strokeColor}`,
-        borderWidth: 1,
-      })
-    }
-
-    if (isWithinZoom[otherBarrierPointLayer.id]) {
-      unrankedBarriers.forEach(({ id, getSymbol, getLabel }) => {
-        circles.push({
-          ...getSymbol('small_barriers'),
-          label: getLabel(
-            `${id === 'unranked' ? 'off-network surveyed ' : ''}${barrierTypeLabels.small_barriers}`
-          ).replace('not available for prioritization', ''),
-        })
-      })
-
-      other
-        .filter(({ id }) => id !== 'dams-secondary')
-        .forEach(({ getSymbol, getLabel }) => {
+        unrankedBarriers.forEach(({ id, getSymbol, getLabel }) => {
           circles.push({
             ...getSymbol('small_barriers'),
-            label: getLabel(barrierTypeLabels.small_barriers),
+            label: getLabel(
+              `${id === 'default' ? 'off-network surveyed ' : ''}${barrierTypeLabels.small_barriers}`
+            ).replace('not available for prioritization', ''),
           })
         })
+
+        other
+          .filter(({ id }) => id !== 'dams-secondary')
+          .forEach(({ getSymbol, getLabel }) => {
+            circles.push({
+              ...getSymbol('small_barriers'),
+              label: getLabel(barrierTypeLabels.small_barriers),
+            })
+          })
+      }
     }
 
     return {
