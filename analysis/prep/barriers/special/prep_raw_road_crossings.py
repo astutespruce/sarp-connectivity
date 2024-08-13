@@ -220,13 +220,7 @@ df["BarrierOwnerType"] = df.BarrierOwnerType.fillna(0).astype("uint8")
 
 ### Use TIGER roads data to try and backfill barrier owner type
 print("Extracting attributes from TIGER roads")
-tiger = read_dataframe(
-    src_dir / "tlgdb_2020_a_us_roads.gdb",
-    columns=["LINEARID", "RTTYP"],
-    where=""" "RTTYP" IS NOT NULL """,
-    use_arrow=True,
-    read_geometry=False,
-).set_index("LINEARID")
+tiger = pd.read_feather(src_dir / "tiger_roads_2020.feather", columns=["LINEARID", "RTTYP"]).set_index("LINEARID")
 # assume that states are responsible party for interstate / US routes
 # other types are unknown re: ownership, so don't bother to map them to codes
 tiger["BarrierOwnerType"] = tiger.RTTYP.map({"C": 3, "I": 2, "S": 2, "U": 2}).fillna(0).astype("uint8")
@@ -249,7 +243,9 @@ df.loc[ix, "BarrierOwnerType"] = df.loc[ix].tiger_BarrierOwnerType.values.astype
 
 df = df.drop(columns=["stream_crossing_id", "tiger_BarrierOwnerType"])
 
-df["dup_sort"] = 1
+df["dup_sort"] = df.BarrierOwnerType
+# put unknown at the end
+df.loc[df.BarrierOwnerType == 0, "dup_sort"] = df.BarrierOwnerType.max() + 1
 
 usgs = df
 
@@ -376,7 +372,8 @@ df["HUC2"] = df.HUC4.str[:2]
 print(f"Selected {len(df):,} USFS road crossings in region")
 
 # per guidance from Kat on 5/16, USFS crossings have lower precedence in dedup
-df["dup_sort"] = 2
+df["dup_sort"] = df.BarrierOwnerType + usgs.dup_sort.max() + 1
+df.loc[df.BarrierOwnerType == 0, "dup_sort"] = df.dup_sort + 1
 
 usfs = df
 

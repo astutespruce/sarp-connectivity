@@ -431,7 +431,36 @@ print(f"Excluded {df.excluded.sum():,} small barriers from network analysis and 
 print(f"Marked {df.unranked.sum():,} small barriers to break networks but not be ranked")
 print(f"Marked {df.removed.sum():,} small barriers that have been removed for conservation")
 
+
+################################################################################
+### Join barrier owner type from TIGER
+################################################################################
+print("Joining barriers to TIGER roads to determine BarrierOwnerType")
+# use road owner type of nearest road within 50m
+tiger = gp.read_feather(src_dir / "tiger_roads_2020.feather", columns=["geometry", "RTTYP"]).to_crs(df.crs)
+tiger["BarrierOwnerType"] = tiger.RTTYP.map({"C": 3, "I": 2, "S": 2, "U": 2}).fillna(0).astype("uint8")
+left, right = shapely.STRtree(tiger.geometry.values).query_nearest(
+    df.geometry.values, max_distance=50, all_matches=True
+)
+owner_type = (
+    pd.DataFrame({"id": df.id.values.take(left), "BarrierOwnerType": tiger.BarrierOwnerType.values.take(right)})
+    .sort_values(by=["id", "BarrierOwnerType"])
+    .groupby("id")
+    .BarrierOwnerType.first()
+    .rename("BarrierOwnerType_tiger")
+)
+# only keep matches with known barrier owner type
+owner_type = owner_type[owner_type > 0]
+df = df.join(owner_type)
+
+# only override if unknown, federal, state, local, or private
+ix = df.BarrierOwnerType_tiger.notnull() & df.BarrierOwnerType.isin([0, 1, 2, 3, 7])
+df.loc[ix, "BarrierOwnerType"] = df.loc[ix].BarrierOwnerType_tiger.values.astype("uint8")
+df = df.drop(columns=["BarrierOwnerType_tiger"])
+
+################################################################################
 ### Snap barriers
+################################################################################
 print(f"Snapping {len(df):,} small barriers")
 snap_start = time()
 
@@ -650,7 +679,6 @@ copy_cols = [
     "SARPID",
     "CrossingCode",
     "CrossingType",
-    "BarrierOwnerType",
     "Source",
     "SourceID",
     "Road",
@@ -697,7 +725,7 @@ for col in [
     crossings.loc[surveyed, col] = crossings.loc[surveyed, f"{col}_barrier"].astype(crossings[col].dtype)
 
 # only override if value is not unknown from inventoried barrier
-for col in ["CrossingType", "BarrierOwnerType"]:
+for col in ["CrossingType"]:
     ix = surveyed & (crossings[col] != 0)
     crossings.loc[ix, col] = crossings.loc[ix, f"{col}_barrier"]
 
@@ -720,6 +748,12 @@ df = df.join(
 
 for col in ["NearestCrossingID", "NearestUSGSCrossingID"]:
     df[col] = df[col].fillna("")
+
+# set BarrierOwnerType from crossing to barrier
+ix = df.crossing_id.notnull() & df.BarrierOwnerType.isin([0, 1, 2, 3, 7])
+df.loc[ix, "BarrierOwnerType"] = df.loc[ix].crossing_id.map(
+    crossings.loc[crossings.id.isin(df.crossing_id.values)].BarrierOwnerType
+)
 
 
 ################################################################################
