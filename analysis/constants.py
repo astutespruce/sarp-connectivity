@@ -229,7 +229,7 @@ DAM_FS_COLS = [
     "Fed_Regulatory_Agency",
     "STATE_REGULATED",
     "Regulatory_Agency",
-    # "Private",  # TODO: enable when values are present
+    "Private",
     "Water_Right",
     "Water_Right_Status",  # FIXME: check
     "Beneficial_Use",  # FIXME: check
@@ -267,6 +267,7 @@ SMALL_BARRIER_COLS = [
     "Constriction",
     "PassageFacility",
     "Link",
+    "Private",
     # Not used:
     # "NumberOfStructures",
     # "CrossingComment",

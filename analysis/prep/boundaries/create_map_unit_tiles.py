@@ -9,6 +9,8 @@ from pyogrio import write_dataframe
 from analysis.constants import GEO_CRS
 from analysis.post.lib.tiles import get_col_types
 
+MAX_ZOOM = "12"
+
 tippecanoe = "tippecanoe"
 tile_join = "tile-join"
 tippecanoe_args = [tippecanoe, "-f", "-pg", "--visvalingam", "--no-simplification-of-shared-nodes"]
@@ -30,7 +32,7 @@ write_dataframe(regions, outfilename)
 mbtiles_filename = tmp_dir / "region_boundary.mbtiles"
 ret = subprocess.run(
     tippecanoe_args
-    + ["-Z", "0", "-z", "8"]
+    + ["-Z", "0", "-z", MAX_ZOOM]
     + ["-l", "boundary"]
     + get_col_types(regions)
     + ["-o", str(mbtiles_filename), outfilename]
@@ -49,7 +51,7 @@ write_dataframe(fhp, outfilename)
 mbtiles_filename = tmp_dir / "fhp_boundary.mbtiles"
 ret = subprocess.run(
     tippecanoe_args
-    + ["-Z", "0", "-z", "8"]
+    + ["-Z", "0", "-z", MAX_ZOOM]
     + ["-l", "fhp_boundary"]
     + get_col_types(fhp)
     + ["-o", str(mbtiles_filename), outfilename]
@@ -68,7 +70,7 @@ write_dataframe(states, outfilename)
 mbtiles_filename = tile_dir / "State.mbtiles"
 ret = subprocess.run(
     tippecanoe_args
-    + ["-Z", "0", "-z", "8"]
+    + ["-Z", "0", "-z", MAX_ZOOM]
     + ["-l", "State"]
     + get_col_types(states)
     + ["-o", f"{str(mbtiles_filename)}", str(outfilename)]
@@ -91,7 +93,7 @@ write_dataframe(mask, outfilename)
 mbtiles_filename = tmp_dir / "mask.mbtiles"
 ret = subprocess.run(
     tippecanoe_args
-    + ["-Z", "0", "-z", "8"]
+    + ["-Z", "0", "-z", MAX_ZOOM]
     + ["-l", "mask"]
     + get_col_types(mask)
     + ["-o", str(mbtiles_filename), str(outfilename)]
@@ -110,7 +112,7 @@ write_dataframe(df, outfilename)
 mbtiles_filename = tile_dir / "County.mbtiles"
 ret = subprocess.run(
     tippecanoe_args
-    + ["-Z", "3", "-z", "12"]
+    + ["-Z", "3", "-z", MAX_ZOOM]
     + ["-l", "County"]
     + get_col_types(df)
     + ["-o", f"{str(mbtiles_filename)}", str(outfilename)]
@@ -129,7 +131,7 @@ write_dataframe(df, outfilename)
 mbtiles_filename = tile_dir / "HUC2.mbtiles"
 ret = subprocess.run(
     tippecanoe_args
-    + ["-Z", "0", "-z", "8"]
+    + ["-Z", "0", "-z", MAX_ZOOM]
     + ["-l", "HUC2"]
     + get_col_types(df)
     + ["-o", f"{str(mbtiles_filename)}", str(outfilename)]
@@ -142,7 +144,7 @@ outfilename.unlink()
 ### HUC6 - HUC12
 ################################################################################
 # have to render all to zoom 14 or boundaries mismatch
-huc_zoom_levels = {"HUC6": [0, 14], "HUC8": [0, 14], "HUC10": [6, 14], "HUC12": [8, 14]}
+huc_zoom_levels = {"HUC6": ["0", MAX_ZOOM], "HUC8": ["0", MAX_ZOOM], "HUC10": ["6", MAX_ZOOM], "HUC12": ["8", MAX_ZOOM]}
 
 for huc, (minzoom, maxzoom) in huc_zoom_levels.items():
     print(f"Creating tiles for {huc}")
@@ -167,7 +169,7 @@ for huc, (minzoom, maxzoom) in huc_zoom_levels.items():
     mbtiles_filename = tile_dir / f"{huc}.mbtiles"
     ret = subprocess.run(
         tippecanoe_args
-        + ["-Z", str(minzoom), "-z", str(maxzoom)]
+        + ["-Z", minzoom, "-z", maxzoom]
         + ["-l", huc]
         + get_col_types(df)
         + ["-o", f"{str(mbtiles_filename)}", str(outfilename)]

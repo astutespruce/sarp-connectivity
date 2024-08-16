@@ -28,8 +28,8 @@ def get_interior_rings(polygons):
     return outer_index, inner_index, rings
 
 
-def unwrap_antimeridian(geometries, ref_long=0, grid_size=None):
-    """Unwrap geometries that have been split by the antimeriedian so that they
+def unwrap_antimeridian(geometries, ref_long=0):
+    """Unwrap geometries that have been split by the antimeridian so that they
     are west of the antimeridian instead of wrapped to positive longitude.
 
     Parameters
@@ -38,7 +38,6 @@ def unwrap_antimeridian(geometries, ref_long=0, grid_size=None):
     ref_long: reference longitude
         geometries with bounds that are beyond this longitude are wrapped to
         the west of the antimeriedian
-    grid_size : precision grid size to use for union
 
     Returns
     -------

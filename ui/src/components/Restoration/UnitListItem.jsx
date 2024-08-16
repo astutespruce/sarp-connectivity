@@ -1,13 +1,26 @@
 import React, { memo } from 'react'
 import PropTypes from 'prop-types'
-import { Box, Flex, Button, Text } from 'theme-ui'
+import { Box, Flex, Grid, Button, Text } from 'theme-ui'
 
 import { STATE_FIPS, STATES } from 'config'
 import { OutboundLink } from 'components/Link'
 import { formatNumber, pluralize } from 'util/format'
 
-const UnitListItem = ({ barrierType, system, unit, ignore, onDelete }) => {
-  const { id, layer, removedDams = 0, removedSmallBarriers = 0 } = unit
+const UnitListItem = ({
+  barrierType,
+  system,
+  unit,
+  ignore,
+  onDelete,
+  onZoomBounds,
+}) => {
+  const {
+    id,
+    layer,
+    bbox = null,
+    removedDams = 0,
+    removedSmallBarriers = 0,
+  } = unit
   let { name = id } = unit
 
   if (layer === 'State') {
@@ -55,11 +68,14 @@ const UnitListItem = ({ barrierType, system, unit, ignore, onDelete }) => {
 
   const handleDelete = () => onDelete(unit)
 
+  const handleZoomBounds = () => onZoomBounds(bbox)
+
   return (
-    <Flex
+    <Grid
       as="li"
+      columns="1fr 3.5rem"
+      gap={1}
       sx={{
-        justifyContent: 'space-between',
         mx: '-1rem',
         px: '1rem',
         py: '0.5em',
@@ -130,10 +146,37 @@ const UnitListItem = ({ barrierType, system, unit, ignore, onDelete }) => {
         ) : null}
       </Box>
 
-      <Button variant="close" onClick={handleDelete}>
-        &#10006;
-      </Button>
-    </Flex>
+      <Flex
+        sx={{
+          flex: '0 0 auto',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          alignItems: 'flex-end',
+          height: '100%',
+        }}
+      >
+        <Box sx={{ flex: '1 1 auto' }}>
+          <Button variant="close" onClick={handleDelete}>
+            &#10006;
+          </Button>
+        </Box>
+        {bbox ? (
+          <Box
+            onClick={handleZoomBounds}
+            sx={{
+              flex: '0 0 auto',
+              fontSize: 0,
+              color: 'link',
+              cursor: 'pointer',
+              textDecoration: 'none',
+              '&:hover': { textDecoration: 'underline' },
+            }}
+          >
+            zoom to
+          </Box>
+        ) : null}
+      </Flex>
+    </Grid>
   )
 }
 
@@ -143,6 +186,7 @@ UnitListItem.propTypes = {
   unit: PropTypes.object.isRequired,
   ignore: PropTypes.bool,
   onDelete: PropTypes.func.isRequired,
+  onZoomBounds: PropTypes.func.isRequired,
 }
 
 UnitListItem.defaultProps = {

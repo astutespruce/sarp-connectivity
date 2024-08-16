@@ -16,6 +16,7 @@ from api.constants import (
     SB_EXPORT_FIELDS,
     COMBINED_EXPORT_FIELDS,
     ROAD_CROSSING_EXPORT_FIELDS,
+    LOGO_PATH,
 )
 from api.data import data_dir
 from api.lib.domains import unpack_domains
@@ -24,10 +25,6 @@ from api.logger import log, log_request
 from api.dependencies import RecordExtractor
 from api.metadata import get_readme, get_terms
 from api.response import zip_csv_response
-
-
-### Include logo in download package
-LOGO_PATH = Path(__file__).resolve().parent.parent.parent.parent / "ui/src/images/sarp_logo_highres.png"
 
 
 MAX_CROSSINGS = 1e6  # limit to 1M crossings in downloads

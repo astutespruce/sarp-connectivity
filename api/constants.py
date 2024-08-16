@@ -1,4 +1,9 @@
+from pathlib import Path
+
 from enum import Enum
+
+
+LOGO_PATH = Path("ui/src/images/sarp_logo_highres.png").resolve()
 
 
 ### Enums for validating incoming request values

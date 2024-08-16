@@ -13,7 +13,6 @@ import { formatNumber, pluralize } from 'util/format'
 import Chart from './Chart'
 import UnitListItem from './UnitListItem'
 import { layers } from './layers'
-import { extractYearRemovedStats } from './util'
 
 const defaultDownloaderConfig = {
   filters: {
@@ -29,6 +28,7 @@ const UnitSummary = ({
   onChangeMetric,
   onSelectUnit,
   onReset,
+  onZoomBounds,
 }) => {
   const contentNodeRef = useRef(null)
 
@@ -113,6 +113,8 @@ const UnitSummary = ({
     }
   }
 
+  console.log('summary units', summaryUnits)
+
   // aggregate statistics
   summaryUnits
     .filter(({ id: i }) => !ignoreIds.has(i))
@@ -149,6 +151,11 @@ const UnitSummary = ({
         }
       }
     )
+
+  const handleZoomBounds = () => {
+    if (summaryUnits.length !== 1) return
+    onZoomBounds(summaryUnits[0].bbox)
+  }
 
   const summaryUnitsForDownload = summaryUnits.reduce(
     (prev, { layer: l, id: i }) =>
@@ -246,9 +253,36 @@ const UnitSummary = ({
           {idline ? <Text sx={{ color: 'grey.7' }}>{idline}</Text> : null}
         </Box>
 
-        <Button variant="close" onClick={onReset}>
-          &#10006;
-        </Button>
+        <Flex
+          sx={{
+            flex: '0 0 auto',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            alignItems: 'flex-end',
+            height: '100%',
+          }}
+        >
+          <Box sx={{ flex: '1 1 auto' }}>
+            <Button variant="close" onClick={onReset}>
+              &#10006;
+            </Button>
+          </Box>
+          {summaryUnits.length === 1 && summaryUnits[0].bbox ? (
+            <Box
+              onClick={handleZoomBounds}
+              sx={{
+                flex: '0 0 auto',
+                fontSize: 1,
+                color: 'link',
+                cursor: 'pointer',
+                textDecoration: 'none',
+                '&:hover': { textDecoration: 'underline' },
+              }}
+            >
+              zoom to
+            </Box>
+          ) : null}
+        </Flex>
       </Flex>
       <Box
         ref={contentNodeRef}
@@ -367,6 +401,7 @@ const UnitSummary = ({
                   unit={unit}
                   ignore={ignoreIds.has(unit.id)}
                   onDelete={() => onSelectUnit(unit)}
+                  onZoomBounds={onZoomBounds}
                 />
               ))}
             </Box>
@@ -498,6 +533,7 @@ UnitSummary.propTypes = {
       id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
       layer: PropTypes.string.isRequired,
       name: PropTypes.string,
+      bbox: PropTypes.arrayOf(PropTypes.number),
       dams: PropTypes.number,
       removedDams: PropTypes.number,
       removedDamsGainMiles: PropTypes.number,
@@ -511,6 +547,7 @@ UnitSummary.propTypes = {
   onChangeMetric: PropTypes.func.isRequired,
   onSelectUnit: PropTypes.func.isRequired,
   onReset: PropTypes.func.isRequired,
+  onZoomBounds: PropTypes.func.isRequired,
 }
 
 export default UnitSummary

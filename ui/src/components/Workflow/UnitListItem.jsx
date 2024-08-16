@@ -1,15 +1,16 @@
 import React, { memo } from 'react'
 import PropTypes from 'prop-types'
-import { Box, Flex, Button, Text } from 'theme-ui'
+import { Box, Flex, Grid, Button, Text } from 'theme-ui'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 
 import { useBarrierType } from 'components/Data'
 import { STATE_FIPS, STATES, barrierTypeLabels } from 'config'
 import { formatNumber, pluralize } from 'util/format'
 
-const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
+const SummaryUnitListItem = ({ layer, unit, onDelete, onZoomBounds }) => {
   const {
     id,
+    bbox = null,
     rankedDams = 0,
     totalSmallBarriers = 0,
     rankedSmallBarriers = 0,
@@ -183,11 +184,14 @@ const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
 
   const handleDelete = () => onDelete(unit)
 
+  const handleZoomBounds = () => onZoomBounds(bbox)
+
   return (
-    <Flex
+    <Grid
       as="li"
+      columns="1fr 3.5rem"
+      gap={1}
       sx={{
-        justifyContent: 'space-between',
         borderBottom: '1px solid',
         borderBottomColor: 'grey.1',
         mx: '-1rem',
@@ -251,16 +255,44 @@ const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
         ) : null}
       </Box>
 
-      <Button variant="close" onClick={handleDelete}>
-        &#10006;
-      </Button>
-    </Flex>
+      <Flex
+        sx={{
+          flex: '0 0 auto',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          alignItems: 'flex-end',
+          height: '100%',
+        }}
+      >
+        <Box sx={{ flex: '1 1 auto' }}>
+          <Button variant="close" onClick={handleDelete}>
+            &#10006;
+          </Button>
+        </Box>
+        {bbox ? (
+          <Box
+            onClick={handleZoomBounds}
+            sx={{
+              flex: '0 0 auto',
+              fontSize: 0,
+              color: 'link',
+              cursor: 'pointer',
+              textDecoration: 'none',
+              '&:hover': { textDecoration: 'underline' },
+            }}
+          >
+            zoom to
+          </Box>
+        ) : null}
+      </Flex>
+    </Grid>
   )
 }
 SummaryUnitListItem.propTypes = {
   layer: PropTypes.string.isRequired,
   unit: PropTypes.object.isRequired,
   onDelete: PropTypes.func.isRequired,
+  onZoomBounds: PropTypes.func.isRequired,
 }
 
 export default memo(SummaryUnitListItem)

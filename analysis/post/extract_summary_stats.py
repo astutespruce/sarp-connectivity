@@ -11,7 +11,7 @@ from analysis.post.lib.removed_barriers import calc_year_removed_bin, pack_year_
 
 data_dir = Path("data")
 src_dir = data_dir / "barriers/master"
-api_dir = data_dir / "api"
+results_dir = data_dir / "barriers/networks"
 ui_data_dir = Path("ui/data")
 
 # Outputs are written to the UI directory so they can be imported at build time
@@ -20,12 +20,16 @@ ui_data_dir = Path("ui/data")
 
 ### Read dams
 dams = pd.read_feather(
-    api_dir / "dams.feather",
-    columns=["id", "HUC2", "HasNetwork", "Ranked", "Removed", "YearRemoved", "State"],
+    results_dir / "dams.feather",
+    columns=["id", "HUC2", "HasNetwork", "Ranked", "Removed", "YearRemoved", "Private", "State"],
 ).set_index("id", drop=False)
 # Get recon from master
 dams_master = pd.read_feather(src_dir / "dams.feather", columns=["id", "Recon"]).set_index("id")
 dams = dams.join(dams_master)
+
+
+# do not include private barriers in top-level stats
+dams = dams.loc[~dams.Private].copy()
 
 # get stats for removed dams
 removed_dam_networks = (
@@ -48,14 +52,15 @@ dams["YearRemoved"] = calc_year_removed_bin(dams.YearRemoved)
 
 ### Read road-related barriers
 barriers = pd.read_feather(
-    api_dir / "small_barriers.feather",
-    columns=["id", "HasNetwork", "Ranked", "Removed", "YearRemoved", "State"],
+    results_dir / "small_barriers.feather",
+    columns=["id", "HasNetwork", "Ranked", "Removed", "YearRemoved", "Private", "State"],
 ).set_index("id", drop=False)
 barriers_master = pd.read_feather(
     "data/barriers/master/small_barriers.feather", columns=["id", "dropped", "excluded"]
 ).set_index("id")
-
 barriers = barriers.join(barriers_master)
+
+barriers = barriers.loc[~barriers.Private].copy()
 
 removed_barrier_networks = (
     pd.read_feather(
@@ -80,14 +85,16 @@ barriers["Included"] = ~barriers.excluded
 
 
 largefish_barriers = pd.read_feather(
-    api_dir / "largefish_barriers.feather",
-    columns=["id", "BarrierType", "Ranked"],
+    results_dir / "largefish_barriers.feather",
+    columns=["id", "BarrierType", "Ranked", "Private"],
 )
+largefish_barriers = largefish_barriers.loc[~largefish_barriers.Private].copy()
 
 smallfish_barriers = pd.read_feather(
-    api_dir / "smallfish_barriers.feather",
-    columns=["id", "BarrierType", "Ranked"],
+    results_dir / "smallfish_barriers.feather",
+    columns=["id", "BarrierType", "Ranked", "Private"],
 )
+smallfish_barriers = smallfish_barriers.loc[~smallfish_barriers.Private].copy()
 
 
 ### Read road / stream crossings

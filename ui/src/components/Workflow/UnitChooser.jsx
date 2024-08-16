@@ -39,6 +39,7 @@ const UnitChooser = ({
   onBack,
   onSubmit,
   onStartOver,
+  onZoomBounds,
 }) => {
   const barrierType = useBarrierType()
   const barrierTypeLabel = barrierTypeLabels[barrierType]
@@ -184,6 +185,7 @@ const UnitChooser = ({
                 layer={layer}
                 unit={unit}
                 onDelete={() => selectUnit(unit)}
+                onZoomBounds={onZoomBounds}
               />
             ))}
           </Box>
@@ -275,6 +277,7 @@ UnitChooser.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   onStartOver: PropTypes.func.isRequired,
   selectUnit: PropTypes.func.isRequired,
+  onZoomBounds: PropTypes.func.isRequired,
 }
 
 export default UnitChooser

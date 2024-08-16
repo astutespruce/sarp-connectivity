@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useCallback, useState, useRef } from 'react'
 import { Box, Flex, Text, Spinner } from 'theme-ui'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 import { useQueryClient } from '@tanstack/react-query'
@@ -55,6 +55,8 @@ const SurveyWorkflow = () => {
 
   const summaryUnitsRef = useRef(new Set())
 
+  const mapRef = useRef(null)
+
   const handleStartOver = () => {
     setFilterData(null)
     setState(() => ({
@@ -67,6 +69,7 @@ const SurveyWorkflow = () => {
   }
 
   const handleMapLoad = (map) => {
+    mapRef.current = map
     setStatus(() => ({
       isLoading: false,
       isError: false,
@@ -127,6 +130,9 @@ const SurveyWorkflow = () => {
             layer: selectedUnitLayer,
             id,
             ...preFetchedUnitData,
+            bbox: preFetchedUnitData.bbox
+              ? preFetchedUnitData.bbox.split(',').map(parseFloat)
+              : null,
           },
         ]),
       }))
@@ -282,6 +288,14 @@ const SurveyWorkflow = () => {
     }))
   }
 
+  const handleZoomBounds = useCallback((newBounds) => {
+    const { current: map } = mapRef
+
+    if (!(map && newBounds)) return
+
+    map.fitBounds(newBounds, { padding: 100 })
+  }, [])
+
   let sidebarContent = null
 
   if (selectedBarrier === null) {
@@ -338,6 +352,7 @@ const SurveyWorkflow = () => {
                 selectUnit={handleSelectUnit}
                 onSubmit={loadBarrierInfo}
                 onStartOver={handleStartOver}
+                onZoomBounds={handleZoomBounds}
               />
             )
           }

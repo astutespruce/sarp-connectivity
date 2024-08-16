@@ -72,6 +72,10 @@ df = (
     .rename(columns={"COUNTYFIPS": "County"})
     .sort_values(by=["TotDASqKm"], ascending=False)
 )
+
+# only show public barriers in tiles
+df = df.loc[~df.Private].copy()
+
 df = combine_sarpid_name(df)
 fill_na_fields(df)
 
@@ -247,6 +251,9 @@ df = (
     .sort_values(by=["TotDASqKm"], ascending=False)
     .drop(columns=["TotDASqKm"])
 )
+
+df = df.loc[~df.Private].copy()
+
 df = combine_sarpid_name(df)
 fill_na_fields(df)
 
@@ -411,6 +418,9 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
         .rename(columns={"COUNTYFIPS": "County"})
         .sort_values(by=["TotDASqKm"], ascending=False)
     )
+
+    df = df.loc[~df.Private].copy()
+
     df = combine_sarpid_name(df)
     fill_na_fields(df)
 

@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef } from 'react'
+import React, { useMemo, useState, useRef, useCallback } from 'react'
 import PropTypes from 'prop-types'
 import { Box, Flex, Spinner, Text } from 'theme-ui'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
@@ -15,7 +15,12 @@ import {
 import { ToggleButton } from 'components/Button'
 import { Sidebar } from 'components/Sidebar'
 import { TopBar } from 'components/Map'
-import { Map, UnitSummary, RegionSummary } from 'components/Restoration'
+import {
+  Map,
+  UnitSummary,
+  RegionSummary,
+  extractYearRemovedStats,
+} from 'components/Restoration'
 import BarrierDetails from 'components/BarrierDetails'
 import { REGIONS, SYSTEMS, FISH_HABITAT_PARTNERSHIPS } from 'config'
 import { getQueryParams } from 'util/dom'
@@ -73,6 +78,7 @@ const ProgressPage = ({ location }) => {
   }))
 
   const summaryUnitsRef = useRef(new Set())
+  const mapRef = useRef(null)
 
   // load data for item specified in URL
   const {
@@ -140,6 +146,13 @@ const ProgressPage = ({ location }) => {
             layer,
             id: selectedId,
             ...preFetchedUnitData,
+            bbox: preFetchedUnitData.bbox
+              ? preFetchedUnitData.bbox.split(',').map(parseFloat)
+              : null,
+            removedBarriersByYear: extractYearRemovedStats(
+              preFetchedUnitData.removedDamsByYear,
+              preFetchedUnitData.removedSmallBarriersByYear
+            ),
           },
         ]),
       }))
@@ -255,6 +268,18 @@ const ProgressPage = ({ location }) => {
     [selectedItem]
   )
 
+  const handleCreateMap = (map) => {
+    mapRef.current = map
+  }
+
+  const handleZoomBounds = useCallback((newBounds) => {
+    const { current: map } = mapRef
+
+    if (!(map && newBounds)) return
+
+    map.fitBounds(newBounds, { padding: 100 })
+  }, [])
+
   let sidebarContent = null
 
   if (isUnitError) {
@@ -314,6 +339,7 @@ const ProgressPage = ({ location }) => {
         onChangeMetric={handleSetMetric}
         onSelectUnit={handleSelectUnit}
         onReset={handleReset}
+        onZoomBounds={handleZoomBounds}
       />
     )
   } else {
@@ -357,6 +383,7 @@ const ProgressPage = ({ location }) => {
                   selectedBarrier={selectedBarrier}
                   onSelectUnit={handleSelectUnit}
                   onSelectBarrier={handleSelectBarrier}
+                  onCreateMap={handleCreateMap}
                 >
                   <TopBar>
                     <Text sx={{ mr: '0.5rem' }}>Show networks for:</Text>

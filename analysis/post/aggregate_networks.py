@@ -29,7 +29,7 @@ from api.constants import (
     ROAD_CROSSING_EXPORT_FIELDS,
     verify_domains,
 )
-from api.internal.barriers.download import LOGO_PATH
+from api.constants import LOGO_PATH
 from api.metadata import get_readme, get_terms
 from api.lib.domains import unpack_domains
 from analysis.constants import NETWORK_TYPES
@@ -152,8 +152,8 @@ print("Saving dams for tiles and API")
 # Save full results for tiles, etc
 dams.reset_index().to_feather(results_dir / "dams.feather")
 
-# save for API
-tmp = dams[DAM_API_FIELDS].reset_index()
+# save for API (no private barriers)
+tmp = dams.loc[~dams.Private, DAM_API_FIELDS].reset_index()
 verify_domains(tmp)
 # downcast id to uint32 or it breaks in UI
 tmp["id"] = tmp.id.astype("uint32")
@@ -223,8 +223,8 @@ print("Saving small barriers for tiles and API")
 # Save full results for tiles, etc
 small_barriers.reset_index().to_feather(results_dir / "small_barriers.feather")
 
-# save for API
-tmp = small_barriers[SB_API_FIELDS].reset_index()
+# save for API (no private barriers)
+tmp = small_barriers.loc[~small_barriers.Private, SB_API_FIELDS].reset_index()
 verify_domains(tmp)
 tmp["id"] = tmp.id.astype("uint32")
 tmp.sort_values("SARPID").to_feather(api_dir / "small_barriers.feather")
@@ -366,8 +366,8 @@ for network_type in [
     # Save full results for tiles, etc
     scenario_results.reset_index().to_feather(results_dir / f"{network_type}.feather")
 
-    # save for API
-    tmp = scenario_results[COMBINED_API_FIELDS].reset_index()
+    # save for API (no private barriers)
+    tmp = scenario_results.loc[~scenario_results.Private, COMBINED_API_FIELDS].reset_index()
     verify_domains(tmp)
     tmp["id"] = tmp.id.astype("uint32")
 

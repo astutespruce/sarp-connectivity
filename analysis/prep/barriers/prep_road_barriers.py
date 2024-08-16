@@ -195,10 +195,8 @@ df["SARP_Score"] = df.SARP_Score.fillna(-1).astype("float32")
 # fix casing issues of PotentialProject
 df["PotentialProject"] = df.PotentialProject.fillna("Unassessed").str.strip().str.replace("barrier", "Barrier")
 
-# TEMP: fix bogus values
-df.loc[df.PotentialProject == "1", "PotentialProject"] = ""
-# FIXME: remove fix for typo
-df.loc[df.PotentialProject == "Insignficant Barrier", "PotentialProject"] = "Insignificant Barrier"
+# fix typo and bogus value (1)
+df["PotentialProject"] = df.PotentialProject.replace("Insignficant Barrier", "Insignificant Barrier").replace("1", "")
 
 # Recode No => No Barrier per guidance from SARP
 df.loc[df.PotentialProject == "No", "PotentialProject"] = "No Barrier"
@@ -210,6 +208,11 @@ df.loc[ix, "PotentialProject"] = "Unassessed"
 # per guidance from Kat, anything where SARP_Score is 0 and potential project is
 # not severe barrier is not set correctly, set it to -1 (null)
 df.loc[(df.SARP_Score == 0) & (df.PotentialProject != "Severe Barrier"), "SARP_Score"] = -1
+
+# convert Private to bool
+df["Private"] = (
+    df.Private.fillna("").map({"Public": False, "0": False, "Private": True, "1": True, "": False}).astype("bool")
+)
 
 
 # Fix mixed casing of values and discard meaningless unknown values
@@ -573,6 +576,12 @@ print(f"Snapped {df.snapped.sum():,} small barriers in {time() - snap_start:.2f}
 
 print("\n--------------\n")
 
+
+# FIXME:remove
+df.to_feather("/tmp/small_barriers.feather")
+crossings.to_feather("/tmp/road_crossings.feather")
+
+
 ################################################################################
 ### Remove duplicates after snapping, in case any snapped to the same position
 ################################################################################
@@ -587,6 +596,8 @@ df["dup_log"] = "not a duplicate"
 df["dup_sort"] = np.where(df.BarrierSeverity == 0, 9999, df.BarrierSeverity)
 # give removed barriers highest priority to retain them during deduplication
 df.loc[df.removed, "dup_sort"] = np.uint8(0)
+# make private barriers lower priority relative to public barriers
+df.loc[df.Private, "dup_sort"] += 100
 
 # for any barriers that snapped to crossings, deduplicate those at the same crossing
 multiple_per_crossing = df.loc[df.crossing_id.notnull()].groupby("crossing_id").size().rename("dup_count")
@@ -670,7 +681,7 @@ df.loc[ix, "excluded"] = True
 df.loc[ix, "log"] = "excluded: co-occurs with a waterfall"
 
 ################################################################################
-### Sync attributes between barriers and road crossings they snapped to
+### Sync attributes between non-private barriers and road crossings they snapped to
 ################################################################################
 
 # Per direction from Kat on 7/30/2024, copy across several of the fields from the nearest barrier to the crossing
@@ -696,10 +707,12 @@ copy_cols = [
     "PartnerID",
 ]
 crossings = crossings.join(
-    df[copy_cols].rename(columns={c: f"{c}_barrier" for c in copy_cols}),
+    df.loc[~df.Private, copy_cols].rename(columns={c: f"{c}_barrier" for c in copy_cols}),
     on="barrier_id",
 )
-surveyed = crossings.barrier_id.notnull()
+
+# NOTE: surveyed status can only be set for non-private barriers
+surveyed = crossings.SARPID_barrier.notnull()
 crossings.loc[surveyed, "Surveyed"] = np.uint8(1)
 
 # override CrossingCode if present in inventoried barrier
@@ -948,9 +961,13 @@ write_dataframe(to_analyze, qa_dir / "snapped_small_barriers.fgb")
 ### Output road crossings
 ################################################################################
 
-### Merge in road barriers that have no associated crossing
+### Merge in non-private road barriers that have no associated crossing
 tmp = df.loc[
-    (~(df.dropped | df.duplicate)) & (~df.SARPID.isin(crossings.SARPID.values)),
+    (~(df.dropped | df.duplicate | df.Private))
+    # exclude any that had their SARPIDs merged into crossings
+    & (~df.SARPID.isin(crossings.SARPID.values))
+    # exclude any that have an associated crossing
+    & (df.crossing_id.isnull()),
     list(set(crossings.columns).intersection(df.columns)),
 ].reset_index(drop=True)
 tmp["Surveyed"] = np.uint8(1)
@@ -989,7 +1006,14 @@ write_dataframe(crossings, qa_dir / "road_crossings.fgb")
 # NOTE: any that were not snapped were dropped in earlier processing
 print(f"Serializing {crossings.snapped.sum():,} snapped road crossings")
 snapped_crossings = crossings.loc[
-    crossings.snapped & (~(crossings.loop | crossings.offnetwork_flowline) & (crossings.Surveyed == 0)),
+    crossings.snapped
+    & (
+        ~(crossings.loop | crossings.offnetwork_flowline)
+        # exclude any known to be surveyed
+        & (crossings.Surveyed == 0)
+        # exclude any that are linked to private barriers not marked as surveyed
+        & (crossings.barrier_id.isnull())
+    ),
     [
         "geometry",
         "id",

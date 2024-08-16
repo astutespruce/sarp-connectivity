@@ -2,7 +2,7 @@
   "name": "sarp-prioritization-tool",
   "description": "National Aquatic Barrier Inventory & Prioritization Tool",
   "version": "3.11.0",
-  "date": "8/1/2024",
+  "date": "8/14/2024",
   "author": "Brendan C. Ward <bcward@astutespruce.com>",
   "dependencies": {
     "@apache-arrow/es2015-esm": "^17.0.0",

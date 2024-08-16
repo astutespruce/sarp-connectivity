@@ -10,7 +10,7 @@ Run `analysis/post/extract_summary_stats.py` to generate an overall summary file
 
 Run `analysis/post/create_static_maps.py` to generate thumbnails of the ranked dams in each region and state. This must be done after creating tilesets below.
 
-Note: generating maps uses `pymgl` to render the maps, which is only available for MacOS or Ubuntu 20.04.
+Note: generating maps uses `pymgl` to render the maps, which is only available for MacOS or Ubuntu 20.04 / 22.04.
 
 ### Vector tiles
 

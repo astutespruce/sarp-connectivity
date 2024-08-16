@@ -38,6 +38,7 @@ const RestorationMap = ({
   selectedBarrier,
   onSelectUnit,
   onSelectBarrier,
+  onCreateMap,
   children,
   ...props
 }) => {
@@ -336,6 +337,8 @@ const RestorationMap = ({
           })
         }
       })
+
+      onCreateMap(map)
     },
     // hook deps are intentionally omitted here
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
@@ -585,6 +588,7 @@ RestorationMap.propTypes = {
   selectedBarrier: PropTypes.object,
   onSelectUnit: PropTypes.func.isRequired,
   onSelectBarrier: PropTypes.func.isRequired,
+  onCreateMap: PropTypes.func.isRequired,
   children: PropTypes.oneOfType([
     PropTypes.arrayOf(PropTypes.node),
     PropTypes.node,

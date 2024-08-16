@@ -94,8 +94,7 @@ start = time()
 ### Read dams for analysis region states states and merge
 print("Reading dams in analysis region states")
 
-# FIXME: remove drop of cost columns after next run of download
-df = gp.read_feather(src_dir / "sarp_dams.feather").drop(columns=["Cost_95_Upper", "Cost_95_Lower"], errors="ignore")
+df = gp.read_feather(src_dir / "sarp_dams.feather")
 print(f"Read {len(df):,} dams in region states")
 
 # join in cost columns, but only where height is within tolerance because height
@@ -231,6 +230,11 @@ df = df.drop(columns=["InvasiveSpecies"])
 
 # convert IsPriority to a bool (1 = Yes, Null/0/2 = No / not set)
 df["IsPriority"] = df.IsPriority == 1
+
+# convert Private to bool
+df["Private"] = (
+    df.Private.fillna("").map({"Public": False, "0": False, "Private": True, "1": True, "": False}).astype("bool")
+)
 
 
 ### Set data types

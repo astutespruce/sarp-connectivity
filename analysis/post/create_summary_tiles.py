@@ -99,8 +99,10 @@ for region, region_states in REGION_STATES.items():
 ### Read dams
 dams = pd.read_feather(
     results_dir / "dams.feather",
-    columns=["id", "HasNetwork", "Ranked", "Removed", "YearRemoved"] + SUMMARY_UNITS,
+    columns=["id", "HasNetwork", "Ranked", "Removed", "YearRemoved", "Private"] + SUMMARY_UNITS,
 ).set_index("id", drop=False)
+
+dams = dams.loc[~dams.Private]
 
 # Get recon from master
 dams_master = pd.read_feather(src_dir / "dams.feather", columns=["id", "Recon"]).set_index("id")
@@ -131,8 +133,10 @@ dams["YearRemoved"] = calc_year_removed_bin(dams.YearRemoved)
 ### Read road-related barriers
 barriers = pd.read_feather(
     results_dir / "small_barriers.feather",
-    columns=["id", "HasNetwork", "Ranked", "Removed", "YearRemoved"] + SUMMARY_UNITS,
+    columns=["id", "HasNetwork", "Ranked", "Removed", "YearRemoved", "Private"] + SUMMARY_UNITS,
 ).set_index("id", drop=False)
+
+barriers = barriers.loc[~barriers.Private]
 
 barriers_master = pd.read_feather(
     "data/barriers/master/small_barriers.feather",
@@ -165,15 +169,17 @@ barriers["YearRemoved"] = calc_year_removed_bin(barriers.YearRemoved)
 
 largefish_barriers = pd.read_feather(
     results_dir / "largefish_barriers.feather",
-    columns=["id", "BarrierType", "Ranked"] + SUMMARY_UNITS,
+    columns=["id", "BarrierType", "Ranked", "Private"] + SUMMARY_UNITS,
 )
+largefish_barriers = largefish_barriers.loc[~largefish_barriers.Private]
 largefish_barriers["FishHabitatPartnership"] = largefish_barriers.FishHabitatPartnership.str.split(",")
 largefish_barriers["Region"] = largefish_barriers.State.map(state_regions)
 
 smallfish_barriers = pd.read_feather(
     results_dir / "smallfish_barriers.feather",
-    columns=["id", "BarrierType", "Ranked"] + SUMMARY_UNITS,
+    columns=["id", "BarrierType", "Ranked", "Private"] + SUMMARY_UNITS,
 )
+smallfish_barriers = smallfish_barriers.loc[~smallfish_barriers.Private]
 smallfish_barriers["FishHabitatPartnership"] = smallfish_barriers.FishHabitatPartnership.str.split(",")
 smallfish_barriers["Region"] = smallfish_barriers.State.map(state_regions)
 

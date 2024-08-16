@@ -243,7 +243,27 @@ out = pd.concat(
 
 for i, unit in enumerate(["HUC2", "HUC6", "HUC8", "HUC10", "HUC12"]):
     print(f"Processing {unit}")
-    df = gp.read_feather(out_dir / f"{unit.lower()}.feather").rename(columns={unit: "id"}).to_crs(GEO_CRS)
+    df = (
+        gp.read_feather(out_dir / f"{unit.lower()}.feather")
+        .rename(columns={unit: "id"})
+        .to_crs(GEO_CRS)
+        .explode(ignore_index=True)
+    )
+    # unwrap any of the Alaska units around the antimeridian
+    df["geometry"] = unwrap_antimeridian(df.geometry.values)
+
+    df = gp.GeoDataFrame(
+        df.groupby("id")
+        .agg(
+            {
+                "geometry": shapely.multipolygons,
+                **{c: "first" for c in df.columns if c not in {"geometry", "id"}},
+            }
+        )
+        .reset_index(),
+        geometry="geometry",
+        crs=df.crs,
+    )
 
     df["bbox"] = encode_bbox(df.geometry.values)
     df["layer"] = unit

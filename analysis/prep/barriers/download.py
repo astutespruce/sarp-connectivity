@@ -24,6 +24,10 @@ TOKEN = os.getenv("AGOL_TOKEN", None)
 if not TOKEN:
     raise ValueError("AGOL_TOKEN must be defined in your .env file")
 
+PRIVATE_TOKEN = os.getenv("AGOL_PRIVATE_TOKEN", None)
+if not PRIVATE_TOKEN:
+    raise ValueError("AGOL_PRIVATE_TOKEN must be defined in your .env file")
+
 
 DAMS_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Dams_National_Aquatic_Barrier_Inventory_Dec_2023/FeatureServer/0"
 SNAPPED_URL = (
@@ -42,6 +46,9 @@ SMALL_BARRIER_SURVEY_URLS = {
     "Southeast (coarse)": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/service_4b226787a3464f478602431383498138/FeatureServer/0",
     "Western (inland)": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/service_1da663f4b2ff45aeadbf5568829f40f6/FeatureServer/0",
 }
+PRIVATE_BARRIERS_URL = (
+    "https://services9.arcgis.com/jLLC0IEfFUxV8nml/ArcGIS/rest/services/Private_Road_Crossings_08132024/FeatureServer/0"
+)
 
 
 async def download_dams(token):
@@ -85,6 +92,9 @@ async def download_dams(token):
 
         df = df.to_crs(CRS)
 
+        # convert from ESRI format to string
+        df["EditDate"] = pd.to_datetime(df.EditDate, unit="ms").dt.strftime("%m/%d/%Y")
+
         return df
 
 
@@ -120,9 +130,13 @@ async def download_snapped_dams(token):
         return df
 
 
-async def download_small_barriers(token):
+async def download_small_barriers(token, private_token):
     async with httpx.AsyncClient(timeout=httpx.Timeout(60.0, connect=60.0), http2=True) as client:
         df = await download_fs(client, SMALL_BARRIERS_URL, fields=SMALL_BARRIER_COLS, token=token)
+        df["svc"] = "public"
+        private_df = await download_fs(client, PRIVATE_BARRIERS_URL, fields=SMALL_BARRIER_COLS, token=private_token)
+        private_df["svc"] = "private"
+        df = pd.concat([df, private_df], ignore_index=True, sort=True)
 
         # fill missing fields
         missing = [c for c in SMALL_BARRIER_COLS if c not in df.columns]
@@ -241,8 +255,6 @@ if s.max() > 1:
     print("WARNING: multiple dams with same SARPID")
     print(s[s > 1])
 
-# convert from ESRI format to string
-df["EditDate"] = pd.to_datetime(df.EditDate, unit="ms").dt.strftime("%m/%d/%Y")
 
 df.to_feather(out_dir / "sarp_dams.feather")
 
@@ -263,14 +275,15 @@ df.to_feather(out_dir / "manually_snapped_dams.feather")
 ### Download small barriers
 print("\n---- Downloading Small Barriers ----")
 download_start = time()
-df = asyncio.run(download_small_barriers(TOKEN))
+df = asyncio.run(download_small_barriers(TOKEN, PRIVATE_TOKEN))
 print(f"Downloaded {len(df):,} small barriers in {time() - download_start:.2f}s")
 
-ix = df.SARPID.isnull() | (df.SARPID == "")
-if ix.max():
-    print(
-        f"--------------------------\nWARNING: {ix.sum():,} small barriers are missing SARPID\n----------------------------"
-    )
+for svc in ["public", "private"]:
+    ix = (df.SARPID.isnull() | (df.SARPID == "")) & (df.svc == svc)
+    if ix.max():
+        print(
+            f"--------------------------\nWARNING: {ix.sum():,} {svc} small barriers are missing SARPID\n----------------------------"
+        )
 
 # # DEBUG ONLY - SARPID must be present; follow up with SARP if not
 df.SARPID = df.SARPID.fillna("").astype("str")

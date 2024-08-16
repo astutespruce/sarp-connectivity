@@ -155,7 +155,7 @@ export const fetchUnitDetails = async (layer, id) => {
 
     const rawData = await response.json()
 
-    const { removedDamsByYear, removedSmallBarriersByYear, ...data } =
+    const { removedDamsByYear, removedSmallBarriersByYear, bbox, ...data } =
       toCamelCaseFields(rawData)
 
     const removedBarriersByYear = extractYearRemovedStats(
@@ -163,7 +163,11 @@ export const fetchUnitDetails = async (layer, id) => {
       removedSmallBarriersByYear
     )
 
-    return { ...data, removedBarriersByYear }
+    return {
+      ...data,
+      bbox: bbox ? bbox.split(',').map(parseFloat) : null,
+      removedBarriersByYear,
+    }
   } catch (err) {
     captureException(err)
 

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react'
+import React, { useState, useRef, useMemo, useCallback } from 'react'
 import PropTypes from 'prop-types'
 import { Box, Flex, Spinner, Text } from 'theme-ui'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
@@ -71,6 +71,7 @@ const ExplorePage = ({ location }) => {
   }))
 
   const summaryUnitsRef = useRef(new Set())
+  const mapRef = useRef(null)
 
   // load data for item specified in URL
   const {
@@ -138,6 +139,9 @@ const ExplorePage = ({ location }) => {
             layer,
             id: selectedId,
             ...preFetchedUnitData,
+            bbox: preFetchedUnitData.bbox
+              ? preFetchedUnitData.bbox.split(',').map(parseFloat)
+              : null,
           },
         ]),
       }))
@@ -183,6 +187,7 @@ const ExplorePage = ({ location }) => {
       summaryUnits: [],
       searchFeature: null,
       selectedBarrier: null,
+      bounds: null,
       isUnitError: false,
       isUnitLoading: false,
     }))
@@ -206,12 +211,14 @@ const ExplorePage = ({ location }) => {
   const regionData = useMemo(
     () => {
       if (selectedItem) {
-        const bounds = selectedItem.bbox.split(',').map((d) => parseFloat(d))
+        const itemBounds = selectedItem.bbox
+          .split(',')
+          .map((d) => parseFloat(d))
         if (region) {
           return {
             ...selectedItem,
             layer: 'boundary',
-            bounds,
+            bounds: itemBounds,
             name: `the ${REGIONS[region].name}`,
             url: REGIONS[region].url,
             urlLabel: 'view region page for more information',
@@ -221,7 +228,7 @@ const ExplorePage = ({ location }) => {
           return {
             ...selectedItem,
             layer: 'fhp_boundary',
-            bounds,
+            bounds: itemBounds,
             name: `the ${FISH_HABITAT_PARTNERSHIPS[fishhabitatpartnership].name}`,
             url: `/fhp/${fishhabitatpartnership}`,
             urlLabel:
@@ -232,7 +239,7 @@ const ExplorePage = ({ location }) => {
           return {
             ...selectedItem,
             layer: 'State',
-            bounds,
+            bounds: itemBounds,
             url: `/states/${state}`,
             urlLabel: `view state page for more information`,
           }
@@ -250,6 +257,18 @@ const ExplorePage = ({ location }) => {
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
     [selectedItem]
   )
+
+  const handleCreateMap = (map) => {
+    mapRef.current = map
+  }
+
+  const handleZoomBounds = useCallback((newBounds) => {
+    const { current: map } = mapRef
+
+    if (!(map && newBounds)) return
+
+    map.fitBounds(newBounds, { padding: 100 })
+  }, [])
 
   let sidebarContent = null
 
@@ -308,6 +327,7 @@ const ExplorePage = ({ location }) => {
         summaryUnits={summaryUnits}
         onSelectUnit={handleSelectUnit}
         onReset={handleReset}
+        onZoomBounds={handleZoomBounds}
       />
     )
   } else {
@@ -349,6 +369,7 @@ const ExplorePage = ({ location }) => {
                   selectedBarrier={selectedBarrier}
                   onSelectUnit={handleSelectUnit}
                   onSelectBarrier={handleSelectBarrier}
+                  onCreateMap={handleCreateMap}
                 >
                   <TopBar>
                     <Text sx={{ mr: '0.5rem' }}>Show networks for:</Text>
