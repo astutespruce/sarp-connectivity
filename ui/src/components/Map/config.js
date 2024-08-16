@@ -16,7 +16,7 @@ export const mapConfig = {
 export const sources = {
   map_units: {
     type: 'vector',
-    maxzoom: 8,
+    maxzoom: 12,
     tiles: [`${tileHost}/services/map_units_summary/tiles/{z}/{x}/{y}.pbf`],
   },
   dams: {
