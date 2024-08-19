@@ -130,9 +130,6 @@ const SurveyWorkflow = () => {
             layer: selectedUnitLayer,
             id,
             ...preFetchedUnitData,
-            bbox: preFetchedUnitData.bbox
-              ? preFetchedUnitData.bbox.split(',').map(parseFloat)
-              : null,
           },
         ]),
       }))

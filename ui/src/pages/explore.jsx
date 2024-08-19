@@ -139,9 +139,6 @@ const ExplorePage = ({ location }) => {
             layer,
             id: selectedId,
             ...preFetchedUnitData,
-            bbox: preFetchedUnitData.bbox
-              ? preFetchedUnitData.bbox.split(',').map(parseFloat)
-              : null,
           },
         ]),
       }))
@@ -211,14 +208,10 @@ const ExplorePage = ({ location }) => {
   const regionData = useMemo(
     () => {
       if (selectedItem) {
-        const itemBounds = selectedItem.bbox
-          .split(',')
-          .map((d) => parseFloat(d))
         if (region) {
           return {
             ...selectedItem,
             layer: 'boundary',
-            bounds: itemBounds,
             name: `the ${REGIONS[region].name}`,
             url: REGIONS[region].url,
             urlLabel: 'view region page for more information',
@@ -228,7 +221,6 @@ const ExplorePage = ({ location }) => {
           return {
             ...selectedItem,
             layer: 'fhp_boundary',
-            bounds: itemBounds,
             name: `the ${FISH_HABITAT_PARTNERSHIPS[fishhabitatpartnership].name}`,
             url: `/fhp/${fishhabitatpartnership}`,
             urlLabel:
@@ -239,7 +231,6 @@ const ExplorePage = ({ location }) => {
           return {
             ...selectedItem,
             layer: 'State',
-            bounds: itemBounds,
             url: `/states/${state}`,
             urlLabel: `view state page for more information`,
           }

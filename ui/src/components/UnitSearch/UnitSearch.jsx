@@ -53,7 +53,10 @@ const UnitSearch = ({
   }, [])
 
   const handleSelect = (item) => () => {
-    onSelect(item)
+    onSelect({
+      ...item,
+      bbox: item.bbox ? item.bbox.split(',').map(parseFloat) : null,
+    })
     setState(() => ({ query: '', activeIndex: null }))
   }
 
@@ -72,7 +75,10 @@ const UnitSearch = ({
       if (key === 'Enter' && activeIndex !== null) {
         const item = results[activeIndex]
         if (!(ignoreIds && ignoreIds.has(item.id))) {
-          onSelect(item)
+          onSelect({
+            ...item,
+            bbox: item.bbox ? item.bbox.split(',').map(parseFloat) : null,
+          })
         }
         setState(() => ({ query: '', activeIndex: null }))
 

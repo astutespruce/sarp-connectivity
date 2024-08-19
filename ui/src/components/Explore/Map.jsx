@@ -637,14 +637,14 @@ const ExploreMap = ({
       filter: ['==', 'id', region.id],
     })
 
-    map.fitBounds(region.bounds, {
+    map.fitBounds(region.bbox, {
       padding: 100,
     })
   }, [region])
 
   return (
     <>
-      <Map onCreateMap={handleCreateMap} {...props} bounds={region.bounds}>
+      <Map onCreateMap={handleCreateMap} {...props} bounds={region.bbox}>
         <Legend
           title={layerTitle}
           subtitle={`number of ${barrierTypeLabel}`}
@@ -661,7 +661,7 @@ ExploreMap.propTypes = {
   region: PropTypes.shape({
     id: PropTypes.string.isRequired,
     layer: PropTypes.string.isRequired,
-    bounds: PropTypes.arrayOf(PropTypes.number).isRequired,
+    bbox: PropTypes.arrayOf(PropTypes.number).isRequired,
   }).isRequired,
   system: PropTypes.string.isRequired,
   focalBarrierType: PropTypes.string.isRequired,
