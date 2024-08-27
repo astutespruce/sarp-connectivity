@@ -90,6 +90,7 @@ const Downloader = ({
 
       trackDownload({
         barrierType,
+        unitType: 'selected area',
         details: `ids: [${formattedIds}], filters: ${
           filters ? Object.keys(filters) : 'none'
         }, scenario: ${scenario}, include unranked: ${

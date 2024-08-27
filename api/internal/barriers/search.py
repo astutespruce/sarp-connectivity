@@ -9,7 +9,7 @@ from pyarrow.feather import write_feather
 from rapidfuzz import fuzz
 
 from api.constants import BARRIER_SEARCH_RESULT_FIELDS
-from api.data import search_barriers
+from api.data import db, search_barriers
 from api.logger import log_request
 
 
@@ -44,25 +44,22 @@ async def search(request: Request, query: str):
         # NOTE: case must match
 
         # strip whitespace if user copy/pasted from sidebar
-        query = query.replace(" ", "")
+        query = query.replace(" ", "") + "%"
 
-        matches = search_barriers.to_table(
-            filter=pc.starts_with(pc.field("SARPID"), query),
-            columns=BARRIER_SEARCH_RESULT_FIELDS,
-        )[: 1000 + NUM_BARRIER_SEARCH_RESULTS]
+        total = db.sql("SELECT COUNT(*) FROM search_barriers WHERE SARPID LIKE ?", params=(query,)).fetchone()[0]
 
-        total = len(matches)
+        col_expr = ", ".join([f"{col} AS {col.lower()}" for col in BARRIER_SEARCH_RESULT_FIELDS])
 
-        # discard pandas metadata and store count, then limit to top 10
-        matches = matches.replace_schema_metadata({"count": str(len(matches))})
+        matches = db.sql(
+            f"""SELECT {col_expr} FROM search_barriers
+            WHERE SARPID LIKE ?
+            ORDER BY length(SARPID) ASC, SARPID ASC
+            LIMIT {NUM_BARRIER_SEARCH_RESULTS}""",
+            params=(query,),
+        ).arrow()
 
-        # sort to prioritize results with shortest IDs (will be closest matches)
-        matches = pa.Table.from_pydict(
-            {
-                **{col.lower(): matches[col] for col in matches.column_names},
-                "id_len": pc.utf8_length(matches["SARPID"]),
-            }
-        ).sort_by([["id_len", "ascending"], ["sarpid", "ascending"]])
+        # discard pandas metadata and store total count
+        matches = matches.replace_schema_metadata({"count": str(total)})
 
     else:
         # replace spaces with regex that allows any whitespace or intermediate words

@@ -146,9 +146,6 @@ const ProgressPage = ({ location }) => {
             layer,
             id: selectedId,
             ...preFetchedUnitData,
-            bbox: preFetchedUnitData.bbox
-              ? preFetchedUnitData.bbox.split(',').map(parseFloat)
-              : null,
             removedBarriersByYear: extractYearRemovedStats(
               preFetchedUnitData.removedDamsByYear,
               preFetchedUnitData.removedSmallBarriersByYear
@@ -223,12 +220,10 @@ const ProgressPage = ({ location }) => {
   const regionData = useMemo(
     () => {
       if (selectedItem) {
-        const bounds = selectedItem.bbox.split(',').map((d) => parseFloat(d))
         if (region) {
           return {
             ...selectedItem,
             layer: 'boundary',
-            bounds,
             name: `the ${REGIONS[region].name}`,
             url: REGIONS[region].url,
             urlLabel: 'view region page for more information',
@@ -238,7 +233,6 @@ const ProgressPage = ({ location }) => {
           return {
             ...selectedItem,
             layer: 'fhp_boundary',
-            bounds,
             name: `the ${FISH_HABITAT_PARTNERSHIPS[fishhabitatpartnership].name}`,
             url: `/fhp/${fishhabitatpartnership}`,
             urlLabel:
@@ -249,7 +243,6 @@ const ProgressPage = ({ location }) => {
           return {
             ...selectedItem,
             layer: 'State',
-            bounds,
             url: `/states/${state}`,
             urlLabel: `view state page for more information`,
           }

@@ -183,9 +183,6 @@ const Prioritize = () => {
             layer: selectedUnitLayer,
             id,
             ...preFetchedUnitData,
-            bbox: preFetchedUnitData.bbox
-              ? preFetchedUnitData.bbox.split(',').map(parseFloat)
-              : null,
           },
         ]),
       }))
