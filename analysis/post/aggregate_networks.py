@@ -3,6 +3,7 @@ from pathlib import Path
 from time import time
 from zipfile import ZipFile, ZIP_DEFLATED
 
+import duckdb
 import geopandas as gp
 import numpy as np
 import pandas as pd
@@ -157,7 +158,7 @@ tmp = dams.loc[~dams.Private, DAM_API_FIELDS].reset_index()
 verify_domains(tmp)
 # downcast id to uint32 or it breaks in UI
 tmp["id"] = tmp.id.astype("uint32")
-tmp.sort_values("SARPID").to_feather(api_dir / "dams.feather")
+tmp.sort_values("SARPID").reset_index(drop=True).to_feather(api_dir / "dams.feather")
 
 
 #########################################################################################
@@ -227,7 +228,7 @@ small_barriers.reset_index().to_feather(results_dir / "small_barriers.feather")
 tmp = small_barriers.loc[~small_barriers.Private, SB_API_FIELDS].reset_index()
 verify_domains(tmp)
 tmp["id"] = tmp.id.astype("uint32")
-tmp.sort_values("SARPID").to_feather(api_dir / "small_barriers.feather")
+tmp.sort_values("SARPID").reset_index(drop=True).to_feather(api_dir / "small_barriers.feather")
 
 #########################################################################################
 ###
@@ -371,7 +372,7 @@ for network_type in [
     verify_domains(tmp)
     tmp["id"] = tmp.id.astype("uint32")
 
-    tmp.sort_values("SARPID").to_feather(api_dir / f"{network_type}.feather")
+    tmp.sort_values("SARPID").reset_index(drop=True).to_feather(api_dir / f"{network_type}.feather")
 
     # save for search
     if network_type == "combined_barriers":
@@ -436,7 +437,7 @@ tmp = waterfalls[["id"] + WF_API_FIELDS].copy()
 verify_domains(tmp)
 tmp["id"] = tmp.id.astype("uint32")
 
-tmp.to_feather(api_dir / "waterfalls.feather")
+tmp.sort_values(by=["SARPID", "network_type"]).reset_index(drop=True).to_feather(api_dir / "waterfalls.feather")
 
 
 #########################################################################################
@@ -476,7 +477,7 @@ verify_domains(tmp)
 
 # downcast id to uint32 or it breaks in UI
 tmp["id"] = tmp.id.astype("uint32")
-tmp.sort_values("SARPID").to_feather(api_dir / "road_crossings.feather")
+tmp.sort_values("SARPID").reset_index(drop=True).to_feather(api_dir / "road_crossings.feather")
 
 ### Save barrier search items
 
@@ -487,8 +488,45 @@ search_barriers["search_key"] = (
 search_barriers["priority"] = search_barriers.BarrierType.map(
     {"dams": 0, "waterfalls": 1, "small_barriers": 2, "road_crossings": 3}
 ).astype("uint8")
-search_barriers.sort_values(by=["priority", "SARPID"]).to_feather(api_dir / "search_barriers.feather")
+search_barriers.sort_values(by=["priority", "SARPID"]).reset_index(drop=True).to_feather(
+    api_dir / "search_barriers.feather"
+)
 
+
+################################################################################
+### Create DuckDB database for much faster barrier lookup by SARPID
+################################################################################
+
+# NOTE:
+# this uses an index on SARPID, which works because it is highly selective and thus high performance;
+# name and other fields are not indexed because the current indexes in DuckDB
+# are not actually used when querying them (not selective enough), so they are
+# slower than reading directly from the feather files.
+# This excludes waterfalls, which aren't searched via the API (and also would fail unique index below)
+
+print("Creating DuckDB database for faster barrier lookup")
+out_db = api_dir / "api.db"
+if out_db.exists():
+    out_db.unlink()
+
+with duckdb.connect(str(out_db)) as con:
+    for network_type in NETWORK_TYPES.keys():
+        print(f"Creating {network_type} table")
+        ds = dataset(api_dir / f"{network_type}.feather", format="feather")
+        _ = con.execute(f"CREATE TABLE {network_type} AS SELECT * from ds")
+        _ = con.execute(f"CREATE UNIQUE INDEX {network_type}_sarpid_index ON {network_type} (SARPID)")
+
+    print("Creating road_crossings table")
+    ds = dataset(api_dir / "road_crossings.feather", format="feather")
+    _ = con.execute("CREATE TABLE road_crossings AS SELECT * from ds")
+    _ = con.execute("CREATE UNIQUE INDEX road_crossings_sarpid_index ON road_crossings (SARPID)")
+
+    print("Creating seach_barriers table")
+    ds = dataset(api_dir / "search_barriers.feather", format="feather")
+    _ = con.execute("CREATE TABLE search_barriers AS SELECT * from ds")
+    _ = con.execute("CREATE UNIQUE INDEX search_barriers_sarpid_index ON search_barriers (SARPID)")
+
+raise FOO
 
 ################################################################################
 ### Pre-create zip files for national downloads

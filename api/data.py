@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import duckdb
 from pyarrow.dataset import dataset
 
 from api.logger import log
@@ -7,8 +8,9 @@ from api.logger import log
 
 data_dir = Path("data/api")
 
-
 try:
+    db = duckdb.connect(str(data_dir / "api.db"), read_only=True)
+
     dams = dataset(data_dir / "dams.feather", format="feather")
     small_barriers = dataset(data_dir / "small_barriers.feather", format="feather")
     combined_barriers = dataset(data_dir / "combined_barriers.feather", format="feather")
