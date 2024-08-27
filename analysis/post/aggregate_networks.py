@@ -526,8 +526,6 @@ with duckdb.connect(str(out_db)) as con:
     _ = con.execute("CREATE TABLE search_barriers AS SELECT * from ds")
     _ = con.execute("CREATE UNIQUE INDEX search_barriers_sarpid_index ON search_barriers (SARPID)")
 
-raise FOO
-
 ################################################################################
 ### Pre-create zip files for national downloads
 ################################################################################
