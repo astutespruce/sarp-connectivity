@@ -48,9 +48,11 @@ def extract_waterbodies(gdb, target_crs):
         gdb,
         layer=layer,
         columns=read_cols,
-        force_2d=True,
         where=f"{ftype_col} not in {tuple(WATERBODY_EXCLUDE_FTYPES)}",
+        use_arrow=True,
     ).rename(columns=col_map)
+    df["geometry"] = shapely.force_2d(df.geometry.values)
+
     print(f"Read {len(df):,} waterbodies")
 
     # Convert multipolygons to polygons
@@ -109,12 +111,8 @@ def find_nhd_waterbody_breaks(geometries, nhd_lines):
     )
 
     shapely.prepare(tmp.right_geometry.values)
-    contained = shapely.contains_properly(
-        tmp.right_geometry.values, tmp.left_geometry.values
-    )
-    print(
-        f"Dropping {contained.sum()} NHD lines that are completely contained within waterbodies"
-    )
+    contained = shapely.contains_properly(tmp.right_geometry.values, tmp.left_geometry.values)
+    print(f"Dropping {contained.sum()} NHD lines that are completely contained within waterbodies")
 
     tmp = tmp.loc[~contained]
 
@@ -140,9 +138,7 @@ def find_nhd_waterbody_breaks(geometries, nhd_lines):
     )
 
     # calculate geometric intersection
-    i = shapely.intersection(
-        geometries.take(pairs.left.values), geometries.take(pairs.right.values)
-    )
+    i = shapely.intersection(geometries.take(pairs.left.values), geometries.take(pairs.right.values))
 
     # extract individual parts (may be geom collections)
     parts = shapely.get_parts(shapely.get_parts(shapely.get_parts(i)))
@@ -152,9 +148,7 @@ def find_nhd_waterbody_breaks(geometries, nhd_lines):
     parts = parts[((t == 1) | (t == 3)) & (~shapely.is_empty(parts))].copy()
 
     # buffer and merge
-    split_lines = shapely.get_parts(
-        shapely.union_all(shapely.buffer(parts, buffer_dist))
-    )
+    split_lines = shapely.get_parts(shapely.union_all(shapely.buffer(parts, buffer_dist)))
 
     # now find the ones that are within 100m of nhd lines
     nhd_lines = shapely.get_parts(nhd_lines)
@@ -164,8 +158,6 @@ def find_nhd_waterbody_breaks(geometries, nhd_lines):
     split_lines = split_lines[np.unique(left)]
 
     if len(split_lines) or len(keep_nhd_lines):
-        return shapely.get_parts(
-            shapely.union_all(np.append(split_lines, keep_nhd_lines))
-        )
+        return shapely.get_parts(shapely.union_all(np.append(split_lines, keep_nhd_lines)))
 
     return None

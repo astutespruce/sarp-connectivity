@@ -34,14 +34,14 @@ for use later in the analysis pipeline.
 
 ### States in region
 
-State boundaries (2022 version) were downloaded from CENSUS Tiger website.
+State boundaries (2023 version) were downloaded from CENSUS Tiger website.
 
 The predefined list of states is assigned in `analysis/constants.py`.
 
 ### HUC4s in region
 
 Watershed boundaries were extracted from the NHD WBD national dataset downloaded
-on 2/15/2022 from: http://prd-tnm.s3-website-us-west-2.amazonaws.com/?prefix=StagedProducts/Hydrography/WBD/National/GDB/
+on 8/28/2024 from: http://prd-tnm.s3-website-us-west-2.amazonaws.com/?prefix=StagedProducts/Hydrography/WBD/National/GDB/
 
 ## 2. Prepare hydrologic boundaries
 
@@ -75,7 +75,7 @@ These are processed using `analysis/prep/boundaries/prep_boundaries.py`.
 
 ### Counties
 
-County boundaries (2022 version) were downloaded from CENSUS Tiger website.
+County boundaries (2023 version) were downloaded from CENSUS Tiger website.
 
 ### Federal Ownership
 

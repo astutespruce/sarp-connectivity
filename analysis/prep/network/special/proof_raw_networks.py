@@ -8,9 +8,7 @@ to loop / nonloop manually.
 
 from pathlib import Path
 
-import pyarrow as pa
-from pyarrow.dataset import dataset
-import pyarrow.compute as pc
+
 import pandas as pd
 import geopandas as gp
 import numpy as np
@@ -19,11 +17,11 @@ import shapely
 
 from analysis.lib.graph.speedups import DirectedGraph
 from analysis.lib.geometry.lines import merge_lines
-from analysis.lib.joins import find_joins
+from analysis.lib.joins import remove_joins
 from analysis.constants import (
-    CRS,
     CONVERT_TO_LOOP,
     CONVERT_TO_NONLOOP,
+    CONVERT_TO_MARINE,
     REMOVE_IDS,
     MAX_PIPELINE_LENGTH,
     KEEP_PIPELINES,
@@ -41,7 +39,7 @@ data_dir = Path("data")
 nhd_dir = data_dir / "nhd"
 src_dir = nhd_dir / "raw"
 
-huc2 = "18"
+huc2 = "02"
 
 ################################################################################
 ### Apply join fixes from the top of prepare_flowlines_waterbodies
@@ -53,6 +51,9 @@ joins = pd.read_feather(src_dir / huc2 / "flowline_joins.feather")
 # update loop status of joins, if needed
 loop_ix = flowlines.loc[flowlines.loop].NHDPlusID.unique()
 joins["loop"] = joins.upstream.isin(loop_ix) | joins.downstream.isin(loop_ix)
+
+if "great_lakes" not in joins:
+    joins["great_lakes"] = False
 
 join_fixes = JOIN_FIXES.get(huc2, [])
 if join_fixes:
@@ -115,6 +116,13 @@ if convert_ids:
     ] = False
     print("------------------")
 
+### Add overrides for marine segments
+marine_ids = CONVERT_TO_MARINE.get(huc2, [])
+if marine_ids:
+    print(f"Converting {len(marine_ids):,} joins to marine")
+    joins.loc[joins.upstream.isin(marine_ids), "marine"] = True
+    print("------------------")
+
 ### Drop pipelines that are > PIPELINE_MAX_LENGTH or are otherwise isolated from the network
 print("Evaluating pipelines & undeground connectors")
 keep_ids = KEEP_PIPELINES.get(huc2, [])
@@ -129,6 +137,30 @@ if huc2 == "18":
     flowlines, joins = repair_disconnected_subnetworks(flowlines, joins, next_lineID)
     print(f"{len(flowlines):,} flowlines after repairing subnetworks")
     print("------------------")
+
+
+### Mark marine connected flowlines
+marine = gp.read_feather(nhd_dir / "merged/nhd_marine.feather", columns=["geometry"])
+
+# Remove those that start in marine areas
+points = shapely.get_point(flowlines.geometry.values, 0)
+tree = shapely.STRtree(points)
+left, right = tree.query(marine.geometry.values, predicate="intersects")
+ix = flowlines.index.take(np.unique(right))
+
+print(f"Removing {len(ix):,} flowlines that originate in marine areas")
+# mark any that terminated in those as marine
+joins.loc[joins.downstream_id.isin(ix), "marine"] = True
+flowlines = flowlines.loc[~flowlines.index.isin(ix)].copy()
+joins = remove_joins(joins, ix, downstream_col="downstream_id", upstream_col="upstream_id")
+
+# Mark those that end in marine areas as marine
+endpoints = shapely.get_point(flowlines.geometry.values, -1)
+tree = shapely.STRtree(endpoints)
+left, right = tree.query(marine.geometry.values, predicate="intersects")
+ix = flowlines.index.take(np.unique(right))
+joins.loc[joins.upstream_id.isin(ix), "marine"] = True
+
 
 # make sure that updated joins are unique
 joins = joins.drop_duplicates()
@@ -176,26 +208,28 @@ networks = pd.DataFrame(
 )
 
 
-networks_at_junctions = np.intersect1d(networks.networkID.unique(), joins.loc[joins.junction].upstream_id.unique())
-if len(networks_at_junctions):
-    print(f"Merging multiple upstream networks at network junctions, affects {len(networks_at_junctions):,} networks")
+# NOTE: this might be slow
+# networks_at_junctions = np.intersect1d(networks.networkID.unique(), joins.loc[joins.junction].upstream_id.unique())
+# if len(networks_at_junctions):
+#     print(f"Merging multiple upstream networks at network junctions, affects {len(networks_at_junctions):,} networks")
 
-    downstreams = joins.loc[joins.upstream_id.isin(networks_at_junctions)].downstream_id.unique()
-    for downstream_id in downstreams:
-        # find all the networks that have the same downstream and fuse them
-        networkIDs = (
-            networks.loc[networks.networkID.isin(joins.loc[joins.downstream_id == downstream_id].upstream_id)]
-            .groupby("networkID")
-            .size()
-            .sort_values()
-            .index.values
-        )
-        # use the networkID with longest number of segments as out networkID
-        networkID = networkIDs[0]
-        networks.loc[networks.networkID.isin(networkIDs), "networkID"] = networkID
+#     downstreams = joins.loc[joins.upstream_id.isin(networks_at_junctions)].downstream_id.unique()
+#     for downstream_id in downstreams:
+#         # find all the networks that have the same downstream and fuse them
+#         networkIDs = (
+#             networks.loc[networks.networkID.isin(joins.loc[joins.downstream_id == downstream_id].upstream_id)]
+#             .groupby("networkID")
+#             .size()
+#             .sort_values()
+#             .index.values
+#         )
+#         # use the networkID with longest number of segments as out networkID
+#         networkID = networkIDs[0]
+#         networks.loc[networks.networkID.isin(networkIDs), "networkID"] = networkID
 
 
 ### Export networks
+print("Exporting networks...")
 joins["marine"] = joins.marine.fillna(0).astype("bool")
 joins["great_lakes"] = joins.great_lakes.fillna(0).astype("bool")
 networks["flows_to_ocean"] = networks.networkID.isin(joins.loc[joins.marine].upstream_id.unique())
@@ -204,7 +238,14 @@ networks["flows_to_great_lakes"] = networks.networkID.isin(joins.loc[joins.great
 tmp = merge_lines(
     flowlines[["geometry"]].join(networks.reset_index().set_index("lineID"), how="inner"), by="networkID"
 ).join(networks.groupby("networkID")[["flows_to_ocean", "flows_to_great_lakes"]].max(), on="networkID")
-write_dataframe(tmp, "/tmp/raw_networks.fgb")
+write_dataframe(tmp, f"/tmp/region_{huc2}_raw_networks.fgb")
+
+# tmp = (
+#     flowlines[["geometry"]]
+#     .join(networks.reset_index().set_index("lineID"), how="inner")
+#     .join(networks.groupby("networkID")[["flows_to_ocean", "flows_to_great_lakes"]].max(), on="networkID")
+# )
+# write_dataframe(tmp, f"/tmp/region_{huc2}_raw_networks.fgb")
 
 
 ### Check for duplicates
@@ -217,4 +258,6 @@ if len(dup_lineIDs):
     # network_counts.reset_index().to_feather("/tmp/dup_networks.feather")
 
     # export the flowlines that occur in multiple networks
-    write_dataframe(flowlines.loc[flowlines.index.isin(dup_lineIDs.index.values)], "/tmp/dup_network_flowlines.fgb")
+    write_dataframe(
+        flowlines.loc[flowlines.index.isin(dup_lineIDs.index.values)], f"/tmp/region_{huc2}_dup_network_flowlines.fgb"
+    )

@@ -7,6 +7,7 @@ the SARP states boundary.
 """
 
 from pathlib import Path
+import warnings
 
 import geopandas as gp
 import numpy as np
@@ -28,6 +29,8 @@ from analysis.lib.geometry.polygons import unwrap_antimeridian
 from analysis.lib.util import append
 from api.constants import FISH_HABITAT_PARTNERSHIPS
 
+warnings.filterwarnings("ignore", message=".*more than 100 parts.*")
+
 
 def encode_bbox(geometries):
     return np.apply_along_axis(
@@ -41,7 +44,7 @@ data_dir = Path("data")
 out_dir = data_dir / "boundaries"
 src_dir = out_dir / "source"
 
-county_filename = src_dir / "tl_2022_us_county.shp"
+county_filename = src_dir / "tl_2023_us_county.zip"
 huc4_df = gp.read_feather(out_dir / "huc4.feather")
 
 # state outer boundaries, NOT analysis boundaries
@@ -57,10 +60,7 @@ print("Processing counties")
 state_fips = sorted(state_df.STATEFIPS.unique())
 
 county_df = (
-    read_dataframe(
-        county_filename,
-        columns=["NAME", "GEOID", "STATEFP"],
-    )
+    read_dataframe(county_filename, columns=["NAME", "GEOID", "STATEFP"], use_arrow=True)
     .to_crs(CRS)
     .rename(columns={"NAME": "County", "GEOID": "COUNTYFIPS", "STATEFP": "STATEFIPS"})
 )
@@ -364,6 +364,7 @@ df = (
         # Unknown / Designation are not useful so they are dropped; other
         # federal types are handled above
         where=""" "OwnerType" not in ('Federal Land', 'Native American Land', 'Unknown', 'Designation', 'Territory') """,
+        use_arrow=True,
     )
     .to_crs(CRS)
     .rename(
@@ -419,7 +420,7 @@ df.to_feather(out_dir / "protected_areas.feather")
 
 # Conservation opportunity areas (for now the only priority type) joined to HUC8
 # 1 = COA
-coa = read_dataframe(src_dir / "Priority_Areas.gdb", layer="SARP_COA")[["HUC_8"]].set_index("HUC_8")
+coa = read_dataframe(src_dir / "Priority_Areas.gdb", layer="SARP_COA", use_arrow=True)[["HUC_8"]].set_index("HUC_8")
 coa["coa"] = 1
 
 # take the lowest value (highest priority) for duplicate watersheds
@@ -445,7 +446,7 @@ df.rename(columns={"HUC8": "id"}).to_feather(out_dir / "huc8_priorities.feather"
 print("Processing environmental justice areas")
 
 # Process Census tracts for disadvantaged communities
-df = read_dataframe(src_dir / "environmental_justice_tracts/usa.shp", columns=["SN_C"])
+df = read_dataframe(src_dir / "environmental_justice_tracts/usa.shp", columns=["SN_C"], use_arrow=True)
 df = df.loc[df.geometry.notnull() & (df.SN_C == 1)].reset_index(drop=True)
 
 # select areas that overlap HUC4s
@@ -463,7 +464,7 @@ df = (
 df.to_feather(out_dir / "environmental_justice_tracts.feather")
 
 # process Tribal lands (all are considered disadvantaged)
-df = read_dataframe(src_dir / "tl_2022_us_aiannh.shp", columns=[]).to_crs(CRS)
+df = read_dataframe(src_dir / "tl_2023_us_aiannh.zip", columns=[], use_arrow=True).to_crs(CRS)
 tree = shapely.STRtree(df.geometry.values)
 ix = np.unique(tree.query(huc4_df.geometry.values, predicate="intersects")[1])
 df = df.take(ix)
@@ -481,7 +482,7 @@ df.to_feather(out_dir / "tribal_lands.feather")
 
 ### Process native territories
 df = (
-    read_dataframe(src_dir / "indigenousTerritories.json", columns=["Name"])
+    read_dataframe(src_dir / "indigenousTerritories.json", columns=["Name"], use_arrow=True)
     .rename(columns={"Name": "name"})
     .to_crs(CRS)
 )

@@ -11,7 +11,7 @@ from analysis.prep.network.lib.nhd.util import get_column_names
 
 
 warnings.filterwarnings("ignore", message=".*does not have any features to read.*")
-warnings.filterwarnings("ignore", message=".*Warning 1: organizePolygons.*")
+warnings.filterwarnings("ignore", message=".*polygon with more than 100 parts.*")
 
 
 COLS = ["FType"]
@@ -47,12 +47,9 @@ def extract_marine(gdb, target_crs):
     ftype_col = col_map.get("FType", "FType")
 
     area = read_dataframe(
-        gdb,
-        layer=layer,
-        columns=read_cols,
-        force_2d=True,
-        where=f"{ftype_col} in {tuple(AREA_FTYPES)}",
+        gdb, layer=layer, columns=read_cols, where=f"{ftype_col} in {tuple(AREA_FTYPES)}", use_arrow=True
     ).rename(columns=col_map)
+    area["geometry"] = shapely.force_2d(area.geometry.values)
 
     layer = "NHDWaterbody"
     read_cols, col_map = get_column_names(gdb, layer, COLS)
@@ -62,10 +59,11 @@ def extract_marine(gdb, target_crs):
         gdb,
         layer=layer,
         columns=read_cols,
-        force_2d=True,
         # more complex expression when list is size 1
         where=f"{ftype_col} in ({','.join([str(t) for t in WB_FTYPES])})",
+        use_arrow=True,
     ).rename(columns=col_map)
+    wb["geometry"] = shapely.force_2d(wb.geometry.values)
 
     df = pd.concat([area, wb], ignore_index=True, sort=False)
 
@@ -89,9 +87,7 @@ def extract_marine(gdb, target_crs):
         tree.query(df.geometry.values, predicate="intersects").T,
         columns=["left", "right"],
     )
-    g = DirectedGraph(
-        pairs.left.values.astype("int64"), pairs.right.values.astype("int64")
-    )
+    g = DirectedGraph(pairs.left.values.astype("int64"), pairs.right.values.astype("int64"))
 
     groups, values = g.flat_components()
     groups = pd.DataFrame(
@@ -109,10 +105,6 @@ def extract_marine(gdb, target_crs):
     df = df.loc[df.marine]
 
     if len(df):
-        df = (
-            dissolve(df, by="marine")
-            .explode(ignore_index=True)
-            .drop(columns=["marine"])
-        )
+        df = dissolve(df, by="marine").explode(ignore_index=True).drop(columns=["marine"])
 
     return df.to_crs(target_crs)

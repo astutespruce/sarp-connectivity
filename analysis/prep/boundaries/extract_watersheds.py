@@ -2,10 +2,12 @@ from pathlib import Path
 import warnings
 
 import geopandas as gp
-import shapely
 from pyogrio import read_dataframe, write_dataframe
 
 from analysis.constants import CRS
+
+
+warnings.filterwarnings("ignore", message=".*more than 100 parts.*")
 
 
 data_dir = Path("data")
@@ -21,10 +23,7 @@ huc4 = sorted(huc4_df.HUC4.unique())
 print("Processing HUC6...")
 huc6_df = (
     read_dataframe(
-        wbd_gdb,
-        layer="WBDHU6",
-        columns=["huc6", "name"],
-        where=f"SUBSTR(huc6, 0, 4) IN {tuple(huc4)}",
+        wbd_gdb, layer="WBDHU6", columns=["huc6", "name"], where=f"SUBSTR(huc6, 0, 4) IN {tuple(huc4)}", use_arrow=True
     )
     .rename(columns={"huc6": "HUC6"})
     .to_crs(CRS)
@@ -36,10 +35,7 @@ write_dataframe(huc6_df.rename(columns={"HUC6": "id"}), out_dir / "huc6.fgb")
 print("Processing HUC8...")
 huc8_df = (
     read_dataframe(
-        wbd_gdb,
-        layer="WBDHU8",
-        columns=["huc8", "name"],
-        where=f"SUBSTR(huc8, 0, 4) IN {tuple(huc4)}",
+        wbd_gdb, layer="WBDHU8", columns=["huc8", "name"], where=f"SUBSTR(huc8, 0, 4) IN {tuple(huc4)}", use_arrow=True
     )
     .rename(columns={"huc8": "HUC8"})
     .to_crs(CRS)
@@ -55,6 +51,7 @@ huc10_df = (
         layer="WBDHU10",
         columns=["huc10", "name"],
         where=f"SUBSTR(huc10, 0, 4) IN {tuple(huc4)}",
+        use_arrow=True,
     )
     .rename(columns={"huc10": "HUC10"})
     .to_crs(CRS)
@@ -71,6 +68,7 @@ huc12_df = (
         layer="WBDHU12",
         columns=["huc12", "name"],
         where=f"SUBSTR(huc12, 0, 4) IN {tuple(huc4)}",
+        use_arrow=True,
     )
     .rename(columns={"huc12": "HUC12"})
     .to_crs(CRS)

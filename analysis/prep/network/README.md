@@ -28,13 +28,15 @@ Run `download_nhd.py`. This will download NHDPlus HR data by HUC4 into `data/nhd
 
 WARNING: NHD HR+ data are currently in beta. There are data issues, including, but not limited to miscoded flowlines / loops, spurious NHD areas, and fragmented adjacent waterbodies.
 
-NHD data were last downloaded on 7/14/2022.
+NHD data were last downloaded (NHD Regions 19 and 20) on 8/28/2024.
 
 ### 2. Download National Wetlands Inventory (NWI 2022) data:
 
 NWI ponds and lakes are used to supplement the NHDWaterbody dataset downloaded above.
 
 Run `download_nwi.py`. This will download data by HUC8 into `data/nwi/source/huc8`.
+
+NWI were last updated (full nation) on 8/28/2024.
 
 ### 3. Download state-level LIDAR or imagery-based waterbody data
 
@@ -59,6 +61,12 @@ Data were prepared using `analysis/prep/network/special/prepare_wi_waterbodies.p
 Oregon data are available at: https://spatialdata.oregonexplorer.info/geoportal/details;id=3439a3c43f9f4c4499802f55898b7dd8
 
 These were downloaded on 2/19/2022 to `data/states/or/wb_oregon.shp`.
+
+#### Rhode Island
+
+Rhode Island data are available at: https://www.rigis.org/datasets/edc::lakes-and-ponds-15000/about
+
+These were downloaded on 8/29/2024 to `data/states/ri/lakes_ponds.gdb`.
 
 #### South Carolina
 

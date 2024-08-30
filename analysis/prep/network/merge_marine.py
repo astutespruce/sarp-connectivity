@@ -13,9 +13,7 @@ out_dir = data_dir / "nhd/merged"
 
 out_dir.mkdir(exist_ok=True)
 
-huc2s = sorted(
-    pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"]).HUC2.values
-)
+huc2s = sorted(pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"]).HUC2.values)
 
 merged = None
 
@@ -28,7 +26,9 @@ for huc2 in huc2s:
             marine["HUC2"] = huc2
             merged = append(merged, marine)
 
-
 df = merged.reset_index(drop=True)
+
+# NOTE: these are not dissolved due to GEOS errors
+
 df.to_feather(out_dir / "nhd_marine.feather")
 write_dataframe(df, out_dir / "nhd_marine.fgb")

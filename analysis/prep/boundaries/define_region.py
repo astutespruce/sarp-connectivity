@@ -1,4 +1,5 @@
 from pathlib import Path
+import warnings
 
 import geopandas as gp
 import shapely
@@ -7,19 +8,21 @@ from pyogrio import read_dataframe, write_dataframe
 from analysis.constants import STATES, CRS, GEO_CRS, REGION_STATES
 from analysis.lib.geometry import to_multipolygon, unwrap_antimeridian
 
+warnings.filterwarnings("ignore", message=".*more than 100 parts.*")
+
 
 # HUC4s in Mexico that are not available from NHD
 MISSING_HUC4 = ["1310", "1311", "1312"]
 
 # Exclude HUC2s not in regions
-EXCLUDE_HUC2 = ["20", "22"]
+EXCLUDE_HUC2 = ["22"]
 
 
 data_dir = Path("data")
 out_dir = data_dir / "boundaries"
 ui_dir = Path("ui/data")
 
-state_filename = data_dir / "boundaries/source/tl_2022_us_state.shp"
+state_filename = data_dir / "boundaries/source/tl_2023_us_state.zip"
 wbd_gdb = data_dir / "nhd/source/wbd/WBD_National_GDB/WBD_National_GDB.gdb"
 
 
@@ -27,10 +30,7 @@ wbd_gdb = data_dir / "nhd/source/wbd/WBD_National_GDB/WBD_National_GDB.gdb"
 # Note: STATEFIPS is needed to join to counties
 print("Processing states...")
 state_df = (
-    read_dataframe(
-        state_filename,
-        columns=["STUSPS", "STATEFP", "NAME"],
-    )
+    read_dataframe(state_filename, columns=["STUSPS", "STATEFP", "NAME"], use_arrow=True)
     .rename(columns={"STUSPS": "id", "NAME": "State", "STATEFP": "STATEFIPS"})
     .to_crs(CRS)
 )
@@ -71,7 +71,11 @@ bnd_df.to_feather(out_dir / "region_boundary.feather")
 
 ### Extract HUC4 units that intersect boundaries
 print("Extracting HUC2...")
-huc2_df = read_dataframe(wbd_gdb, layer="WBDHU2", columns=["huc2", "name"]).to_crs(CRS).rename(columns={"huc2": "HUC2"})
+huc2_df = (
+    read_dataframe(wbd_gdb, layer="WBDHU2", columns=["huc2", "name"], use_arrow=True)
+    .to_crs(CRS)
+    .rename(columns={"huc2": "HUC2"})
+)
 huc2_df = huc2_df.loc[~huc2_df.HUC2.isin(EXCLUDE_HUC2)].reset_index(drop=True)
 
 # drop holes within HUC2s (04, 19)
@@ -89,7 +93,7 @@ huc2 = sorted(huc2_df.HUC2)
 
 # Use all HUC4s in these HUC2s
 print("Extracting HUC4...")
-huc4_df = read_dataframe(wbd_gdb, layer="WBDHU4", columns=["huc4"]).rename(columns={"huc4": "HUC4"})
+huc4_df = read_dataframe(wbd_gdb, layer="WBDHU4", columns=["huc4"], use_arrow=True).rename(columns={"huc4": "HUC4"})
 huc4_df["HUC2"] = huc4_df.HUC4.str[:2]
 huc4_df = huc4_df.loc[huc4_df.HUC2.isin(huc2) & (~huc4_df.HUC4.isin(MISSING_HUC4))].to_crs(CRS).reset_index(drop=True)
 
