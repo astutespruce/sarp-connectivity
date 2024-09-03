@@ -20,8 +20,8 @@ warnings.filterwarnings("ignore", message=".*invalid value encountered.*")
 
 TOLERANCE = 250
 
-# date downloaded from GeoFabrik
-OSM_DATE = "07/08/2024"
+# date downloaded from OSM distributor
+OSM_DATE = "08/29/2024"
 
 
 def get_height(value):
@@ -50,7 +50,7 @@ src_dir = Path("data/barriers/source")
 out_dir = Path("/tmp/sarp")
 out_dir.mkdir(exist_ok=True)
 
-infilename = src_dir / "us_osm.gpkg"
+infilename = src_dir / "northamerica_osm.gpkg"
 outfilename = out_dir / "osm_barriers.gdb"
 if outfilename.exists():
     shutil.rmtree(outfilename)

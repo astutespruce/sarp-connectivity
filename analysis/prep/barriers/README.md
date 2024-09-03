@@ -34,15 +34,16 @@ You must set `AGOL_TOKEN` in an `.env` file in the root of this project. It must
 
 ### Prep: Download and extract OpenStreetMap dams
 
-OpenStreetMap (OSM) data for the U.S. was downloaded from https://download.geofabrik.de/north-america.html on 7/8/2024.
+OpenStreetMap (OSM) data for North America was downloaded from https://osmtoday.com/north_america.html on 8/29/2024.
 
 OSM data are very slow to process. Features of interest are first extracted to a GPKG file using the following command-line commands:
 
 ```bash
 export OSM_CONFIG_FILE="analysis/prep/barriers/special/osmconf.ini"
-ogr2ogr data/barriers/source/us_osm.gpkg -nln points data/barriers/source/us-latest.osm.pbf -sql "SELECT * from points WHERE \"waterway\" in ('waterfall', 'dam', 'weir', 'fish_pass')"
-ogr2ogr data/barriers/source/us_osm.gpkg -nln lines -update data/barriers/source/us-latest.osm.pbf -sql "SELECT * from lines WHERE \"waterway\" in ('dam', 'weir', 'fish_pass')"
-ogr2ogr data/barriers/source/us_osm.gpkg -nln multipolygons -update data/barriers/source/us-latest.osm.pbf -sql "SELECT * from multipolygons WHERE \"waterway\" in ('dam', 'weir', 'fish_pass')"
+
+ogr2ogr data/barriers/source/northamerica_osm.gpkg -nln points data/barriers/source/north_america.pbf -sql "SELECT * from points WHERE \"waterway\" in ('waterfall', 'dam', 'weir', 'fish_pass')"
+ogr2ogr data/barriers/source/northamerica_osm.gpkg -nln lines -update data/barriers/source/north_america.pbf -sql "SELECT * from lines WHERE \"waterway\" in ('dam', 'weir', 'fish_pass')"
+ogr2ogr data/barriers/source/northamerica_osm.gpkg -nln multipolygons -update data/barriers/source/north_america.pbf -sql "SELECT * from multipolygons WHERE \"waterway\" in ('dam', 'weir', 'fish_pass')"
 ```
 
 Dams and waterfalls are extracted from OSM data using `special/extract_osm_barriers.py`.

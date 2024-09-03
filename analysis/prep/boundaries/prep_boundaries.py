@@ -302,9 +302,8 @@ for i, unit in enumerate(["HUC2", "HUC6", "HUC8", "HUC10", "HUC12"]):
 out.reset_index(drop=True).to_feather(out_dir / "unit_bounds.feather")
 
 
-### Federal ownership
-print("Extracting federal areas (will take a while)...")
-
+### Protected areas / land ownership
+print("Extracting land ownership & protection information (will take a while)...")
 
 # Extract USFS parcel ownership boundaries (highest priority)
 gdb = src_dir / "Surface_Ownership_Parcels/Surface_Ownership_Parcels%2C_detailed_(Feature_Layer).shp"
@@ -322,76 +321,75 @@ usfs_ownership["owner"] = usfs_ownership.otype.values
 # assign highest priorioty
 usfs_ownership["sort"] = 1
 
-# Extract federal agency admin boundary (not all lands within boundary are owned)
-gdb = src_dir / "SMA_WM.gdb"
-federal_admin = None
-layers = {
-    "SurfaceMgtAgy_BIA": "Native American Land",
-    "SurfaceMgtAgy_BLM": "Bureau of Land Management",
-    "SurfaceMgtAgy_BOR": "Bureau of Reclamation",
-    "SurfaceMgtAgy_DOD": "Department of Defense",
-    "SurfaceMgtAgy_FWS": "US Fish and Wildlife Service",
-    "SurfaceMgtAgy_NPS": "National Park Service",
-    "SurfaceMgtAgy_OTHFED": "Federal Land",
-    "SurfaceMgtAgy_USFS": "USDA Forest Service (admin boundary)",
-}
-for layer, ownertype in layers.items():
-    print(f"Extracting {ownertype}")
-    df = read_dataframe(gdb, layer=layer, columns=[], use_arrow=True).to_crs(CRS)
-    df["geometry"] = shapely.force_2d(df.geometry.values)
 
-    tree = shapely.STRtree(df.geometry.values)
-    df = df.take(tree.query(bnd, predicate="intersects"))
-    df["otype"] = ownertype
-
-    federal_admin = append(federal_admin, df)
-
-federal_admin = federal_admin.explode(ignore_index=True)
-federal_admin["geometry"] = make_valid(federal_admin.geometry)
-federal_admin = dissolve(federal_admin.explode(ignore_index=True), by="otype").explode(ignore_index=True)
-federal_admin["owner"] = federal_admin.otype.values
-federal_admin["sort"] = 2
-
-
-### Protected areas
-
-print("Extracting protected areas (will take a while)...")
-df = (
-    read_dataframe(
-        src_dir / "SARP_ProtectedAreas_2021.gdb",
-        layer="SARP_ProtectedArea_National_2021",
-        columns=["OwnerType", "OwnerName", "Preference"],
-        # Unknown / Designation are not useful so they are dropped; other
-        # federal types are handled above
-        where=""" "OwnerType" not in ('Federal Land', 'Native American Land', 'Unknown', 'Designation', 'Territory') """,
-        use_arrow=True,
-    )
-    .to_crs(CRS)
-    .rename(
-        columns={
-            "OwnerType": "otype",
-            "OwnerName": "owner",
-            "Preference": "sort",
-        }
-    )
-)
-
-# increment sort to allow federal lands above to sort higher
-if not pd.isnull(df.sort.max()):
-    df["sort"] += 10
-
-# fix spelling issue
-df.loc[df.otype == "Easment", "otype"] = "Easement"
+# Extract protected areas
+df = read_dataframe(
+    src_dir / "pad_us4.0.gpkg",
+    layer="PADUS4_0Combined_Proclamation_Marine_Fee_Designation_Easement",
+    columns=[
+        "Category",
+        "Own_Type",
+        "Own_Name",
+        "Des_Tp",
+    ],
+    # drop marine, unknown / private owner (not useful), DESG (not useful), UNK (not useful)
+    where="Category != 'Marine' AND Own_Type NOT IN ('PVT', 'UNK') AND Own_Name NOT IN ('DESG', 'UNK')",
+    use_arrow=True,
+).to_crs(CRS)
 
 # select those that are within the boundary
-tree = shapely.STRtree(df.geometry.values)
-df = df.take(tree.query(bnd, predicate="intersects"))
+df = df.take(shapely.STRtree(df.geometry.values).query(bnd, predicate="intersects"))
+
+df["otype"] = df.Own_Name.map(
+    {
+        "BLM": "Bureau of Land Management",
+        "CITY": "Local Land",
+        "CNTY": "Local Land",
+        "DOD": "Department of Defense",
+        "DOE": "Federal Land",
+        "FWS": "US Fish and Wildlife Service",
+        "JNT": "Joint Ownership",
+        "NGO": "NGO",
+        "NPS": "National Park Service",
+        "NRCS": "Federal Land",
+        "OTHF": "Federal Land",
+        "OTHS": "State Land",
+        "PVT": "Private Conservation Land",
+        "REG": "Regional Agency Special Distribution",
+        "RWD": "Regional Agency Special Distribution",
+        "SDC": "State Land",
+        "SDNR": "State Land",
+        "SDOL": "State Land",
+        "SFW": "State Land",
+        "SLB": "State Land",
+        "SPR": "State Land",
+        "TRIB": "Native American Land",
+        "TVA": "Regional Agency Special Distribution",
+        "UNKL": "Local Land",
+        "USACE": "Department of Defense",
+        "USBR": "Bureau of Reclamation",
+        "USFS": "USDA Forest Service (admin boundary)",
+        "VI": "State Land",
+    }
+)
+
+# drop proclamation boundaries but retain military lands that only
+# show up as proclamation
+# drop duplicates (there are some)
+df = (
+    df.loc[(df.Category != "Proclamation") | (df.Des_Tp == "MIL")]
+    .drop(columns=["Category", "Own_Type", "Own_Name", "Des_Tp"])
+    .drop_duplicates()
+)
+
+df["sort"] = 2
+
 
 # this takes a while...
 print("Making geometries valid, this might take a while")
 df["geometry"] = make_valid(df.geometry.values)
 
-df = pd.concat([usfs_ownership, federal_admin, df], ignore_index=True).explode(ignore_index=True)
+df = pd.concat([usfs_ownership, df], ignore_index=True).explode(ignore_index=True)
 
 t = shapely.get_type_id(df.geometry.values)
 df = df.loc[(t == 3) | (t == 6)].reset_index(drop=True)

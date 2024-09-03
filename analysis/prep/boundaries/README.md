@@ -84,14 +84,17 @@ This was used to extract federal ownership types.
 
 ### Protected Areas
 
-Federal agency administrative boundaries were downloaded from https://gbp-blm-egis.hub.arcgis.com/datasets/6bf2e737c59d4111be92420ee5ab0b46/about
-on 4/10/2024 (published 4/1/2024).
+PAD-US v4.0 GDB version downloaded 6/4/2024 from: https://www.usgs.gov/programs/gap-analysis-project/science/pad-us-data-download
+
+PAD-US v4.0 contains invalid records. To get around this, create a geopackage and
+force MultiSurface geometries to MultiPolygon:
+
+```bash
+ogr2ogr source_data/ownership/pad_us4.0.gpkg source_data/ownership/PADUS4_0_Geodatabase.gdb PADUS4_0Combined_Proclamation_Marine_Fee_Designation_Easement -progress -skipfailures -nlt MultiPolygon
+```
 
 USFS-specific surface ownership parcels were downloaded from https://data-usfs.hub.arcgis.com/datasets/24db18ef747945c49b02252ae39ec4aa_0/explore
-on 4/10/2024 (published ).
-
-Kat Hoenke (SARP) extracted protected area data from CBI Protected Areas and TNC Secured Lands and merged them together. Kat later obtained a boundaries layer from USFS, and overlayed this over the top (11/4/2019). Because this causes multiple owner type polygons to occur in the same location, the `Preference` attribute is added, so that we can sort on ascending preference to assign the most appropriate ownership to a given barrier (nulls assigned arbitrary high value). Only nonfederal areas were
-extracted from the protected areas dataset.
+on 4/10/2024.
 
 ### Environmental Justice Disadvantaged Communities
 
