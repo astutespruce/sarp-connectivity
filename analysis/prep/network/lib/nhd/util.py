@@ -32,7 +32,7 @@ def get_column_names(gdb, layer, columns):
     lower_map = {c.lower(): c for c in available_columns}
     # create mapping of requested name to matching name in dataset
     name_map = {c: lower_map[c.lower()] for c in columns if c.lower() in lower_map}
-    missing = [c for c in columns if not c in name_map]
+    missing = [c for c in columns if c not in name_map]
     if missing:
         raise ValueError(f"Could not find columns {missing} in {gdb} layer={layer}")
 

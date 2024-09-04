@@ -9,14 +9,17 @@ from pyogrio import read_dataframe, write_dataframe
 from pyogrio.errors import DataSourceError
 
 from analysis.constants import CRS, NWI_HUC8_ALIAS
-from analysis.lib.geometry import dissolve, explode
+from analysis.lib.geometry import dissolve
 from analysis.lib.util import append
 
-
+# ignore natural modifiers (e.g., beaver)
 MODIFIERS = {
     "d": "Drained/Ditched",
     "h": "Diked/Impounded",
+    "f": "Farmed",
+    "m": "managed",
     "r": "Artificial Substrate",
+    "s": "Spoil",
     "x": "Excavated",
 }
 
@@ -34,6 +37,8 @@ PERMANENCE_MODIFIERS = {
     "K": "Artificially Flooded",
 }
 
+WETLAND_PREFIXES = ["PFO", "PSS", "PEM"]
+
 
 data_dir = Path("data")
 src_dir = data_dir / "nwi/source/huc8"
@@ -46,9 +51,7 @@ if not out_dir.exists():
 start = time()
 
 
-huc8_df = gp.read_feather(
-    data_dir / "boundaries/huc8.feather", columns=["HUC8", "geometry"]
-)
+huc8_df = gp.read_feather(data_dir / "boundaries/huc8.feather", columns=["HUC8", "geometry"])
 huc8_df["HUC2"] = huc8_df.HUC8.str[:2]
 
 # need to filter to only those that occur in the US
@@ -103,6 +106,7 @@ for huc2 in huc2s:
 
     waterbodies = None
     rivers = None
+    wetlands = None
     for huc8 in units[huc2]:
         print(f"Reading NWI data for {huc8}")
 
@@ -115,17 +119,16 @@ for huc2 in huc2s:
 
         # Extract and merge lakes and wetlands
         try:
+            wetland_expr = " OR ".join(f"ATTRIBUTE LIKE '{prefix}%'" for prefix in WETLAND_PREFIXES)
             df = read_dataframe(
                 f"/vsizip/{filename}/HU8_{huc8}_Watershed/HU8_{huc8}_Wetlands.shp",
                 columns=["ATTRIBUTE", "WETLAND_TY"],
                 use_arrow=True,
-                where="WETLAND_TY in ('Lake', 'Pond', 'Riverine')",
+                where=f"WETLAND_TY in ('Lake', 'Pond', 'Riverine') OR {wetland_expr}",
             ).rename(columns={"ATTRIBUTE": "nwi_code", "WETLAND_TY": "nwi_type"})
 
         except DataSourceError:
-            print(
-                f"WARNING: wetlands could not be read from {filename}; shapefile might not exist"
-            )
+            print(f"WARNING: wetlands could not be read from {filename}; shapefile might not exist")
 
         # some geometries are invalid, filter them out
         df = df.loc[shapely.is_geometry(df.geometry.values)].copy()
@@ -145,10 +148,13 @@ for huc2 in huc2s:
         waterbodies = append(waterbodies, df.loc[df.nwi_type.isin(["Lake", "Pond"])])
         rivers = append(
             rivers,
-            df.loc[(df.nwi_type == "Riverine") & (df.altered)].drop(
-                columns=["nwi_type"]
-            ),
+            df.loc[(df.nwi_type == "Riverine") & (df.altered)].drop(columns=["nwi_type"]),
         )
+
+        wetland_ix = df.nwi_code.str.startswith(WETLAND_PREFIXES[0])
+        for prefix in WETLAND_PREFIXES[1:]:
+            wetland_ix = wetland_ix | df.nwi_code.str.startswith(prefix)
+        wetlands = append(wetlands, df.loc[wetland_ix])
 
     ### Process waterbodies
     # only keep that intersect flowlines
@@ -160,29 +166,25 @@ for huc2 in huc2s:
     # drop intermittent / seasonal waterbodies we don't want to include;
     # if they are permanent enough, NHD will pick them up
     if huc2 in ["13", "15", "16", "17", "18"]:
-        waterbodies = waterbodies.loc[
-            ~waterbodies.modifier.isin(["A", "B", "C", "D", "E", "G", "J"])
-        ].reset_index(drop=True)
+        waterbodies = waterbodies.loc[~waterbodies.modifier.isin(["A", "B", "C", "D", "E", "G", "J"])].reset_index(
+            drop=True
+        )
 
     # TODO: explode, repair, dissolve, explode, reset index
-    waterbodies = explode(waterbodies)
+    waterbodies = waterbodies.explode(ignore_index=True)
     # make valid
     ix = ~shapely.is_valid(waterbodies.geometry.values)
     if ix.sum():
         print(f"Repairing {ix.sum():,} invalid waterbodies")
-        waterbodies.loc[ix, "geometry"] = shapely.make_valid(
-            waterbodies.loc[ix].geometry.values
-        )
+        waterbodies.loc[ix, "geometry"] = shapely.make_valid(waterbodies.loc[ix].geometry.values)
 
     # cleanup any that collapsed to other geometry types during make valid or import
-    waterbodies = waterbodies.loc[
-        shapely.get_type_id(waterbodies.geometry.values) == 3
-    ].reset_index()
+    waterbodies = waterbodies.loc[shapely.get_type_id(waterbodies.geometry.values) == 3].reset_index()
 
     # note: nwi_code, nwi_type are discarded here since they aren't used later
     print("Dissolving adjacent waterbodies")
     waterbodies = dissolve(waterbodies, by=["altered"])
-    waterbodies = explode(waterbodies).reset_index(drop=True)
+    waterbodies = waterbodies.explode(ignore_index=True).reset_index(drop=True)
 
     waterbodies["km2"] = shapely.area(waterbodies.geometry.values) / 1e6
 
@@ -195,7 +197,7 @@ for huc2 in huc2s:
     rivers = rivers.iloc[np.unique(left)].reset_index(drop=True)
     print(f"Kept {len(rivers):,} that intersect flowlines")
 
-    rivers = explode(rivers)
+    rivers = rivers.explode(ignore_index=True)
     # make valid
     ix = ~shapely.is_valid(rivers.geometry.values)
     if ix.sum():
@@ -209,6 +211,24 @@ for huc2 in huc2s:
 
     rivers.to_feather(huc2_dir / "altered_rivers.feather")
     write_dataframe(rivers, huc2_dir / "altered_rivers.fgb")
+
+    ### Process wetlands
+    left, right = tree.query(wetlands.geometry.values, predicate="intersects")
+    wetlands = wetlands.iloc[np.unique(left)].reset_index(drop=True)
+
+    print(f"Kept {len(wetlands):,} that intersect flowlines")
+
+    wetlands = wetlands.explode(ignore_index=True)
+    # make valid
+    ix = ~shapely.is_valid(wetlands.geometry.values)
+    if ix.sum():
+        print(f"Repairing {ix.sum():,} invalid wetlands")
+        wetlands.loc[ix, "geometry"] = shapely.make_valid(wetlands.loc[ix].geometry.values)
+
+    # cleanup any that collapsed to other geometry types during make valid or import
+    wetlands = wetlands.loc[shapely.get_type_id(wetlands.geometry.values) == 3].reset_index(drop=True)
+    wetlands.to_feather(huc2_dir / "wetlands.feather")
+    write_dataframe(wetlands, huc2_dir / "wetlands.fgb")
 
     print("--------------------")
     print("HUC2: {} done in {:.0f}s\n\n".format(huc2, time() - huc2_start))

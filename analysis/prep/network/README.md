@@ -11,7 +11,7 @@ This stage involves processing NHD data and related data into data structures th
 5. Run `merge_marine.py` to merge all marine areas.
 6. Run any special pre-processing scripts in `special` (e.g. `find_loops.py`)
 7. Run `extract_nwi.py` to extract NWI waterbodies and altered rivers that intersect the above flowlines.
-8. Run `merge_waterbodies.py` to merge NHD and NWI waterbodies (and others, depending on region).
+8. Run `merge_waterbodies.py` to merge NHD and NWI waterbodies (and others, depending on region) and `merge_wetlands` to merge NHD and NWI wetlands.
 9. Run `prepare_flowlines_waterbodies.py` to preprocess flowlines and waterbodies into data structures ready for analysis.
 10. Run `find_nhd_dams.py` to intersect NHD dam-related features with flowlines and extract intersection points.
 11. Run `prep_floodplain_stats.py` to extract pre-calculated statistics on natural landcover within floodplains for each flowline's catchment.
@@ -205,8 +205,13 @@ waterbodies back apart.
 Note: this may produce slight artifacts in the waterbody edges where dams are cut in
 to separate adjacent waterbodies.
 
-This creates
-`data/waterbodies/<region>/waterbodies.feather`
+This creates `data/waterbodies/<region>/waterbodies.feather`.
+
+Run `merge_wetlands.py` to merge NHD and NWI wetlands. This only retains wetlands
+not marked as altered in NWI (NHD has no altered modifier for these) and only
+keeps NHD wetlands that don't intersect with NWI wetlands.
+
+This creates `data/wetlands/<region>/wetlands.feather`.
 
 ### 6. Prepare flowlines and waterbodies:
 

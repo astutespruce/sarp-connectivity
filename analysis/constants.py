@@ -172,10 +172,10 @@ YEAR_REMOVED_BINS = [0, 1, 2000, 2010, 2020, 2021, 2022, 2023, 2024, 2025, 2026]
 # distance within which points snapping to a line will snap to endpoint of the line
 SNAP_ENDPOINT_TOLERANCE = 1  # meters
 
-# Exclude swamp/marsh (466), estuaries (493), playas (361), glaciers (378).
+# Exclude estuaries (493), playas (361), glaciers (378).
 # NOTE: they do not cut the flowlines in the same
 # way as other waterbodies, so they will cause issues.
-WATERBODY_EXCLUDE_FTYPES = [361, 378, 466, 493]
+WATERBODY_EXCLUDE_FTYPES = [361, 378, 493]
 
 WATERBODY_MIN_SIZE = 0
 

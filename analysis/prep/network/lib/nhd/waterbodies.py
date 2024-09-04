@@ -38,22 +38,37 @@ def extract_waterbodies(gdb, target_crs):
     -------
     GeoDataFrame
     """
-    print("Reading waterbodies")
+    print("Reading waterbodies and wetlands")
 
     layer = "NHDWaterbody"
     read_cols, col_map = get_column_names(gdb, layer, WATERBODY_COLS)
     ftype_col = col_map.get("FType", "FType")
 
-    df = read_dataframe(
-        gdb,
-        layer=layer,
-        columns=read_cols,
-        where=f"{ftype_col} not in {tuple(WATERBODY_EXCLUDE_FTYPES)}",
-        use_arrow=True,
-    ).rename(columns=col_map)
+    # there are some geometries encoded as MultiSurface; have to read without
+    # arrow to force to regular MultiPolygon
+    try:
+        df = read_dataframe(
+            gdb,
+            layer=layer,
+            columns=read_cols,
+            where=f"{ftype_col} not in {tuple(WATERBODY_EXCLUDE_FTYPES)}",
+            use_arrow=True,
+        ).rename(columns=col_map)
+    except shapely.errors.GEOSException:
+        print(
+            "WARNING: Error reading WKB (likely MultiSurface) from waterbodies with arrow, falling back to regular read interface"
+        )
+        df = read_dataframe(
+            gdb,
+            layer=layer,
+            columns=read_cols,
+            where=f"{ftype_col} not in {tuple(WATERBODY_EXCLUDE_FTYPES)}",
+            use_arrow=False,
+        ).rename(columns=col_map)
+
     df["geometry"] = shapely.force_2d(df.geometry.values)
 
-    print(f"Read {len(df):,} waterbodies")
+    print(f"Read {len(df):,} waterbodies and wetlands")
 
     # Convert multipolygons to polygons
     # those we checked that are true multipolygons are errors
