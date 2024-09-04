@@ -332,10 +332,13 @@ df = read_dataframe(
         "Own_Name",
         "Des_Tp",
     ],
-    # drop marine, unknown / private owner (not useful), DESG (not useful), UNK (not useful)
-    where="Category != 'Marine' AND Own_Type NOT IN ('PVT', 'UNK') AND Own_Name NOT IN ('DESG', 'UNK')",
+    # drop marine, unknown / private owner (not useful), UNK (not useful)
+    where="Category != 'Marine' AND Own_Type NOT IN ('PVT', 'UNK') AND Own_Name NOT IN ('UNK')",
     use_arrow=True,
 ).to_crs(CRS)
+
+# NOTE: sometimes areas marked as designation are stacked within a protected area (e.g., wilderness area within NPS)
+# but other times they are not, so we have to keep them all
 
 # select those that are within the boundary
 df = df.take(shapely.STRtree(df.geometry.values).query(bnd, predicate="intersects"))
@@ -389,7 +392,56 @@ df["sort"] = 2
 print("Making geometries valid, this might take a while")
 df["geometry"] = make_valid(df.geometry.values)
 
-df = pd.concat([usfs_ownership, df], ignore_index=True).explode(ignore_index=True)
+
+# Extract Hawaii reserves
+hifr = read_dataframe(
+    src_dir / "HI_Reserves",
+    #   columns=["managedby"],
+    use_arrow=True,
+).to_crs(CRS)
+hifr = hifr.take(shapely.STRtree(hifr.geometry.values).query(bnd, predicate="intersects")).reset_index(drop=True)
+
+# drop any already completely contained by others
+ix = np.unique(shapely.STRtree(hifr.geometry.values).query(df.geometry.values, predicate="contains_properly")[1])
+hifr = hifr.loc[~hifr.index.isin(ix)].reset_index(drop=True)
+hifr["otype"] = hifr.managedby.map(
+    {
+        "(DOFAW)": "State Land",
+        "City and County of Honolulu/Private": "Local Land",
+        "DOAR": "State Land",
+        "DOFAW": "State Land",
+        "DOFAW/DOSP": "State Land",
+        "DOFAW/Private": "State Land",
+        "DOFAW/US Army": "Department of Defense",
+        "DOFAW/US Military": "Department of Defense",
+        "DOFAW/USNPS": "National Park Service",
+        "DOSP": "State Land",
+        "Daughters of Hawaii/DOSP": "State Land",
+        "Hawaiian Islands Land Trust": "NGO",
+        "Historic Preservation Division": "State Land",
+        "KIRC": "State Land",
+        "Keehi Memorial Org./DOSP": "State Land",
+        "MOPEPP": "Local Land",
+        "Maui County": "Local Land",
+        "Maui Land and Pineapple Co.": "NGO",
+        "Molokai Land Trust": "NGO",
+        "National Audubon Society": "NGO",
+        "OHA/DOFAW": "State Land",
+        # "Private": "", # Hulu Islet Seabird Sanctuary, unclear ownership
+        "TNC": "NGO",
+        "US Army": "Department of Defense",
+        "US Army/DOFAW": "Department of Defense",
+        "USFWS": "US Fish and Wildlife Service",
+        "USNPS": "National Park Service",
+    }
+)
+hifr = hifr.dropna(subset="otype")
+
+hifr["sort"] = 3
+
+
+# Merge all types
+df = pd.concat([usfs_ownership, df, hifr[["geometry", "otype"]]], ignore_index=True).explode(ignore_index=True)
 
 t = shapely.get_type_id(df.geometry.values)
 df = df.loc[(t == 3) | (t == 6)].reset_index(drop=True)
@@ -418,27 +470,42 @@ df.to_feather(out_dir / "protected_areas.feather")
 
 # Conservation opportunity areas (for now the only priority type) joined to HUC8
 # 1 = COA
-coa = read_dataframe(src_dir / "Priority_Areas.gdb", layer="SARP_COA", use_arrow=True)[["HUC_8"]].set_index("HUC_8")
-coa["coa"] = 1
+sarp_coa = (
+    read_dataframe(
+        src_dir / "Priority_Areas.gdb",
+        layer="SARP_COA",
+        where="""COA = 'Yes'""",
+        columns=["HUC8_Name", "COA"],
+        use_arrow=True,
+    )
+    .to_crs(CRS)
+    .rename(columns={"HUC8_Name": "name"})
+    .drop(columns=["COA"])
+)
+sarp_coa["type"] = "SARP COA"
 
-# take the lowest value (highest priority) for duplicate watersheds
-coa = coa.groupby(level=0).min()
+# bring in Hawaii FHP geographic focus areas and merge
+merged = None
+for filename in src_dir.glob("Hawaii FHP Focus Areas/*.shp"):
+    df = read_dataframe(filename, columns=[], use_arrow=True).to_crs(CRS)
+    df["name"] = (
+        filename.stem.lower()
+        .replace("_wgs84", "")
+        .replace("_outline", "")
+        .replace("_fixed", "")
+        .replace("025mile", "")
+        .replace("_", " ")
+        .title()
+        .strip()
+    )
+    merged = append(merged, df)
 
-# 0 = not priority for a given priority dataset
-priorities = coa.fillna(0).astype("uint8")
+hi_gfa = merged.reset_index(drop=True)
+hi_gfa["type"] = "HIFHP GFA"
 
-# drop duplicates
-priorities = priorities.reset_index().drop_duplicates().rename(columns={"index": "HUC8"}).reset_index(drop=True)
-
-# join to HUC8 dataset for tiles
-huc8_df = gp.read_feather(out_dir / "huc8.feather")
-df = huc8_df.join(priorities.set_index("HUC_8"), on="HUC8")
-
-for col in ["coa"]:
-    df[col] = df[col].fillna(0).astype("uint8")
-
-df.rename(columns={"HUC8": "id"}).to_feather(out_dir / "huc8_priorities.feather")
-
+df = append(sarp_coa, hi_gfa).explode(ignore_index=True)
+df = dissolve(df.explode(ignore_index=True), by=["type", "name"])
+df.to_feather(out_dir / "priority_areas.feather")
 
 ### Environmental justice disadvantaged communities
 print("Processing environmental justice areas")

@@ -59,30 +59,32 @@ These are extracted using `analysis/prep/boundaries/extract_watersheds.py`.
 ## 3. Prepare administrative and ecological boundaries
 
 Additional boundaries are joined to the barrier inventory during the analysis.
+These are processed using `analysis/prep/boundaries/prep_boundaries.py`.
 
-Native Territories were downloaded 4/10/2024 from https://native-land.ca/
+### Fish Habitat Partnership boundaries
 
 Fish Habitat Partnership boundaries were downloaded on 4/26/2024 from
 https://www.sciencebase.gov/catalog/item/53710d71e4b07ccdd78b368e
 and are used to spatially join to barriers.
 
-Additional watershed-level priorities are joined during this processing. These
-include:
+### Native territories
 
-- SARP Conservation Opportunity Areas at HUC8 level (provided by SARP)
+Native Territories were downloaded 4/10/2024 from https://native-land.ca/
 
-These are processed using `analysis/prep/boundaries/prep_boundaries.py`.
+### Priority areas
+
+These include:
+
+- SARP Conservation Opportunity Areas at HUC8 level (provided by SARP).
+- Hawaii FHP geographic focus areas (provided by Kat via email on 9/3/2024).
+
+Priority areas are only used for overlay in the maps, not filtering.
 
 ### Counties
 
 County boundaries (2023 version) were downloaded from CENSUS Tiger website.
 
-### Federal Ownership
-
-Kat Hoenke (SARP) provided the BLM's Surface Management Agency dataset on 3/10/2023.
-This was used to extract federal ownership types.
-
-### Protected Areas
+### Protected areas / land ownership
 
 PAD-US v4.0 GDB version downloaded 6/4/2024 from: https://www.usgs.gov/programs/gap-analysis-project/science/pad-us-data-download
 
@@ -95,6 +97,9 @@ ogr2ogr source_data/ownership/pad_us4.0.gpkg source_data/ownership/PADUS4_0_Geod
 
 USFS-specific surface ownership parcels were downloaded from https://data-usfs.hub.arcgis.com/datasets/24db18ef747945c49b02252ae39ec4aa_0/explore
 on 4/10/2024.
+
+Additional areas for Hawaii were downloaded from: https://prod-histategis.opendata.arcgis.com/datasets/HiStateGIS::reserves/about
+on 9/4/2024.
 
 ### Environmental Justice Disadvantaged Communities
 
@@ -112,3 +117,5 @@ on 4/10/2024.
 ## 4. Create boundary vector tiles
 
 Vector tiles are are created for each of the boundary layers using `analysis/prep/boundaries/create_map_unit_tiles.py`.
+
+Vector tiles of priority areas are created using `analysis/prep/boundaries/create_priority_area_tiles.py`.

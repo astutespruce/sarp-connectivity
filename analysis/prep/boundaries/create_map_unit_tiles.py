@@ -150,15 +150,6 @@ for huc, (minzoom, maxzoom) in huc_zoom_levels.items():
     print(f"Creating tiles for {huc}")
     df = gp.read_feather(src_dir / f"{huc}.feather").rename(columns={huc: "id"}).to_crs(GEO_CRS)
 
-    # join watershed priorities to HUC8
-    if huc == "HUC8":
-        priorities = pd.read_feather(
-            "data/boundaries/huc8_priorities.feather",
-            columns=["id", "coa"],
-        ).set_index("id")
-        df = df.join(priorities, on="id")
-        df["coa"] = df.coa.fillna(0).astype("uint8")
-
     # only keep units that actually overlap the region at each level
     tree = shapely.STRtree(df.geometry.values)
     ix = tree.query(bnd, predicate="intersects")
