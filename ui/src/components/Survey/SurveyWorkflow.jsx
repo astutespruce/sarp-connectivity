@@ -15,12 +15,8 @@ import {
 import { Downloader } from 'components/Download'
 import { TopBar } from 'components/Map'
 import { Sidebar } from 'components/Sidebar'
-import {
-  Filters,
-  LayerChooser,
-  UnitChooser,
-  unitLayerConfig,
-} from 'components/Workflow'
+import { Filters, LayerChooser, UnitChooser } from 'components/Workflow'
+import { unitLayerConfig } from 'components/Workflow/config'
 
 import Map from './Map'
 

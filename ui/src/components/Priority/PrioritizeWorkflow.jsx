@@ -20,9 +20,9 @@ import {
   Filters,
   LayerChooser,
   UnitChooser,
-  unitLayerConfig,
   SubmitButton,
 } from 'components/Workflow'
+import { unitLayerConfig } from 'components/Workflow/config'
 import { trackPrioritize } from 'util/analytics'
 
 import Map from './Map'

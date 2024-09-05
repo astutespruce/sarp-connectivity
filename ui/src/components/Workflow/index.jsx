@@ -1,4 +1,3 @@
-import { unitLayerConfig } from './config'
 import BackLink from './BackLink'
 import Filters from './Filters'
 import LayerChooser from './LayerChooser'
@@ -13,5 +12,4 @@ export {
   StartOverButton,
   SubmitButton,
   UnitChooser,
-  unitLayerConfig,
 }

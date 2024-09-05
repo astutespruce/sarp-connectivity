@@ -32,15 +32,18 @@ import {
 import { barrierTypeLabels, pointLegends } from 'config'
 import { isEqual, groupBy } from 'util/data'
 
-import { unitLayerConfig } from 'components/Workflow'
+import {
+  sources,
+  priorityAreasLegend,
+  unitLayerConfig,
+} from 'components/Workflow/config'
 import {
   maskFill,
   maskOutline,
   unitLayers,
   unitHighlightLayers,
   parentOutline,
-  priorityWatersheds,
-  priorityWatershedLegends,
+  priorityAreaLayers,
 } from 'components/Workflow/layers'
 import {
   prioritizedPointLayer,
@@ -84,6 +87,7 @@ const PriorityMap = ({
   const selectedFeatureRef = useRef(null)
   const rankedBarriersRef = useRef(null)
   const rankedBarriersIndexRef = useRef({})
+  const hoverPriorityAreaRef = useRef(null)
   const [priorityLayerState, setPriorityLayerState] = useState({})
 
   const filterConfigIndex = useMemo(
@@ -147,9 +151,80 @@ const PriorityMap = ({
         Object.keys(unitLayerConfig).map((id) => `${id}-unit-fill`)
       )
 
-      // Add the priority watersheds under everything else
-      priorityWatersheds.forEach((lyr) => {
+      // add extra sources
+      Object.entries(sources).forEach(([id, source]) => {
+        map.addSource(id, source)
+      })
+
+      // Add the priority areas under everything else
+      priorityAreaLayers.forEach((lyr) => {
         map.addLayer(lyr)
+      })
+
+      map.on(
+        'mousemove',
+        priorityAreaLayers[0].id,
+        ({ features: [feature], lngLat }) => {
+          if (map.getZoom() > 10) {
+            if (hoverPriorityAreaRef.current !== null) {
+              map.removeFeatureState({
+                id: hoverPriorityAreaRef.current,
+                source: priorityAreaLayers[1].source,
+                sourceLayer: priorityAreaLayers[1]['source-layer'],
+              })
+              hoverPriorityAreaRef.current = null
+            }
+            return
+          }
+
+          const {
+            id: featureId,
+            properties: { type, name },
+          } = feature
+
+          if (hoverPriorityAreaRef.current !== featureId) {
+            map.removeFeatureState({
+              id: hoverPriorityAreaRef.current,
+              source: priorityAreaLayers[1].source,
+              sourceLayer: priorityAreaLayers[1]['source-layer'],
+            })
+          }
+
+          const priorityLabel = priorityAreasLegend.entries.filter(
+            ({ id }) => id === type
+          )[0].label
+
+          /* eslint-disable-next-line no-param-reassign */
+          map.getCanvas().style.cursor = 'pointer'
+          tooltip
+            .setLngLat(lngLat)
+            .setHTML(`<b>${priorityLabel}: ${name}</b>`)
+            .addTo(map)
+
+          map.setFeatureState(
+            {
+              id: featureId,
+              source: priorityAreaLayers[1].source,
+              sourceLayer: priorityAreaLayers[1]['source-layer'],
+            },
+            { highlight: true }
+          )
+
+          hoverPriorityAreaRef.current = featureId
+        }
+      )
+      map.on('mouseleave', priorityAreaLayers[0].id, () => {
+        /* eslint-disable-next-line no-param-reassign */
+        map.getCanvas().style.cursor = ''
+        tooltip.remove()
+
+        map.removeFeatureState({
+          id: hoverPriorityAreaRef.current,
+          source: priorityAreaLayers[1].source,
+          sourceLayer: priorityAreaLayers[1]['source-layer'],
+        })
+
+        hoverPriorityAreaRef.current = null
       })
 
       // Initially the mask and boundary are visible
@@ -689,18 +764,26 @@ const PriorityMap = ({
     map.fitBounds(bounds, { padding: 20, maxZoom: 14, duration: 500 })
   }, [bounds])
 
-  const handlePriorityLayerChange = useCallback((visiblePriorityLayers) => {
+  const handlePriorityLayerChange = useCallback((typeStatus) => {
     const { current: map } = mapRef
     if (!map) return
 
-    // toggle layers on or off on the map
-    Object.entries(visiblePriorityLayers).forEach(([id, visible]) => {
-      const visibility = visible ? 'visible' : 'none'
-      map.setLayoutProperty(`${id}-priority-fill`, 'visibility', visibility)
-      map.setLayoutProperty(`${id}-priority-outline`, 'visibility', visibility)
+    const visibleTypes = Object.entries(typeStatus)
+      /* eslint-disable-next-line no-unused-vars */
+      .filter(([id, isVisible]) => isVisible)
+      /* eslint-disable-next-line no-unused-vars */
+      .map(([id, _]) => id)
+
+    priorityAreaLayers.forEach(({ id }) => {
+      map.setLayoutProperty(
+        id,
+        'visibility',
+        visibleTypes.length > 0 ? 'visible' : 'none'
+      )
+      map.setFilter(id, ['in', ['get', 'type'], ['literal', visibleTypes]])
     })
 
-    setPriorityLayerState(visiblePriorityLayers)
+    setPriorityLayerState(visibleTypes)
   }, [])
 
   const getLegend = () => {
@@ -758,12 +841,14 @@ const PriorityMap = ({
 
     let footnote = null
 
-    if (Math.max(...Object.values(priorityLayerState))) {
-      Object.entries(priorityLayerState)
-        /* eslint-disable-next-line no-unused-vars */
-        .filter(([_, visible]) => visible)
-        .forEach(([id]) => {
-          patches.push(priorityWatershedLegends[id])
+    if (priorityLayerState.length > 0) {
+      priorityAreasLegend.entries
+        .filter(({ id }) => priorityLayerState.indexOf(id) !== -1)
+        .forEach(({ id, label }) => {
+          patches.push({
+            id,
+            entries: [{ id, label, color: priorityAreasLegend.color }],
+          })
         })
     }
 
@@ -867,8 +952,8 @@ const PriorityMap = ({
   return (
     <Map onCreateMap={handleCreateMap} bounds={bounds} {...props}>
       <DropDownLayerChooser
-        label="Priority Watersheds"
-        options={[{ id: 'coa', label: 'SARP conservation opportunity areas' }]}
+        label="Priority Areas"
+        options={priorityAreasLegend.entries}
         onChange={handlePriorityLayerChange}
       />
       <Legend {...getLegend()} />

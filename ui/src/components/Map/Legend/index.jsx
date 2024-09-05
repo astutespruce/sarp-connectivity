@@ -107,7 +107,7 @@ const Legend = ({
                   <div>
                     {entries.map(({ color, label: patchLabel }) => (
                       <Flex
-                        key={color}
+                        key={`${patchLabel}-${color}`}
                         sx={{
                           '&:first-of-type > div': {
                             borderTopLeftRadius: '3px',

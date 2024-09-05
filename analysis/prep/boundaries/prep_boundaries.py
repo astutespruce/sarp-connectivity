@@ -482,13 +482,12 @@ sarp_coa = (
     .rename(columns={"HUC8_Name": "name"})
     .drop(columns=["COA"])
 )
-sarp_coa["type"] = "SARP COA"
+sarp_coa["type"] = "sarp_coa"
 
 # bring in Hawaii FHP geographic focus areas and merge
 merged = None
 for filename in src_dir.glob("Hawaii FHP Focus Areas/*.shp"):
-    df = read_dataframe(filename, columns=[], use_arrow=True).to_crs(CRS)
-    df["name"] = (
+    name = (
         filename.stem.lower()
         .replace("_wgs84", "")
         .replace("_outline", "")
@@ -498,10 +497,17 @@ for filename in src_dir.glob("Hawaii FHP Focus Areas/*.shp"):
         .title()
         .strip()
     )
+
+    if name == "Kahaluu To Hakipuu":
+        # this is completely contained within Heeia To Hakipuu
+        continue
+
+    df = read_dataframe(filename, columns=[], use_arrow=True).to_crs(CRS)
+    df["name"] = name
     merged = append(merged, df)
 
 hi_gfa = merged.reset_index(drop=True)
-hi_gfa["type"] = "HIFHP GFA"
+hi_gfa["type"] = "hifhp_gfa"
 
 df = append(sarp_coa, hi_gfa).explode(ignore_index=True)
 df = dissolve(df.explode(ignore_index=True), by=["type", "name"])
