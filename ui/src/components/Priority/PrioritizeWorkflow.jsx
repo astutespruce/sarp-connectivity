@@ -48,7 +48,7 @@ const resultTypeOptions = [
 const Prioritize = () => {
   const barrierType = useBarrierType()
   const barrierTypeLabel = barrierTypeLabels[barrierType]
-  const { bounds: fullBounds } = useSummaryData()
+  const { bbox: fullBounds } = useSummaryData()
   const {
     state: { filters, filteredCount },
     setData: setFilterData,

@@ -75,6 +75,8 @@ const WaterfallDetails = ({
   trout,
   unalteredupstreammiles,
   unalteredupstreammainstemmiles,
+  upstreamunalteredwaterbodykm2,
+  upstreamunalteredwetlandkm2,
   waterbodykm2,
   waterbodysizeclass,
   invasive,
@@ -148,6 +150,8 @@ const WaterfallDetails = ({
             totaldownstreamdams={totaldownstreamdams}
             totaldownstreamsmallbarriers={totaldownstreamsmallbarriers}
             totaldownstreamwaterfalls={totaldownstreamwaterfalls}
+            upstreamunalteredwaterbodykm2={upstreamunalteredwaterbodykm2}
+            upstreamunalteredwetlandkm2={upstreamunalteredwetlandkm2}
           />
         ) : (
           <NoNetworkInfo
@@ -309,6 +313,8 @@ WaterfallDetails.propTypes = {
   trout: PropTypes.number,
   unalteredupstreammiles: PropTypes.number,
   unalteredupstreammainstemmiles: PropTypes.number,
+  upstreamunalteredwaterbodykm2: PropTypes.number,
+  upstreamunalteredwetlandkm2: PropTypes.number,
   waterbodykm2: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
   invasive: PropTypes.bool,
@@ -427,6 +433,8 @@ WaterfallDetails.defaultProps = {
   trout: 0,
   unalteredupstreammiles: 0,
   unalteredupstreammainstemmiles: 0,
+  upstreamunalteredwaterbodykm2: 0,
+  upstreamunalteredwetlandkm2: 0,
   waterbodykm2: -1,
   waterbodysizeclass: null,
   invasive: false,

@@ -25,7 +25,7 @@ const MAX_RECORDS = 500000
 const SurveyWorkflow = () => {
   const barrierType = useBarrierType()
 
-  const { bounds: fullBounds } = useSummaryData()
+  const { bbox: fullBounds } = useSummaryData()
   const {
     state: { filters, filteredCount },
     setData: setFilterData,

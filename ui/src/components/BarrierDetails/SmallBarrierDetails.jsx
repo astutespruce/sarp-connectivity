@@ -125,6 +125,8 @@ const BarrierDetails = ({
   unalteredupstreammiles,
   unalteredupstreammainstemmiles,
   unranked,
+  upstreamunalteredwaterbodykm2,
+  upstreamunalteredwetlandkm2,
   nearestusgscrossingid,
   waterbodykm2,
   waterbodysizeclass,
@@ -282,6 +284,8 @@ const BarrierDetails = ({
             totaldownstreamdams={totaldownstreamdams}
             totaldownstreamsmallbarriers={totaldownstreamsmallbarriers}
             totaldownstreamwaterfalls={totaldownstreamwaterfalls}
+            upstreamunalteredwaterbodykm2={upstreamunalteredwaterbodykm2}
+            upstreamunalteredwetlandkm2={upstreamunalteredwetlandkm2}
           />
         ) : (
           <NoNetworkInfo
@@ -462,6 +466,8 @@ BarrierDetails.propTypes = {
   unalteredupstreammiles: PropTypes.number,
   unalteredupstreammainstemmiles: PropTypes.number,
   unranked: PropTypes.bool,
+  upstreamunalteredwaterbodykm2: PropTypes.number,
+  upstreamunalteredwetlandkm2: PropTypes.number,
   nearestusgscrossingid: PropTypes.string,
   waterbodykm2: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
@@ -597,6 +603,8 @@ BarrierDetails.defaultProps = {
   unalteredupstreammiles: 0,
   unalteredupstreammainstemmiles: 0,
   unranked: false,
+  upstreamunalteredwaterbodykm2: 0,
+  upstreamunalteredwetlandkm2: 0,
   nearestusgscrossingid: null,
   waterbodykm2: -1,
   waterbodysizeclass: null,

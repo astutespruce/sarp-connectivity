@@ -45,6 +45,8 @@ const FunctionalNetworkInfo = ({
   totaldownstreamdams,
   totaldownstreamsmallbarriers,
   totaldownstreamwaterfalls,
+  upstreamunalteredwaterbodykm2,
+  upstreamunalteredwetlandkm2,
   ...props
 }) => {
   const barrierTypeLabel =
@@ -419,6 +421,16 @@ const FunctionalNetworkInfo = ({
           </View>
         </Flex>
 
+        <View style={{ marginTop: 28 }}>
+          <Text>
+            This network intersects{' '}
+            <Bold>{formatNumber(upstreamunalteredwaterbodykm2)} km2</Bold> of
+            unaltered lakes and ponds and{' '}
+            <Bold>{formatNumber(upstreamunalteredwetlandkm2)} km2</Bold> of
+            unaltered freshwater wetlands.
+          </Text>
+        </View>
+
         {unranked && !invasive ? (
           <Text style={{ color: '#7f8a93', marginTop: 28, fontSize: 10 }}>
             Note: this {barrierTypeLabel} excluded from ranking based on field
@@ -471,6 +483,15 @@ const FunctionalNetworkInfo = ({
           </Link>{' '}
           dataset (v0.44).
         </Text>
+        <Text style={{ marginTop: 14, color: '#7f8a93', fontSize: 10 }}>
+          Unaltered lakes and ponds include any that intersect a stream reach in
+          the upstream functional network, and exclude any specifically marked
+          by their data provider as altered as well as any that are associated
+          with dams in this inventory. Unaltered freshwater wetlands are derived
+          from the National Wetlands Inventory (freshwater scrub-shrub,
+          freshwater forested, freshwater emergent) and NHD (swamp/marsh) and
+          exclude any specifically marked by their data provider as altered.
+        </Text>
       </View>
     </Section>
   )
@@ -506,6 +527,8 @@ FunctionalNetworkInfo.propTypes = {
   totaldownstreamdams: PropTypes.number,
   totaldownstreamsmallbarriers: PropTypes.number,
   totaldownstreamwaterfalls: PropTypes.number,
+  upstreamunalteredwaterbodykm2: PropTypes.number,
+  upstreamunalteredwetlandkm2: PropTypes.number,
 }
 
 FunctionalNetworkInfo.defaultProps = {
@@ -533,6 +556,8 @@ FunctionalNetworkInfo.defaultProps = {
   totaldownstreamdams: 0,
   totaldownstreamsmallbarriers: 0,
   totaldownstreamwaterfalls: 0,
+  upstreamunalteredwaterbodykm2: 0,
+  upstreamunalteredwetlandkm2: 0,
 }
 
 export default FunctionalNetworkInfo

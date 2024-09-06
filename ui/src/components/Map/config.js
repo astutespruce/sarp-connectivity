@@ -5,8 +5,7 @@ import { siteMetadata } from 'config'
 const { tileHost } = siteMetadata
 
 export const mapConfig = {
-  // Bounds around all selected HUC6s
-  bounds: [-124.9022044, 17.83087146, -65.16797072, 52.88065373],
+  bounds: [-187.65, 17.62, -64.51, 71.44],
   styleID: 'light-v10',
   minZoom: 2,
   maxZoom: 22,

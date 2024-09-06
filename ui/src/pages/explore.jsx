@@ -242,6 +242,7 @@ const ExplorePage = ({ location }) => {
         id: 'total',
         name: 'full analysis region',
         layer: 'boundary',
+        // bbox: , // FIXME:
       }
     },
     // ignore other deps intentionally

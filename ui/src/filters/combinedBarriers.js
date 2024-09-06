@@ -273,18 +273,16 @@ export const combinedBarriers = [
       },
       {
         field: 'upstreamunalteredwaterbodyclass',
-        title:
-          'Total area of all unaltered waterbodies that intersect the upstream functional network',
+        title: 'Total area of all unaltered lakes and ponds',
         sort: false,
-        help: 'Note: waterbodies are derived from NHD, the National Wetlands Inventory (NWI), and state waterbody datasets (where available) and exclude any specifically marked by the data provider as altered and those that are associated with dams in this inventory.',
+        help: 'Note: this metric is based on all unaltered lakes and ponds that intersect any stream reach in the upstream functional network.  Waterbodies are derived from NHD, the National Wetlands Inventory (NWI), and state waterbody datasets (where available) and exclude any specifically marked by the data provider as altered and those that are associated with dams in this inventory.',
         ...getEntries(UNALTERED_WATERBODY_CLASS),
       },
       {
         field: 'upstreamunalteredwetlandclass',
-        title:
-          'Total area of all unaltered freshwater wetlands that intersect the upstream functional network',
+        title: 'Total area of all unaltered freshwater wetlands',
         sort: false,
-        help: 'Note: wetlands are derived from the National Wetlands Inventory (NWI) and NHD and exclude any specifically marked by the data provider as altered.',
+        help: 'Note: this metric is based on all unaltered freshwater wetlands that intersect any stream reach in the upstream functional network.  Wetlands are derived from specific wetland types in the National Wetlands Inventory (freshwater scrub-shrub, freshwater forested, freshwater emergent) and NHD (swamp/marsh) and exclude any specifically marked by the data provider as altered.',
         ...getEntries(UNALTERED_WETLAND_CLASS),
       },
     ],

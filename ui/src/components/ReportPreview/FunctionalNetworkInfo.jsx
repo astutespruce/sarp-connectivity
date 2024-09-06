@@ -38,6 +38,8 @@ const FunctionalNetworkInfo = ({
   totaldownstreamdams,
   totaldownstreamsmallbarriers,
   totaldownstreamwaterfalls,
+  upstreamunalteredwaterbodykm2,
+  upstreamunalteredwetlandkm2,
   sx,
 }) => {
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
@@ -312,6 +314,18 @@ const FunctionalNetworkInfo = ({
         </Table>
       </Box>
 
+      <Box sx={{ mt: '2rem' }}>
+        This network intersects{' '}
+        <b>
+          {formatNumber(upstreamunalteredwaterbodykm2)} km<sup>2</sup>
+        </b>{' '}
+        of unaltered lakes and ponds and{' '}
+        <b>
+          {formatNumber(upstreamunalteredwetlandkm2)} km<sup>2</sup>
+        </b>{' '}
+        of unaltered freshwater wetlands.
+      </Box>
+
       {unranked && !invasive ? (
         <Paragraph variant="help" sx={{ mt: '2rem', fontSize: 0 }}>
           Note: this {barrierTypeLabel} excluded from ranking based on field
@@ -362,6 +376,15 @@ const FunctionalNetworkInfo = ({
           The Nature Conservancy&apos;s Freshwater Resilience
         </OutboundLink>{' '}
         dataset (v0.44).
+        <br />
+        <br />
+        Unaltered lakes and ponds include any that intersect a stream reach in
+        the upstream functional network, and exclude any specifically marked by
+        their data provider as altered as well as any that are associated with
+        dams in this inventory. Unaltered freshwater wetlands are derived from
+        the National Wetlands Inventory (freshwater scrub-shrub, freshwater
+        forested, freshwater emergent) and NHD (swamp/marsh) and exclude any
+        specifically marked by their data provider as altered.
       </Paragraph>
     </Box>
   )
@@ -396,6 +419,8 @@ FunctionalNetworkInfo.propTypes = {
   totaldownstreamdams: PropTypes.number,
   totaldownstreamsmallbarriers: PropTypes.number,
   totaldownstreamwaterfalls: PropTypes.number,
+  upstreamunalteredwaterbodykm2: PropTypes.number,
+  upstreamunalteredwetlandkm2: PropTypes.number,
   sx: PropTypes.object,
 }
 
@@ -423,6 +448,8 @@ FunctionalNetworkInfo.defaultProps = {
   totaldownstreamdams: 0,
   totaldownstreamsmallbarriers: 0,
   totaldownstreamwaterfalls: 0,
+  upstreamunalteredwaterbodykm2: 0,
+  upstreamunalteredwetlandkm2: 0,
   sx: null,
 }
 

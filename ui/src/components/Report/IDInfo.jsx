@@ -139,11 +139,13 @@ const IDInfo = ({
 
       {fromODFW ? (
         <Entry>
-          Information about this barrier is maintained by the{' '}
-          <Link href="https://www.dfw.state.or.us/fish/passage/inventories.asp">
-            Oregon Department of Fish and Wildlife
-          </Link>
-          .
+          <Text>
+            Information about this barrier is maintained by the{' '}
+            <Link href="https://www.dfw.state.or.us/fish/passage/inventories.asp">
+              Oregon Department of Fish and Wildlife
+            </Link>
+            .
+          </Text>
         </Entry>
       ) : null}
     </Section>
