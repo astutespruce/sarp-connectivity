@@ -585,7 +585,7 @@ export const STATES = {
 export const REGIONS = {
   alaska: {
     name: 'Alaska',
-    order: 6,
+    order: 7,
     url: '/regions/alaska',
     states: ['AK'],
     inDevelopment: true,
@@ -602,9 +602,16 @@ export const REGIONS = {
     order: 1,
     states: ['CO', 'IA', 'KS', 'MT', 'ND', 'NE', 'SD', 'WY', 'UT'],
   },
+  hawaii: {
+    name: 'Hawaii',
+    url: '/regions/hawaii',
+    order: 8,
+    states: ['HI'],
+    inDevelopment: true,
+  },
   northeast: {
     name: 'Northeast',
-    order: 7,
+    order: 6,
     url: '/regions/northeast',
     states: [
       'CT',
@@ -1152,6 +1159,24 @@ export const WATERBODY_SIZECLASS = {
   3: 'small lake (0.1 - 0.9 km2)',
   4: 'medium lake (1 - 9.9 km2)',
   5: 'large lake (>= 10 km2)',
+}
+
+export const UNALTERED_WATERBODY_CLASS = {
+  0: '0 km2',
+  1: '< 0.01 km2',
+  2: '0.01 - 0.09 km2',
+  3: '0.1 - 0.9 km2',
+  4: '1 - 9.9 km2',
+  5: '>= 10 km2',
+}
+
+export const UNALTERED_WETLAND_CLASS = {
+  0: '0 km2',
+  1: '< 0.01 km2',
+  2: '0.01 - 0.09 km2',
+  3: '0.1 - 0.9 km2',
+  4: '1 - 9.9 km2',
+  5: '>= 10 km2',
 }
 
 // NOTE: these are encoded into a comma-delimited field

@@ -67,3 +67,13 @@ def classify_cost(series):
     """classify dams by CostMean values into bins 1...8; 0 is reserved for missing values (small barriers)"""
     bins = [-1, 0, 100_000, 250_000, 500_000, 750_000, 1_000_000, 2_000_000] + [series.max() + 1]
     return np.asarray(pd.cut(series, bins, right=False, labels=np.arange(1, len(bins)))).astype("uint8")
+
+
+def classify_unaltered_waterbody_area(series):
+    bins = [-1, 0, 0.01, 0.1, 1, 10] + [series.max() + 1]
+    return np.asarray(pd.cut(series, bins, right=False, labels=np.arange(-1, len(bins) - 2))).astype("int8")
+
+
+def classify_unaltered_wetland_area(series):
+    bins = [-1, 0, 0.01, 0.1, 1, 10] + [series.max() + 1]
+    return np.asarray(pd.cut(series, bins, right=False, labels=np.arange(-1, len(bins) - 2))).astype("int8")

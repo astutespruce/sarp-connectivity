@@ -124,6 +124,19 @@ removed_barrier_joins = removed_barrier_joins.join(subnetwork_lookup, on="lineID
 removed_barriers = removed_barriers.join(removed_barrier_joins[network_types].groupby(level=0).first(), on="id")
 
 
+unaltered_waterbodies = (
+    read_arrow_tables([raw_dir / huc2 / "flowline_waterbodies.feather" for huc2 in all_huc2s])
+    .to_pandas()
+    .set_index("lineID")
+)
+
+unaltered_wetlands = (
+    read_arrow_tables([raw_dir / huc2 / "flowline_wetlands.feather" for huc2 in all_huc2s])
+    .to_pandas()
+    .set_index("lineID")
+)
+
+
 for network_type in network_types:
     print(f"\n===========================\nCreating networks for {network_type}")
     network_start = time()
@@ -263,6 +276,10 @@ for network_type in network_types:
             focal_barrier_joins=active_focal_barrier_joins,
             joins=active_joins,
             flowlines=active_segments,
+            unaltered_waterbodies=unaltered_waterbodies.loc[
+                unaltered_waterbodies.index.isin(subnetwork_segments.index.values)
+            ],
+            unaltered_wetlands=unaltered_wetlands.loc[unaltered_wetlands.index.isin(subnetwork_segments.index.values)],
             network_type=network_type,
         )
 

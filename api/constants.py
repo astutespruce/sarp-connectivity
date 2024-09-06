@@ -116,6 +116,8 @@ METRIC_FIELDS = [
     "ResilientUpstreamMiles",
     "PercentResilient",
     "UpstreamDrainageArea",
+    "UpstreamUnalteredWaterbodyKM2",
+    "UpstreamUnalteredWetlandKM2",
     # downstream functional network
     "TotalDownstreamMiles",
     "FreeDownstreamMiles",
@@ -285,6 +287,8 @@ FILTER_FIELDS = [
     "PassageFacilityClass",
     "DisadvantagedCommunity",
     "FishHabitatPartnership",
+    "UpstreamUnalteredWaterbodyClass",
+    "UpstreamUnalteredWetlandClass",
 ]
 
 DAM_FILTER_FIELDS = FILTER_FIELDS + [
@@ -411,7 +415,6 @@ DAM_CORE_FIELDS = (
         "LowheadDam",
         "StorageVolume",
         "WaterbodyKM2",
-        "WaterbodySizeClass",
         "Fatality",
     ]
     + GENERAL_API_FIELDS2
@@ -437,6 +440,8 @@ DAM_API_FIELDS = unique(
         "CostLower",
         "CostMean",
         "CostUpper",
+        # Size class is used for display
+        "WaterbodySizeClass",
     ]
 )
 
@@ -1325,8 +1330,7 @@ FIELD_DEFINITIONS = {
     "Diversion": "Identifies if dam is known to be a diversion.  Note: diversion information is available only for a small number of dams.",
     "LowheadDam": "Identifies if dam is known or estimated to be a lowhead dam.  Note: lowhead dam information is available only for a small number of dams.",
     "StorageVolume": "Identifies the reported normal storage volume of the impounded waterbody (acre/feet), from NID NormStor attribute, if known.  ",
-    "WaterbodyKM2": "area of associated waterbody in square kilometers.  -1 = no associated waterbody",
-    "WaterbodySizeClass": "size class of associated waterbody.  -1 = no associated waterbody",
+    "WaterbodyKM2": "area of waterbody associated with {type} in square kilometers.  -1 = no associated waterbody",
     "Fatality": "number of fatalities recorded at this location from Locations of Fatalities at Submerged Hydraulic Jumps (https://krcproject.groups.et.byu.net/browse.php)",
     # barrier-specific fields
     "CrossingCode": "crossing identifier.",
@@ -1395,7 +1399,7 @@ FIELD_DEFINITIONS = {
     "PercentPerennialUnaltered": "percent of the perennial upstream functional river network length from this {type} that is not specifically identified in NHD or the National Wetlands Inventory as altered (canal / ditch, within a reservoir, or other channel alteration).  See PerennialUpstreamMiles.  -1 = not available.",
     "UpstreamResilientMiles": "number of miles in the upstream functional river network from this {type} that are within watersheds identified by The Nature Conservancy with above average or greater freshwater resilience (v0.44), including miles in waterbodies.  -1 = not available.  See https://www.maps.tnc.org/resilientrivers/#/explore for more information.",
     "PercentResilient": "percent of the the upstream functional river network length from this {type} that is within watersheds identified by The Nature Conservancy with above average or greater freshwater resilience (v0.44), including miles in waterbodies.  -1 = not available.  See https://www.maps.tnc.org/resilientrivers/#/explore for more information.",
-    "UpstreamDrainageArea": "approximate drainage area of all NHD High Resolution catchments within upstream functional network of {type}.  Includes the total catchment area of any NHD High Resolution flowlines that are cut by barriers in the analysis, which may overrepresent total drainage area of the network. -1 = not available.",
+    "UpstreamDrainageArea": "approximate drainage area in square kilometers of all NHD High Resolution catchments within upstream functional network of {type}.  Includes the total catchment area of any NHD High Resolution flowlines that are cut by barriers in the analysis, which may overrepresent total drainage area of the network. -1 = not available.",
     "TotalDownstreamMiles": "number of miles in the complete downstream functional river network from this {type}, including miles in waterbodies.  Note: this measures the length of the complete downstream network including all tributaries, and is not limited to the shortest downstream path.  -1 = not available.",
     "FreeDownstreamMiles": "number of free-flowing miles in the downstream functional river network.  Excludes miles in altered reaches in waterbodies.  -1 = not available.",
     "FreePerennialDownstreamMiles": "number of free-flowing perennial miles in the downstream functional river network.  Excludes miles in altered reaches in waterbodies.  See PerennialUpstreamMiles for definition of perennial reaches. -1 = not available.",
@@ -1403,6 +1407,8 @@ FIELD_DEFINITIONS = {
     "FreeAlteredDownstreamMiles": "number of free-flowing altered miles in the downstream functional river network from this {type}.  Excludes miles in altered reaches in waterbodies.  See AlteredUpstreaMiles for definition of altered reaches.  -1 = not available.",
     "FreeUnalteredDownstreamMiles": "number of free-flowing altered miles in the downstream functional river network from this {type}.  Excludes miles in altered reaches in waterbodies.  See UnalteredUpstreamMiles for definition of unaltered reaches.  -1 = not available.",
     "DownstreamResilientMiles": "number of free-flowing miles in the downstream functional river network length from this {type} that is within watersheds identified by The Nature Conservancy with above average or greater freshwater resilience (v0.44).  Excludes miles in altered reaches in waterbodies.  -1 = not available.  See https://www.maps.tnc.org/resilientrivers/#/explore for more information.",
+    "UpstreamUnalteredWaterbodyKM2": "area in square kilometers of all unaltered waterbodies that intersect the upstream functional network; these waterbodies are not specifically marked by data sources as altered and are not associated with dams in this inventory.  Use with caution because waterbodies may not be correctly subdivided by dams in the data sources, and altered waterbodies may not be marked as such. -1 = not available.",
+    "UpstreamUnalteredWetlandKM2": "area in square kilometers of all unaltered freshwater wetlands that intersect the upstream functional network; these wetlands are not specifically marked by data sources as altered.  Use with caution because wetlands may not be correctly subdivided by dams or dikes in the data sources, and altered wetlands may not be marked as such. Wetlands are extracted from the National Wetlands Inventory and National Hydrography Dataset.  -1 = not available.",
     # functional network gain / total
     "GainMiles": "absolute number of miles that could be gained by removal of this {type}.  Calculated as the minimum of the TotalUpstreamMiles and FreeDownstreamMiles unless the downstream network flows into the Great Lakes or the Ocean and has no downstream barriers, in which case this is based only on TotalUpstreamMiles. For removed barriers, this is based on the barriers present at the time this barrier was removed, with the exception of those that are immediately upstream and removed in the same year.  -1 = not available.",
     "PerennialGainMiles": "absolute number of perennial miles that could be gained by removal of this {type}.  Calculated as the minimum of the PerennialUpstreamMiles and FreePerennialDownstreamMiles unless the downstream network flows into the Great Lakes or the Ocean and has no downstream barriers, in which case this is based only on PerennialUpstreamMiles.  For removed barriers, this is based on the barriers present at the time this barrier was removed, with the exception of those that are immediately upstream and removed in the same year.  -1 = not available.",
