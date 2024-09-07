@@ -1,8 +1,8 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Heading, Text } from 'theme-ui'
+import { Box, Flex, Grid, Heading, Image, Text } from 'theme-ui'
 
-import { siteMetadata } from 'config'
+import { siteMetadata, attachmentKeywords } from 'config'
 import { OutboundLink } from 'components/Link'
 import { isEmptyString } from 'util/string'
 import { Entry } from './elements'
@@ -10,6 +10,7 @@ import { Entry } from './elements'
 const { version: dataVersion } = siteMetadata
 
 const IDInfo = ({
+  barrierType,
   sarpid,
   nidfederalid,
   nidid,
@@ -18,6 +19,7 @@ const IDInfo = ({
   partnerid,
   link,
   nearestusgscrossingid,
+  attachments: rawAttachments,
   sx,
 }) => {
   const fromWDFW = source && source.startsWith('WDFW')
@@ -57,6 +59,23 @@ const IDInfo = ({
         <Entry>National inventory of dams ID: {nidid} (legacy ID)</Entry>
       )
     }
+  }
+
+  let attachments = []
+  if (!isEmptyString(rawAttachments)) {
+    const [prefix, parts] = rawAttachments.split('|')
+    attachments = parts
+      .split(',')
+      .sort((a, b) =>
+        attachmentKeywords.indexOf(a.split(':')[0]) <
+        attachmentKeywords.indexOf(b.split(':')[0])
+          ? -1
+          : 1
+      )
+      .map((part) => {
+        const [keyword, partId] = part.split(':')
+        return { keyword, url: `${prefix}/${partId}` }
+      })
   }
 
   return (
@@ -125,11 +144,58 @@ const IDInfo = ({
           .
         </Entry>
       ) : null}
+
+      {barrierType === 'small_barriers' && attachments.length > 0 ? (
+        <Box sx={{ mt: '2rem', ml: '0.5rem' }}>
+          <Flex sx={{ gap: '0.5rem', alignItems: 'baseline' }}>
+            <Text sx={{ fontWeight: 'bold' }}>Barrier survey photos:</Text>
+            <Text sx={{ fontSize: 0 }}>(click for full size)</Text>
+          </Flex>
+          <Grid columns={Math.min(3, attachments.length)} gap={2}>
+            {attachments.map(({ keyword, url }) => (
+              <Box key={keyword}>
+                <OutboundLink to={url}>
+                  <Box
+                    sx={{
+                      minWidth: '200px',
+                    }}
+                  >
+                    <Flex
+                      sx={{
+                        overflow: 'hidden',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Image
+                        src={url}
+                        sx={{
+                          width: '100%',
+                          border: '1px solid',
+                          borderColor: 'grey.7',
+                          '&:hover': {
+                            borderColor: 'link',
+                          },
+                        }}
+                      />
+                    </Flex>
+                    <Text
+                      sx={{ fontSize: 0, color: 'grey.7', textAlign: 'center' }}
+                    >
+                      {keyword}
+                    </Text>
+                  </Box>
+                </OutboundLink>
+              </Box>
+            ))}
+          </Grid>
+        </Box>
+      ) : null}
     </Box>
   )
 }
 
 IDInfo.propTypes = {
+  barrierType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
   nidfederalid: PropTypes.string,
   nidid: PropTypes.string,
@@ -138,6 +204,7 @@ IDInfo.propTypes = {
   partnerid: PropTypes.string,
   link: PropTypes.string,
   nearestusgscrossingid: PropTypes.string,
+  attachments: PropTypes.string,
   sx: PropTypes.object,
 }
 
@@ -149,6 +216,7 @@ IDInfo.defaultProps = {
   partnerid: null,
   link: null,
   nearestusgscrossingid: null,
+  attachments: null,
   sx: null,
 }
 

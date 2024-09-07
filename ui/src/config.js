@@ -1677,3 +1677,13 @@ export const getSingularUnitLabel = (layer) => {
       return 'area'
   }
 }
+
+// ordered array of attachment keywords for sorting attached photos
+export const attachmentKeywords = [
+  'inlet',
+  'outlet',
+  'upstream',
+  'downstream',
+  'optional1',
+  'optional2',
+]
