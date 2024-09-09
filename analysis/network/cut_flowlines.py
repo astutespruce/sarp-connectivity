@@ -231,14 +231,16 @@ for huc2 in huc2s:
         huc2_dir / "barrier_joins.feather",
     )
 
-    ### Build lookup table of flowlines to non-impounded / unaltered waterbodies
+    ### Build lookup table of flowlines to non-impounded / unaltered waterbodies (excluding Great Lakes)
     tree = shapely.STRtree(flowlines.geometry.values)
 
     print("Joining segments to waterbodies")
     waterbodies = (
         pa.dataset.dataset(waterbodies_dir / huc2 / "waterbodies.feather", format="feather")
         .to_table(
-            filter=(~(pc.is_in(pc.field("wbID"), dam_wbid))) & (pc.field("altered") == False),  # noqa: E712
+            filter=(~(pc.is_in(pc.field("wbID"), dam_wbid)))
+            & (pc.field("altered") == False)  # noqa: E712
+            & (pc.field.km2 < 8000),  # exclude Great Lakes
             columns=["geometry", "wbID", "km2", "altered"],
         )
         .to_pandas()

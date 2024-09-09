@@ -111,8 +111,8 @@ SARP_STATE_NAMES = [STATES[s] for s in SARP_STATES]
 
 # Note: some states overlap multiple regions
 REGION_STATES = {
-    "southeast": SARP_STATES,
-    # Great Plains / intermountain west
+    "alaska": ["AK"],
+    "great_lakes": ["IA", "IL", "IN", "MI", "MN", "OH", "WI"],
     "great_plains_intermountain_west": [
         "CO",
         "KS",
@@ -123,15 +123,12 @@ REGION_STATES = {
         "WY",
         "UT",
     ],
-    # Great Lakes
-    "great_lakes": ["IA", "IL", "IN", "MI", "MN", "OH", "WI"],
     "hawaii": ["HI"],
-    "alaska": ["AK"],
+    "northeast": ["CT", "DC", "DE", "MA", "MD", "ME", "NH", "NJ", "NY", "PA", "RI", "VT"],
     "northwest": ["ID", "OR", "WA"],
     "pacific_southwest": ["CA", "NV"],
+    "southeast": SARP_STATES,
     "southwest": ["AZ", "NM", "OK", "TX"],
-    # TEMP
-    "northeast": ["CT", "DC", "DE", "MA", "MD", "ME", "NH", "NJ", "NY", "PA", "RI", "VT"],
 }
 
 
@@ -231,7 +228,7 @@ DAM_FS_COLS = [
     "Fed_Regulatory_Agency",
     "STATE_REGULATED",
     "Regulatory_Agency",
-    "Private",
+    "Private",  # FIXME: remove
     "Water_Right",
     "Water_Right_Status",  # FIXME: check
     "Beneficial_Use",  # FIXME: check

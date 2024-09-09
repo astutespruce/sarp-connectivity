@@ -47,7 +47,7 @@ SMALL_BARRIER_SURVEY_URLS = {
     "Western (inland)": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/service_1da663f4b2ff45aeadbf5568829f40f6/FeatureServer/0",
 }
 PRIVATE_BARRIERS_URL = (
-    "https://services9.arcgis.com/jLLC0IEfFUxV8nml/ArcGIS/rest/services/Private_Road_Crossings_08132024/FeatureServer/0"
+    "https://services9.arcgis.com/jLLC0IEfFUxV8nml/arcgis/rest/services/Private_Road_Crossings_08132024/FeatureServer/0"
 )
 
 

@@ -686,9 +686,18 @@ export const STATE_DATA_PROVIDERS = {
     {
       key: 'ca',
       description:
-        'The <a href="https://www.cafishpassageforum.org/">California Fish Passage Forum </a>and the <a href="https://www.psmfc.org/">Pacific States Marine Fisheries Commission</a> have developed and maintain a barrier inventory for the state of California, called the <a href="https://www.calfish.org/ProgramsData/HabitatandBarriers/CaliforniaFishPassageAssessmentDatabase.aspx">California Fish Passage Assessment Database</a> (PAD). The PAD is an ongoing map-based inventory of known and potential barriers to anadromous fish in California, compiled and maintained through a cooperative interagency agreement. It compiles currently available fish passage information from many different sources, allows past and future barrier assessments to be standardized and stored in one place, and enables the analysis of cumulative effects of passage barriers in the context of overall watershed health.  This dataset is the primary dataset used within this tool for the state of California.',
+        'The <a href="https://www.cafishpassageforum.org/" target="_blank">California Fish Passage Forum </a>and the <a href="https://www.psmfc.org/" target="_blank">Pacific States Marine Fisheries Commission</a> have developed and maintain a barrier inventory for the state of California, called the <a href="https://www.calfish.org/ProgramsData/HabitatandBarriers/CaliforniaFishPassageAssessmentDatabase.aspx">California Fish Passage Assessment Database</a> (PAD). The PAD is an ongoing map-based inventory of known and potential barriers to anadromous fish in California, compiled and maintained through a cooperative interagency agreement. It compiles currently available fish passage information from many different sources, allows past and future barrier assessments to be standardized and stored in one place, and enables the analysis of cumulative effects of passage barriers in the context of overall watershed health.  This dataset is the primary dataset used within this tool for the state of California.',
       logo: 'cfpf_logo.png',
       logoWidth: '180px',
+    },
+  ],
+  HI: [
+    {
+      key: 'cwrm',
+      description:
+        'Points of Diversion Data provided by the <a href="https://dlnr.hawaii.gov/cwrm/" target="_blank">Commission on Water Resource Management</a>, Department of Land and Natural Resources, State of Hawaii',
+      logo: 'hi_cwrm_logo.png',
+      logoWidth: '130px',
     },
   ],
   ID: [
@@ -1326,11 +1335,10 @@ export const FISH_HABITAT_PARTNERSHIPS = {
     logo: 'gpfhp_logo.jpg',
     logoWidth: '160px',
   },
-  // TODO: enable once Hawaii is included in analysis
-  // HFHP: {
-  //   name: 'Hawaii Fish Habitat Partnership',
-  //   url: 'https://www.fishhabitat.org/the-partnerships/hawaii-fish-habitat-partnership',
-  // },
+  HFHP: {
+    name: 'Hawaii Fish Habitat Partnership',
+    url: 'https://www.fishhabitat.org/the-partnerships/hawaii-fish-habitat-partnership',
+  },
   KPFHP: {
     name: 'Kenai Peninsula Fish Habitat Partnership',
     description:

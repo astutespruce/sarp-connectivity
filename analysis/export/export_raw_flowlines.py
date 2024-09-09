@@ -16,26 +16,27 @@ huc2_df = pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"]
 huc2s = huc2_df.HUC2.sort_values().values
 
 # huc2s = [
-# "01",
-# "02",
-# "03",
-# "04",
-# "05",
-# "06",
-# "07",
-# "08",
-# "09",
-# "10",
-# "11",
-# "12",
-# "13",
-# "14",
-# "15",
-# "16",
-# "17",
-# "18",
-# "19",
-# "21",
+#     "01",
+#     "02",
+#     "03",
+#     "04",
+#     "05",
+#     "06",
+#     "07",
+#     "08",
+#     "09",
+#     "10",
+#     "11",
+#     "12",
+#     "13",
+#     "14",
+#     "15",
+#     "16",
+#     "17",
+#     "18",
+#     "19",
+#     "20",
+#     "21",
 # ]
 
 
@@ -51,6 +52,4 @@ for huc2 in huc2s:
     flowlines["km"] = flowlines["length"] / 1000.0
     flowlines["miles"] = flowlines["length"] * 0.000621371
 
-    write_dataframe(
-        flowlines, out_dir / f"region{huc2}_raw_flowlines.gdb", driver="OpenFileGDB"
-    )
+    write_dataframe(flowlines, out_dir / f"region{huc2}_raw_flowlines.gdb", driver="OpenFileGDB")

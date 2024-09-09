@@ -301,7 +301,6 @@ for i, unit in enumerate(["HUC2", "HUC6", "HUC8", "HUC10", "HUC12"]):
 
 out.reset_index(drop=True).to_feather(out_dir / "unit_bounds.feather")
 
-
 ### Protected areas / land ownership
 print("Extracting land ownership & protection information (will take a while)...")
 
