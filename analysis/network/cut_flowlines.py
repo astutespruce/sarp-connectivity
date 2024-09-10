@@ -240,7 +240,7 @@ for huc2 in huc2s:
         .to_table(
             filter=(~(pc.is_in(pc.field("wbID"), dam_wbid)))
             & (pc.field("altered") == False)  # noqa: E712
-            & (pc.field.km2 < 8000),  # exclude Great Lakes
+            & (pc.field("km2") < 8000),  # exclude Great Lakes
             columns=["geometry", "wbID", "km2", "altered"],
         )
         .to_pandas()

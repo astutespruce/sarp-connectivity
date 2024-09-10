@@ -47,12 +47,8 @@ NETWORK_COLUMNS = [
     "PercentResilient",
     "IntermittentUpstreamMiles",
     "FreeIntermittentDownstreamMiles",
-    # FIXME:
-    # "UpstreamUnalteredWaterbodyKM2",
-    # "UpstreamUnalteredWetlandKM2",
-    "UpstreamUnalteredWaterbodyArea",
-    "UpstreamUnalteredWetlandArea",
-    # end FIXME:
+    "UpstreamUnalteredWaterbodyKM2",
+    "UpstreamUnalteredWetlandKM2",
     "MainstemGainMiles",
     "PerennialMainstemGainMiles",
     "TotalMainstemNetworkMiles",
@@ -246,14 +242,6 @@ def get_network_results(df, network_type, state_ranks=False):
 
     networks["PercentAlteredClass"] = classify_percent_altered(networks.PercentAltered)
     networks["PercentResilientClass"] = classify_percent_resilient(networks.PercentResilient)
-
-    # FIXME: remove on next rerun of networks
-    networks = networks.rename(
-        columns={
-            "UpstreamUnalteredWaterbodyArea": "UpstreamUnalteredWaterbodyKM2",
-            "UpstreamUnalteredWetlandArea": "UpstreamUnalteredWetlandKM2",
-        }
-    )
 
     networks["UpstreamUnalteredWaterbodyClass"] = classify_unaltered_waterbody_area(
         networks.UpstreamUnalteredWaterbodyKM2
