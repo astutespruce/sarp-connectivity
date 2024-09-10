@@ -1,5 +1,5 @@
-import numpy as np
 from pyogrio import read_dataframe
+import shapely
 
 from analysis.lib.geometry import make_valid
 from analysis.prep.network.lib.nhd.util import get_column_names
@@ -38,12 +38,9 @@ def extract_barrier_points(gdb, target_crs):
     ftype_col = col_map.get("FType", "FType")
 
     df = read_dataframe(
-        gdb,
-        layer=layer,
-        columns=read_cols,
-        force_2d=True,
-        where=f"{ftype_col} in {tuple(POINT_FTYPES)}",
+        gdb, layer=layer, columns=read_cols, where=f"{ftype_col} in {tuple(POINT_FTYPES)}", use_arrow=True
     ).rename(columns=col_map)
+    df["geometry"] = shapely.force_2d(df.geometry.values)
 
     df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
@@ -74,12 +71,9 @@ def extract_barrier_lines(gdb, target_crs):
     ftype_col = col_map.get("FType", "FType")
 
     df = read_dataframe(
-        gdb,
-        layer=layer,
-        columns=read_cols,
-        force_2d=True,
-        where=f"{ftype_col} in {tuple(LINE_FTYPES)}",
+        gdb, layer=layer, columns=read_cols, where=f"{ftype_col} in {tuple(LINE_FTYPES)}", use_arrow=True
     ).rename(columns=col_map)
+    df["geometry"] = shapely.force_2d(df.geometry.values)
 
     df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
@@ -111,12 +105,9 @@ def extract_barrier_polygons(gdb, target_crs):
     ftype_col = col_map.get("FType", "FType")
 
     df = read_dataframe(
-        gdb,
-        layer=layer,
-        columns=read_cols,
-        force_2d=True,
-        where=f"{ftype_col} in {tuple(POLY_FTYPES)}",
+        gdb, layer=layer, columns=read_cols, where=f"{ftype_col} in {tuple(POLY_FTYPES)}", use_arrow=True
     ).rename(columns=col_map)
+    df["geometry"] = shapely.force_2d(df.geometry.values)
 
     df.NHDPlusID = df.NHDPlusID.astype("uint64")
 

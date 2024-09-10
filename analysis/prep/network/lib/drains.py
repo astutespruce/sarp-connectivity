@@ -264,7 +264,7 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     )
 
     # calculate unique index
-    huc_id = drain_pts["HUC4"].astype("uint16") * 1000000
+    huc_id = drain_pts["HUC4"].astype("uint32") * np.uint32(1000000)
     drain_pts["drainID"] = drain_pts.index.values.astype("uint32") + huc_id
 
     # Convert back to GeoDataFrame; above steps make it into a DataFrame

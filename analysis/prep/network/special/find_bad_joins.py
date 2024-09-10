@@ -31,6 +31,7 @@ huc2s = huc2_df.HUC2.sort_values().values
 #     "17",
 #     "18",
 #     "19",
+#     "20",
 #     "21",
 # ]
 
@@ -43,24 +44,14 @@ for huc2 in huc2s:
     )
 
     # find any joins  where there was not a flowline in the region
-    missing_downstream = joins.loc[
-        (joins.downstream != 0)
-        & (joins.downstream_id == 0)
-        & (joins["type"] == "internal")
-    ]
+    missing_downstream = joins.loc[(joins.downstream != 0) & (joins.downstream_id == 0) & (joins["type"] == "internal")]
 
     if len(missing_downstream):
-        print(
-            "The following joins have missing downstream flowlines; they may be bogus joins:"
-        )
+        print("The following joins have missing downstream flowlines; they may be bogus joins:")
         print(missing_downstream)
 
-    missing_upstream = joins.loc[
-        (joins.upstream != 0) & (joins.upstream_id == 0) & (joins["type"] == "internal")
-    ]
+    missing_upstream = joins.loc[(joins.upstream != 0) & (joins.upstream_id == 0) & (joins["type"] == "internal")]
 
     if len(missing_upstream):
-        print(
-            "The following joins have missing missing_upstream flowlines; they may be bogus joins:"
-        )
+        print("The following joins have missing missing_upstream flowlines; they may be bogus joins:")
         print(missing_upstream)

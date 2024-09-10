@@ -1,15 +1,16 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Text } from '@react-pdf/renderer'
+import { Image, Text, View } from '@react-pdf/renderer'
 
-import { siteMetadata } from 'config'
+import { siteMetadata, attachmentKeywords } from 'config'
 import { isEmptyString } from 'util/string'
 
-import { Link, Entry, Entries, Section } from './elements'
+import { Bold, Flex, Link, Entry, Entries, Section } from './elements'
 
 const { version: dataVersion } = siteMetadata
 
 const IDInfo = ({
+  barrierType,
   sarpid,
   nidfederalid,
   nidid,
@@ -18,6 +19,7 @@ const IDInfo = ({
   partnerid,
   link,
   nearestusgscrossingid,
+  attachments: rawAttachments,
   ...props
 }) => {
   const fromWDFW = source && source.startsWith('WDFW')
@@ -63,8 +65,25 @@ const IDInfo = ({
     }
   }
 
+  let attachments = []
+  if (!isEmptyString(rawAttachments)) {
+    const [prefix, parts] = rawAttachments.split('|')
+    attachments = parts
+      .split(',')
+      .sort((a, b) =>
+        attachmentKeywords.indexOf(a.split(':')[0]) <
+        attachmentKeywords.indexOf(b.split(':')[0])
+          ? -1
+          : 1
+      )
+      .map((part) => {
+        const [keyword, partId] = part.split(':')
+        return { keyword, url: `${prefix}/${partId}` }
+      })
+  }
+
   return (
-    <Section title="Data sources" {...props} wrap={false}>
+    <Section title="Data sources" {...props} wrap>
       <Entries>
         <Entry>
           <Text>
@@ -139,18 +158,65 @@ const IDInfo = ({
 
       {fromODFW ? (
         <Entry>
-          Information about this barrier is maintained by the{' '}
-          <Link href="https://www.dfw.state.or.us/fish/passage/inventories.asp">
-            Oregon Department of Fish and Wildlife
-          </Link>
-          .
+          <Text>
+            Information about this barrier is maintained by the{' '}
+            <Link href="https://www.dfw.state.or.us/fish/passage/inventories.asp">
+              Oregon Department of Fish and Wildlife
+            </Link>
+            .
+          </Text>
         </Entry>
+      ) : null}
+
+      {barrierType === 'small_barriers' && attachments.length > 0 ? (
+        <View style={{ marginTop: 14, marginLeft: 6 }}>
+          <Flex style={{ alignItems: 'baseline' }}>
+            <Text>
+              <Bold>Barrier survey photos:</Bold>{' '}
+            </Text>
+            <Text style={{ fontSize: 10 }}>(click for full size)</Text>
+          </Flex>
+          <Flex style={{ gap: '1rem', flexWrap: 'wrap' }}>
+            {attachments.map(({ keyword, url }, i) => (
+              <View
+                key={keyword}
+                style={{
+                  flex: '0 0 170',
+                  marginLeft: i % 3 > 0 ? 6 : 0,
+                  marginTop: i >= 3 ? 10 : 0,
+                  maxHeight: 240,
+                  overflow: 'hidden',
+                }}
+              >
+                <Link href={url}>
+                  <Image
+                    src={url}
+                    style={{
+                      width: '100%',
+                      border: '1px solid #7f8a93',
+                    }}
+                  />
+                  <Text
+                    style={{
+                      color: '#7f8a93',
+                      fontSize: 10,
+                      textAlign: 'center',
+                    }}
+                  >
+                    {keyword}
+                  </Text>
+                </Link>
+              </View>
+            ))}
+          </Flex>
+        </View>
       ) : null}
     </Section>
   )
 }
 
 IDInfo.propTypes = {
+  barrierType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
   nidfederalid: PropTypes.string,
   nidid: PropTypes.string,
@@ -159,6 +225,7 @@ IDInfo.propTypes = {
   partnerid: PropTypes.string,
   link: PropTypes.string,
   nearestusgscrossingid: PropTypes.string,
+  attachments: PropTypes.string,
 }
 
 IDInfo.defaultProps = {
@@ -169,6 +236,7 @@ IDInfo.defaultProps = {
   partnerid: null,
   link: null,
   nearestusgscrossingid: null,
+  attachments: null,
 }
 
 export default IDInfo

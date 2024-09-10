@@ -42,7 +42,15 @@ const Regions = () => {
           )
         }
       }
-
+      hawaii: file(relativePath: { eq: "maps/regions/hawaii.png" }) {
+        childImageSharp {
+          gatsbyImageData(
+            layout: FULL_WIDTH
+            formats: [AUTO, WEBP]
+            placeholder: BLURRED
+          )
+        }
+      }
       northeast: file(relativePath: { eq: "maps/regions/northeast.png" }) {
         childImageSharp {
           gatsbyImageData(

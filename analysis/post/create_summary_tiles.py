@@ -340,7 +340,6 @@ out = units.join(stats.set_index(["layer", "id"]))
 
 out.reset_index().to_feather(api_dir / "map_units.feather")
 
-
 ### Output minimal subset and join to tiles
 
 # create bitset field based on number of barriers present per unit; where false for a given barrier type,
@@ -377,6 +376,8 @@ stats = stats[["id", "dams", "small_barriers", "removed_dams", "removed_small_ba
 
 csv_filename = tmp_dir / "map_units_summary.csv"
 write_csv(pa.Table.from_pandas(stats), csv_filename)
+
+print("Joining to tiles...")
 
 # join to tiles
 mbtiles_filename = f"{out_tile_dir}/map_units_summary.mbtiles"

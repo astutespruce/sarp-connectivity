@@ -63,6 +63,7 @@ nhd_dir = data_dir / "nhd"
 src_dir = nhd_dir / "raw"
 nwi_dir = data_dir / "nwi/raw"
 waterbodies_dir = data_dir / "waterbodies"
+wetlands_dir = data_dir / "wetlands"
 out_dir = nhd_dir / "clean"
 
 huc2s = sorted(pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"]).HUC2.values)
@@ -87,6 +88,7 @@ huc2s = sorted(pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["H
 # "17",
 # "18",
 # "19",
+# "20",
 # "21",
 # ]
 

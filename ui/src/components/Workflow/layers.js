@@ -1,3 +1,5 @@
+import { getHighlightExpr } from '../Map/util'
+
 export const maskFill = {
   id: 'mask',
   source: 'map_units',
@@ -131,70 +133,48 @@ export const unitLayers = [unitFill, unitOutline]
 
 export const unitHighlightLayers = [unitHighlightFill, unitHighlightOutline]
 
-const priorityFillStyle = {
+const priorityAreasLayer = {
   // id: // provided by specific layer
-  source: 'map_units',
-  'source-layer': 'HUC8',
+  source: 'priority_areas',
+  'source-layer': 'priority_areas',
+  minzoom: 0,
+  maxzoom: 24,
+  layout: {
+    visibility: 'none',
+  },
+  // filter: // provided based on toggle of specific subsets
+}
+
+const priorityAreasFillLayer = {
+  ...priorityAreasLayer,
+  id: 'priority_areas-fill',
   type: 'fill',
-  minzoom: 0,
-  maxzoom: 24,
-  layout: {
-    visibility: 'none',
-  },
-  // filter: // provided by specific layer
-  // paint: // provided by specific layer
-}
-
-const priorityOutlineStyle = {
-  // id: // provided by specific layer
-  'source-layer': 'HUC8',
-  source: 'map_units',
-  type: 'line',
-  minzoom: 0,
-  maxzoom: 24,
-  layout: {
-    visibility: 'none',
-  },
-  // filter: // provided by specific layer
-  paint: {
-    'line-opacity': 0.2,
-    'line-width': {
-      base: 0.1,
-      stops: [
-        [4, 0.1],
-        [8, 0.5],
-      ],
-    },
-    'line-color': '#AAAAAA',
-  },
-}
-
-const coaPriorityFill = {
-  ...priorityFillStyle,
-  id: 'coa-priority-fill',
-  filter: ['>', 'coa', 0],
   paint: {
     'fill-opacity': 0.4,
     'fill-color': '#3182bd',
   },
 }
 
-const coaPriorityOutline = {
-  ...priorityOutlineStyle,
-  id: 'coa-priority-outline',
-  filter: ['>', 'coa', 0],
-}
-
-export const priorityWatersheds = [coaPriorityFill, coaPriorityOutline]
-
-export const priorityWatershedLegends = {
-  coa: {
-    id: 'coa',
-    entries: [
-      {
-        color: '#3182bd99',
-        label: 'SARP conservation opportunity areas',
-      },
+const priorityAreasOutlineLayer = {
+  ...priorityAreasLayer,
+  id: 'priority_areas-outline',
+  type: 'line',
+  paint: {
+    'line-opacity': getHighlightExpr(0.2, 1),
+    'line-width': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      4,
+      getHighlightExpr(0.1, 2),
+      8,
+      getHighlightExpr(0.5, 3),
     ],
+    'line-color': getHighlightExpr('#AAAAAA', '#000000'),
   },
 }
+
+export const priorityAreaLayers = [
+  priorityAreasFillLayer,
+  priorityAreasOutlineLayer,
+]

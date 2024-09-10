@@ -1,4 +1,5 @@
 from pathlib import Path
+import warnings
 from xml.etree import ElementTree
 
 from tqdm import tqdm
@@ -12,15 +13,17 @@ CONNECTION_TIMEOUT = 120  # seconds
 # Beta is for everything delivered up until 2022
 # Listing URL: https://prd-tnm.s3.amazonaws.com/index.html?prefix=StagedProducts/Hydrography/NHDPlusHR/Beta/GDB/
 # HUC_type is HU4 or HU8
-BETA_DATA_URL = "https://prd-tnm.s3.amazonaws.com/StagedProducts/Hydrography/NHDPlusHR/Beta/GDB/NHDPLUS_H_{HUC}_{HUC_type}_GDB.zip"
+BETA_DATA_URL = (
+    "https://prd-tnm.s3.amazonaws.com/StagedProducts/Hydrography/NHDPlusHR/Beta/GDB/NHDPLUS_H_{HUC}_{HUC_type}_GDB.zip"
+)
 
 # Current is for anything delivered starting in 2022, with different naming schemes
 # Listing URL https://prd-tnm.s3.amazonaws.com/index.html?prefix=StagedProducts/Hydrography/NHDPlusHR/VPU/Current/GDB/
-CURRENT_DATA_LIST_URL = "https://prd-tnm.s3.amazonaws.com/index.html?prefix=StagedProducts/Hydrography/NHDPlusHR/VPU/Current/GDB/"
-CURRENT_DATA_URL = "https://prd-tnm.s3.amazonaws.com/StagedProducts/Hydrography/NHDPlusHR/VPU/Current/GDB/NHDPLUS_H_{HUC}_{HUC_type}_{datestamp}_GDB.zip"
+CURRENT_DATA_LIST_URL = (
+    "https://prd-tnm.s3.amazonaws.com/?delimiter=/&prefix=StagedProducts/Hydrography/NHDPlusHR/VPU/Current/GDB/"
+)
 
-# NOTE: the updates in 19 are on a HUC8 by HUC8 basis
-CURRENT_HUC2 = ["01", "02", "06", "14", "15", "16", "19"]
+CURRENT_HUC2 = ["01", "02", "06", "14", "15", "16", "19", "20"]
 
 HUC_URL_CACHE = None
 
@@ -41,15 +44,10 @@ async def get_gdb_urls(client):
     r.raise_for_status()
 
     xml = ElementTree.fromstring(r.text)
-    keys = xml.findall(
-        "s3:Contents/s3:Key", {"s3": "http://s3.amazonaws.com/doc/2006-03-01/"}
-    )
+    keys = xml.findall("s3:Contents/s3:Key", {"s3": "http://s3.amazonaws.com/doc/2006-03-01/"})
     gdbs = [k.text for k in keys if k.text.endswith("_GDB.zip")]
 
-    urls = {
-        Path(gdb).name.split("_")[2]: f"https://prd-tnm.s3.amazonaws.com/{gdb}"
-        for gdb in gdbs
-    }
+    urls = {Path(gdb).name.split("_")[2]: f"https://prd-tnm.s3.amazonaws.com/{gdb}" for gdb in gdbs}
 
     return urls
 
@@ -86,6 +84,10 @@ async def download_gdb(id, client, filename):
     print(f"Requesting data from: {url}")
 
     async with client.stream("GET", url, timeout=CONNECTION_TIMEOUT) as r:
+        if r.status_code == 404:
+            warnings.warn(f"WARNING: {id} not found for download")
+            return
+
         r.raise_for_status()
 
         total_bytes = int(r.headers["Content-Length"])

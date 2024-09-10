@@ -11,17 +11,17 @@ Most are contained in `analysis/constants.py` so that they can be used from vari
 
 ## Data preparation:
 
-### 1. Aquatic network data
-
-The National Hydrography Dataset - High-Resolution Plus version is pre-processed to extract flowlines and joins between flowlines that are used in the remainder of the analysis.
-
-See [analysis/prep/network/README.md](prep/network).
-
-### 2. Boundary data
+### 1. Boundary data
 
 Boundary datasets, such as states, counties, and watersheds, are joined to barriers during processing and are also displayed on maps. These boundaries are obtained from various sources, extracted within the SARP region, and projected to a standard projection.
 
 See [analysis/prep/boundaries/README.md](prep/boundaries).
+
+### 2. Aquatic network data
+
+The National Hydrography Dataset - High-Resolution Plus version is pre-processed to extract flowlines and joins between flowlines that are used in the remainder of the analysis.
+
+See [analysis/prep/network/README.md](prep/network).
 
 ### 3. Aquatic barrier data
 

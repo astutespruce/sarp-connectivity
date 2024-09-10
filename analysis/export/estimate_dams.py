@@ -97,18 +97,20 @@ df = df.join(state_join)
 df = df.loc[df.state.isin(STATES)].copy()
 
 write_dataframe(df.loc[~has_dam], out_dir / "estimated_dam_lines.fgb")
-write_dataframe(df.loc[~has_dam], tmp_dir / "estimated_dam_lines.gdb", driver="OpenFileGDB")
-
 write_dataframe(df.loc[has_dam], out_dir / "estimated_dam_lines_with_dam.fgb")
-write_dataframe(df.loc[has_dam], tmp_dir / "estimated_dam_lines_with_dam.gdb", driver="OpenFileGDB")
 
+
+outfilename = tmp_dir / "estimated_dams.gdb"
+
+write_dataframe(df.loc[~has_dam], outfilename, layer="estimated_dam_lines", driver="OpenFileGDB")
+write_dataframe(df.loc[has_dam], outfilename, layer="estimated_dam_lines_with_dam", driver="OpenFileGDB", append=True)
 
 df = df.join(drains.geometry.rename("drain"), on="drainID").set_geometry("drain").drop(columns=["geometry"])
 write_dataframe(df.loc[~has_dam], out_dir / "estimated_dams.fgb")
-write_dataframe(df.loc[~has_dam], tmp_dir / "estimated_dams.gdb", driver="OpenFileGDB")
-
 write_dataframe(df.loc[has_dam], out_dir / "estimated_dams_with_dam.fgb")
-write_dataframe(df.loc[has_dam], tmp_dir / "estimated_dams_with_dam.gdb", driver="OpenFileGDB")
+
+write_dataframe(df.loc[~has_dam], outfilename, layer="estimated_dams", driver="OpenFileGDB", append=True)
+write_dataframe(df.loc[has_dam], outfilename, layer="estimated_dams_with_dam", driver="OpenFileGDB", append=True)
 
 
 ### Find drain points of altered waterbodies that have no associated estimated dam
@@ -126,7 +128,9 @@ altered_wb_drains = altered_wb_drains.join(
 )
 
 write_dataframe(altered_wb_drains, out_dir / "altered_waterbodies_without_dams.fgb")
-write_dataframe(altered_wb_drains, tmp_dir / "altered_waterbodies_without_dams.gdb", driver="OpenFileGDB")
+write_dataframe(
+    altered_wb_drains, outfilename, layer="altered_waterbodies_without_dams", driver="OpenFileGDB", append=True
+)
 
 
 print(f"Total elapsed {time() - start:,.2f}s")

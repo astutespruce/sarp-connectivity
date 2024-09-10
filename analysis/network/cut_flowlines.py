@@ -22,6 +22,8 @@ warnings.filterwarnings("ignore", message=".*invalid value encountered in line_l
 data_dir = Path("data")
 barriers_dir = data_dir / "barriers/snapped"
 nhd_dir = data_dir / "nhd/clean"
+waterbodies_dir = data_dir / "waterbodies"
+wetlands_dir = data_dir / "wetlands"
 out_dir = data_dir / "networks/raw"
 
 huc2_df = pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"])
@@ -48,6 +50,7 @@ huc2s = huc2_df.HUC2.sort_values().values
 # "17",
 # "18",
 # "19",
+# "20",
 # "21",
 # ]
 
@@ -193,12 +196,16 @@ for huc2 in huc2s:
 
     ### also bring in drains of any waterbodies associated with dams, so that we
     # can mark all flowlines in these waterbodies as impoundments
-    dam_wbid = pa.dataset.dataset(data_dir / "barriers/master/dams.feather", format="feather").to_table(
-        filter=(pc.field("HUC2") == huc2)
-        & (pc.field("primary_network") == True)  # noqa
-        & (~pc.is_null(pc.field("wbID"))),
-        columns=["wbID"],
-    )["wbID"]
+    dam_wbid = (
+        pa.dataset.dataset(data_dir / "barriers/master/dams.feather", format="feather")
+        .to_table(
+            filter=(pc.field("HUC2") == huc2)
+            & (pc.field("primary_network") == True)  # noqa
+            & (~pc.is_null(pc.field("wbID"))),
+            columns=["wbID"],
+        )["wbID"]
+        .combine_chunks()
+    )
 
     if len(dam_wbid):
         drain_line_ids = (
@@ -223,6 +230,44 @@ for huc2 in huc2s:
     barrier_joins.reset_index(drop=True).to_feather(
         huc2_dir / "barrier_joins.feather",
     )
+
+    ### Build lookup table of flowlines to non-impounded / unaltered waterbodies (excluding Great Lakes)
+    tree = shapely.STRtree(flowlines.geometry.values)
+
+    print("Joining segments to waterbodies")
+    waterbodies = (
+        pa.dataset.dataset(waterbodies_dir / huc2 / "waterbodies.feather", format="feather")
+        .to_table(
+            filter=(~(pc.is_in(pc.field("wbID"), dam_wbid)))
+            & (pc.field("altered") == False)  # noqa: E712
+            & (pc.field("km2") < 8000),  # exclude Great Lakes
+            columns=["geometry", "wbID", "km2", "altered"],
+        )
+        .to_pandas()
+    )
+    waterbodies = gp.GeoDataFrame(waterbodies, geometry=shapely.from_wkb(waterbodies.geometry.values), crs=CRS)
+    left, right = tree.query(waterbodies.geometry.values, predicate="intersects")
+    pairs = pd.DataFrame(
+        {
+            "lineID": flowlines.lineID.values.take(right),
+            "wbID": waterbodies.wbID.values.take(left),
+            "km2": waterbodies.km2.values.take(left),
+        }
+    )
+    pairs.to_feather(huc2_dir / "flowline_waterbodies.feather")
+
+    ### Build lookup table of flowlines to wetlands
+    print("Joining cut segments to wetlands")
+    wetlands = gp.read_feather(wetlands_dir / huc2 / "wetlands.feather", columns=["geometry", "id", "km2"])
+    left, right = tree.query(wetlands.geometry.values, predicate="intersects")
+    pairs = pd.DataFrame(
+        {
+            "lineID": flowlines.lineID.values.take(right),
+            "wetlandID": wetlands.id.values.take(left),
+            "km2": wetlands.km2.values.take(left),
+        }
+    )
+    pairs.to_feather(huc2_dir / "flowline_wetlands.feather")
 
     print(f"Region done in {time() - region_start:.2f}s\n\n")
 

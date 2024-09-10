@@ -13,6 +13,8 @@ from analysis.rank.lib.metrics import (
     classify_percent_altered,
     classify_percent_resilient,
     classify_downstream_barriers,
+    classify_unaltered_waterbody_area,
+    classify_unaltered_wetland_area,
 )
 from api.lib.tiers import calculate_tiers, METRICS
 
@@ -45,6 +47,8 @@ NETWORK_COLUMNS = [
     "PercentResilient",
     "IntermittentUpstreamMiles",
     "FreeIntermittentDownstreamMiles",
+    "UpstreamUnalteredWaterbodyKM2",
+    "UpstreamUnalteredWetlandKM2",
     "MainstemGainMiles",
     "PerennialMainstemGainMiles",
     "TotalMainstemNetworkMiles",
@@ -238,6 +242,11 @@ def get_network_results(df, network_type, state_ranks=False):
 
     networks["PercentAlteredClass"] = classify_percent_altered(networks.PercentAltered)
     networks["PercentResilientClass"] = classify_percent_resilient(networks.PercentResilient)
+
+    networks["UpstreamUnalteredWaterbodyClass"] = classify_unaltered_waterbody_area(
+        networks.UpstreamUnalteredWaterbodyKM2
+    )
+    networks["UpstreamUnalteredWetlandClass"] = classify_unaltered_wetland_area(networks.UpstreamUnalteredWetlandKM2)
 
     # NOTE: per guidance from SARP, do not include count of waterfalls
     if network_type == "dams":

@@ -13,15 +13,17 @@ from analysis.prep.network.lib.nhd.download import download_gdb
 
 MAX_WORKERS = 2
 
-# limit downloads in AK to where data are available (updated 4/11/2023)
+# limit downloads in AK to where data are available (updated 8/28/2024)
 AK_HUC8 = set(
     [
-        # Beta
+        # all are on Current (not Beta)
         "19020101",
         "19020102",
         "19020103",
         "19020104",
+        "19020201",
         "19020202",
+        "19020203",
         "19020301",
         "19020302",
         "19020401",
@@ -34,34 +36,26 @@ AK_HUC8 = set(
         "19020601",
         "19020602",
         "19020800",
-        "19060102",
-        "19070402",
-        "19080301",
-        "19080305",
-    ]
-    + [
-        # Current
-        "19020203",
         "19050401",
+        "19060102",
         "19060501",
         "19060502",
         "19060504",
         "19060505",
+        "19070402",
+        "19080301",
+        "19080305",
     ]
 )
 
 
-# FIXME: this seems to be downloading all hucs concurrently instead of only 2 at a time
 async def download_gdbs(ids, out_dir):
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         loop = asyncio.get_event_loop()
 
         async with httpx.AsyncClient() as client:
             futures = [
-                await loop.run_in_executor(
-                    executor, download_gdb, id, client, out_dir / f"{id}.zip"
-                )
-                for id in ids
+                await loop.run_in_executor(executor, download_gdb, id, client, out_dir / f"{id}.zip") for id in ids
             ]
 
             await asyncio.gather(*futures)
@@ -75,9 +69,7 @@ huc8_dir.mkdir(exist_ok=True, parents=True)
 
 
 ### Download HUC2s in CONUS by HUC4
-huc4s = pd.read_feather(
-    data_dir / "boundaries/huc4.feather", columns=["HUC4"]
-).HUC4.sort_values()
+huc4s = pd.read_feather(data_dir / "boundaries/huc4.feather", columns=["HUC4"]).HUC4.sort_values()
 
 # skip HUC4s in AK
 huc4s = [huc4 for huc4 in huc4s if not huc4.startswith("19")]

@@ -6,7 +6,6 @@ import shapely
 from pyogrio import read_dataframe
 
 from analysis.lib.geometry import make_valid
-from analysis.lib.joins import remove_joins
 from analysis.prep.network.lib.nhd.util import get_column_names
 
 warnings.filterwarnings("ignore", message=".*geometry types are not supported*")
@@ -67,12 +66,9 @@ def extract_flowlines(gdb, target_crs):
     layer = "NHDFlowline"
     read_cols, col_map = get_column_names(gdb, layer, FLOWLINE_COLS)
 
-    df = read_dataframe(
-        gdb,
-        layer=layer,
-        force_2d=True,
-        columns=read_cols,
-    ).rename(columns=col_map)
+    df = read_dataframe(gdb, layer=layer, columns=read_cols, use_arrow=True).rename(columns=col_map)
+
+    df["geometry"] = shapely.force_2d(df.geometry.values)
 
     # Index on NHDPlusID for easy joins to other NHD data
     df.NHDPlusID = df.NHDPlusID.astype("uint64")
@@ -97,7 +93,7 @@ def extract_flowlines(gdb, target_crs):
     read_cols, col_map = get_column_names(gdb, layer, VAA_COLS)
 
     vaa_df = (
-        read_dataframe(gdb, layer=layer, columns=read_cols, use_arrow=True)
+        read_dataframe(gdb, layer=layer, columns=read_cols, read_geometry=False, use_arrow=True)
         .rename(columns=col_map)
         .rename(
             columns={
@@ -139,7 +135,7 @@ def extract_flowlines(gdb, target_crs):
     layer = "NHDPlusEROMMA"
     read_cols, col_map = get_column_names(gdb, layer, EROMMA_COLS)
     flow_df = (
-        read_dataframe(gdb, layer=layer, columns=read_cols)
+        read_dataframe(gdb, layer=layer, columns=read_cols, read_geometry=False, use_arrow=True)
         .rename(columns=col_map)
         .rename(columns={"QAMA": "AnnualFlow", "VAMA": "AnnualVelocity"})
     )
@@ -156,12 +152,7 @@ def extract_flowlines(gdb, target_crs):
     layer = "NHDPlusFlow"
     read_cols, col_map = get_column_names(gdb, layer, ["FromNHDPID", "ToNHDPID"])
     join_df = (
-        read_dataframe(
-            gdb,
-            layer=layer,
-            read_geometry=False,
-            columns=read_cols,
-        )
+        read_dataframe(gdb, layer=layer, columns=read_cols, read_geometry=False, use_arrow=True)
         .rename(columns=col_map)
         .rename(columns={"FromNHDPID": "upstream", "ToNHDPID": "downstream"})
     )
@@ -203,23 +194,17 @@ def extract_flowlines(gdb, target_crs):
 
     # calculate the next segment downstream (only keep the first if multiple; possible logic issue)
     next_downstream = (
-        join_df.loc[(join_df.upstream != 0) & (join_df.downstream != 0)]
-        .groupby("upstream")
-        .downstream.first()
+        join_df.loc[(join_df.upstream != 0) & (join_df.downstream != 0)].groupby("upstream").downstream.first()
     )
     pairs["next_downstream"] = pairs.right.map(next_downstream)
     pairs.loc[pairs.next_downstream.notnull(), "downstream_target"] = shapely.get_point(
-        df.loc[
-            pairs.loc[pairs.next_downstream.notnull()].next_downstream
-        ].geometry.values,
+        df.loc[pairs.loc[pairs.next_downstream.notnull()].next_downstream].geometry.values,
         0,
     )
 
     pairs["upstream_dist"] = shapely.distance(pairs.source, pairs.upstream_target)
     ix = pairs.next_downstream.notnull()
-    pairs.loc[ix, "downstream_dist"] = shapely.distance(
-        pairs.loc[ix].source, pairs.loc[ix].downstream_target
-    )
+    pairs.loc[ix, "downstream_dist"] = shapely.distance(pairs.loc[ix].source, pairs.loc[ix].downstream_target)
 
     # this ignores any nan
     pairs["dist"] = pairs[["upstream_dist", "downstream_dist"]].min(axis=1)
@@ -239,16 +224,12 @@ def extract_flowlines(gdb, target_crs):
 
     if len(ids):
         # save to send to NHD
-        pd.DataFrame({"NHDPlusID": ids.index.unique()}).to_csv(
-            f"/tmp/{gdb.stem}_bad_joins.csv", index=False
-        )
+        pd.DataFrame({"NHDPlusID": ids.index.unique()}).to_csv(f"/tmp/{gdb.stem}_bad_joins.csv", index=False)
 
         ix = join_df.upstream.isin(ids.index)
         join_df.loc[ix, "downstream"] = join_df.loc[ix].upstream.map(ids)
 
-        print(
-            f"Repaired {len(ids):,} joins marked by NHD as terminals but actually joined to flowlines"
-        )
+        print(f"Repaired {len(ids):,} joins marked by NHD as terminals but actually joined to flowlines")
 
     ### Filter out coastlines and update joins
     # WARNING: we tried filtering out pipelines (FType == 428).  It doesn't work properly;
@@ -297,14 +278,10 @@ def extract_flowlines(gdb, target_crs):
     df["lineID"] = np.arange(1, len(df) + 1, dtype="uint32")
     # add in 0 so that joining on NHDPlusID==0 works properly
     tmp = pd.concat([df.lineID, pd.Series(np.uint32([0]), index=np.uint64([0]))])
-    join_df = join_df.join(tmp.rename("upstream_id"), on="upstream").join(
-        tmp.rename("downstream_id"), on="downstream"
-    )
+    join_df = join_df.join(tmp.rename("upstream_id"), on="upstream").join(tmp.rename("downstream_id"), on="downstream")
 
     # calculate incoming joins (have valid upstream, but not in this HUC4)
-    join_df.loc[
-        (join_df.upstream != 0) & (join_df.upstream_id.isnull()), "type"
-    ] = "huc_in"
+    join_df.loc[(join_df.upstream != 0) & (join_df.upstream_id.isnull()), "type"] = "huc_in"
 
     join_df = join_df.fillna(0)
 

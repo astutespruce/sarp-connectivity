@@ -14,7 +14,9 @@ METERS_TO_MILES = 0.000621371
 COUNT_KINDS = ["waterfalls", "dams", "small_barriers", "road_crossings", "headwaters"]
 
 
-def calculate_upstream_network_stats(up_network_df, joins, focal_barrier_joins, barrier_joins):
+def calculate_upstream_network_stats(
+    up_network_df, joins, focal_barrier_joins, barrier_joins, unaltered_waterbodies, unaltered_wetlands
+):
     """Calculate upstream functional network statistics.  Each network starts
     at a downstream terminal or a barrier.
 
@@ -47,6 +49,12 @@ def calculate_upstream_network_stats(up_network_df, joins, focal_barrier_joins, 
         * upstream_id
         * downstream_id
         * kind
+
+    unaltered_waterbodies : Pandas DataFrame
+        mapping of lineID to wbID
+
+    unaltered_wetlands : Pandas DataFrame
+        mapping of lineID to wetlandID
 
     Returns
     -------
@@ -193,6 +201,7 @@ def calculate_upstream_network_stats(up_network_df, joins, focal_barrier_joins, 
         calculate_geometry_stats(up_network_df)
         .join(calculate_species_habitat_stats(up_network_df))
         .join(calculate_floodplain_stats(up_network_df))
+        .join(calculate_upstream_waterbody_wetland_stats(up_network_df, unaltered_waterbodies, unaltered_wetlands))
         .join(sizeclasses)
         .join(fn_upstream_counts)
         .join(fn_upstream_area)
@@ -434,6 +443,43 @@ def calculate_upstream_mainstem_stats(df):
         .join(perennial_unaltered_miles)
         .fillna(0)
     ).astype("float32")
+
+
+def calculate_upstream_waterbody_wetland_stats(df, unaltered_waterbodies, unaltered_wetlands):
+    # make sure to count unique wetlands by ID and not double-count if multiple
+    # flowlines in network touch same waterbody or
+    unaltered_waterbody_km2 = (
+        df[["lineID"]]
+        .join(unaltered_waterbodies, on="lineID", how="inner")
+        .reset_index()
+        .groupby(["networkID", "wbID"])
+        .first()
+        .reset_index()
+        .groupby("networkID")
+        .km2.sum()
+        .rename("unaltered_waterbody_km2")
+        .astype("float32")
+    )
+
+    unaltered_wetland_km2 = (
+        df[["lineID"]]
+        .join(unaltered_wetlands, on="lineID", how="inner")
+        .reset_index()
+        .groupby(["networkID", "wetlandID"])
+        .first()
+        .reset_index()
+        .groupby("networkID")
+        .km2.sum()
+        .rename("unaltered_wetland_km2")
+        .astype("float32")
+    )
+
+    return (
+        pd.DataFrame([], index=np.unique(df.index.values))
+        .join(unaltered_waterbody_km2)
+        .join(unaltered_wetland_km2)
+        .fillna(0)
+    )
 
 
 def calculate_downstream_stats(

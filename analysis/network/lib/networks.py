@@ -1,4 +1,5 @@
 from time import time
+import warnings
 
 import pandas as pd
 import numpy as np
@@ -11,6 +12,9 @@ from analysis.network.lib.stats import (
     calculate_upstream_mainstem_stats,
     calculate_downstream_stats,
 )
+
+
+warnings.filterwarnings("ignore", message=".*DataFrame is highly fragmented.*")
 
 
 def connect_huc2s(joins):
@@ -357,7 +361,16 @@ def create_networks(joins, barrier_joins, flowlines):
     )
 
 
-def create_barrier_networks(barriers, barrier_joins, focal_barrier_joins, joins, flowlines, network_type):
+def create_barrier_networks(
+    barriers,
+    barrier_joins,
+    focal_barrier_joins,
+    joins,
+    flowlines,
+    unaltered_waterbodies,
+    unaltered_wetlands,
+    network_type,
+):
     """Calculate networks based on barriers and network origins
 
     Parameters
@@ -374,6 +387,10 @@ def create_barrier_networks(barriers, barrier_joins, focal_barrier_joins, joins,
         networks
     flowlines : DataFrame
         flowline info that gets joined to the networkID for this type
+    unaltered_waterbodies : DataFrame
+        join table between flowlines and unaltered waterbodies
+    unaltered_wetlands : DataFrame
+        join table between flowlines and unaltered wetlands
     network_type : str
         name of network network_type, one of NETWORK_TYPES keys
 
@@ -440,10 +457,7 @@ def create_barrier_networks(barriers, barrier_joins, focal_barrier_joins, joins,
     stats_start = time()
 
     upstream_stats = calculate_upstream_network_stats(
-        up_network_df,
-        joins,
-        focal_barrier_joins,
-        barrier_joins,
+        up_network_df, joins, focal_barrier_joins, barrier_joins, unaltered_waterbodies, unaltered_wetlands
     )
     # WARNING: because not all flowlines have associated catchments, they are missing
     # natfldpln
@@ -520,6 +534,8 @@ def create_barrier_networks(barriers, barrier_joins, focal_barrier_joins, joins,
                 "pct_unaltered": "PercentUnaltered",
                 "pct_perennial_unaltered": "PercentPerennialUnaltered",
                 "pct_resilient": "PercentResilient",
+                "unaltered_waterbody_km2": "UpstreamUnalteredWaterbodyKM2",
+                "unaltered_wetland_km2": "UpstreamUnalteredWetlandKM2",
                 **{
                     c: c.title()
                     .replace("_Mainstem_Miles", "UpstreamMainstemMiles")
@@ -719,5 +735,7 @@ def create_barrier_networks(barriers, barrier_joins, focal_barrier_joins, joins,
         .join(downstream_linear_networks.reset_index().set_index("networkID"), on="downstream_id", how="inner")
         .lineID.reset_index()
     )
+
+    print("before return")
 
     return barrier_networks, network_stats, flowlines, downstream_linear_networks, downstream_stats

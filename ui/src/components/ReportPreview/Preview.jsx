@@ -333,7 +333,7 @@ const Preview = ({ networkType, data }) => {
             />
           ) : null}
 
-          <IDInfo sx={{ mt: '3rem' }} {...data} />
+          <IDInfo sx={{ mt: '3rem' }} barrierType={barrierType} {...data} />
 
           <Contact sx={{ mt: '3rem' }} barrierType={barrierType} {...data} />
 

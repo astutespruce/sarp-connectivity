@@ -44,6 +44,7 @@ huc2s = sorted(pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["H
 # "17",
 # "18",
 # "19",
+# "20",
 # "21",
 # ]
 
@@ -107,7 +108,11 @@ for huc2 in huc2s:
 
     altered = df.loc[df.altered].copy()
 
-    if huc2 == "03":
+    if huc2 == "01":
+        ri_wb = gp.read_feather("data/states/ri/ri_waterbodies.feather", columns=["geometry", "altered"])
+        df = pd.concat([df, ri_wb], ignore_index=True, sort=False)
+
+    elif huc2 == "03":
         sc_wb = gp.read_feather("data/states/sc/sc_waterbodies.feather", columns=[])
         sc_wb["altered"] = False  # unknown
         df = pd.concat([df, sc_wb[["geometry", "altered"]]], ignore_index=True, sort=False)

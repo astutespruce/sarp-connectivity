@@ -1,6 +1,7 @@
 import warnings
 
 from pyogrio import read_dataframe
+import shapely
 
 from analysis.lib.geometry import make_valid
 from analysis.prep.network.lib.nhd.util import get_column_names
@@ -37,12 +38,9 @@ def extract_altered_rivers(gdb, target_crs):
     ftype_col = col_map.get("FType", "FType")
 
     df = read_dataframe(
-        gdb,
-        layer=layer,
-        columns=read_cols,
-        force_2d=True,
-        where=f"{ftype_col} in {tuple(FTYPES)}",
+        gdb, layer=layer, columns=read_cols, where=f"{ftype_col} in {tuple(FTYPES)}", use_arrow=True
     ).rename(columns=col_map)
+    df["geometry"] = shapely.force_2d(df.geometry.values)
 
     df.NHDPlusID = df.NHDPlusID.astype("uint64")
 

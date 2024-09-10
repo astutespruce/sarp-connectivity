@@ -41,6 +41,7 @@ STATES = {
     "DE": "Delaware",
     "FL": "Florida",
     "GA": "Georgia",
+    "HI": "Hawaii",
     "IA": "Iowa",
     "IL": "Illinois",
     "IN": "Indiana",
@@ -110,8 +111,8 @@ SARP_STATE_NAMES = [STATES[s] for s in SARP_STATES]
 
 # Note: some states overlap multiple regions
 REGION_STATES = {
-    "southeast": SARP_STATES,
-    # Great Plains / intermountain west
+    "alaska": ["AK"],
+    "great_lakes": ["IA", "IL", "IN", "MI", "MN", "OH", "WI"],
     "great_plains_intermountain_west": [
         "CO",
         "KS",
@@ -122,14 +123,12 @@ REGION_STATES = {
         "WY",
         "UT",
     ],
-    # Great Lakes
-    "great_lakes": ["IA", "IL", "IN", "MI", "MN", "OH", "WI"],
-    "alaska": ["AK"],
+    "hawaii": ["HI"],
+    "northeast": ["CT", "DC", "DE", "MA", "MD", "ME", "NH", "NJ", "NY", "PA", "RI", "VT"],
     "northwest": ["ID", "OR", "WA"],
     "pacific_southwest": ["CA", "NV"],
+    "southeast": SARP_STATES,
     "southwest": ["AZ", "NM", "OK", "TX"],
-    # TEMP
-    "northeast": ["CT", "DC", "DE", "MA", "MD", "ME", "NH", "NJ", "NY", "PA", "RI", "VT"],
 }
 
 
@@ -170,10 +169,10 @@ YEAR_REMOVED_BINS = [0, 1, 2000, 2010, 2020, 2021, 2022, 2023, 2024, 2025, 2026]
 # distance within which points snapping to a line will snap to endpoint of the line
 SNAP_ENDPOINT_TOLERANCE = 1  # meters
 
-# Exclude swamp/marsh (466), estuaries (493), playas (361), glaciers (378).
+# Exclude estuaries (493), playas (361), glaciers (378).
 # NOTE: they do not cut the flowlines in the same
 # way as other waterbodies, so they will cause issues.
-WATERBODY_EXCLUDE_FTYPES = [361, 378, 466, 493]
+WATERBODY_EXCLUDE_FTYPES = [361, 378, 493]
 
 WATERBODY_MIN_SIZE = 0
 
@@ -229,7 +228,7 @@ DAM_FS_COLS = [
     "Fed_Regulatory_Agency",
     "STATE_REGULATED",
     "Regulatory_Agency",
-    "Private",
+    "Private",  # FIXME: remove
     "Water_Right",
     "Water_Right_Status",  # FIXME: check
     "Beneficial_Use",  # FIXME: check
@@ -1044,6 +1043,9 @@ CONVERT_TO_GREAT_LAKES = {
 # List of NHDPlusIDs that flow into marine based on visual inspection
 CONVERT_TO_MARINE = {
     "01": [
+        # NOTE: this flowline terminates at edge of available HUC4s on the Saint John's River
+        # about 75 miles from the ocean, but there appear to be no barriers downstream
+        5000100086769,
         5000200026117,
         5000700071761,
         10000800061298,
@@ -1113,6 +1115,63 @@ CONVERT_TO_MARINE = {
         10000800011376,
         10000800061360,
         10000800071952,
+        5000200002092,
+        10000800048225,
+        10000800067244,
+        10000800067255,
+        10000800060573,
+        10000800066390,
+        10000800000580,
+        10000800064372,
+        10000800065250,
+        10000800066225,
+        10000800059013,
+        10000800066377,
+        10000800072813,
+        10000800034575,
+        10000800034568,
+        10000800034655,
+        10000800034582,
+        10000800034604,
+        10000800034570,
+        10000800072819,
+        10000800034604,
+        10000800072897,
+        10000800034609,
+        10000800072819,
+        10000800065390,
+        10000800065376,
+        10000800072909,
+        10000800034598,
+        10000800034617,
+        10000800034577,
+        10000800034658,
+        10000800057376,
+        10000800034581,
+        10000800065413,
+        10000800055586,
+        10000800065408,
+        10000800055610,
+        10000800034654,
+        10000800057391,
+        10000800065362,
+        10000800034566,
+        10000800034665,
+        10000800072881,
+        10000800026338,
+        10000800065389,
+        10000800034009,
+        10000800055696,
+        10000800072902,
+        10000800034041,
+        10000800055743,
+        10000800072901,
+        10000800068518,
+        10000800044095,
+        10000800068493,
+        10000800068755,
+        10000800032820,
+        10000800072770,
     ],
     "02": [10000100039317, 10000200672603, 10000200653686, 10000200427232],
     "03": [
@@ -1142,6 +1201,12 @@ CONVERT_TO_MARINE = {
         15001200035170,
         20001000056286,
         20001000017755,
+    ],
+    "04": [
+        # the following flow into the Saint Lawrence River and terminate at the edge of available HUC4s,
+        # but connect downstream to marine with no apparent barriers
+        60000100003951,
+        60000200106923,
     ],
     "12": [30000800214326, 30000100041238, 30000100041306, 30000100041205],
     "13": [35000100017108],
@@ -1365,6 +1430,26 @@ CONVERT_TO_MARINE = {
         50000300037473,
     ],
     "19": [75009900028839, 75009900028171],
+    "20": [
+        80000800000017,
+        80000800000401,
+        80000800000063,
+        80000700003326,
+        80000700002795,
+        80000600000338,
+        80000600001051,
+        80000600001052,
+        80000500000904,
+        80000500000035,
+        80000500000190,
+        80000500000912,
+        80000500001082,
+        80000500000259,
+        80000500000856,
+        80000200000403,
+        80000200002683,
+        80000100003233,
+    ],
 }
 
 

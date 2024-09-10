@@ -585,7 +585,7 @@ export const STATES = {
 export const REGIONS = {
   alaska: {
     name: 'Alaska',
-    order: 6,
+    order: 7,
     url: '/regions/alaska',
     states: ['AK'],
     inDevelopment: true,
@@ -602,9 +602,16 @@ export const REGIONS = {
     order: 1,
     states: ['CO', 'IA', 'KS', 'MT', 'ND', 'NE', 'SD', 'WY', 'UT'],
   },
+  hawaii: {
+    name: 'Hawaii',
+    url: '/regions/hawaii',
+    order: 8,
+    states: ['HI'],
+    inDevelopment: true,
+  },
   northeast: {
     name: 'Northeast',
-    order: 7,
+    order: 6,
     url: '/regions/northeast',
     states: [
       'CT',
@@ -679,9 +686,18 @@ export const STATE_DATA_PROVIDERS = {
     {
       key: 'ca',
       description:
-        'The <a href="https://www.cafishpassageforum.org/">California Fish Passage Forum </a>and the <a href="https://www.psmfc.org/">Pacific States Marine Fisheries Commission</a> have developed and maintain a barrier inventory for the state of California, called the <a href="https://www.calfish.org/ProgramsData/HabitatandBarriers/CaliforniaFishPassageAssessmentDatabase.aspx">California Fish Passage Assessment Database</a> (PAD). The PAD is an ongoing map-based inventory of known and potential barriers to anadromous fish in California, compiled and maintained through a cooperative interagency agreement. It compiles currently available fish passage information from many different sources, allows past and future barrier assessments to be standardized and stored in one place, and enables the analysis of cumulative effects of passage barriers in the context of overall watershed health.  This dataset is the primary dataset used within this tool for the state of California.',
+        'The <a href="https://www.cafishpassageforum.org/" target="_blank">California Fish Passage Forum </a>and the <a href="https://www.psmfc.org/" target="_blank">Pacific States Marine Fisheries Commission</a> have developed and maintain a barrier inventory for the state of California, called the <a href="https://www.calfish.org/ProgramsData/HabitatandBarriers/CaliforniaFishPassageAssessmentDatabase.aspx">California Fish Passage Assessment Database</a> (PAD). The PAD is an ongoing map-based inventory of known and potential barriers to anadromous fish in California, compiled and maintained through a cooperative interagency agreement. It compiles currently available fish passage information from many different sources, allows past and future barrier assessments to be standardized and stored in one place, and enables the analysis of cumulative effects of passage barriers in the context of overall watershed health.  This dataset is the primary dataset used within this tool for the state of California.',
       logo: 'cfpf_logo.png',
       logoWidth: '180px',
+    },
+  ],
+  HI: [
+    {
+      key: 'cwrm',
+      description:
+        'Points of Diversion Data provided by the <a href="https://dlnr.hawaii.gov/cwrm/" target="_blank">Commission on Water Resource Management</a>, Department of Land and Natural Resources, State of Hawaii',
+      logo: 'hi_cwrm_logo.png',
+      logoWidth: '130px',
     },
   ],
   ID: [
@@ -1154,6 +1170,24 @@ export const WATERBODY_SIZECLASS = {
   5: 'large lake (>= 10 km2)',
 }
 
+export const UNALTERED_WATERBODY_CLASS = {
+  0: '0 km2',
+  1: '< 0.01 km2',
+  2: '0.01 - 0.09 km2',
+  3: '0.1 - 0.9 km2',
+  4: '1 - 9.9 km2',
+  5: '>= 10 km2',
+}
+
+export const UNALTERED_WETLAND_CLASS = {
+  0: '0 km2',
+  1: '< 0.01 km2',
+  2: '0.01 - 0.09 km2',
+  3: '0.1 - 0.9 km2',
+  4: '1 - 9.9 km2',
+  5: '>= 10 km2',
+}
+
 // NOTE: these are encoded into a comma-delimited field
 export const SALMONID_ESU = {
   10: 'Chinook (California Coastal)',
@@ -1301,11 +1335,10 @@ export const FISH_HABITAT_PARTNERSHIPS = {
     logo: 'gpfhp_logo.jpg',
     logoWidth: '160px',
   },
-  // TODO: enable once Hawaii is included in analysis
-  // HFHP: {
-  //   name: 'Hawaii Fish Habitat Partnership',
-  //   url: 'https://www.fishhabitat.org/the-partnerships/hawaii-fish-habitat-partnership',
-  // },
+  HFHP: {
+    name: 'Hawaii Fish Habitat Partnership',
+    url: 'https://www.fishhabitat.org/the-partnerships/hawaii-fish-habitat-partnership',
+  },
   KPFHP: {
     name: 'Kenai Peninsula Fish Habitat Partnership',
     description:
@@ -1652,3 +1685,13 @@ export const getSingularUnitLabel = (layer) => {
       return 'area'
   }
 }
+
+// ordered array of attachment keywords for sorting attached photos
+export const attachmentKeywords = [
+  'inlet',
+  'outlet',
+  'upstream',
+  'downstream',
+  'optional1',
+  'optional2',
+]

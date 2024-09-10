@@ -2,19 +2,10 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Flex, Grid, Text, Image } from 'theme-ui'
 
+import { attachmentKeywords } from 'config'
 import { ExternalLink, OutboundLink } from 'components/Link'
 import { Entry, Field } from 'components/Sidebar'
 import { isEmptyString } from 'util/string'
-
-// ordered array of attachment keywords for sorting attached photos
-const attachmentKeywords = [
-  'upstream',
-  'inlet',
-  'outlet',
-  'downstream',
-  'optional1',
-  'optional2',
-]
 
 const IDInfo = ({
   barrierType,

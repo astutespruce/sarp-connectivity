@@ -153,7 +153,7 @@ const Report = ({
           />
         ) : null}
 
-        <IDInfo style={{ marginTop: 32 }} {...data} />
+        <IDInfo style={{ marginTop: 32 }} barrierType={barrierType} {...data} />
 
         <Contact
           style={{ marginTop: 24 }}

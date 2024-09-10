@@ -391,6 +391,10 @@ fill_flowline_cols(waterfalls)
 
 tmp = waterfalls.copy()
 tmp["BarrierType"] = "waterfalls"
+
+# FIXME:  remove this line; it works around a duplicate SARPID that breaks the search index
+tmp = tmp.loc[~((tmp.SARPID == "f32256") & (tmp.Name == ""))].copy()
+
 search_barriers = pd.concat(
     [search_barriers, tmp[BARRIER_SEARCH_RESULT_FIELDS].reset_index(drop=True)], ignore_index=True
 )

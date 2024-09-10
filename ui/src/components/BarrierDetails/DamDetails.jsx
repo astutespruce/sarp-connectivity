@@ -116,6 +116,8 @@ const DamDetails = ({
   unalteredupstreammiles,
   unalteredupstreammainstemmiles,
   unranked,
+  upstreamunalteredwaterbodykm2,
+  upstreamunalteredwetlandkm2,
   waterbodykm2,
   waterbodysizeclass,
   waterright,
@@ -314,6 +316,8 @@ const DamDetails = ({
             totaldownstreamdams={totaldownstreamdams}
             totaldownstreamsmallbarriers={totaldownstreamsmallbarriers}
             totaldownstreamwaterfalls={totaldownstreamwaterfalls}
+            upstreamunalteredwaterbodykm2={upstreamunalteredwaterbodykm2}
+            upstreamunalteredwetlandkm2={upstreamunalteredwetlandkm2}
           />
         ) : (
           <NoNetworkInfo
@@ -543,6 +547,8 @@ DamDetails.propTypes = {
   unalteredupstreammiles: PropTypes.number,
   unalteredupstreammainstemmiles: PropTypes.number,
   unranked: PropTypes.bool,
+  upstreamunalteredwaterbodykm2: PropTypes.number,
+  upstreamunalteredwetlandkm2: PropTypes.number,
   waterbodykm2: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
   waterright: PropTypes.number,
@@ -691,6 +697,8 @@ DamDetails.defaultProps = {
   unalteredupstreammiles: 0,
   unalteredupstreammainstemmiles: 0,
   unranked: false,
+  upstreamunalteredwaterbodykm2: 0,
+  upstreamunalteredwetlandkm2: 0,
   waterbodykm2: -1,
   waterbodysizeclass: null,
   waterright: null,

@@ -11,7 +11,7 @@ This stage involves processing NHD data and related data into data structures th
 5. Run `merge_marine.py` to merge all marine areas.
 6. Run any special pre-processing scripts in `special` (e.g. `find_loops.py`)
 7. Run `extract_nwi.py` to extract NWI waterbodies and altered rivers that intersect the above flowlines.
-8. Run `merge_waterbodies.py` to merge NHD and NWI waterbodies (and others, depending on region).
+8. Run `merge_waterbodies.py` to merge NHD and NWI waterbodies (and others, depending on region) and `merge_wetlands` to merge NHD and NWI wetlands.
 9. Run `prepare_flowlines_waterbodies.py` to preprocess flowlines and waterbodies into data structures ready for analysis.
 10. Run `find_nhd_dams.py` to intersect NHD dam-related features with flowlines and extract intersection points.
 11. Run `prep_floodplain_stats.py` to extract pre-calculated statistics on natural landcover within floodplains for each flowline's catchment.
@@ -28,13 +28,15 @@ Run `download_nhd.py`. This will download NHDPlus HR data by HUC4 into `data/nhd
 
 WARNING: NHD HR+ data are currently in beta. There are data issues, including, but not limited to miscoded flowlines / loops, spurious NHD areas, and fragmented adjacent waterbodies.
 
-NHD data were last downloaded on 7/14/2022.
+NHD data were last downloaded (NHD Regions 19 and 20) on 8/28/2024.
 
 ### 2. Download National Wetlands Inventory (NWI 2022) data:
 
 NWI ponds and lakes are used to supplement the NHDWaterbody dataset downloaded above.
 
 Run `download_nwi.py`. This will download data by HUC8 into `data/nwi/source/huc8`.
+
+NWI were last updated (full nation) on 8/28/2024.
 
 ### 3. Download state-level LIDAR or imagery-based waterbody data
 
@@ -59,6 +61,12 @@ Data were prepared using `analysis/prep/network/special/prepare_wi_waterbodies.p
 Oregon data are available at: https://spatialdata.oregonexplorer.info/geoportal/details;id=3439a3c43f9f4c4499802f55898b7dd8
 
 These were downloaded on 2/19/2022 to `data/states/or/wb_oregon.shp`.
+
+#### Rhode Island
+
+Rhode Island data are available at: https://www.rigis.org/datasets/edc::lakes-and-ponds-15000/about
+
+These were downloaded on 8/29/2024 to `data/states/ri/lakes_ponds.gdb`.
 
 #### South Carolina
 
@@ -197,8 +205,13 @@ waterbodies back apart.
 Note: this may produce slight artifacts in the waterbody edges where dams are cut in
 to separate adjacent waterbodies.
 
-This creates
-`data/waterbodies/<region>/waterbodies.feather`
+This creates `data/waterbodies/<region>/waterbodies.feather`.
+
+Run `merge_wetlands.py` to merge NHD and NWI wetlands. This only retains wetlands
+not marked as altered in NWI (NHD has no altered modifier for these) and only
+keeps NHD wetlands that don't intersect with NWI wetlands.
+
+This creates `data/wetlands/<region>/wetlands.feather`.
 
 ### 6. Prepare flowlines and waterbodies:
 

@@ -6,7 +6,7 @@ export const useSummaryData = () => {
   const { stats } = useStaticQuery(graphql`
     query summaryQuery {
       stats: summaryStatsJson {
-        bounds
+        bbox: bounds
         dams
         rankedDams: ranked_dams
         rankedLargefishBarriersDams: ranked_largefish_barriers_dams

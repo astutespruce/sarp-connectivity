@@ -135,6 +135,18 @@ for group_huc2s in groups:
     # calculate free-flowing reaches
     flowlines["free_flowing"] = ~(flowlines.waterbody & flowlines.altered)
 
+    unaltered_waterbodies = (
+        read_arrow_tables([src_dir / huc2 / "flowline_waterbodies.feather" for huc2 in group_huc2s])
+        .to_pandas()
+        .set_index("lineID")
+    )
+
+    unaltered_wetlands = (
+        read_arrow_tables([src_dir / huc2 / "flowline_wetlands.feather" for huc2 in group_huc2s])
+        .to_pandas()
+        .set_index("lineID")
+    )
+
     for network_type in NETWORK_TYPES:
         print(f"-------------------------\nCreating networks for {network_type}")
         network_start = time()
@@ -151,6 +163,8 @@ for group_huc2s in groups:
                 focal_barrier_joins,
                 joins,
                 flowlines,
+                unaltered_waterbodies,
+                unaltered_wetlands,
                 network_type,
             )
         )

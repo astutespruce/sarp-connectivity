@@ -4,6 +4,7 @@ import { Box, Text } from 'theme-ui'
 
 import { barrierTypeLabelSingular } from 'config'
 import { Table, Row } from 'components/Table'
+import { ExpandableParagraph } from 'components/Text'
 import { InfoTooltip } from 'components/Tooltip'
 import { Entry, Field } from 'components/Sidebar'
 import { formatNumber, formatPercent } from 'util/format'
@@ -41,6 +42,8 @@ const FunctionalNetworkInfo = ({
   totaldownstreamdams,
   totaldownstreamsmallbarriers,
   totaldownstreamwaterfalls,
+  upstreamunalteredwaterbodykm2,
+  upstreamunalteredwetlandkm2,
   ...props
 }) => {
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
@@ -439,6 +442,55 @@ const FunctionalNetworkInfo = ({
         </Field>
       </Entry>
 
+      <Entry>
+        <Field label="Total area of unaltered lakes and ponds">
+          <Text
+            sx={{
+              fontWeight:
+                upstreamunalteredwaterbodykm2 > 0 ? 'bold' : 'inherit',
+            }}
+          >
+            {formatNumber(upstreamunalteredwaterbodykm2)} km<sup>2</sup>
+          </Text>
+        </Field>
+        <Text variant="help" sx={{ mt: '0.5rem', fontSize: 0 }}>
+          <ExpandableParagraph
+            snippet="Note: this metric is based on all unaltered lakes and ponds that
+            intersect any stream reach in the upstream functional network..."
+          >
+            Note: this metric is based on all unaltered lakes and ponds that
+            intersect any stream reach in the upstream functional network, and
+            exclude any specifically marked by their data provider as altered as
+            well as any that are associated with dams in this inventory.
+          </ExpandableParagraph>
+        </Text>
+      </Entry>
+
+      <Entry>
+        <Field label="Total area of unaltered freshwater wetlands">
+          <Text
+            sx={{
+              fontWeight: upstreamunalteredwetlandkm2 > 0 ? 'bold' : 'inherit',
+            }}
+          >
+            {formatNumber(upstreamunalteredwetlandkm2)} km<sup>2</sup>
+          </Text>
+        </Field>
+        <Text variant="help" sx={{ mt: '0.5rem', fontSize: 0 }}>
+          <ExpandableParagraph
+            snippet="Note: this metric is based on all unaltered freshwater wetlands that
+            intersect any stream reach in the upstream functional network."
+          >
+            Note: this metric is based on all unaltered freshwater wetlands that
+            intersect any stream reach in the upstream functional network.
+            Wetlands are derived from the National Wetlands Inventory
+            (freshwater scrub-shrub, freshwater forested, freshwater emergent)
+            and NHD (swamp/marsh) and exclude any specifically marked by their
+            data provider as altered.
+          </ExpandableParagraph>
+        </Text>
+      </Entry>
+
       {unranked && !invasive ? (
         <Entry>
           <Text variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
@@ -478,6 +530,8 @@ FunctionalNetworkInfo.propTypes = {
   totaldownstreamdams: PropTypes.number,
   totaldownstreamsmallbarriers: PropTypes.number,
   totaldownstreamwaterfalls: PropTypes.number,
+  upstreamunalteredwaterbodykm2: PropTypes.number,
+  upstreamunalteredwetlandkm2: PropTypes.number,
 }
 
 FunctionalNetworkInfo.defaultProps = {
@@ -504,6 +558,8 @@ FunctionalNetworkInfo.defaultProps = {
   totaldownstreamdams: 0,
   totaldownstreamsmallbarriers: 0,
   totaldownstreamwaterfalls: 0,
+  upstreamunalteredwaterbodykm2: 0,
+  upstreamunalteredwetlandkm2: 0,
 }
 
 export default FunctionalNetworkInfo

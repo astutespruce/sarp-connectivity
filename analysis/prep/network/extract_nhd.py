@@ -32,6 +32,7 @@ def process_gdbs(huc2, src_dir, out_dir):
     merged_flowlines = None
     merged_joins = None
     merged_waterbodies = None
+    merged_wetlands = None
     merged_points = None
     merged_lines = None
     merged_poly = None
@@ -44,6 +45,7 @@ def process_gdbs(huc2, src_dir, out_dir):
     huc2_offset = np.uint32(int(huc2) * 5000000)
     flowlines_offset = huc2_offset.copy()
     waterbodies_offset = huc2_offset.copy()
+    wetlands_offset = huc2_offset.copy()
     nhd_points_offset = huc2_offset.copy()
     nhd_lines_offset = huc2_offset.copy()
     nhd_polygons_offset = huc2_offset.copy()
@@ -54,9 +56,7 @@ def process_gdbs(huc2, src_dir, out_dir):
         key=lambda p: p.parent.name,
     )
     if len(gdbs) == 0:
-        raise ValueError(
-            f"No GDBs available for {huc2} within {src_dir}; did you forget to unzip them?"
-        )
+        raise ValueError(f"No GDBs available for {huc2} within {src_dir}; did you forget to unzip them?")
 
     for gdb in gdbs:
         print(f"------------------- Reading {gdb.name} -------------------")
@@ -86,11 +86,8 @@ def process_gdbs(huc2, src_dir, out_dir):
         ### Read waterbodies
         read_start = time()
         waterbodies = extract_waterbodies(gdb, target_crs=CRS)
-        print(
-            "Read {:,} waterbodies in  {:.2f} seconds".format(
-                len(waterbodies), time() - read_start
-            )
-        )
+
+        print(f"Read {len(waterbodies):,} waterbodies and wetlands in  {time() - read_start:.2f} seconds")
 
         ### Only retain waterbodies that intersect flowlines
         print("Intersecting waterbodies and flowlines")
@@ -98,43 +95,44 @@ def process_gdbs(huc2, src_dir, out_dir):
         tree = shapely.STRtree(flowlines.loc[~flowlines.offnetwork].geometry.values)
         ix = tree.query(waterbodies.geometry.values, predicate="intersects")[0]
         waterbodies = waterbodies.iloc[np.unique(ix)].copy()
-        print(f"Retained {len(waterbodies):,} waterbodies that intersect flowlines")
+        print(f"Retained {len(waterbodies):,} waterbodies and wetlands that intersect flowlines")
 
         waterbodies["HUC4"] = huc4
 
-        # calculate ids to be unique across region
-        waterbodies["wbID"] = (
-            np.arange(1, len(waterbodies) + 1, dtype="uint32") + waterbodies_offset
-        )
-        waterbodies_offset = waterbodies.wbID.max() + np.uint32(1)
+        # split waterbodies and wetlands
+        ix = waterbodies.FType == 466
+        wetlands = waterbodies.loc[ix].copy()
+        waterbodies = waterbodies.loc[~ix].copy()
 
+        if len(wetlands):
+            wetlands["id"] = np.arange(1, len(wetlands) + 1, dtype="uint32") + wetlands_offset
+            wetlands_offset = wetlands.id.max() + np.uint32(1)
+            merged_wetlands = append(merged_wetlands, wetlands)
+
+        # calculate ids to be unique across region
+        waterbodies["wbID"] = np.arange(1, len(waterbodies) + 1, dtype="uint32") + waterbodies_offset
+        waterbodies_offset = waterbodies.wbID.max() + np.uint32(1)
         merged_waterbodies = append(merged_waterbodies, waterbodies)
 
         ### Extract barrier points, lines, polygons
         points = extract_barrier_points(gdb, target_crs=CRS)
         if len(points):
             points["HUC4"] = huc4
-            points["id"] = (
-                np.arange(1, len(points) + 1, dtype="uint32") + nhd_points_offset
-            )
+            points["id"] = np.arange(1, len(points) + 1, dtype="uint32") + nhd_points_offset
             nhd_points_offset = points.id.max() + np.uint32(1)
             merged_points = append(merged_points, points)
 
         lines = extract_barrier_lines(gdb, target_crs=CRS)
         if len(lines):
             lines["HUC4"] = huc4
-            lines["id"] = (
-                np.arange(1, len(lines) + 1, dtype="uint32") + nhd_lines_offset
-            )
+            lines["id"] = np.arange(1, len(lines) + 1, dtype="uint32") + nhd_lines_offset
             nhd_lines_offset = lines.id.max() + np.uint32(1)
             merged_lines = append(merged_lines, lines)
 
         poly = extract_barrier_polygons(gdb, target_crs=CRS)
         if len(poly):
             poly["HUC4"] = huc4
-            poly["id"] = (
-                np.arange(1, len(poly) + 1, dtype="uint32") + nhd_polygons_offset
-            )
+            poly["id"] = np.arange(1, len(poly) + 1, dtype="uint32") + nhd_polygons_offset
             nhd_polygons_offset = poly.id.max() + np.uint32(1)
             merged_poly = append(merged_poly, poly)
 
@@ -142,9 +140,7 @@ def process_gdbs(huc2, src_dir, out_dir):
         altered_rivers = extract_altered_rivers(gdb, target_crs=CRS)
         if len(altered_rivers):
             altered_rivers["HUC4"] = huc4
-            altered_rivers["id"] = (
-                np.arange(len(altered_rivers), dtype="uint32") + altered_rivers_offset
-            )
+            altered_rivers["id"] = np.arange(len(altered_rivers), dtype="uint32") + altered_rivers_offset
             altered_rivers_offset = altered_rivers.id.max() + np.uint32(1)
             merged_altered_rivers = append(merged_altered_rivers, altered_rivers)
 
@@ -159,6 +155,11 @@ def process_gdbs(huc2, src_dir, out_dir):
     flowlines = merged_flowlines.reset_index(drop=True)
     joins = merged_joins.reset_index(drop=True)
     waterbodies = merged_waterbodies.reset_index(drop=True)
+
+    if merged_wetlands is not None and len(merged_wetlands):
+        wetlands = merged_wetlands.reset_index(drop=True)
+    else:
+        wetlands = None
 
     if merged_points is not None and len(merged_points):
         points = merged_points.reset_index(drop=True)
@@ -191,21 +192,11 @@ def process_gdbs(huc2, src_dir, out_dir):
     # This correctly catches polygons that are EXACTLY the same.
     # It will miss those that are NEARLY the same.
 
-    waterbodies["hash"] = pd.util.hash_array(
-        shapely.to_wkb(waterbodies.geometry.values)
-    )
+    waterbodies["hash"] = pd.util.hash_array(shapely.to_wkb(waterbodies.geometry.values))
 
-    id_map = (
-        waterbodies.set_index("wbID")[["hash"]]
-        .join(waterbodies.groupby("hash").wbID.first(), on="hash")
-        .wbID
-    )
+    id_map = waterbodies.set_index("wbID")[["hash"]].join(waterbodies.groupby("hash").wbID.first(), on="hash").wbID
     # extract out where they are not equal; these are the ones to drop
-    waterbodies = (
-        waterbodies.loc[waterbodies.wbID.isin(id_map)]
-        .drop(columns=["hash"])
-        .reset_index(drop=True)
-    )
+    waterbodies = waterbodies.loc[waterbodies.wbID.isin(id_map)].drop(columns=["hash"]).reset_index(drop=True)
     print("{:,} waterbodies remain after removing duplicates".format(len(waterbodies)))
 
     ### Update the missing upstream_ids at the joins between HUCs.
@@ -229,33 +220,23 @@ def process_gdbs(huc2, src_dir, out_dir):
     joins.loc[(joins.type == "huc_in") & (joins.upstream_id != 0), "type"] = "internal"
 
     # remove the duplicate downstreams that used to be terminals for their respective HUCs
-    joins = joins.loc[
-        ~(joins.upstream.isin(cross_huc_joins.upstream) & (joins.type == "terminal"))
-    ]
+    joins = joins.loc[~(joins.upstream.isin(cross_huc_joins.upstream) & (joins.type == "terminal"))]
 
     # remove the duplicate downstreams that were functionally terminals for their HUC2s but
     # not marked as such (they had an NHDPlusID downstream but no flowlines in their HUC2)
-    ix = joins.loc[
-        (joins.downstream != 0) & (joins.downstream_id == 0)
-    ].upstream.unique()
+    ix = joins.loc[(joins.downstream != 0) & (joins.downstream_id == 0)].upstream.unique()
     joins = joins.loc[~(joins.upstream.isin(ix) & (joins.downstream_id == 0))]
 
     # remove dead ends
-    joins = joins.loc[~((joins.downstream == 0) & (joins.upstream == 0))].reset_index(
-        drop=True
-    )
+    joins = joins.loc[~((joins.downstream == 0) & (joins.upstream == 0))].reset_index(drop=True)
 
-    missing_downstream = joins.loc[
-        (joins.downstream != 0) & (~joins.downstream.isin(flowlines.NHDPlusID))
-    ]
+    missing_downstream = joins.loc[(joins.downstream != 0) & (~joins.downstream.isin(flowlines.NHDPlusID))]
     if len(missing_downstream):
         print("WARNING: downstream side of join is not present in flowlines")
         print("This may be a valid HUC2 exit, or it may be an error in the data")
         print(missing_downstream)
 
-    missing_upstream = joins.loc[
-        (joins.upstream != 0) & (~joins.upstream.isin(flowlines.NHDPlusID))
-    ]
+    missing_upstream = joins.loc[(joins.upstream != 0) & (~joins.upstream.isin(flowlines.NHDPlusID))]
     if len(missing_upstream):
         print("WARNING: upstream side of join is not present in flowlines")
         print("This may be a valid HUC2 inlet, or it may be an error in the data")
@@ -269,6 +250,10 @@ def process_gdbs(huc2, src_dir, out_dir):
 
     print(f"serializing {len(waterbodies):,} waterbodies")
     waterbodies.to_feather(out_dir / "waterbodies.feather")
+
+    if wetlands is not None and len(wetlands):
+        print(f"serializing {len(wetlands):,} wetlands")
+        wetlands.to_feather(out_dir / "wetlands.feather")
 
     if points is not None and len(points):
         print(f"serializing {len(points):,} NHD barrier points")
@@ -301,28 +286,29 @@ if not out_dir.exists():
 
 start = time()
 
-huc2s = [
-    # "01",
-    # "02",
-    # "03",
-    # "04",
-    # "05",
-    # "06",
-    # "07",
-    # "08",
-    # "09",
-    # "10",
-    # "11",
-    # "12",
-    # "13",
-    # "14",
-    # "15",
-    # "16",
-    # "17",
-    # "18",
-    # "19",  # uses huc8 data
-    # "21",
-]
+# huc2s = [
+# "01",
+# "02",
+# "03",
+# "04",
+# "05",
+# "06",
+# "07",
+# "08",
+# "09",
+# "10",
+# "11",
+# "12",
+# "13",
+# "14",
+# "15",
+# "16",
+# "17",
+# "18",
+# "19",  # uses huc8 data
+# "20",
+# "21",
+# ]
 
 
 for huc2 in huc2s:

@@ -24,6 +24,8 @@ import {
   DISADVANTAGED_COMMUNITY,
   INVASIVE_NETWORK,
   FISH_HABITAT_PARTNERSHIPS,
+  UNALTERED_WATERBODY_CLASS,
+  UNALTERED_WETLAND_CLASS,
 } from 'config'
 
 import { getEntries, hasDiadromousData } from './common'
@@ -161,6 +163,20 @@ export const smallBarriers = [
         sort: false,
         help: 'Note: annual flow rate is estimated at the downstream endpoint of the stream reach to which this barrier snapped and is not available for all reaches within the underlying NHD data.',
         ...getEntries(ANNUAL_FLOW),
+      },
+      {
+        field: 'upstreamunalteredwaterbodyclass',
+        title: 'Total area of all unaltered lakes and ponds',
+        sort: false,
+        help: 'Note: this metric is based on all unaltered lakes and ponds that intersect any stream reach in the upstream functional network.  Waterbodies are derived from NHD, the National Wetlands Inventory (NWI), and state waterbody datasets (where available) and exclude any specifically marked by the data provider as altered and those that are associated with dams in this inventory.',
+        ...getEntries(UNALTERED_WATERBODY_CLASS),
+      },
+      {
+        field: 'upstreamunalteredwetlandclass',
+        title: 'Total area of all unaltered freshwater wetlands',
+        sort: false,
+        help: 'Note: this metric is based on all unaltered freshwater wetlands that intersect any stream reach in the upstream functional network.  Wetlands are derived from specific wetland types in the National Wetlands Inventory (freshwater scrub-shrub, freshwater forested, freshwater emergent) and NHD (swamp/marsh) and exclude any specifically marked by the data provider as altered.',
+        ...getEntries(UNALTERED_WETLAND_CLASS),
       },
     ],
   },
