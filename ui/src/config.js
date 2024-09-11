@@ -1338,6 +1338,8 @@ export const FISH_HABITAT_PARTNERSHIPS = {
   HFHP: {
     name: 'Hawaii Fish Habitat Partnership',
     url: 'https://www.fishhabitat.org/the-partnerships/hawaii-fish-habitat-partnership',
+    logo: 'hifhp_logo.png',
+    logoWidth: '180px',
   },
   KPFHP: {
     name: 'Kenai Peninsula Fish Habitat Partnership',
