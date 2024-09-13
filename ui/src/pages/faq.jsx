@@ -1,12 +1,14 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Container, Heading, Paragraph } from 'theme-ui'
+import { Box, Container, Heading, Paragraph, Text } from 'theme-ui'
 import { graphql } from 'gatsby'
 
-import { MAP_SERVICES } from 'config'
+import { MAP_SERVICES, siteMetadata } from 'config'
 import { Layout, SEO } from 'components/Layout'
 import { Link, OutboundLink } from 'components/Link'
 import { HeaderImage } from 'components/Image'
+
+const { date, version } = siteMetadata
 
 const FAQPage = ({ data: { headerImage } }) => (
   <Layout>
@@ -126,6 +128,27 @@ const FAQPage = ({ data: { headerImage } }) => (
             contact us
           </OutboundLink>
           .
+        </Paragraph>
+      </Box>
+
+      <Box>
+        <Heading as="h2">How do I cite the inventory?</Heading>
+        <Paragraph>
+          When downloading the data, you can find the citation within the Terms
+          of Use text file. Alternatively, if citing the inventory in general,
+          you may use the following citation:
+          <Text sx={{ mt: '1rem', mx: '2rem', bg: 'grey.1', p: '1rem' }}>
+            Southeast Aquatic Resources Partnership (SARP). 2024. Comprehensive
+            Aquatic Barrier Inventory v{version} ({date}).{' '}
+            <OutboundLink to="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act">
+              https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act
+            </OutboundLink>
+            . (downloaded {new Date().toLocaleDateString()} from{' '}
+            <OutboundLink to="https://aquaticbarriers.org">
+              https://aquaticbarriers.org
+            </OutboundLink>
+            ). SARP/USFWS.
+          </Text>
         </Paragraph>
       </Box>
 

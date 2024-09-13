@@ -134,7 +134,7 @@ const Top = () => (
           of potential aquatic barriers.
           <br />
           <br />
-          Scroll down for more information.
+          Scroll down to learn more about the inventory.
         </HighlightBox>
 
         <HighlightBox title="Prioritization" icon="prioritize">
@@ -144,7 +144,7 @@ const Top = () => (
           information to assist barrier removal projects.
           <br />
           <br />
-          <Link to="/scoring_methods">Read more...</Link>
+          <Link to="/scoring_methods">Read more about the methods here...</Link>
         </HighlightBox>
 
         <HighlightBox title="Teams" icon="team">
@@ -155,7 +155,11 @@ const Top = () => (
           <br />
           <br />
           Learn more about Aquatic Connectivity Teams by choosing a region from{' '}
-          <b>Explore regions</b> at the top.
+          <b>Explore regions</b> at the top. To join a team click{' '}
+          <OutboundLink to="https://www.americanrivers.org/aquatic-connectivity-groups/">
+            here
+          </OutboundLink>
+          .
         </HighlightBox>
       </Grid>
     </Box>

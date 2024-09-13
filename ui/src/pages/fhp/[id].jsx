@@ -424,7 +424,12 @@ const FHPRoute = ({ params: { id } }) => {
               You can help improve the inventory You can help improve the
               inventory by sharing data, assisting with field reconnaissance to
               evaluate the impact of aquatic barriers, or even by reporting
-              issues with the inventory data in this tool.
+              issues with the inventory data in this tool. To join an aquatic
+              connectivity team click{' '}
+              <OutboundLink to="https://www.americanrivers.org/aquatic-connectivity-groups/">
+                here
+              </OutboundLink>
+              .
               <br />
               <br />
               <a href="mailto:kat@southeastaquatics.net">Contact us</a> to learn

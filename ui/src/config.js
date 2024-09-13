@@ -1467,7 +1467,10 @@ export const CONNECTIVITY_TEAMS = {
     url: 'https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act/act/north-carolina-act',
   },
   NH: { name: 'New Hampshire River Restoration Task Force' },
-  NJ: { name: 'NJ Statwide Dam Removal Partnership' },
+  NJ: {
+    name: 'NJ Statwide Dam Removal Partnership',
+    url: 'https://njdams.org/',
+  },
   NM: { name: 'New Mexico Aquatic Connectivity Team' },
   NY: { name: 'New York Dam Removal Working Group' },
   OK: { name: 'Oklahoma Aquatic Connectivity Team' },

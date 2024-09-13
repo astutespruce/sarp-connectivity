@@ -47,6 +47,13 @@ const SARPGetInvolvedSection = () => {
             resources, disseminate information, and examine regulatory
             streamlining processes as well as project management tips and
             techniques.
+            <br />
+            <br />
+            To join a team click{' '}
+            <OutboundLink to="https://www.americanrivers.org/aquatic-connectivity-groups/">
+              here
+            </OutboundLink>
+            .
           </Paragraph>
         </Box>
         <Box>

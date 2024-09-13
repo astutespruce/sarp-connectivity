@@ -21,7 +21,12 @@ import { Layout, PageError, PageLoading, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { RegionActionLinks, RegionStats } from 'components/Regions'
 import { Chart } from 'components/Restoration'
-import { REGIONS, STATE_DATA_PROVIDERS } from 'config'
+import {
+  REGIONS,
+  STATE_DATA_PROVIDERS,
+  STATES,
+  CONNECTIVITY_TEAMS,
+} from 'config'
 import { formatNumber } from 'util/format'
 
 const regionID = 'northwest'
@@ -38,9 +43,6 @@ const PNWRegionPage = ({
   data: {
     headerImage: {
       childImageSharp: { gatsbyImageData: headerImage },
-    },
-    salmonPhoto: {
-      childImageSharp: { gatsbyImageData: salmonPhoto },
     },
     map: {
       childImageSharp: { gatsbyImageData: map },
@@ -175,33 +177,40 @@ const PNWRegionPage = ({
           <Heading as="h2" variant="heading.section">
             You can help!
           </Heading>
-          <Grid columns="3fr 1fr" gap={4} sx={{ mt: '1rem' }}>
+          <Grid columns="2fr 1fr" gap={4}>
+            <Paragraph sx={{ mt: '1rem' }}>
+              You can help improve the inventory You can help improve the
+              inventory by sharing data, assisting with field reconnaissance to
+              evaluate the impact of aquatic barriers, or even by reporting
+              issues with the inventory data in this tool. To join an aquatic
+              connectivity team click{' '}
+              <OutboundLink to="https://www.americanrivers.org/aquatic-connectivity-groups/">
+                here
+              </OutboundLink>
+              .
+              <br />
+              <br />
+              <a href="mailto:kat@southeastaquatics.net">Contact us</a> to learn
+              more about how you can help improve aquatic connectivity in the{' '}
+              {name} region.
+            </Paragraph>
             <Box>
-              <Paragraph>
-                You can help improve the inventory You can help improve the
-                inventory by sharing data, assisting with field reconnaissance
-                to evaluate the impact of aquatic barriers, or even by reporting
-                issues with the inventory data in this tool.
-                <br />
-                <br />
-                <a href="mailto:kat@southeastaquatics.net">Contact us</a> to
-                learn more about how you can help improve aquatic connectivity
-                in the {name} region.
-              </Paragraph>
-            </Box>
-
-            <Box>
-              <GatsbyImage
-                image={salmonPhoto}
-                alt="Chum salmon, Allison Springs, WA"
-              />
-
-              <Box sx={{ fontSize: 0 }}>
-                Photo:{' '}
-                <OutboundLink to="https://www.flickr.com/photos/usfwspacific/51047491597/">
-                  Chum salmon, Allison Springs, WA. Roger Tabor / U.S. Fish and
-                  Wildlife Service.
-                </OutboundLink>
+              <Heading as="h4">Aquatic connectivity teams:</Heading>
+              <Box as="ul" sx={{ mt: '0.5rem' }}>
+                {REGIONS.northwest.states
+                  .filter((state) => CONNECTIVITY_TEAMS[state])
+                  .map((state) => (
+                    <li key={state}>
+                      {STATES[state]}:{' '}
+                      {CONNECTIVITY_TEAMS[state].url ? (
+                        <OutboundLink to={CONNECTIVITY_TEAMS[state].url}>
+                          {CONNECTIVITY_TEAMS[state].name}
+                        </OutboundLink>
+                      ) : (
+                        CONNECTIVITY_TEAMS[state].name
+                      )}
+                    </li>
+                  ))}
               </Box>
             </Box>
           </Grid>
@@ -225,16 +234,6 @@ export const pageQuery = graphql`
       childImageSharp {
         gatsbyImageData(
           layout: FULL_WIDTH
-          formats: [AUTO, WEBP]
-          placeholder: BLURRED
-        )
-      }
-    }
-    salmonPhoto: file(relativePath: { eq: "51047491597_9e44ea2b53_c.jpg" }) {
-      childImageSharp {
-        gatsbyImageData(
-          layout: CONSTRAINED
-          width: 960
           formats: [AUTO, WEBP]
           placeholder: BLURRED
         )

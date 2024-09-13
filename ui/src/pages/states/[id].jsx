@@ -20,7 +20,7 @@ import { Icon } from 'components/Icon'
 import { Chart } from 'components/Restoration'
 import Downloader from 'components/Download/Downloader'
 import { Layout, SEO, PageError, PageLoading } from 'components/Layout'
-import { Link, ExternalLink } from 'components/Link'
+import { Link, ExternalLink, OutboundLink } from 'components/Link'
 import {
   REGIONS,
   STATES,
@@ -425,12 +425,17 @@ const StateRoute = ({ params: { id } }) => {
               You can help improve the inventory You can help improve the
               inventory by sharing data, assisting with field reconnaissance to
               evaluate the impact of aquatic barriers, or even by reporting
-              issues with the inventory data in this tool.
-              <br />
-              <br />
-              <a href="mailto:kat@southeastaquatics.net">Contact us</a> to learn
-              more about how you can help improve aquatic connectivity in {name}
+              issues with the inventory data in this tool. To join an aquatic
+              connectivity team click{' '}
+              <OutboundLink to="https://www.americanrivers.org/aquatic-connectivity-groups/">
+                here
+              </OutboundLink>
               .
+              <br />
+              <br />
+              <a href="mailto:kat@southeastaquatics.net">Contact us</a> to
+              learnu more about how you can help improve aquatic connectivity in{' '}
+              {name}.
             </Paragraph>
             {team ? (
               <Box

@@ -3,7 +3,9 @@ import { graphql, useStaticQuery } from 'gatsby'
 import { GatsbyImage } from 'gatsby-plugin-image'
 import { Box, Divider, Heading, Paragraph, Grid, Text } from 'theme-ui'
 
-const SARP = () => {
+import { OutboundLink } from 'components/Link'
+
+const GetInvolvedSection = () => {
   const {
     damRemovalTeamPhoto: {
       childImageSharp: { gatsbyImageData: damRemovalTeamPhoto },
@@ -37,8 +39,11 @@ const SARP = () => {
           <Paragraph sx={{ mt: '1rem' }}>
             You can help improve the inventory by sharing data, assisting with
             field reconnaissance to evaluate the impact of aquatic barriers,
-            joining an Aquatic Connectivity Team, or even by reporting issues
-            with the inventory data in this tool.
+            joining an{' '}
+            <OutboundLink to="https://www.americanrivers.org/aquatic-connectivity-groups/">
+              Aquatic Connectivity Team
+            </OutboundLink>
+            , or even by reporting issues with the inventory data in this tool.
             <br />
             <br />
             <a href="mailto:kat@southeastaquatics.net">Contact us</a> to learn
@@ -70,4 +75,4 @@ const SARP = () => {
   )
 }
 
-export default SARP
+export default GetInvolvedSection
