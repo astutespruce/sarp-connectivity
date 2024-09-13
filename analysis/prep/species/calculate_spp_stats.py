@@ -248,7 +248,7 @@ df.loc[~df.federal & df.SNAME.isin(federal_spp), "federal"] = True
 spp_presence = df.loc[df.federal | df.sgcn | df.regional].drop(columns=["trout"]).copy()
 cols = ["historical", "federal", "sgcn", "regional"]
 spp_presence[cols] = spp_presence[cols].astype("uint8")
-write_dataframe(spp_presence, out_dir / "spp_HUC12_presence.gdb", driver="OpenFileGDB")
+write_dataframe(spp_presence, out_dir / "spp_HUC12_stats.gdb", layer="presence", driver="OpenFileGDB")
 
 
 ### Extract counts for SECAS: exclude any entries that are historical
@@ -275,7 +275,7 @@ df = df.loc[df[status_cols + ["salmonid_esu_count"]].max(axis=1) > 0].reset_inde
 df["trout"] = (df.trout > 0).astype("uint8")
 
 df.to_feather(out_dir / "spp_HUC12.feather")
-write_dataframe(df, out_dir / "spp_HUC12_count.gdb", driver="OpenFileGDB")
+write_dataframe(df, out_dir / "spp_HUC12_stats.gdb", layer="count", append=True, driver="OpenFileGDB")
 
 
 print("All done in {:.2f}s".format(time() - start))

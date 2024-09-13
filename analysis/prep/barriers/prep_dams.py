@@ -307,6 +307,9 @@ df.loc[df.Recon == 18, "Condition"] = 5
 # dam breached (but we don't know if this was on purpose)
 df.loc[df.BarrierStatus.isin([2, 3]), "Condition"] = 6
 
+# Cleanup recon vs feasibility (per direction from Kat 9/10/2024)
+df.loc[(df.Recon == 5) & (df.Feasibility == 8), "Recon"] = 7
+
 
 # Round height and width to nearest foot.
 # There are no dams between 0 and 1 foot, so fill all na as 0.
