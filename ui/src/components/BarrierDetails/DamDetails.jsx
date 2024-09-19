@@ -116,9 +116,9 @@ const DamDetails = ({
   unalteredupstreammiles,
   unalteredupstreammainstemmiles,
   unranked,
-  upstreamunalteredwaterbodykm2,
-  upstreamunalteredwetlandkm2,
-  waterbodykm2,
+  upstreamunalteredwaterbodyacres,
+  upstreamunalteredwetlandacres,
+  waterbodyacres,
   waterbodysizeclass,
   waterright,
   yearcompleted,
@@ -208,7 +208,7 @@ const DamDetails = ({
           streamorder={streamorder}
           streamsizeclass={streamsizeclass}
           waterbodysizeclass={waterbodysizeclass}
-          waterbodykm2={waterbodykm2}
+          waterbodyacres={waterbodyacres}
           fatality={fatality}
         />
       </Section>
@@ -306,7 +306,7 @@ const DamDetails = ({
             sizeclasses={sizeclasses}
             landcover={landcover}
             waterbodysizeclass={waterbodysizeclass}
-            waterbodykm2={waterbodykm2}
+            waterbodyacres={waterbodyacres}
             intermittent={intermittent}
             invasive={invasive}
             unranked={unranked}
@@ -316,8 +316,8 @@ const DamDetails = ({
             totaldownstreamdams={totaldownstreamdams}
             totaldownstreamsmallbarriers={totaldownstreamsmallbarriers}
             totaldownstreamwaterfalls={totaldownstreamwaterfalls}
-            upstreamunalteredwaterbodykm2={upstreamunalteredwaterbodykm2}
-            upstreamunalteredwetlandkm2={upstreamunalteredwetlandkm2}
+            upstreamunalteredwaterbodyacres={upstreamunalteredwaterbodyacres}
+            upstreamunalteredwetlandacres={upstreamunalteredwetlandacres}
           />
         ) : (
           <NoNetworkInfo
@@ -547,9 +547,9 @@ DamDetails.propTypes = {
   unalteredupstreammiles: PropTypes.number,
   unalteredupstreammainstemmiles: PropTypes.number,
   unranked: PropTypes.bool,
-  upstreamunalteredwaterbodykm2: PropTypes.number,
-  upstreamunalteredwetlandkm2: PropTypes.number,
-  waterbodykm2: PropTypes.number,
+  upstreamunalteredwaterbodyacres: PropTypes.number,
+  upstreamunalteredwetlandacres: PropTypes.number,
+  waterbodyacres: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
   waterright: PropTypes.number,
   yearcompleted: PropTypes.number,
@@ -697,9 +697,9 @@ DamDetails.defaultProps = {
   unalteredupstreammiles: 0,
   unalteredupstreammainstemmiles: 0,
   unranked: false,
-  upstreamunalteredwaterbodykm2: 0,
-  upstreamunalteredwetlandkm2: 0,
-  waterbodykm2: -1,
+  upstreamunalteredwaterbodyacres: 0,
+  upstreamunalteredwetlandacres: 0,
+  waterbodyacres: -1,
   waterbodysizeclass: null,
   waterright: null,
   yearcompleted: 0,

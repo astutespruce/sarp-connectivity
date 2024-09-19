@@ -75,10 +75,8 @@ const WaterfallDetails = ({
   trout,
   unalteredupstreammiles,
   unalteredupstreammainstemmiles,
-  upstreamunalteredwaterbodykm2,
-  upstreamunalteredwetlandkm2,
-  waterbodykm2,
-  waterbodysizeclass,
+  upstreamunalteredwaterbodyacres,
+  upstreamunalteredwetlandacres,
   invasive,
   invasivenetwork,
   ...props // includes species habitat fields selected dynamically
@@ -107,8 +105,6 @@ const WaterfallDetails = ({
           intermittent={intermittent}
           streamorder={streamorder}
           streamsizeclass={streamsizeclass}
-          waterbodysizeclass={waterbodysizeclass}
-          waterbodykm2={waterbodykm2}
         />
 
         {falltype && !isEmptyString(falltype) ? (
@@ -150,8 +146,8 @@ const WaterfallDetails = ({
             totaldownstreamdams={totaldownstreamdams}
             totaldownstreamsmallbarriers={totaldownstreamsmallbarriers}
             totaldownstreamwaterfalls={totaldownstreamwaterfalls}
-            upstreamunalteredwaterbodykm2={upstreamunalteredwaterbodykm2}
-            upstreamunalteredwetlandkm2={upstreamunalteredwetlandkm2}
+            upstreamunalteredwaterbodyacres={upstreamunalteredwaterbodyacres}
+            upstreamunalteredwetlandacres={upstreamunalteredwetlandacres}
           />
         ) : (
           <NoNetworkInfo
@@ -313,10 +309,8 @@ WaterfallDetails.propTypes = {
   trout: PropTypes.number,
   unalteredupstreammiles: PropTypes.number,
   unalteredupstreammainstemmiles: PropTypes.number,
-  upstreamunalteredwaterbodykm2: PropTypes.number,
-  upstreamunalteredwetlandkm2: PropTypes.number,
-  waterbodykm2: PropTypes.number,
-  waterbodysizeclass: PropTypes.number,
+  upstreamunalteredwaterbodyacres: PropTypes.number,
+  upstreamunalteredwetlandacres: PropTypes.number,
   invasive: PropTypes.bool,
   invasivenetwork: PropTypes.number,
   alewifehabitatupstreammiles: PropTypes.number,
@@ -433,10 +427,8 @@ WaterfallDetails.defaultProps = {
   trout: 0,
   unalteredupstreammiles: 0,
   unalteredupstreammainstemmiles: 0,
-  upstreamunalteredwaterbodykm2: 0,
-  upstreamunalteredwetlandkm2: 0,
-  waterbodykm2: -1,
-  waterbodysizeclass: null,
+  upstreamunalteredwaterbodyacres: 0,
+  upstreamunalteredwetlandacres: 0,
   invasive: false,
   invasivenetwork: 0,
   alewifehabitatupstreammiles: 0,

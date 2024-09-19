@@ -155,8 +155,10 @@ CRS = {
     "type": "crs",
 }
 
-
 GEO_CRS = "EPSG:4326"
+
+METERS_TO_MILES = 0.000621371
+KM2_TO_ACRES = 247.105
 
 
 # Bin year removed in to smaller groups

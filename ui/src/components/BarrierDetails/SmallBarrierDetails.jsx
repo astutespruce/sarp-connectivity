@@ -125,11 +125,9 @@ const BarrierDetails = ({
   unalteredupstreammiles,
   unalteredupstreammainstemmiles,
   unranked,
-  upstreamunalteredwaterbodykm2,
-  upstreamunalteredwetlandkm2,
+  upstreamunalteredwaterbodyacres,
+  upstreamunalteredwetlandacres,
   nearestusgscrossingid,
-  waterbodykm2,
-  waterbodysizeclass,
   yearremoved,
   ...props // includes species habitat fields selected dynamically
 }) => {
@@ -179,8 +177,6 @@ const BarrierDetails = ({
           intermittent={intermittent}
           streamorder={streamorder}
           streamsizeclass={streamsizeclass}
-          waterbodysizeclass={waterbodysizeclass}
-          waterbodykm2={waterbodykm2}
         />
       </Section>
 
@@ -284,8 +280,8 @@ const BarrierDetails = ({
             totaldownstreamdams={totaldownstreamdams}
             totaldownstreamsmallbarriers={totaldownstreamsmallbarriers}
             totaldownstreamwaterfalls={totaldownstreamwaterfalls}
-            upstreamunalteredwaterbodykm2={upstreamunalteredwaterbodykm2}
-            upstreamunalteredwetlandkm2={upstreamunalteredwetlandkm2}
+            upstreamunalteredwaterbodyacres={upstreamunalteredwaterbodyacres}
+            upstreamunalteredwetlandacres={upstreamunalteredwetlandacres}
           />
         ) : (
           <NoNetworkInfo
@@ -466,11 +462,9 @@ BarrierDetails.propTypes = {
   unalteredupstreammiles: PropTypes.number,
   unalteredupstreammainstemmiles: PropTypes.number,
   unranked: PropTypes.bool,
-  upstreamunalteredwaterbodykm2: PropTypes.number,
-  upstreamunalteredwetlandkm2: PropTypes.number,
+  upstreamunalteredwaterbodyacres: PropTypes.number,
+  upstreamunalteredwetlandacres: PropTypes.number,
   nearestusgscrossingid: PropTypes.string,
-  waterbodykm2: PropTypes.number,
-  waterbodysizeclass: PropTypes.number,
   yearremoved: PropTypes.number,
   invasivenetwork: PropTypes.number,
   alewifehabitatupstreammiles: PropTypes.number,
@@ -603,11 +597,9 @@ BarrierDetails.defaultProps = {
   unalteredupstreammiles: 0,
   unalteredupstreammainstemmiles: 0,
   unranked: false,
-  upstreamunalteredwaterbodykm2: 0,
-  upstreamunalteredwetlandkm2: 0,
+  upstreamunalteredwaterbodyacres: 0,
+  upstreamunalteredwetlandacres: 0,
   nearestusgscrossingid: null,
-  waterbodykm2: -1,
-  waterbodysizeclass: null,
   yearremoved: 0,
   invasivenetwork: 0,
   alewifehabitatupstreammiles: 0,

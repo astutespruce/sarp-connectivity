@@ -43,6 +43,7 @@ from analysis.prep.barriers.lib.duplicates import (
 from analysis.prep.barriers.lib.spatial_joins import get_huc2, add_spatial_joins
 from analysis.prep.barriers.lib.log import format_log
 from analysis.constants import (
+    KM2_TO_ACRES,
     DAMS_ID_OFFSET,
     GEO_CRS,
     DROP_FEASIBILITY,
@@ -955,19 +956,18 @@ wb = (
     read_feathers(
         [nhd_dir / "clean" / huc2 / "waterbodies.feather" for huc2 in df.HUC2.unique() if huc2],
         columns=["wbID", "km2"],
-    )
-    .rename(columns={"km2": "WaterbodyKM2"})
-    .set_index("wbID")
-)
+    ).set_index("wbID")
+    * KM2_TO_ACRES
+).rename(columns={"km2": "WaterbodyAcres"})
 
 
 # classify waterbody size class (see WATERBODY_SIZECLASS_DOMAIN)
 # Note: 0 is reserved for missing data
-bins = [-1, 0, 0.01, 0.1, 1, 10] + [wb.WaterbodyKM2.max() + 1]
-wb["WaterbodySizeClass"] = np.asarray(pd.cut(wb.WaterbodyKM2, bins, right=False, labels=np.arange(0, len(bins) - 1)))
+bins = [-1, 0, 2.5, 25, 250, 2500] + [wb.WaterbodyAcres.max() + 1]
+wb["WaterbodySizeClass"] = np.asarray(pd.cut(wb.WaterbodyAcres, bins, right=False, labels=np.arange(0, len(bins) - 1)))
 
 df = df.join(wb, on="wbID")
-df.WaterbodyKM2 = df.WaterbodyKM2.fillna(-1).astype("float32")
+df.WaterbodyAcres = df.WaterbodyAcres.fillna(-1).astype("float32")
 df.WaterbodySizeClass = df.WaterbodySizeClass.fillna(0).astype("uint8")
 
 

@@ -534,8 +534,8 @@ def create_barrier_networks(
                 "pct_unaltered": "PercentUnaltered",
                 "pct_perennial_unaltered": "PercentPerennialUnaltered",
                 "pct_resilient": "PercentResilient",
-                "unaltered_waterbody_km2": "UpstreamUnalteredWaterbodyKM2",
-                "unaltered_wetland_km2": "UpstreamUnalteredWetlandKM2",
+                "unaltered_waterbody_acres": "UpstreamUnalteredWaterbodyAcres",
+                "unaltered_wetland_acres": "UpstreamUnalteredWetlandAcres",
                 **{
                     c: c.title()
                     .replace("_Mainstem_Miles", "UpstreamMainstemMiles")
@@ -623,7 +623,7 @@ def create_barrier_networks(
     # are no further miles downstream from this network
     barrier_networks.miles_to_outlet = barrier_networks.miles_to_outlet.fillna(0).astype("float32")
     # total drainage area will be 0 for barriers at top of network
-    barrier_networks.fn_dakm2 = barrier_networks.fn_dakm2.fillna(0).astype("float32")
+    barrier_networks.fn_da_acres = barrier_networks.fn_da_acres.fillna(0).astype("float32")
 
     # Set upstream and downstream count columns to 0 where nan; these are
     # for networks where barrier is at top of total network or bottom

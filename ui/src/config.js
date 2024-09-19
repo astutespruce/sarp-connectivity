@@ -1150,42 +1150,41 @@ export const STREAM_SIZECLASS = {
   5: 'great river',
 }
 
-// in km2
 export const STREAM_SIZECLASS_DRAINAGE_AREA = {
-  '1a': '< 10',
-  '1b': '10 - 99',
-  2: '100 - 517',
-  '3a': '518 - 2,589',
-  '3b': '2,590 - 9,999',
-  4: '10,000 - 24,999',
-  5: '>= 25,000',
+  '1a': '< 2,471 acres',
+  '1b': '2,471 - 24,709 acres',
+  2: '24,710 - 127,999 acres',
+  '3a': '128,000 - 640,001 acres',
+  '3b': '640,002 - 2,471,049 acres',
+  4: '2,471,050 - 6,177,624 acres',
+  5: '>= 6,177,625 acres',
 }
 
 export const WATERBODY_SIZECLASS = {
-  0: 'not associated with a pond or lake',
-  1: 'pond (< 0.01 km2)',
-  2: 'very small lake (0.01 - 0.09 km2)',
-  3: 'small lake (0.1 - 0.9 km2)',
-  4: 'medium lake (1 - 9.9 km2)',
-  5: 'large lake (>= 10 km2)',
+  0: 'Not associated with a pond or lake',
+  1: 'Pond (< 2.5 acres)',
+  2: 'Very small lake (2.5 - 24.9 acres)',
+  3: 'Small lake (25 - 249 acres)',
+  4: 'Medium lake (250 - 2,499 acres)',
+  5: 'Large lake (>= 2,500 acres)',
 }
 
 export const UNALTERED_WATERBODY_CLASS = {
-  0: '0 km2',
-  1: '< 0.01 km2',
-  2: '0.01 - 0.09 km2',
-  3: '0.1 - 0.9 km2',
-  4: '1 - 9.9 km2',
-  5: '>= 10 km2',
+  0: '0 acres',
+  1: '< 2.5 acres',
+  2: '2.5 - 24.9 acres',
+  3: '25 - 249 acres',
+  4: '250 - 2,499 acres',
+  5: '>= 2,500 acres',
 }
 
 export const UNALTERED_WETLAND_CLASS = {
-  0: '0 km2',
-  1: '< 0.01 km2',
-  2: '0.01 - 0.09 km2',
-  3: '0.1 - 0.9 km2',
-  4: '1 - 9.9 km2',
-  5: '>= 10 km2',
+  0: '0 acres',
+  1: '< 2.5 acres',
+  2: '2.5 - 24.9 acres',
+  3: '25 - 249 acres',
+  4: '250 - 2,499 acres',
+  5: '>= 2,500 acres',
 }
 
 // NOTE: these are encoded into a comma-delimited field

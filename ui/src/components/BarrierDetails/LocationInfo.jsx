@@ -44,7 +44,7 @@ const LocationInfo = ({
   streamorder,
   streamsizeclass,
   waterbodysizeclass,
-  waterbodykm2,
+  waterbodyacres,
   fatality,
 }) => {
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
@@ -76,11 +76,7 @@ const LocationInfo = ({
         <Entry>
           This {barrierTypeLabel} is associated with a{' '}
           {WATERBODY_SIZECLASS[waterbodysizeclass].split(' (')[0].toLowerCase()}{' '}
-          (
-          {waterbodykm2 > 0.1
-            ? `${formatNumber(waterbodykm2, 2)} k`
-            : `${formatNumber(waterbodykm2 * 1e6)} `}
-          m<sup>2</sup> )
+          ({formatNumber(waterbodyacres)} acres)
         </Entry>
       ) : null}
       {streamorder > 0 ? (
@@ -96,9 +92,7 @@ const LocationInfo = ({
             {STREAM_SIZECLASS[streamsizeclass]}
             <br />
             <Text sx={{ fontSize: 0 }}>
-              (drainage area: {STREAM_SIZECLASS_DRAINAGE_AREA[streamsizeclass]}{' '}
-              km
-              <sup>2</sup>)
+              (drainage area: {STREAM_SIZECLASS_DRAINAGE_AREA[streamsizeclass]})
             </Text>
           </Field>
         </Entry>
@@ -258,7 +252,7 @@ LocationInfo.propTypes = {
   streamorder: PropTypes.number,
   streamsizeclass: PropTypes.string,
   waterbodysizeclass: PropTypes.number,
-  waterbodykm2: PropTypes.number,
+  waterbodyacres: PropTypes.number,
   fatality: PropTypes.number,
 }
 
@@ -283,7 +277,7 @@ LocationInfo.defaultProps = {
   streamorder: 0,
   streamsizeclass: null,
   waterbodysizeclass: null,
-  waterbodykm2: null,
+  waterbodyacres: null,
   fatality: 0,
 }
 

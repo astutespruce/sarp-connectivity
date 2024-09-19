@@ -115,9 +115,9 @@ METRIC_FIELDS = [
     "PercentPerennialUnaltered",
     "ResilientUpstreamMiles",
     "PercentResilient",
-    "UpstreamDrainageArea",
-    "UpstreamUnalteredWaterbodyKM2",
-    "UpstreamUnalteredWetlandKM2",
+    "UpstreamDrainageAcres",
+    "UpstreamUnalteredWaterbodyAcres",
+    "UpstreamUnalteredWetlandAcres",
     # downstream functional network
     "TotalDownstreamMiles",
     "FreeDownstreamMiles",
@@ -414,7 +414,7 @@ DAM_CORE_FIELDS = (
         "Diversion",
         "LowheadDam",
         "StorageVolume",
-        "WaterbodyKM2",
+        "WaterbodyAcres",
         "Fatality",
     ]
     + GENERAL_API_FIELDS2
@@ -869,11 +869,11 @@ DOWNSTREAM_OCEAN_BARRIERS_DOMAIN = {
 
 WATERBODY_SIZECLASS_DOMAIN = {
     0: "Not associated with a pond or lake",
-    1: "Pond (< 0.01 km2)",
-    2: "Very small lake (0.01 - 0.09 km2)",
-    3: "Small lake (0.1 - 0.9 km2)",
-    4: "Medium lake (1 - 9.9 km2)",
-    5: "Large lake (>= 10 km2)",
+    1: "Pond (< 2.5 acres)",
+    2: "Very small lake (2.5 - 24.9 acres)",
+    3: "Small lake (25 - 249 acres)",
+    4: "Medium lake (250 - 2,499 acres)",
+    5: "Large lake (>= 2,500 acres)",
 }
 
 
@@ -1330,7 +1330,7 @@ FIELD_DEFINITIONS = {
     "Diversion": "Identifies if dam is known to be a diversion.  Note: diversion information is available only for a small number of dams.",
     "LowheadDam": "Identifies if dam is known or estimated to be a lowhead dam.  Note: lowhead dam information is available only for a small number of dams.",
     "StorageVolume": "Identifies the reported normal storage volume (acre/feet) of the impounded waterbody, from NID NormStor attribute, if known.  ",
-    "WaterbodyKM2": "area (square kilometers) of waterbody associated with dam.  -1 = no associated waterbody",
+    "WaterbodyAcres": "area in acres of waterbody associated with dam.  -1 = no associated waterbody",
     "Fatality": "number of fatalities recorded at this location from Locations of Fatalities at Submerged Hydraulic Jumps (https://krcproject.groups.et.byu.net/browse.php)",
     # barrier-specific fields
     "CrossingCode": "crossing identifier.",
@@ -1354,8 +1354,8 @@ FIELD_DEFINITIONS = {
     "Condition": "Condition of the {type} as of last assessment, if known. Note: assessment dates are not known.",
     "Snapped": "Indicates if the {type} was snapped to a flowline.  Note: not all barriers snapped to flowlines are used in the network connectivity analysis.",
     "NHDPlusID": "Unique NHD Plus High Resolution flowline identifier to which this {type} is snapped.  -1 = not snapped to a flowline.  Note: not all barriers snapped to flowlines are used in the network connectivity analysis.",
-    "StreamSizeClass": "Stream size class based on total catchment drainage area in square kilometers.  1a: <10 km2, 1b: 10-100 km2, 2: 100-518 km2, 3a: 518-2,590 km2, 3b: 2,590-10,000 km2, 4: 10,000-25,000 km2, 5: >= 25,000 km2.",
-    "TotDASqKm": "Total drainage area at the downstream end of the NHD Plus High Resolution flowline to which this {type} has been snapped, in square kilometers.  -1 if not snapped to flowline or otherwise not available",
+    "StreamSizeClass": "Stream size class based on total catchment drainage area in acres.  1a: <2,471 acres, 1b: 2,471-24,709 acres, 2: 24,710-127,999 acres, 3a: 128,000-640,001 acres, 3b: 640,002-2,471,049 acres, 4: 2,471,050-6,177,624 acres, 5: >= 6,177,625 acres.",
+    "TotDASqKm": "Total drainage area in square kilometers at the downstream end of the NHD Plus High Resolution flowline to which this {type} has been snapped, as reported by NHD.  -1 if not snapped to flowline or otherwise not available",
     "AnnualFlow": "Annual flow at the downstream end of the NHD Plus High Resolution flowline to which this {type} has been snapped, in square cubic feet per second.  -1 if not snapped to flowline or otherwise not available",
     "AnnualVelocity": "Annual velocity at the downstream end of the NHD Plus High Resolution flowline to which this {type} has been snapped, in square feet per second.  -1 if not snapped to flowline or otherwise not available",
     "TESpp": "Number of federally-listed threatened or endangered aquatic species, compiled from element occurrence data within the same subwatershed (HUC12) as the {type}. Note: rare species information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
@@ -1399,7 +1399,7 @@ FIELD_DEFINITIONS = {
     "PercentPerennialUnaltered": "percent of the perennial upstream functional river network length from this {type} that is not specifically identified in NHD or the National Wetlands Inventory as altered (canal / ditch, within a reservoir, or other channel alteration).  See PerennialUpstreamMiles.  -1 = not available.",
     "UpstreamResilientMiles": "number of miles in the upstream functional river network from this {type} that are within watersheds identified by The Nature Conservancy with above average or greater freshwater resilience (v0.44), including miles in waterbodies.  -1 = not available.  See https://www.maps.tnc.org/resilientrivers/#/explore for more information.",
     "PercentResilient": "percent of the the upstream functional river network length from this {type} that is within watersheds identified by The Nature Conservancy with above average or greater freshwater resilience (v0.44), including miles in waterbodies.  -1 = not available.  See https://www.maps.tnc.org/resilientrivers/#/explore for more information.",
-    "UpstreamDrainageArea": "approximate drainage area in square kilometers of all NHD High Resolution catchments within upstream functional network of {type}.  Includes the total catchment area of any NHD High Resolution flowlines that are cut by barriers in the analysis, which may overrepresent total drainage area of the network. -1 = not available.",
+    "UpstreamDrainageAcres": "approximate drainage area in acres of all NHD High Resolution catchments within upstream functional network of {type}.  Includes the total catchment area of any NHD High Resolution flowlines that are cut by barriers in the analysis, which may overrepresent total drainage area of the network. -1 = not available.",
     "TotalDownstreamMiles": "number of miles in the complete downstream functional river network from this {type}, including miles in waterbodies.  Note: this measures the length of the complete downstream network including all tributaries, and is not limited to the shortest downstream path.  -1 = not available.",
     "FreeDownstreamMiles": "number of free-flowing miles in the downstream functional river network.  Excludes miles in altered reaches in waterbodies.  -1 = not available.",
     "FreePerennialDownstreamMiles": "number of free-flowing perennial miles in the downstream functional river network.  Excludes miles in altered reaches in waterbodies.  See PerennialUpstreamMiles for definition of perennial reaches. -1 = not available.",
@@ -1407,8 +1407,8 @@ FIELD_DEFINITIONS = {
     "FreeAlteredDownstreamMiles": "number of free-flowing altered miles in the downstream functional river network from this {type}.  Excludes miles in altered reaches in waterbodies.  See AlteredUpstreaMiles for definition of altered reaches.  -1 = not available.",
     "FreeUnalteredDownstreamMiles": "number of free-flowing altered miles in the downstream functional river network from this {type}.  Excludes miles in altered reaches in waterbodies.  See UnalteredUpstreamMiles for definition of unaltered reaches.  -1 = not available.",
     "DownstreamResilientMiles": "number of free-flowing miles in the downstream functional river network length from this {type} that is within watersheds identified by The Nature Conservancy with above average or greater freshwater resilience (v0.44).  Excludes miles in altered reaches in waterbodies.  -1 = not available.  See https://www.maps.tnc.org/resilientrivers/#/explore for more information.",
-    "UpstreamUnalteredWaterbodyKM2": "area (square kilometers) of all unaltered lakes and ponds that intersect any reach in upstream functional network; these waterbodies are not specifically marked by data sources as altered and are not associated with dams in this inventory.  Use with caution because waterbodies may not be correctly subdivided by dams in the data sources, and altered waterbodies may not be marked as such. -1 = not available.",
-    "UpstreamUnalteredWetlandKM2": "area (square kilometers) of all unaltered freshwater wetlands that intersect any reach in the upstream functional network. Wetlands are derived from specific wetland types in the National Wetlands Inventory (freshwater scrub-shrub, freshwater forested, freshwater emergent) and NHD (swamp/marsh) and exclude any specifically marked by the data provider as altered.  Use with caution because wetlands may not be correctly subdivided by dams or dikes in the data sources, and altered wetlands may not be marked as such. -1 = not available.",
+    "UpstreamUnalteredWaterbodyAcres": "area in acres of all unaltered lakes and ponds that intersect any reach in upstream functional network; these waterbodies are not specifically marked by data sources as altered and are not associated with dams in this inventory.  Use with caution because waterbodies may not be correctly subdivided by dams in the data sources, and altered waterbodies may not be marked as such. -1 = not available.",
+    "UpstreamUnalteredWetlandAcres": "area in acres of all unaltered freshwater wetlands that intersect any reach in the upstream functional network. Wetlands are derived from specific wetland types in the National Wetlands Inventory (freshwater scrub-shrub, freshwater forested, freshwater emergent) and NHD (swamp/marsh) and exclude any specifically marked by the data provider as altered.  Use with caution because wetlands may not be correctly subdivided by dams or dikes in the data sources, and altered wetlands may not be marked as such. -1 = not available.",
     # functional network gain / total
     "GainMiles": "absolute number of miles that could be gained by removal of this {type}.  Calculated as the minimum of the TotalUpstreamMiles and FreeDownstreamMiles unless the downstream network flows into the Great Lakes or the Ocean and has no downstream barriers, in which case this is based only on TotalUpstreamMiles. For removed barriers, this is based on the barriers present at the time this barrier was removed, with the exception of those that are immediately upstream and removed in the same year.  -1 = not available.",
     "PerennialGainMiles": "absolute number of perennial miles that could be gained by removal of this {type}.  Calculated as the minimum of the PerennialUpstreamMiles and FreePerennialDownstreamMiles unless the downstream network flows into the Great Lakes or the Ocean and has no downstream barriers, in which case this is based only on PerennialUpstreamMiles.  For removed barriers, this is based on the barriers present at the time this barrier was removed, with the exception of those that are immediately upstream and removed in the same year.  -1 = not available.",

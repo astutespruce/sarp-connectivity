@@ -70,10 +70,10 @@ def classify_cost(series):
 
 
 def classify_unaltered_waterbody_area(series):
-    bins = [-1, 0, 0.01, 0.1, 1, 10] + [series.max() + 1]
+    bins = [-1, 0, 2.5, 25, 250, 2500] + [series.max() + 1]
     return np.asarray(pd.cut(series, bins, right=False, labels=np.arange(-1, len(bins) - 2))).astype("int8")
 
 
 def classify_unaltered_wetland_area(series):
-    bins = [-1, 0, 0.01, 0.1, 1, 10] + [series.max() + 1]
+    bins = [-1, 0, 2.5, 25, 250, 2500] + [series.max() + 1]
     return np.asarray(pd.cut(series, bins, right=False, labels=np.arange(-1, len(bins) - 2))).astype("int8")

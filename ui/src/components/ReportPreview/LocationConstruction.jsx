@@ -69,7 +69,7 @@ const LocationConstruction = ({
   streamorder,
   streamsizeclass,
   storagevolume,
-  waterbodykm2,
+  waterbodyacres,
   waterbodysizeclass,
   invasive,
   removed,
@@ -175,11 +175,7 @@ const LocationConstruction = ({
               {WATERBODY_SIZECLASS[waterbodysizeclass]
                 .split(' (')[0]
                 .toLowerCase()}{' '}
-              (
-              {waterbodykm2 > 0.1
-                ? `${formatNumber(waterbodykm2, 2)} k`
-                : `${formatNumber(waterbodykm2 * 1e6)} `}
-              m<sup>2</sup>).
+              {formatNumber(waterbodyacres)} acres.
             </Entry>
           ) : null}
 
@@ -191,11 +187,7 @@ const LocationConstruction = ({
             <Entry>
               Stream size class: {STREAM_SIZECLASS[streamsizeclass]}
               <br />
-              (drainage area: {
-                STREAM_SIZECLASS_DRAINAGE_AREA[streamsizeclass]
-              }{' '}
-              km
-              <sup>2</sup>)
+              (drainage area: {STREAM_SIZECLASS_DRAINAGE_AREA[streamsizeclass]})
             </Entry>
           ) : null}
 
@@ -441,7 +433,7 @@ LocationConstruction.propTypes = {
   streamorder: PropTypes.number,
   streamsizeclass: PropTypes.string,
   storagevolume: PropTypes.number,
-  waterbodykm2: PropTypes.number,
+  waterbodyacres: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
   invasive: PropTypes.bool,
   removed: PropTypes.bool,
@@ -490,7 +482,7 @@ LocationConstruction.defaultProps = {
   storagevolume: null,
   streamorder: 0,
   streamsizeclass: null,
-  waterbodykm2: -1,
+  waterbodyacres: -1,
   waterbodysizeclass: null,
   invasive: false,
   removed: false,

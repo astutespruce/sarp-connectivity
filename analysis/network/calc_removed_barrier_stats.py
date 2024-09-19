@@ -348,9 +348,9 @@ for network_type in network_types:
 
         if len(network_pairs) > 0:
             upstream_cols = [c for c in cur_networks.columns if "Upstream" in c] + [
-                "fn_dakm2",
-                "floodplain_km2",
-                "nat_floodplain_km2",
+                "fn_da_acres",
+                "floodplain_acres",
+                "nat_floodplain_acres",
             ]
 
             isolated_networks = cur_networks.loc[~cur_networks.index.isin(network_pairs.downstream_barrier_id.unique())]
@@ -378,7 +378,7 @@ for network_type in network_types:
             )
             # recalculate percentage fields
             sibling_networks["natfldpln"] = (
-                (100 * sibling_networks.nat_floodplain_km2 / sibling_networks.floodplain_km2)
+                (100 * sibling_networks.nat_floodplain_acres / sibling_networks.floodplain_acres)
                 .fillna(0)
                 .astype("float32")
             )

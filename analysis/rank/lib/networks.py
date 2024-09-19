@@ -47,8 +47,8 @@ NETWORK_COLUMNS = [
     "PercentResilient",
     "IntermittentUpstreamMiles",
     "FreeIntermittentDownstreamMiles",
-    "UpstreamUnalteredWaterbodyKM2",
-    "UpstreamUnalteredWetlandKM2",
+    "UpstreamUnalteredWaterbodyAcres",
+    "UpstreamUnalteredWetlandAcres",
     "MainstemGainMiles",
     "PerennialMainstemGainMiles",
     "TotalMainstemNetworkMiles",
@@ -67,7 +67,7 @@ NETWORK_COLUMNS = [
     "natfldpln",
     "sizeclasses",
     # "barrier",  # not used
-    "fn_dakm2",
+    "fn_da_acres",
     "fn_waterfalls",
     "fn_dams",
     "fn_small_barriers",
@@ -154,7 +154,7 @@ NETWORK_COLUMNS = [
 NETWORK_COLUMN_NAMES = {
     "natfldpln": "Landcover",
     "sizeclasses": "SizeClasses",
-    "fn_dakm2": "UpstreamDrainageArea",
+    "fn_da_acres": "UpstreamDrainageAcres",
     "fn_dams": "UpstreamDams",
     "fn_small_barriers": "UpstreamSmallBarriers",
     "fn_road_crossings": "UpstreamRoadCrossings",
@@ -244,9 +244,9 @@ def get_network_results(df, network_type, state_ranks=False):
     networks["PercentResilientClass"] = classify_percent_resilient(networks.PercentResilient)
 
     networks["UpstreamUnalteredWaterbodyClass"] = classify_unaltered_waterbody_area(
-        networks.UpstreamUnalteredWaterbodyKM2
+        networks.UpstreamUnalteredWaterbodyAcres
     )
-    networks["UpstreamUnalteredWetlandClass"] = classify_unaltered_wetland_area(networks.UpstreamUnalteredWetlandKM2)
+    networks["UpstreamUnalteredWetlandClass"] = classify_unaltered_wetland_area(networks.UpstreamUnalteredWetlandAcres)
 
     # NOTE: per guidance from SARP, do not include count of waterfalls
     if network_type == "dams":

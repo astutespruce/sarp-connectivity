@@ -6,11 +6,12 @@ from pyarrow.dataset import dataset
 import pyarrow.compute as pc
 import numpy as np
 
+from analysis.constants import METERS_TO_MILES, KM2_TO_ACRES
 from analysis.lib.graph.speedups import DirectedGraph
 
 data_dir = Path("data")
 
-METERS_TO_MILES = 0.000621371
+
 COUNT_KINDS = ["waterfalls", "dams", "small_barriers", "road_crossings", "headwaters"]
 
 
@@ -118,7 +119,7 @@ def calculate_upstream_network_stats(
             fn_upstream_counts[col] = 0
 
     fn_upstream_counts = fn_upstream_counts[cols]
-    fn_upstream_area = up_network_df.groupby(level=0).AreaSqKm.sum().rename("fn_dakm2")
+    fn_upstream_area = (up_network_df.groupby(level=0).AreaSqKm.sum() * KM2_TO_ACRES).rename("fn_da_acres")
 
     ### Count TOTAL barriers of each kind in the total upstream network(s),
     # (not limited to upstream functional network) using a directed graph of
@@ -337,7 +338,7 @@ def calculate_floodplain_stats(df):
     Returns
     -------
     DataFrame
-        natfldpln (percent), nat_floodplain_km2, floodplain_km2
+        natfldpln (percent), nat_floodplain_acres, floodplain_acres
     """
 
     # Sum floodplain and natural floodplain values, and calculate percent natural floodplain
@@ -354,8 +355,11 @@ def calculate_floodplain_stats(df):
     fp_stats = fp_stats.loc[fp_stats.index.isin(df.NHDPlusID.unique())]
 
     # sum values to NHDPlusID
-    fp_stats = df.join(fp_stats, on="NHDPlusID")[["floodplain_km2", "nat_floodplain_km2"]].groupby(level=0).sum()
-    fp_stats["natfldpln"] = 100 * fp_stats.nat_floodplain_km2 / fp_stats.floodplain_km2
+    fp_stats = (
+        df.join(fp_stats, on="NHDPlusID")[["floodplain_km2", "nat_floodplain_km2"]].groupby(level=0).sum()
+        * KM2_TO_ACRES
+    ).rename(columns={"floodplain_km2": "floodplain_acres", "nat_floodplain_km2": "nat_floodplain_acres"})
+    fp_stats["natfldpln"] = 100 * fp_stats.nat_floodplain_acres / fp_stats.floodplain_acres
 
     return fp_stats
 
@@ -448,36 +452,46 @@ def calculate_upstream_mainstem_stats(df):
 def calculate_upstream_waterbody_wetland_stats(df, unaltered_waterbodies, unaltered_wetlands):
     # make sure to count unique wetlands by ID and not double-count if multiple
     # flowlines in network touch same waterbody or
-    unaltered_waterbody_km2 = (
-        df[["lineID"]]
-        .join(unaltered_waterbodies, on="lineID", how="inner")
-        .reset_index()
-        .groupby(["networkID", "wbID"])
-        .first()
-        .reset_index()
-        .groupby("networkID")
-        .km2.sum()
-        .rename("unaltered_waterbody_km2")
+    unaltered_waterbody_acres = (
+        (
+            (
+                df[["lineID"]]
+                .join(unaltered_waterbodies, on="lineID", how="inner")
+                .reset_index()
+                .groupby(["networkID", "wbID"])
+                .first()
+                .reset_index()
+                .groupby("networkID")
+                .km2.sum()
+            )
+            * KM2_TO_ACRES
+        )
+        .rename("unaltered_waterbody_acres")
         .astype("float32")
     )
 
-    unaltered_wetland_km2 = (
-        df[["lineID"]]
-        .join(unaltered_wetlands, on="lineID", how="inner")
-        .reset_index()
-        .groupby(["networkID", "wetlandID"])
-        .first()
-        .reset_index()
-        .groupby("networkID")
-        .km2.sum()
-        .rename("unaltered_wetland_km2")
+    unaltered_wetland_acres = (
+        (
+            (
+                df[["lineID"]]
+                .join(unaltered_wetlands, on="lineID", how="inner")
+                .reset_index()
+                .groupby(["networkID", "wetlandID"])
+                .first()
+                .reset_index()
+                .groupby("networkID")
+                .km2.sum()
+            )
+            * KM2_TO_ACRES
+        )
+        .rename("unaltered_wetland_acres")
         .astype("float32")
     )
 
     return (
         pd.DataFrame([], index=np.unique(df.index.values))
-        .join(unaltered_waterbody_km2)
-        .join(unaltered_wetland_km2)
+        .join(unaltered_waterbody_acres)
+        .join(unaltered_wetland_acres)
         .fillna(0)
     )
 

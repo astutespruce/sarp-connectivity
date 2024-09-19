@@ -69,7 +69,7 @@ const Location = ({
   streamorder,
   streamsizeclass,
   storagevolume,
-  waterbodykm2,
+  waterbodyacres,
   waterbodysizeclass,
   invasive,
   removed,
@@ -171,9 +171,8 @@ const Location = ({
               <Text>
                 {hasRiver ? `On ${river} in` : 'Within'} {subwatershed}{' '}
                 Subwatershed, {subbasin} Subbasin
-                <br />
-                HUC12: {huc12}
               </Text>
+              <Text>HUC12: {huc12}</Text>
             </Entry>
 
             {intermittent ? (
@@ -202,11 +201,7 @@ const Location = ({
                   {WATERBODY_SIZECLASS[waterbodysizeclass]
                     .split(' (')[0]
                     .toLowerCase()}{' '}
-                  (
-                  {waterbodykm2 > 0.1
-                    ? `${formatNumber(waterbodykm2, 2)} k`
-                    : `${formatNumber(waterbodykm2 * 1e6)} `}
-                  m2 ).
+                  {formatNumber(waterbodyacres)} acres.
                 </Text>
               </Entry>
             ) : null}
@@ -221,9 +216,10 @@ const Location = ({
               <Entry>
                 <Text>
                   Stream size class: {STREAM_SIZECLASS[streamsizeclass]}
-                  <br />
+                </Text>
+                <Text>
                   (drainage area:{' '}
-                  {STREAM_SIZECLASS_DRAINAGE_AREA[streamsizeclass]} km2)
+                  {STREAM_SIZECLASS_DRAINAGE_AREA[streamsizeclass]})
                 </Text>
               </Entry>
             ) : null}
@@ -303,8 +299,9 @@ const Location = ({
               <Entry>
                 <Text>
                   Average estimated cost of removal: ${formatNumber(costmean)}
-                  <br /> (${formatNumber(costlower)} - $
-                  {formatNumber(costupper)})
+                </Text>
+                <Text>
+                  (${formatNumber(costlower)} - ${formatNumber(costupper)})
                 </Text>
                 <Text style={{ fontSize: '10pt', color: '#7f8a93' }}>
                   Note: costs are modeled based on dam characteristics and are a
@@ -555,7 +552,7 @@ Location.propTypes = {
   storagevolume: PropTypes.number,
   streamorder: PropTypes.number,
   streamsizeclass: PropTypes.string,
-  waterbodykm2: PropTypes.number,
+  waterbodyacres: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
   invasive: PropTypes.bool,
   removed: PropTypes.bool,
@@ -604,7 +601,7 @@ Location.defaultProps = {
   storagevolume: null,
   streamorder: 0,
   streamsizeclass: null,
-  waterbodykm2: -1,
+  waterbodyacres: -1,
   waterbodysizeclass: null,
   invasive: false,
   removed: false,

@@ -287,7 +287,7 @@ fill_columns = [
     "LowheadDam",
     "Purpose",
     "ScreenType",
-    "WaterbodyKM2",
+    "WaterbodyAcres",
     "WaterbodySizeClass",
     "Width",
     "YearCompleted",
