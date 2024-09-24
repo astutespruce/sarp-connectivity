@@ -31,7 +31,7 @@ start = time()
 huc2_df = pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"])
 huc2s = huc2_df.HUC2.sort_values().values.tolist()
 
-layers = list_layers(gdb_filename)[:, 0]
+layers = sorted(list_layers(gdb_filename)[:, 0])
 
 merged = None
 for layer in layers:
