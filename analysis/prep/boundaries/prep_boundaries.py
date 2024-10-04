@@ -1,5 +1,5 @@
 """
-Create geofeather files for each of the input boundaries, in the same projection
+Create files for each of the input boundaries, in the same projection
 as barriers (EPSG:102003 - CONUS Albers).
 
 Note: output shapefiles for creating tilesets are limited to only those areas that overlap
@@ -53,7 +53,7 @@ bnd_df = gp.read_feather(out_dir / "region_boundary.feather").to_crs(CRS)
 bnd = bnd_df.loc[bnd_df.id == "total"].geometry.values[0]
 bnd_geo = bnd_df.loc[bnd_df.id == "total"].to_crs(GEO_CRS).geometry.values[0]
 
-state_df = gp.read_feather(out_dir / "region_states.feather", columns=["STATEFIPS", "geometry", "id"])
+state_df = gp.read_feather(out_dir / "region_states.feather", columns=["STATEFIPS", "State", "geometry", "id"])
 
 ### Counties - within HUC4 bounds
 print("Processing counties")
@@ -81,6 +81,23 @@ county_df.loc[county_df.STATEFIPS.isin(state_fips)].rename(columns={"COUNTYFIPS"
     out_dir / "region_counties.feather"
 )
 
+### Congressional districts for above states
+print("Processing congressional districts")
+district_df = gp.read_feather(src_dir / "congressional_districts.feather")
+
+# keep only those within the region HUC4 outer boundary
+tree = shapely.STRtree(district_df.geometry.values)
+district_df = district_df.take(np.unique(tree.query(huc4_df.geometry.values, predicate="intersects")[1])).reset_index(
+    drop=True
+)
+district_df.geometry = to_multipolygon(shapely.make_valid(district_df.geometry.values))
+
+# keep larger set for spatial joins
+district_df.to_feather(out_dir / "congressional_districts.feather")
+write_dataframe(district_df, out_dir / "congressional_districts.fgb")
+
+# Subset these to the states in the analysis
+district_df.loc[district_df.STATEFIPS.isin(state_fips)].to_feather(out_dir / "region_congressional_districts.feather")
 
 ### Process Fish Habitat Partnership boundaries
 # NOTE: these include overlapping areas
@@ -212,6 +229,29 @@ county_geo_df["layer"] = "County"
 county_geo_df["priority"] = np.uint8(2)
 county_geo_df["key"] = county_geo_df["name"] + " " + county_geo_df.state_name
 
+
+print("Processing congressional districts")
+# Unwrap Alaska congressional around antimeridian
+district_geo_df = district_df.loc[district_df.STATEFIPS.isin(state_fips)].to_crs(GEO_CRS).explode(ignore_index=True)
+district_geo_df["geometry"] = unwrap_antimeridian(district_geo_df.geometry.values)
+district_geo_df = gp.GeoDataFrame(
+    district_geo_df.groupby("id")
+    .agg(
+        {
+            "geometry": shapely.multipolygons,
+            **{c: "first" for c in district_geo_df.columns if c not in {"geometry", "id"}},
+        }
+    )
+    .reset_index(),
+    geometry="geometry",
+    crs=df.crs,
+)
+district_geo_df["bbox"] = encode_bbox(district_geo_df.geometry.values)
+district_geo_df["layer"] = "CongressionalDistrict"
+district_geo_df["priority"] = np.uint8(5)
+district_geo_df["key"] = district_geo_df.name + " " + district_geo_df.id
+
+
 print("Processing fish habitat partnerships")
 fhp_geo_df = fhp.to_crs(GEO_CRS).explode(ignore_index=True)
 fhp_geo_df["geometry"] = unwrap_antimeridian(fhp_geo_df.geometry.values)
@@ -234,6 +274,7 @@ out = pd.concat(
     [
         state_geo_df.loc[state_geo_df.in_region][["layer", "priority", "id", "state", "name", "key", "bbox"]],
         county_geo_df[["layer", "priority", "id", "state", "name", "key", "bbox"]],
+        district_geo_df[["layer", "priority", "id", "state", "name", "key", "bbox"]],
         fhp_geo_df[["layer", "priority", "id", "state", "name", "key", "bbox"]],
         region_geo_df[["layer", "priority", "id", "state", "name", "key", "bbox"]],
     ],

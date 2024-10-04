@@ -55,7 +55,6 @@ const BarrierDetails = ({
   sarpid,
   lat,
   lon,
-
   alteredupstreammiles,
   alteredupstreammainstemmiles,
   annualflow,
@@ -63,6 +62,7 @@ const BarrierDetails = ({
   barrierseverity,
   basin,
   condition,
+  congressionaldistrict,
   constriction,
   crossingtype,
   ejtract,
@@ -128,6 +128,7 @@ const BarrierDetails = ({
   upstreamunalteredwaterbodyacres,
   upstreamunalteredwetlandacres,
   nearestusgscrossingid,
+  wildscenicriver,
   yearremoved,
   ...props // includes species habitat fields selected dynamically
 }) => {
@@ -168,6 +169,7 @@ const BarrierDetails = ({
           basin={basin}
           subwatershed={subwatershed}
           huc12={huc12}
+          congressionaldistrict={congressionaldistrict}
           ownertype={ownertype}
           barrierownertype={barrierownertype}
           ejtract={ejtract}
@@ -177,6 +179,7 @@ const BarrierDetails = ({
           intermittent={intermittent}
           streamorder={streamorder}
           streamsizeclass={streamsizeclass}
+          wildscenicriver={wildscenicriver}
         />
       </Section>
 
@@ -401,6 +404,7 @@ BarrierDetails.propTypes = {
   barrierseverity: PropTypes.number,
   basin: PropTypes.string,
   condition: PropTypes.number,
+  congressionaldistrict: PropTypes.string,
   constriction: PropTypes.number,
   crossingtype: PropTypes.number,
   ejtract: PropTypes.bool,
@@ -465,6 +469,7 @@ BarrierDetails.propTypes = {
   upstreamunalteredwaterbodyacres: PropTypes.number,
   upstreamunalteredwetlandacres: PropTypes.number,
   nearestusgscrossingid: PropTypes.string,
+  wildscenicriver: PropTypes.string,
   yearremoved: PropTypes.number,
   invasivenetwork: PropTypes.number,
   alewifehabitatupstreammiles: PropTypes.number,
@@ -537,6 +542,7 @@ BarrierDetails.defaultProps = {
   barrierseverity: null,
   basin: null,
   condition: null,
+  congressionaldistrict: null,
   constriction: null,
   crossingtype: null,
   ejtract: false,
@@ -600,6 +606,7 @@ BarrierDetails.defaultProps = {
   upstreamunalteredwaterbodyacres: 0,
   upstreamunalteredwetlandacres: 0,
   nearestusgscrossingid: null,
+  wildscenicriver: null,
   yearremoved: 0,
   invasivenetwork: 0,
   alewifehabitatupstreammiles: 0,

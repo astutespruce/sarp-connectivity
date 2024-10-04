@@ -22,11 +22,11 @@ const WaterfallDetails = ({
   sarpid,
   lat,
   lon,
-
   alteredupstreammiles,
   alteredupstreammainstemmiles,
   annualflow,
   basin,
+  congressionaldistrict,
   excluded,
   falltype,
   fishhabitatpartnership,
@@ -77,6 +77,7 @@ const WaterfallDetails = ({
   unalteredupstreammainstemmiles,
   upstreamunalteredwaterbodyacres,
   upstreamunalteredwetlandacres,
+  wildscenicriver,
   invasive,
   invasivenetwork,
   ...props // includes species habitat fields selected dynamically
@@ -100,11 +101,13 @@ const WaterfallDetails = ({
           basin={basin}
           subwatershed={subwatershed}
           huc12={huc12}
+          congressionaldistrict={congressionaldistrict}
           fishhabitatpartnership={fishhabitatpartnership}
           nativeterritories={nativeterritories}
           intermittent={intermittent}
           streamorder={streamorder}
           streamsizeclass={streamsizeclass}
+          wildscenicriver={wildscenicriver}
         />
 
         {falltype && !isEmptyString(falltype) ? (
@@ -256,12 +259,12 @@ WaterfallDetails.propTypes = {
   sarpid: PropTypes.string.isRequired,
   lat: PropTypes.number.isRequired,
   lon: PropTypes.number.isRequired,
-
   hasnetwork: PropTypes.bool.isRequired,
   alteredupstreammiles: PropTypes.number,
   alteredupstreammainstemmiles: PropTypes.number,
   annualflow: PropTypes.number,
   basin: PropTypes.string,
+  congressionaldistrict: PropTypes.string,
   excluded: PropTypes.bool,
   falltype: PropTypes.string,
   fishhabitatpartnership: PropTypes.string,
@@ -311,6 +314,7 @@ WaterfallDetails.propTypes = {
   unalteredupstreammainstemmiles: PropTypes.number,
   upstreamunalteredwaterbodyacres: PropTypes.number,
   upstreamunalteredwetlandacres: PropTypes.number,
+  wildscenicriver: PropTypes.string,
   invasive: PropTypes.bool,
   invasivenetwork: PropTypes.number,
   alewifehabitatupstreammiles: PropTypes.number,
@@ -380,6 +384,7 @@ WaterfallDetails.defaultProps = {
   alteredupstreammainstemmiles: 0,
   annualflow: null,
   basin: null,
+  congressionaldistrict: null,
   excluded: false,
   falltype: null,
   fishhabitatpartnership: null,
@@ -429,6 +434,7 @@ WaterfallDetails.defaultProps = {
   unalteredupstreammainstemmiles: 0,
   upstreamunalteredwaterbodyacres: 0,
   upstreamunalteredwetlandacres: 0,
+  wildscenicriver: null,
   invasive: false,
   invasivenetwork: 0,
   alewifehabitatupstreammiles: 0,

@@ -41,6 +41,8 @@ async def download_national(
 ):
     log_request(request)
 
+    barrier_type = barrier_type.value
+
     filename = data_dir / f"downloads/{barrier_type}.zip"
 
     if format == "csv":
@@ -80,6 +82,10 @@ async def download(
     """
 
     log_request(request)
+
+    barrier_type = barrier_type.value
+    format = format.value
+    sort = sort.value
 
     columns = ["id"]
     match barrier_type:

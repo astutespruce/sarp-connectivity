@@ -41,6 +41,7 @@ class RecordExtractor:
         HUC12: str = None,
         State: str = None,
         County: str = None,
+        CongressionalDistrict: str = None,
         # FishHabitatPartnership specifically excluded here; is handled as a filter below
     ):
         field_map = {}
@@ -82,14 +83,17 @@ class RecordExtractor:
             "HUC12": HUC12,
             "State": State,
             "COUNTYFIPS": County,
+            "CongressionalDistrict": CongressionalDistrict,
         }
         self.unit_ids = {}
         for key, ids in units.items():
             if ids is not None:
                 if ids == "":
-                    raise HTTPException(
-                        400, detail=f"ids for {'County' if key=='COUNTYFIPS' else key} must be non-empty"
-                    )
+                    unit = key
+                    if key == "COUNTYFIPS":
+                        unit = "County"
+
+                    raise HTTPException(400, detail=f"ids for {unit} must be non-empty")
 
                 self.unit_ids[key] = pa.array([id for id in ids.split(",") if id])
 

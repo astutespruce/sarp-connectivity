@@ -32,6 +32,8 @@ async def rank(
 
     log_request(request)
 
+    barrier_type = barrier_type.value
+
     if barrier_type == "road_crossings":
         raise NotImplementedError("rank is not supported for road crossings")
 

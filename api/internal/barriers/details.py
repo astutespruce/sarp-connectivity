@@ -19,6 +19,8 @@ async def details(
 ):
     log_request(request)
 
+    network_type = network_type.value
+
     if sarp_id.startswith("f"):
         # waterfalls use pyarrow search due to lack of unique index
         # NOTE: these have one record per network type

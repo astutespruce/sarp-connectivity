@@ -26,6 +26,7 @@ import {
   STREAM_SIZECLASS,
   STREAM_SIZECLASS_DRAINAGE_AREA,
   WATERBODY_SIZECLASS,
+  STATES,
 } from 'config'
 import { OutboundLink } from 'components/Link'
 import { formatNumber } from 'util/format'
@@ -43,6 +44,7 @@ const LocationConstruction = ({
   subbasin,
   subwatershed,
   huc12,
+  congressionaldistrict,
   ownertype,
   barrierownertype,
   fercregulated,
@@ -82,6 +84,7 @@ const LocationConstruction = ({
   nativeterritories,
   fatality,
   protocolused,
+  wildscenicriver,
   sx,
 }) => {
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
@@ -153,6 +156,25 @@ const LocationConstruction = ({
             <br />
             HUC12: {huc12}
           </Entry>
+
+          {wildscenicriver ? (
+            <Entry>
+              Near{' '}
+              {wildscenicriver
+                .split(', ')
+                .map((name) => `${name} Wild & Scenic River`)
+                .join(', ')}{' '}
+              <Text
+                sx={{
+                  display: 'inline',
+                  fontSize: 0,
+                  color: 'grey.7',
+                }}
+              >
+                (within 250 meters)
+              </Text>
+            </Entry>
+          ) : null}
 
           {intermittent ? (
             <Entry>
@@ -376,6 +398,17 @@ const LocationConstruction = ({
               </Text>
             </Entry>
           ) : null}
+
+          {congressionaldistrict ? (
+            <Entry>
+              Congressional district:{' '}
+              {STATES[congressionaldistrict.slice(0, 2)]} Congressional District{' '}
+              {congressionaldistrict.slice(2)}
+              <Text sx={{ fontSize: 0, color: 'grey.7' }}>
+                (118th congress)
+              </Text>
+            </Entry>
+          ) : null}
         </Box>
       </Grid>
 
@@ -407,6 +440,7 @@ LocationConstruction.propTypes = {
   subbasin: PropTypes.string,
   subwatershed: PropTypes.string,
   huc12: PropTypes.string,
+  congressionaldistrict: PropTypes.string,
   ownertype: PropTypes.number,
   barrierownertype: PropTypes.number,
   fercregulated: PropTypes.number,
@@ -446,6 +480,7 @@ LocationConstruction.propTypes = {
   nativeterritories: PropTypes.string,
   fatality: PropTypes.number,
   protocolused: PropTypes.string,
+  wildscenicriver: PropTypes.string,
   sx: PropTypes.object,
 }
 
@@ -456,6 +491,7 @@ LocationConstruction.defaultProps = {
   subbasin: null,
   subwatershed: null,
   huc12: null,
+  congressionaldistrict: null,
   ownertype: null,
   barrierownertype: null,
   fercregulated: null,
@@ -495,6 +531,7 @@ LocationConstruction.defaultProps = {
   nativeterritories: null,
   fatality: 0,
   protocolused: null,
+  wildscenicriver: null,
   sx: null,
 }
 

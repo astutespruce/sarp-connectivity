@@ -38,6 +38,8 @@ async def query(
 
     log_request(request)
 
+    barrier_type = barrier_type.value
+
     filter_fields = None
     match barrier_type:
         case "dams":

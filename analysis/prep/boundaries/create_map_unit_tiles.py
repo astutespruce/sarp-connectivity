@@ -122,6 +122,27 @@ outfilename.unlink()
 
 
 ################################################################################
+### Congressional districts
+################################################################################
+print("Creating congressional district tiles")
+df = gp.read_feather(src_dir / "region_congressional_districts.feather", columns=["geometry", "id", "name"]).to_crs(
+    GEO_CRS
+)
+outfilename = tmp_dir / "region_congressional_districts.fgb"
+write_dataframe(df, outfilename)
+mbtiles_filename = tile_dir / "CongressionalDistrict.mbtiles"
+ret = subprocess.run(
+    tippecanoe_args
+    + ["-Z", "1", "-z", MAX_ZOOM]
+    + ["-l", "CongressionalDistrict"]
+    + get_col_types(df)
+    + ["-o", f"{str(mbtiles_filename)}", str(outfilename)]
+)
+ret.check_returncode()
+outfilename.unlink()
+
+
+################################################################################
 ## HUC2
 ################################################################################
 print("Creating HUC2 tiles")
@@ -186,7 +207,10 @@ ret = subprocess.run(
         f"{tmp_dir}/fhp_boundary.mbtiles",
         f"{tmp_dir}/mask.mbtiles",
     ]
-    + [f"{tile_dir}/{unit}.mbtiles" for unit in ["State", "County", "HUC2", "HUC6", "HUC8", "HUC10", "HUC12"]]
+    + [
+        f"{tile_dir}/{unit}.mbtiles"
+        for unit in ["State", "County", "CongressionalDistrict", "HUC2", "HUC6", "HUC8", "HUC10", "HUC12"]
+    ]
 )
 ret.check_returncode()
 

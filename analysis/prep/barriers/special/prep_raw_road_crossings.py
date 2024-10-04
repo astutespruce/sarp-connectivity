@@ -31,7 +31,7 @@ from analysis.lib.io import read_feathers
 from analysis.prep.barriers.lib.snap import snap_to_flowlines
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 
-warnings.filterwarnings("ignore", message="Measured \(M\) geometry types are not supported")
+warnings.filterwarnings("ignore", category=UserWarning, message=".*Measured.*")
 
 SNAP_TOLERANCE = 10
 DUPLICATE_TOLERANCE = 5
@@ -453,6 +453,7 @@ for col in [
     "County",
     "COUNTYFIPS",
     "State",
+    "CongressionalDistrict",
 ]:
     df[col] = df[col].fillna("")
 

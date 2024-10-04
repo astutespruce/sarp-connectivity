@@ -145,7 +145,7 @@ for col in nonremoved_dam_networks.columns:
 
 # Convert bool fields to uint8; none of the fields used for filtering can be
 # bool because fails on frontend
-for col in ["CoastalHUC8"]:
+for col in ["CoastalHUC8", "NearWildScenicRiver"]:
     dams[col] = dams[col].astype("uint8")
 
 
@@ -158,7 +158,7 @@ tmp = dams.loc[~dams.Private, DAM_API_FIELDS].reset_index()
 verify_domains(tmp)
 # downcast id to uint32 or it breaks in UI
 tmp["id"] = tmp.id.astype("uint32")
-tmp.sort_values("SARPID").reset_index(drop=True).to_feather(api_dir / "dams.feather")
+tmp.sort_values("SARPID").drop_duplicates(subset="SARPID").reset_index(drop=True).to_feather(api_dir / "dams.feather")
 
 
 #########################################################################################
@@ -217,7 +217,7 @@ for col in nonremoved_small_barrier_networks.columns:
     else:
         small_barriers[col] = small_barriers[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
 
-for col in ["CoastalHUC8"]:
+for col in ["CoastalHUC8", "NearWildScenicRiver"]:
     small_barriers[col] = small_barriers[col].astype("uint8")
 
 print("Saving small barriers for tiles and API")
@@ -228,7 +228,9 @@ small_barriers.reset_index().to_feather(results_dir / "small_barriers.feather")
 tmp = small_barriers.loc[~small_barriers.Private, SB_API_FIELDS].reset_index()
 verify_domains(tmp)
 tmp["id"] = tmp.id.astype("uint32")
-tmp.sort_values("SARPID").reset_index(drop=True).to_feather(api_dir / "small_barriers.feather")
+tmp.sort_values("SARPID").drop_duplicates(subset="SARPID").reset_index(drop=True).to_feather(
+    api_dir / "small_barriers.feather"
+)
 
 #########################################################################################
 ###
@@ -264,7 +266,7 @@ bool_columns = set(c for c in dams.columns if dams.dtypes[c] == "bool").union(
 for col in bool_columns:
     combined[col] = combined[col].fillna(0).astype("bool")
 
-str_columns = [c for c in dt[dt == object].index if c not in bool_columns]
+str_columns = [c for c in dt[dt == object].index if c not in bool_columns]  # noqa: E721
 for col in str_columns:
     combined[col] = combined[col].fillna("")
 
@@ -316,7 +318,7 @@ for col in fill_columns:
     else:
         combined[col] = combined[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
 
-for col in ["CoastalHUC8"]:
+for col in ["CoastalHUC8", "NearWildScenicRiver"]:
     combined[col] = combined[col].astype("uint8")
 
 
@@ -357,7 +359,7 @@ for network_type in [
     for col in nonremoved_networks.columns:
         orig_dtype = nonremoved_networks[col].dtype
 
-        if orig_dtype == bool or col.endswith("Class"):
+        if orig_dtype == bool or col.endswith("Class"):  # noqa: E721
             scenario_results[col] = scenario_results[col].fillna(0).astype(orig_dtype)
 
         else:
@@ -372,7 +374,9 @@ for network_type in [
     verify_domains(tmp)
     tmp["id"] = tmp.id.astype("uint32")
 
-    tmp.sort_values("SARPID").reset_index(drop=True).to_feather(api_dir / f"{network_type}.feather")
+    tmp.sort_values("SARPID").drop_duplicates(subset="SARPID").reset_index(drop=True).to_feather(
+        api_dir / f"{network_type}.feather"
+    )
 
     # save for search
     if network_type == "combined_barriers":
@@ -413,7 +417,7 @@ for network_type in NETWORK_TYPES.keys():
     for col in networks.columns:
         orig_dtype = networks[col].dtype
 
-        if orig_dtype == bool or col.endswith("Class"):
+        if orig_dtype == bool or col.endswith("Class"):  # noqa: E721
             scenario_results[col] = scenario_results[col].fillna(0).astype(orig_dtype)
 
         else:
@@ -441,7 +445,9 @@ tmp = waterfalls[["id"] + WF_API_FIELDS].copy()
 verify_domains(tmp)
 tmp["id"] = tmp.id.astype("uint32")
 
-tmp.sort_values(by=["SARPID", "network_type"]).reset_index(drop=True).to_feather(api_dir / "waterfalls.feather")
+tmp.sort_values(by=["SARPID", "network_type"]).drop_duplicates(subset="SARPID").reset_index(drop=True).to_feather(
+    api_dir / "waterfalls.feather"
+)
 
 
 #########################################################################################
@@ -470,6 +476,10 @@ for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
 
 crossings["AnnualFlowClass"] = classify_annual_flow(crossings.AnnualFlow)
 
+for col in ["NearWildScenicRiver"]:
+    crossings[col] = crossings[col].astype("uint8")
+
+
 print("Saving crossings for tiles and API")
 # Save full results for tiles, etc
 crossings[ROAD_CROSSING_API_FIELDS + ["geometry", "symbol"]].reset_index().to_feather(
@@ -481,7 +491,9 @@ verify_domains(tmp)
 
 # downcast id to uint32 or it breaks in UI
 tmp["id"] = tmp.id.astype("uint32")
-tmp.sort_values("SARPID").reset_index(drop=True).to_feather(api_dir / "road_crossings.feather")
+tmp.sort_values("SARPID").drop_duplicates(subset="SARPID").reset_index(drop=True).to_feather(
+    api_dir / "road_crossings.feather"
+)
 
 ### Save barrier search items
 
@@ -492,9 +504,9 @@ search_barriers["search_key"] = (
 search_barriers["priority"] = search_barriers.BarrierType.map(
     {"dams": 0, "waterfalls": 1, "small_barriers": 2, "road_crossings": 3}
 ).astype("uint8")
-search_barriers.sort_values(by=["priority", "SARPID"]).reset_index(drop=True).to_feather(
-    api_dir / "search_barriers.feather"
-)
+search_barriers.sort_values(by=["priority", "SARPID"]).drop_duplicates(subset="SARPID").reset_index(
+    drop=True
+).to_feather(api_dir / "search_barriers.feather")
 
 
 ################################################################################

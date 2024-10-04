@@ -22,6 +22,7 @@ import {
   PURPOSE,
   PASSABILITY,
   SMALL_BARRIER_SEVERITY,
+  STATES,
   STREAM_SIZECLASS,
   STREAM_SIZECLASS_DRAINAGE_AREA,
   WATERBODY_SIZECLASS,
@@ -57,6 +58,7 @@ const Location = ({
   subwatershed,
   subbasin,
   huc12,
+  congressionaldistrict,
   ownertype,
   barrierownertype,
   fercregulated,
@@ -82,6 +84,7 @@ const Location = ({
   costupper,
   fatality,
   protocolused,
+  wildscenicriver,
   ...props
 }) => {
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
@@ -174,6 +177,21 @@ const Location = ({
               </Text>
               <Text>HUC12: {huc12}</Text>
             </Entry>
+
+            {wildscenicriver ? (
+              <Entry>
+                <Text>
+                  Near{' '}
+                  {wildscenicriver
+                    .split(', ')
+                    .map((name) => `${name} Wild & Scenic River`)
+                    .join(', ')}
+                </Text>
+                <Text style={{ fontSize: '10pt', color: '#7f8a93' }}>
+                  (within 250 meters)
+                </Text>
+              </Entry>
+            ) : null}
 
             {intermittent ? (
               <Entry>
@@ -398,8 +416,17 @@ const Location = ({
               {nativeterritories ? (
                 <Entry>
                   <Text>Within the following native territories:</Text>
-                  <Text style={{ fontSize: '12pt', marginTop: '6pt' }}>
+                  <Text
+                    style={{
+                      fontSize: '12pt',
+                      marginTop: '6pt',
+                    }}
+                  >
                     {nativeterritories}
+                  </Text>
+                  <Text style={{ fontSize: '10pt', color: '#7f8a93' }}>
+                    Note: fonts for native territories may not render properly;
+                    our apologies, no disrespect is intended.
                   </Text>
                   <Text style={{ fontSize: '10pt', color: '#7f8a93' }}>
                     (based on data provided by{' '}
@@ -407,6 +434,19 @@ const Location = ({
                       Native Land Digital
                     </Link>
                     )
+                  </Text>
+                </Entry>
+              ) : null}
+
+              {congressionaldistrict ? (
+                <Entry>
+                  <Text>
+                    Congressional district:{' '}
+                    {STATES[congressionaldistrict.slice(0, 2)]} Congressional
+                    District {congressionaldistrict.slice(2)}
+                  </Text>
+                  <Text style={{ fontSize: '10pt', color: '#7f8a93' }}>
+                    (118th congress)
                   </Text>
                 </Entry>
               ) : null}
@@ -484,11 +524,28 @@ const Location = ({
                   <Text>Within the following native territories:</Text>
                   <Text style={{ marginTop: '6pt' }}>{nativeterritories}</Text>
                   <Text style={{ fontSize: '10pt', color: '#7f8a93' }}>
+                    Note: fonts for native territories may not render properly;
+                    our apologies, no disrespect is intended.
+                  </Text>
+                  <Text style={{ fontSize: '10pt', color: '#7f8a93' }}>
                     (based on data provided by{' '}
                     <Link href="https://native-land.ca/">
                       Native Land Digital
                     </Link>
                     )
+                  </Text>
+                </Entry>
+              ) : null}
+
+              {congressionaldistrict ? (
+                <Entry>
+                  <Text>
+                    Congressional district:{' '}
+                    {STATES[congressionaldistrict.slice(0, 2)]} Congressional
+                    District {congressionaldistrict.slice(2)}
+                  </Text>
+                  <Text style={{ fontSize: '10pt', color: '#7f8a93' }}>
+                    (118th congress)
                   </Text>
                 </Entry>
               ) : null}
@@ -537,6 +594,7 @@ Location.propTypes = {
   river: PropTypes.string,
   intermittent: PropTypes.number,
   huc12: PropTypes.string,
+  congressionaldistrict: PropTypes.string,
   subwatershed: PropTypes.string,
   subbasin: PropTypes.string,
   ownertype: PropTypes.number,
@@ -565,6 +623,7 @@ Location.propTypes = {
   costupper: PropTypes.number,
   fatality: PropTypes.number,
   protocolused: PropTypes.string,
+  wildscenicriver: PropTypes.string,
 }
 
 Location.defaultProps = {
@@ -586,6 +645,7 @@ Location.defaultProps = {
   river: null,
   intermittent: 0,
   huc12: null,
+  congressionaldistrict: null,
   subwatershed: null,
   subbasin: null,
   ownertype: null,
@@ -614,6 +674,7 @@ Location.defaultProps = {
   costupper: 0,
   fatality: 0,
   protocolused: null,
+  wildscenicriver: null,
 }
 
 export default Location

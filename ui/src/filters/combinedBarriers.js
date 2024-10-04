@@ -109,6 +109,13 @@ export const combinedBarriers = [
         help: 'Note: altered reaches are those specifically identified in NHD or the National Wetlands Inventory as altered (canal / ditch, within a reservoir, or other channel alteration); this status is not consistently available for all stream reaches.',
         ...getEntries(PERCENT_ALTERED),
       },
+      {
+        field: 'nearwildscenicriver',
+        title: 'Near a designated Wild & Scenic River',
+        sort: false,
+        help: 'Note: identifies barriers within 250 meters of a designated Wild & Scenic River.',
+        ...getEntries(BOOLEAN_FIELD),
+      },
     ],
   },
   {

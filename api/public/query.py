@@ -26,9 +26,7 @@ class PublicAPIBarrierTypes(str, Enum):
 
 
 @router.get("/{barrier_type}/state")
-async def query_by_state(
-    request: Request, barrier_type: PublicAPIBarrierTypes, id: str
-):
+async def query_by_state(request: Request, barrier_type: PublicAPIBarrierTypes, id: str):
     """Return subset of barrier_type based on state abbreviations.
 
     Query parameters:
@@ -36,6 +34,8 @@ async def query_by_state(
     """
 
     log_request(request)
+
+    barrier_type = barrier_type.value
 
     dataset = None
     columns = []
@@ -57,11 +57,7 @@ async def query_by_state(
 
     ids = pa.array(ids)
 
-    df = (
-        dataset.scanner(columns=columns, filter=pc.is_in(pc.field("State"), ids))
-        .to_table()
-        .sort_by("HasNetwork")
-    )
+    df = dataset.scanner(columns=columns, filter=pc.is_in(pc.field("State"), ids)).to_table().sort_by("HasNetwork")
     df = unpack_domains(df)
 
     log.info(f"public query selected {len(df):,} {barrier_type.replace('_', ' ')}")

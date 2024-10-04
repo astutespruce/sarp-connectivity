@@ -884,6 +884,7 @@ for col in [
     "County",
     "COUNTYFIPS",
     "State",
+    "CongressionalDistrict",
 ]:
     df[col] = df[col].fillna("").astype("str")
 

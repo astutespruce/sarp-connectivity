@@ -31,6 +31,8 @@ async def unit_list(request: Request, layer: Layers, id: str):
 
     log_request(request)
 
+    layer = layer.value
+
     filter = (pc.field("layer") == layer) & (pc.field("id").isin(pa.array(id.split(","))))
 
     records = units.to_table(columns=SUMMARY_UNIT_FIELDS, filter=filter)

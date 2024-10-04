@@ -43,6 +43,7 @@ const DamDetails = ({
   basin,
   condition,
   construction,
+  congressionaldistrict,
   costlower,
   costmean,
   costupper,
@@ -121,6 +122,7 @@ const DamDetails = ({
   waterbodyacres,
   waterbodysizeclass,
   waterright,
+  wildscenicriver,
   yearcompleted,
   yearremoved,
   invasivenetwork,
@@ -190,6 +192,7 @@ const DamDetails = ({
           basin={basin}
           subwatershed={subwatershed}
           huc12={huc12}
+          congressionaldistrict={congressionaldistrict}
           ownertype={ownertype}
           barrierownertype={barrierownertype}
           fercregulated={fercregulated}
@@ -209,6 +212,7 @@ const DamDetails = ({
           streamsizeclass={streamsizeclass}
           waterbodysizeclass={waterbodysizeclass}
           waterbodyacres={waterbodyacres}
+          wildscenicriver={wildscenicriver}
           fatality={fatality}
         />
       </Section>
@@ -473,6 +477,7 @@ DamDetails.propTypes = {
   barrierownertype: PropTypes.number,
   basin: PropTypes.string,
   condition: PropTypes.number,
+  congressionaldistrict: PropTypes.string,
   construction: PropTypes.number,
   costlower: PropTypes.number,
   costmean: PropTypes.number,
@@ -552,6 +557,7 @@ DamDetails.propTypes = {
   waterbodyacres: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
   waterright: PropTypes.number,
+  wildscenicriver: PropTypes.string,
   yearcompleted: PropTypes.number,
   yearremoved: PropTypes.number,
   invasivenetwork: PropTypes.number,
@@ -624,6 +630,7 @@ DamDetails.defaultProps = {
   barrierownertype: null,
   basin: null,
   condition: null,
+  congressionaldistrict: null,
   construction: null,
   costlower: 0,
   costmean: 0,
@@ -702,6 +709,7 @@ DamDetails.defaultProps = {
   waterbodyacres: -1,
   waterbodysizeclass: null,
   waterright: null,
+  wildscenicriver: null,
   yearcompleted: 0,
   yearremoved: 0,
   invasivenetwork: 0,

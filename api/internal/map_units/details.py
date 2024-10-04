@@ -15,6 +15,8 @@ router = APIRouter()
 async def unit_details(request: Request, layer: Layers, id: str):
     log_request(request)
 
+    layer = layer.value
+
     filter = (pc.field("layer") == layer) & (pc.field("id") == id)
 
     record = units.to_table(columns=SUMMARY_UNIT_FIELDS, filter=filter).slice(0)

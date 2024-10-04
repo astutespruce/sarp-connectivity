@@ -45,6 +45,7 @@ from analysis.post.lib.removed_barriers import calc_year_removed_bin, pack_year_
 SUMMARY_UNITS = [
     "State",
     "COUNTYFIPS",
+    "CongressionalDistrict",
     "HUC2",
     "HUC6",
     "HUC8",
@@ -206,6 +207,8 @@ for unit in SUMMARY_UNITS + ["Region"]:
         units = pd.read_feather(bnd_dir / "region_states.feather", columns=["id"]).set_index("id")
     elif unit == "COUNTYFIPS":
         units = pd.read_feather(bnd_dir / "region_counties.feather", columns=["id"]).set_index("id")
+    elif unit == "CongressionalDistrict":
+        units = pd.read_feather(bnd_dir / "region_congressional_districts.feather", columns=["id"]).set_index("id")
     elif unit == "FishHabitatPartnership":
         units = pd.read_feather(bnd_dir / "fhp_boundary.feather", columns=["id"]).set_index("id")
     elif unit == "Region":
@@ -327,7 +330,8 @@ for unit in SUMMARY_UNITS + ["Region"]:
 
     merged = merged.fillna(0)
 
-    unit = "County" if unit == "COUNTYFIPS" else unit
+    if unit == "COUNTYFIPS":
+        unit = "County"
 
     merged.index.name = "id"
     merged["layer"] = unit

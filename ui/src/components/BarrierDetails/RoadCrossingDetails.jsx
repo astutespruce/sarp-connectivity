@@ -21,6 +21,7 @@ const RoadCrossingDetails = ({
   annualflow,
   barrierownertype,
   basin,
+  congressionaldistrict,
   crossingtype,
   ejtract,
   ejtribal,
@@ -44,6 +45,7 @@ const RoadCrossingDetails = ({
   subwatershed,
   tespp,
   trout,
+  wildscenicriver,
 }) => (
   <Box
     sx={{
@@ -69,6 +71,7 @@ const RoadCrossingDetails = ({
         basin={basin}
         subwatershed={subwatershed}
         huc12={huc12}
+        congressionaldistrict={congressionaldistrict}
         ownertype={ownertype}
         barrierownertype={barrierownertype}
         ejtract={ejtract}
@@ -78,6 +81,7 @@ const RoadCrossingDetails = ({
         intermittent={intermittent}
         streamorder={streamorder}
         streamsizeclass={streamsizeclass}
+        wildscenicriver={wildscenicriver}
       />
     </Section>
 
@@ -145,6 +149,7 @@ RoadCrossingDetails.propTypes = {
   lon: PropTypes.number.isRequired,
   barrierownertype: PropTypes.number,
   basin: PropTypes.string,
+  congressionaldistrict: PropTypes.string,
   crossingtype: PropTypes.number,
   ejtract: PropTypes.bool,
   ejtribal: PropTypes.bool,
@@ -168,11 +173,13 @@ RoadCrossingDetails.propTypes = {
   subwatershed: PropTypes.string,
   tespp: PropTypes.number,
   trout: PropTypes.number,
+  wildscenicriver: PropTypes.string,
 }
 
 RoadCrossingDetails.defaultProps = {
   annualflow: null,
   basin: null,
+  congressionaldistrict: null,
   crossingtype: null,
   ejtract: false,
   ejtribal: false,
@@ -197,6 +204,7 @@ RoadCrossingDetails.defaultProps = {
   subwatershed: null,
   tespp: 0,
   trout: 0,
+  wildscenicriver: null,
 }
 
 export default RoadCrossingDetails

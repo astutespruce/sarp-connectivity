@@ -1,4 +1,5 @@
 import {
+  BOOLEAN_FIELD,
   RARESPP,
   TROUT,
   SALMONID_ESU,
@@ -60,7 +61,19 @@ export const roadCrossings = [
       },
     ],
   },
-
+  {
+    id: 'conservation_benefits',
+    title: 'Conservation benefits',
+    filters: [
+      {
+        field: 'nearwildscenicriver',
+        title: 'Near a designated Wild & Scenic River',
+        sort: false,
+        help: 'Note: identifies barriers within 250 meters of a designated Wild & Scenic River.',
+        ...getEntries(BOOLEAN_FIELD),
+      },
+    ],
+  },
   {
     id: 'structure',
     title: 'Road-related barrier characteristics',

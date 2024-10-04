@@ -40,6 +40,7 @@ class Layers(str, Enum):
     HUC12 = "HUC12"
     State = "State"
     County = "County"
+    CongressionalDistrict = "CongressionalDistrict"
     FishHabitatPartnership = "FishHabitatPartnership"
     Region = "Region"
 
@@ -85,15 +86,7 @@ BOOLEAN_FILTER_FIELDS = ["Removed"]
 
 
 # Summary unit fields
-UNIT_FIELDS = [
-    "HUC2",
-    "HUC6",
-    "HUC8",
-    "HUC10",
-    "HUC12",
-    "State",
-    "County",
-]
+UNIT_FIELDS = ["HUC2", "HUC6", "HUC8", "HUC10", "HUC12", "State", "County", "CongressionalDistrict"]
 
 
 # metric fields that are only valid for barriers with networks
@@ -286,6 +279,7 @@ FILTER_FIELDS = [
     "CoastalHUC8",
     "PassageFacilityClass",
     "DisadvantagedCommunity",
+    "NearWildScenicRiver",
     "FishHabitatPartnership",
     "UpstreamUnalteredWaterbodyClass",
     "UpstreamUnalteredWetlandClass",
@@ -331,6 +325,7 @@ ROAD_CROSSING_FILTER_FIELDS = [
     "FishHabitatPartnership",
     "Surveyed",
     "OnNetwork",
+    "NearWildScenicRiver",
     # "SlopeClass",
 ]
 ROAD_CROSSING_FILTER_FIELD_MAP = {f.lower(): f for f in ROAD_CROSSING_FILTER_FIELDS}
@@ -368,6 +363,7 @@ GENERAL_API_FIELDS2 = (
         "EJTract",
         "EJTribal",
         "NativeTerritories",
+        "WildScenicRiver",
         "FishHabitatPartnership",
         # Watershed names
         "Basin",
@@ -580,7 +576,7 @@ ROAD_CROSSING_CORE_FIELDS = (
 
 ROAD_CROSSING_CORE_FIELDS = unique(ROAD_CROSSING_CORE_FIELDS)
 
-# include COUNTYFIPS for download of road crossings by county
+# include COUNTYFIPS, for download of road crossings by county
 ROAD_CROSSING_API_FIELDS = unique(ROAD_CROSSING_CORE_FIELDS + ["COUNTYFIPS"] + ROAD_CROSSING_FILTER_FIELDS)
 
 ROAD_CROSSING_EXPORT_FIELDS = ROAD_CROSSING_CORE_FIELDS
@@ -1365,6 +1361,7 @@ FIELD_DEFINITIONS = {
     "OwnerType": "Land ownership type. This information is derived from the BLM Surface Management Agency dataset for federal lands and CBI Protected Areas Database and TNC Secured Lands Database for non-federal lands, to highlight ownership types of particular importance to partners.  NOTE: does not include most private land.",
     "BarrierOwnerType": "Barrier ownership type, if available.  For unsurveyed road / stream crossings, this information is derived from the National Bridge Inventory, US Census TIGER Roads route type, and USFS National Forest road / stream crossings database ownership information, and may not be fully accurate.",
     "ProtectedLand": "Indicates if the {type} occurs on public land as represented within the BLM Surface Management Agency dataset, CBI Protected Areas Database of the U.S., or TNC Secured Lands Database.",
+    "WildScenicRiver": "Name of the designated Wild & Scenic River(s) if within 250 meters of this {type}.",
     "EJTract": "Within an overburdened and underserved Census tracts a defined by the Climate and Environmental Justice Screening tool.",
     "EJTribal": "Within a disadvantaged tribal community as defined by the Climate and Environmental Justice Screening tool based on American Indian and Alaska Native areas as defined by the US Census Bureau.  Note: all tribal communities considered disadvantaged by the Climate and Environmental Justice Screening tool.",
     "NativeTerritories": "Native / indigenous people's territories as mapped by Native Land Digital (https://native-land.ca/",
@@ -1379,6 +1376,7 @@ FIELD_DEFINITIONS = {
     "HUC12": "Hydrologic subwatershed identifier where the {type} occurs.",
     "County": "County where {type} occurs.",
     "State": "State where {type} occurs.",
+    "CongressionalDistrict": "Congressional District where {type} occurs (118th Congressional Districts).",
     "HasNetwork": "indicates if this {type} was snapped to the aquatic network for analysis.  1 = on network, 0 = off network.  Note: network metrics and scores are not available for {type}s that are off network.",
     "Excluded": "this {type} was excluded from the connectivity analysis based on field reconnaissance or manual review of aerial imagery.",
     "Ranked": "this {type} was included for prioritization.  Some barriers that are beneficial to restricting the movement of invasive species or that are water diversions without associated barriers are excluded from ranking.",

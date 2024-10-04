@@ -31,7 +31,7 @@ async def search_units(request: Request, layer: str, query: str):
 
     log_request(request)
 
-    layers = layer.split(",")
+    layers = layer.value.split(",")
     query = query.strip().replace(",", "")
 
     invalid_layers = set(layers).difference(UNIT_FIELDS)

@@ -13,6 +13,7 @@ import {
   STREAM_SIZECLASS_DRAINAGE_AREA,
   WATERBODY_SIZECLASS,
   FISH_HABITAT_PARTNERSHIPS,
+  STATES,
 } from 'config'
 import { OutboundLink } from 'components/Link'
 import { Entry, Field } from 'components/Sidebar'
@@ -26,6 +27,7 @@ const LocationInfo = ({
   huc12,
   basin,
   subwatershed,
+  congressionaldistrict,
   ownertype,
   barrierownertype,
   fercregulated,
@@ -45,6 +47,7 @@ const LocationInfo = ({
   streamsizeclass,
   waterbodysizeclass,
   waterbodyacres,
+  wildscenicriver,
   fatality,
 }) => {
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
@@ -62,6 +65,28 @@ const LocationInfo = ({
         </Text>
         <Text sx={{ fontSize: 0, color: 'grey.8' }}>(HUC12: {huc12})</Text>
       </Entry>
+      {wildscenicriver ? (
+        <>
+          <Entry>
+            <Text>
+              Near{' '}
+              {wildscenicriver
+                .split(', ')
+                .map((name) => `${name} Wild & Scenic River`)
+                .join(', ')}
+            </Text>
+            <Text
+              sx={{
+                fontSize: 0,
+                color: 'grey.7',
+              }}
+            >
+              (within 250 meters)
+            </Text>
+          </Entry>
+        </>
+      ) : null}
+
       {intermittent === 1 ? (
         <Entry>This {barrierTypeLabel} is on an intermittent reach</Entry>
       ) : null}
@@ -113,8 +138,11 @@ const LocationInfo = ({
       ) : null}
       {barrierownertype !== null && barrierType !== 'waterfalls' ? (
         <Entry>
-          <Field label="Barrier ownership type">
-            {BARRIEROWNERTYPE[barrierownertype]}
+          <Field
+            label="Barrier ownership type"
+            isUnknown={barrierownertype === 0}
+          >
+            {BARRIEROWNERTYPE[barrierownertype].toLowerCase()}
           </Field>
         </Entry>
       ) : null}
@@ -223,6 +251,25 @@ const LocationInfo = ({
           </Text>
         </Entry>
       ) : null}
+
+      {congressionaldistrict ? (
+        <Entry>
+          <Field label="Congressional district">
+            {STATES[congressionaldistrict.slice(0, 2)]} Congressional District{' '}
+            {congressionaldistrict.slice(2)}
+            <Text
+              sx={{
+                display: 'inline',
+                fontSize: 0,
+                color: 'grey.7',
+                ml: '0.5rem',
+              }}
+            >
+              (118th congress)
+            </Text>
+          </Field>
+        </Entry>
+      ) : null}
     </>
   )
 }
@@ -234,6 +281,7 @@ LocationInfo.propTypes = {
   huc12: PropTypes.string.isRequired,
   basin: PropTypes.string.isRequired,
   subwatershed: PropTypes.string.isRequired,
+  congressionaldistrict: PropTypes.string,
   ownertype: PropTypes.number,
   barrierownertype: PropTypes.number,
   fercregulated: PropTypes.number,
@@ -253,12 +301,14 @@ LocationInfo.propTypes = {
   streamsizeclass: PropTypes.string,
   waterbodysizeclass: PropTypes.number,
   waterbodyacres: PropTypes.number,
+  wildscenicriver: PropTypes.string,
   fatality: PropTypes.number,
 }
 
 LocationInfo.defaultProps = {
   annualflow: null,
   reachName: null,
+  congressionaldistrict: null,
   ownertype: 0,
   barrierownertype: 0,
   fercregulated: null,
@@ -278,6 +328,7 @@ LocationInfo.defaultProps = {
   streamsizeclass: null,
   waterbodysizeclass: null,
   waterbodyacres: null,
+  wildscenicriver: null,
   fatality: 0,
 }
 

@@ -103,6 +103,13 @@ def add_spatial_joins(df):
     if df.State.isnull().sum():
         print(f"{df.State.isnull().sum():,} barriers were not assigned states")
 
+    ### Congressional districts
+    print("Joining to congressional districts")
+    districts = gp.read_feather(boundaries_dir / "congressional_districts.feather", columns=["geometry", "id"]).rename(
+        columns={"id": "CongressionalDistrict"}
+    )
+    df = sjoin_points_to_poly(df, districts)
+
     ### Protected lands
     print("Joining to protected areas")
     protected = gp.read_feather(boundaries_dir / "protected_areas.feather")
@@ -158,6 +165,24 @@ def add_spatial_joins(df):
     )
     df = df.join(fhp)
     df["FishHabitatPartnership"] = df.FishHabitatPartnership.fillna("")
+
+    ### Wild & Scenic rivers
+    print("Joining to wild & scenic rivers")
+    # NOTE: these are buffers
+    wsr = gp.read_feather(boundaries_dir / "wild_scenic_rivers.feather")
+    left, right = STRtree(df.geometry.values).query(wsr.geometry.values, predicate="intersects")
+    wsr = (
+        pd.DataFrame({"name": wsr.name.values.take(left)}, index=df.index.values.take(right))
+        .groupby(level=0)
+        .name.unique()
+        .apply(sorted)
+        .apply(", ".join)
+        .rename("WildScenicRiver")
+    )
+    df = df.join(wsr)
+    df["WildScenicRiver"] = df.WildScenicRiver.fillna("")
+    # add bool for filtering
+    df["NearWildScenicRiver"] = df.WildScenicRiver != ""
 
     ### Join in species stats
     spp_df = (
