@@ -1,52 +1,56 @@
-[tool.poetry]
+[project]
 name = "sarp-connectivity"
-# version is managed in setup.py
-version = "0.0.0"
-description = "Aquatic Barrier Inventory Visualization & Prioritization Tool"
-authors = ["Brendan Ward <bcward@astutespruce.com>"]
-license = "MIT"
-packages = [{ include = "analysis" }, { include = "api" }]
+# version must be kept in sync with ui/package.json
+version = "3.12.2"
+description = "National Aquatic Barrier Inventory & Prioritization Tool"
+readme = "README.md"
+authors = [{ name = "Brendan C. Ward", email = "bcward@astutespruce.com" }]
+license = { file = "LICENSE" }
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: GIS",
+]
+requires-python = ">=3.12"
+dependencies = [
+    "duckdb",
+    "fastapi",
+    "gunicorn",
+    "numpy",
+    "pyarrow",
+    "python-dotenv",
+    "rapidfuzz",
+    "sentry-sdk",
+    "uvicorn",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.10,<3.12"
-pyarrow = "^17.0.0"
-python-dotenv = "^1.0.1"
-fastapi = "^0.114.0"
-uvicorn = "^0.30.6"
-gunicorn = "^23.0.0"
-sentry-sdk = "^2.14.0"
-rapidfuzz = "^3.9.7"
-numpy = "^2.0.1"
-fastapi-cli = "^0.0.5"
-duckdb = "^1.1.0"
+[project.optional-dependencies]
+dev = [
+    "geopandas",
+    "httpx[http2]",
+    "numba>=0.60",
+    "openpyxl",
+    "pandas",
+    "pymgl",
+    "pyogrio",
+    "python-calamine",
+    "ruff",
+    "shapely",
+    "scipy",
+    "tabulate",
+    "tqdm",
+    "watchfiles",
+]
 
-[tool.poetry.group.dev.dependencies]
-requests = "^2.31.0"
-tqdm = "^4.66.5"
-numba = "^0.60.0"
-pyogrio = "^0.9.0"
-geopandas = "^1.0.1"
-pandas = "^2.2.2"
-httpx = { extras = ["http2"], version = "^0.27.0" }
-scipy = "^1.14.0"
-shapely = "^2.0.6"
-openpyxl = "^3.1.5"
-tabulate = "^0.9.0"
-ruff = "^0.6.4"
-python-calamine = "^0.2.3"
-watchfiles = "^0.22.0"
+[project.urls]
+Homepage = "https://aquaticbarriers.org"
+Repository = "https://github.com/astute-spruce/sarp-connectivity"
 
-[tool.poetry.extras]
-deploy = ["gunicorn"]
-
-# wheel is built locally for Arm64
-# must be uncommented to install
-# pymgl = { path = "../pymgl/dist/pymgl-0.4.0-cp310-cp310-macosx_12_0_arm64.whl" }
-
+[tool.setuptools.packages.find]
+include = ["analysis", "api"]
 
 [tool.ruff]
 line-length = 120
-
-[build-system]
-requires = ["poetry-core>=1.0.0", "setuptools", "wheel"]
-build-backend = "poetry.core.masonry.api"

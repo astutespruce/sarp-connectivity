@@ -43,7 +43,7 @@ The backend is composed of several parts:
 
 ## Development
 
-To develop this application, you need Python 3.8+ and NodeJS 16+.
+To develop this application, you need Python 3.12+ and NodeJS 20+.
 
 `pipenv` and `npm` are used as the package managers for those languages.
 
@@ -73,14 +73,13 @@ GATSBY_TILE_HOST = <root URL of tile host, likely http://localhost:8001 for loca
 
 See `pyproject.toml` for Python dependencies. The development dependencies are required for the data processing scripts.
 
-Python dependencies are managed using `poetry`.
-
-This project depends on some binary packages which do not always install nicely
-using `pip`. Provided that you have GEOS, GDAL, and GCC installed on your computer,
-you can build these from source:
+Python dependencies are managed using `uv`.
 
 ```bash
-`PIP_NO_BINARY="pygeos shapely fiona pyogrio" pip install pygeos shapely fiona pyogrio
+uv venv .venv --python=3.12
+# activate for your particular shell type
+source .venv/bin/activate.fish
+uv pip install -e .[dev]
 ```
 
 #### User interface
