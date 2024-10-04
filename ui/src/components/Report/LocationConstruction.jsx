@@ -425,10 +425,6 @@ const Location = ({
                     {nativeterritories}
                   </Text>
                   <Text style={{ fontSize: '10pt', color: '#7f8a93' }}>
-                    Note: fonts for native territories may not render properly;
-                    our apologies, no disrespect is intended.
-                  </Text>
-                  <Text style={{ fontSize: '10pt', color: '#7f8a93' }}>
                     (based on data provided by{' '}
                     <Link href="https://native-land.ca/">
                       Native Land Digital

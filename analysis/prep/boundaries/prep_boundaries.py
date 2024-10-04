@@ -601,4 +601,84 @@ df["geometry"] = shapely.force_2d(df.geometry.values)
 df["geometry"] = make_valid(df.geometry.values)
 tree = shapely.STRtree(df.geometry.values)
 df = df.take(tree.query(bnd, predicate="intersects")).explode(ignore_index=True)
+
+# Fix names that can't be rendered properly in react-pdf; stripping the unrenderable
+# names is the lesser evil that rendering them totally wrong.
+
+# To find those with non-Ascii characters:
+# names = [n for n in sorted(df.name.unique()) if re.search("[^a-zA-Z -\'’()]", n)]
+
+replacements = {
+    "Anishinabewaki ᐊᓂᔑᓈᐯᐗᑭ": "Anishinabewaki",
+    "Báxoje Máyaⁿ (Ioway)": "Ioway",
+    "Chikashsha I̠yaakni’ (Chickasaw)": "Chickasaw",
+    "Dena’ina Ełnena": "Dena’ina",
+    "Hoocąk (Ho-Chunk)": "Ho-Chunk",
+    "Inuit Nunangat ᐃᓄᐃᑦ ᓄᓇᖓᑦ": "Inuit Nunangat",
+    "Jíwere–Ñút’achi Máyaⁿ (Otoe-Missouria [Oklahoma])": "Otoe-Missouria (Oklahoma)",
+    "Kanienʼkehá꞉ka (Mohawk)": "Mohawk",
+    "Ktunaxa ɁamakɁis": "Ktunaxa",
+    "La̱xyuubm Ts’msyen (Tsimshian)": "Tsimshian",
+    "Meškwahki·aša·hina (Fox)": "Fox",
+    "Mánu: Yį Įsuwą (Catawba)": "Catawba",
+    "Ndee/Nnēē: (Western Apache)": "Western Apache",
+    "Ndé Kónitsąąíí Gokíyaa (Lipan Apache)": "Lipan Apache",
+    "Niitsítpiis-stahkoii ᖹᐟᒧᐧᐨᑯᐧ ᓴᐦᖾᐟ (Blackfoot / Niitsítapi ᖹᐟᒧᐧᒣᑯ)": "Blackfoot",
+    "Nisg̱a’a": "Nisga’a",
+    "Núu-agha-tʉvʉ-pʉ̱ (Ute)": "Ute",
+    "Nā moku ʻehā": "Na moku eha",
+    "Nłeʔkepmx Tmíxʷ (Nlaka’pamux)": "Nlaka’pamux",
+    "Nʉmʉnʉʉ Sookobitʉ (Comanche)": "Comanche",
+    "O-ga-xpa Ma-zhoⁿ (O-ga-xpa) (Quapaw)": "O-ga-xpa (Quapaw)",
+    "Odǫhwęja:deˀ (Cayuga)": "Cayuga",
+    "Oma͞eqnomenew-ahkew (Menominee)": "Menominee",
+    "Onʌyote’a•ka (Oneida)": "Oneida",
+    "Očhéthi Šakówiŋ": "Oceti Sakowin",
+    "O’odham Jeweḍ": "O’odham",
+    "Páⁿka tóⁿde ukʰéthiⁿ (Ponca)": "Ponca",
+    "Qʷidiččaʔa•tx̌ (Makah)": "Makah",
+    "Sq’ʷayáiɬaqtmš (Chehalis)": "Chehalis",
+    "S’ólh Téméxw (Stó:lō)": "S'olh Temexw",
+    "Tāłtān Konelīne (Tahltan)": "Talhtan",
+    "Umoⁿhoⁿ (Omaha)": "Omaha",
+    "Washtáge Moⁿzháⁿ (Kaw / Kansa)": "Kaw / Kansa",
+    "Wašišiw Ɂítdeʔ (Washoe)": "Washoe",
+    "Wintʰu• Po•m (Northern Wintu)": "Northern Wintu",
+    "Xawiƚƚ kwñchawaay (Cocopah)": "Cocopah",
+    "bəqəlšuɬ (Muckleshoot)": "Muckleshoot",
+    "dxʷdəwʔabš (Duwamish)": "Duwamish",
+    "dxʷlilap (Tulalip)": "Tulalip",
+    "dxʷsqʷaliʔabš (Nisqually)": "Nisqually",
+    "dxʷsəq̓ʷəbš (Suquamish)": "Suquamish",
+    "np̓əšqʷáw̓səxʷ (Wenatchi)": "Wenatchi",
+    "nspiləm (Nespelem)": "Nespelem",
+    "oθaakiiwaki‧hina‧ki (Sauk)": "Sauk",
+    "oθaakiiwaki‧hina‧ki (Sauk) & Meškwahki·aša·hina (Fox)": "Sauk & Fox",
+    "saʔqʷəbixʷ-suyaƛ̕bixʷ (Sauk Suiattle)": "Sauk Suiattle",
+    "sc̓əwaθenaɁɬ təməxʷ (Tsawwassen)": "Tsawwassen",
+    "sduhubš (Snohomish)": "Snohomish",
+    "sdukʷalbixʷ (Snoqualmie)": "Snoqualmie",
+    "snʕickstx tmxʷúlaʔxʷ (Sinixt)": "Sinixt",
+    "spuyaləpabš (Puyallup)": "Puyallup",
+    "sp̓aƛ̓mul̓əxʷəxʷ (Methow)": "Methow",
+    "sqaǰətabš (Upper Skagit)": "Upper Skagit",
+    "sqʷax̌sədabš (Squaxin)": "Squaxin",
+    "stuləgʷábš (Stillaguamish)": "Stillaguamish",
+    "swədəbš (Swinomish)": "Swinomish",
+    "sx̌ʷyʔiɬp (Colville)": "Colville",
+    "sńpʕawílx (Sanpoil)": "Sanpoil",
+    "ščəl’ámxəxʷ (Chelan)": "Chelan",
+    "škwáxčənəxʷ (Moses-Columbia)": "Moses-Columbia",
+    "šntiyátkʷəxʷ (Entiat)": "Entiat",
+    "Á,LEṈENEȻ ȽTE (W̱SÁNEĆ)": "Saanich",
+    "Ĩyãħé Nakón mąkóce (Stoney)": "Stoney",
+    "Ɂívil̃uwenetem Meytémak (Cahuilla)": "Cahuilla",
+    "ᏣᎳᎫᏪᏘᏱ Tsalaguwetiyi (Cherokee, East)": "Eastern Cherokee",
+    "ᓀᐦᐃᔭᐤ ᐊᐢᑭᕀ Nêhiyaw-Askiy (Plains Cree)": "Plains Cree",
+    "𐓏𐒰𐓓𐒰𐓓𐒷  𐒼𐓂𐓊𐒻  𐓆𐒻𐒿𐒷  𐓀𐒰^𐓓𐒰^(Osage)": "Osage",
+}
+
+ix = df.name.isin(replacements.keys())
+df.loc[ix, "name"] = df.loc[ix].name.map(replacements)
+
 df.to_feather(out_dir / "native_territories.feather")
