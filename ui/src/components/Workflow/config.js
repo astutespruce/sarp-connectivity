@@ -44,6 +44,10 @@ export const unitLayerConfig = {
       minzoom: 0,
     },
   },
+  CongressionalDistrict: {
+    minzoom: 1,
+    maxzoom: 24,
+  },
 }
 
 export const sources = {

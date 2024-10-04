@@ -7,6 +7,7 @@ import { ToggleButton } from 'components/Button'
 const adminLayerOptions = [
   { value: 'State', label: 'State' },
   { value: 'County', label: 'County' },
+  { value: 'CongressionalDistrict', label: 'Congressional Districts' },
 ]
 
 const hucLayerOptions = [
@@ -34,7 +35,7 @@ const LayerChooser = ({ setLayer }) => {
 
       <Box sx={{ mt: '2rem' }}>
         <Heading as="h4" sx={{ mb: '0.25rem' }}>
-          Administrative unit
+          Administrative / political unit
         </Heading>
         <ToggleButton
           options={adminLayerOptions}

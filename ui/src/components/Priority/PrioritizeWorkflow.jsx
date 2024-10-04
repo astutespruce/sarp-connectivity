@@ -108,6 +108,7 @@ const Prioritize = () => {
   const handleMapLoad = (map) => {
     mapRef.current = map
     setIsLoading(false)
+    setState((prevState) => ({ ...prevState, zoom: map.getZoom() }))
     map.on('zoomend', () => {
       setState((prevState) => ({ ...prevState, zoom: map.getZoom() }))
     })

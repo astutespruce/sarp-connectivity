@@ -45,7 +45,11 @@ const UnitSearch = ({
   })
 
   const showID = layer
-    ? !(layer === 'State' || layer === 'County')
+    ? !(
+        layer === 'State' ||
+        layer === 'County' ||
+        layer === 'CongressionalDistrict'
+      )
     : system !== 'ADM'
 
   const handleChange = useCallback((value) => {
@@ -118,10 +122,17 @@ const UnitSearch = ({
     setState(() => ({ query: '', activeIndex: null }))
   }, [system, layer])
 
-  const searchLabel = layer ? LAYER_NAMES[layer] : SYSTEMS[system].toLowerCase()
+  const searchLabel = layer
+    ? LAYER_NAMES[layer].toLowerCase()
+    : SYSTEMS[system].toLowerCase()
   const suffix = ` name${
     (system && system !== 'ADM') ||
-    (layer && !(layer === 'State' || layer === 'County'))
+    (layer &&
+      !(
+        layer === 'State' ||
+        layer === 'County' ||
+        layer === 'CongressionalDistrict'
+      ))
       ? ' or ID'
       : ''
   }`

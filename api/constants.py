@@ -558,6 +558,7 @@ ROAD_CROSSING_CORE_FIELDS = (
         "EJTract",
         "EJTribal",
         "NativeTerritories",
+        "WildScenicRiver",
         "SalmonidESU",
         "FishHabitatPartnership",
         # Watershed names

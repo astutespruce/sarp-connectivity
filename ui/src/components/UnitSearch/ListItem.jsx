@@ -189,13 +189,14 @@ const ListItem = ({
     }
   }, [focused])
 
-  const stateLabels = state
-    ? state
-        .split(',')
-        .map((s) => STATES[s])
-        .sort()
-        .join(', ')
-    : ''
+  const stateLabels =
+    state && layer !== 'CongressionalDistrict'
+      ? state
+          .split(',')
+          .map((s) => STATES[s])
+          .sort()
+          .join(', ')
+      : ''
 
   return (
     <Box

@@ -1533,6 +1533,7 @@ export const SCENARIOS = {
 export const LAYER_NAMES = {
   State: 'State',
   County: 'County',
+  CongressionalDistrict: 'Congressional district',
   HUC6: 'Basin',
   HUC8: 'Subbasin',
   HUC10: 'Watershed',

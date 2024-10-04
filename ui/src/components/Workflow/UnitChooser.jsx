@@ -19,6 +19,8 @@ export const getPluralLabel = (layer) => {
       return 'states'
     case 'County':
       return 'counties'
+    case 'CongressionalDistrict':
+      return 'congressional districts'
     case 'HUC6':
       return 'basins'
     case 'HUC8':
@@ -209,18 +211,6 @@ const UnitChooser = ({
             network connectivity are available for prioritization. There are{' '}
             <b>{formatNumber(offNetworkCount, 0)}</b> {barrierTypeLabel} not
             available for prioritization in your selected area.
-          </Text>
-        ) : null}
-
-        {!(layer === 'State' || layer === 'County') ? (
-          <Text variant="help" sx={{ pt: '2rem' }}>
-            <ExclamationTriangle
-              size="1em"
-              style={{ marginRight: '0.25rem' }}
-            />
-            Note: You can choose from {pluralLabel} outside the highlighted
-            states, but the barriers inventory is more complete only where{' '}
-            {pluralLabel} overlap the highlighted states.
           </Text>
         ) : null}
       </Box>
