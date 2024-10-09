@@ -87,7 +87,7 @@ const BarrierDetails = ({
   invasive,
   invasivenetwork,
   landcover,
-  link,
+  sourcelink,
   milestooutlet,
   nativeterritories,
   onloop,
@@ -382,7 +382,7 @@ const BarrierDetails = ({
           source={source}
           sourceid={sourceid}
           partnerid={partnerid}
-          link={link}
+          sourcelink={sourcelink}
           nearestusgscrossingid={nearestusgscrossingid}
           attachments={attachments}
         />
@@ -428,7 +428,7 @@ BarrierDetails.propTypes = {
   intermittent: PropTypes.number,
   invasive: PropTypes.bool,
   landcover: PropTypes.number,
-  link: PropTypes.string,
+  sourcelink: PropTypes.string,
   milestooutlet: PropTypes.number,
   nativeterritories: PropTypes.string,
   onloop: PropTypes.bool,
@@ -565,7 +565,7 @@ BarrierDetails.defaultProps = {
   intermittent: -1,
   invasive: 0,
   landcover: null,
-  link: null,
+  sourcelink: null,
   milestooutlet: 0,
   nativeterritories: null,
   onloop: false,

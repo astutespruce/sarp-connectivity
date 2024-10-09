@@ -359,7 +359,7 @@ GENERAL_API_FIELDS2 = (
         "OwnerType",
         "BarrierOwnerType",
         "ProtectedLand",
-        "Link",
+        "SourceLink",
         "EJTract",
         "EJTribal",
         "NativeTerritories",
@@ -420,7 +420,7 @@ DAM_CORE_FIELDS = unique(DAM_CORE_FIELDS)
 
 # Internal API includes tiers
 
-DAM_EXPORT_FIELDS = unique(DAM_CORE_FIELDS + STATE_TIER_FIELDS + CUSTOM_TIER_FIELDS)
+DAM_EXPORT_FIELDS = unique(DAM_CORE_FIELDS + STATE_TIER_FIELDS + CUSTOM_TIER_FIELDS + ["URL"])
 
 DAM_API_FIELDS = unique(
     DAM_CORE_FIELDS
@@ -442,7 +442,7 @@ DAM_API_FIELDS = unique(
 )
 
 # Public API does not include tier or filter fields
-DAM_PUBLIC_EXPORT_FIELDS = DAM_CORE_FIELDS
+DAM_PUBLIC_EXPORT_FIELDS = DAM_CORE_FIELDS + ["URL"]
 
 
 DAM_TILE_FILTER_FIELDS = unique(
@@ -487,7 +487,7 @@ SB_CORE_FIELDS = (
 SB_CORE_FIELDS = unique(SB_CORE_FIELDS)
 
 # NOTE: state tiers are excluded based on SARP direction
-SB_EXPORT_FIELDS = unique(SB_CORE_FIELDS + CUSTOM_TIER_FIELDS)
+SB_EXPORT_FIELDS = unique(SB_CORE_FIELDS + CUSTOM_TIER_FIELDS + ["URL"])
 
 SB_API_FIELDS = unique(
     SB_CORE_FIELDS
@@ -496,7 +496,7 @@ SB_API_FIELDS = unique(
 )
 
 # Public API does not include tier fields
-SB_PUBLIC_EXPORT_FIELDS = SB_CORE_FIELDS
+SB_PUBLIC_EXPORT_FIELDS = SB_CORE_FIELDS + ["URL"]
 
 
 SB_TILE_FILTER_FIELDS = unique(
@@ -1304,7 +1304,7 @@ FIELD_DEFINITIONS = {
     # dam-specific fields
     "NIDID": "National Inventory of Dams Identifier (legacy ID); this value was provided in earlier versions of NID or partner databases and may no longer match the latest ID, and may also have duplicate IDs or incorrectly-associated IDs.",
     "NIDFederalID": "National Inventory of Dams Federal Identifier (new ID) that can be used to join to the latest version of NID.",
-    "Link": "Link to additional information about this {type}",
+    "SourceLink": "Link to additional information about this {type} provided by the data source.",
     "FERCRegulated": "Identifies if the {type} is regulated by the Federal Energy Regulatory Commission, if known.",
     "StateRegulated": "Identifies if the {type} is regulated at the state level, if known.",
     "FedRegulatoryAgency": "Identifies the federal regulatory agency for this {type}, if known",

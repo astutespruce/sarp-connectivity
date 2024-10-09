@@ -17,7 +17,7 @@ const IDInfo = ({
   source,
   sourceid,
   partnerid,
-  link,
+  sourcelink,
   nearestusgscrossingid,
   attachments: rawAttachments,
   ...props
@@ -114,11 +114,11 @@ const IDInfo = ({
           </Entry>
         ) : null}
 
-        {!isEmptyString(link) ? (
+        {!isEmptyString(sourcelink) ? (
           <Entry>
             <Text>More information:</Text>
-            <Link href={link}>
-              <Text>{link}</Text>
+            <Link href={sourcelink}>
+              <Text>{sourcelink}</Text>
             </Link>
           </Entry>
         ) : null}
@@ -223,7 +223,7 @@ IDInfo.propTypes = {
   source: PropTypes.string,
   sourceid: PropTypes.string,
   partnerid: PropTypes.string,
-  link: PropTypes.string,
+  sourcelink: PropTypes.string,
   nearestusgscrossingid: PropTypes.string,
   attachments: PropTypes.string,
 }
@@ -234,7 +234,7 @@ IDInfo.defaultProps = {
   source: null,
   sourceid: null,
   partnerid: null,
-  link: null,
+  sourcelink: null,
   nearestusgscrossingid: null,
   attachments: null,
 }

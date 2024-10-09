@@ -76,7 +76,7 @@ const DamDetails = ({
   intermittent,
   invasive,
   landcover,
-  link,
+  sourcelink,
   lowheaddam,
   milestooutlet,
   nativeterritories,
@@ -458,7 +458,7 @@ const DamDetails = ({
           source={source}
           sourceid={sourceid}
           partnerid={partnerid}
-          link={link}
+          sourcelink={sourcelink}
         />
       </Section>
     </Box>
@@ -511,7 +511,7 @@ DamDetails.propTypes = {
   intermittent: PropTypes.number,
   invasive: PropTypes.bool,
   landcover: PropTypes.number,
-  link: PropTypes.string,
+  sourcelink: PropTypes.string,
   lowheaddam: PropTypes.number,
   milestooutlet: PropTypes.number,
   nativeterritories: PropTypes.string,
@@ -663,7 +663,7 @@ DamDetails.defaultProps = {
   intermittent: -1,
   invasive: false,
   landcover: null,
-  link: null,
+  sourcelink: null,
   lowheaddam: null,
   milestooutlet: 0,
   nativeterritories: null,

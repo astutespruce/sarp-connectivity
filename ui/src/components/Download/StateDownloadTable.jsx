@@ -136,12 +136,12 @@ const StateDownloadTable = ({
         <table cellPadding="0.5rem" cellSpacing="0">
           <thead>
             <tr>
-              <th> </th>
+              <th aria-label="state column"> </th>
               <th>Inventoried dams</th>
               <th>Reconned dams</th>
               <th>Assessed road-related barriers</th>
-              <th> </th>
-              <th> </th>
+              <th aria-label="dams download link column"> </th>
+              <th aria-label="road barriers download link column"> </th>
             </tr>
           </thead>
           <tbody>

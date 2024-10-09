@@ -250,7 +250,7 @@ for column in (
     "PartnerID",
     "Editor",
     "EditDate",
-    "Link",
+    "SourceLink",
     "FedRegulatoryAgency",
 ):
     df[column] = df[column].fillna("").str.strip()

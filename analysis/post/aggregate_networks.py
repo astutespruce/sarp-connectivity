@@ -92,6 +92,10 @@ print("Reading dams and networks")
 dams = gp.read_feather(barriers_dir / "dams.feather").set_index("id").rename(columns=rename_cols)
 dams["in_network_type"] = dams.primary_network
 
+# FIXME: remove after next download
+dams = dams.rename(columns={"Link": "SourceLink"})
+
+
 fill_flowline_cols(dams)
 
 # add stream order and species classes for filtering
@@ -158,6 +162,10 @@ tmp = dams.loc[~dams.Private, DAM_API_FIELDS].reset_index()
 verify_domains(tmp)
 # downcast id to uint32 or it breaks in UI
 tmp["id"] = tmp.id.astype("uint32")
+
+# add report URL
+tmp["URL"] = "https://aquaticbarriers.org/report/dams/" + tmp.SARPID
+
 tmp.sort_values("SARPID").drop_duplicates(subset="SARPID").reset_index(drop=True).to_feather(api_dir / "dams.feather")
 
 
@@ -167,6 +175,10 @@ tmp.sort_values("SARPID").drop_duplicates(subset="SARPID").reset_index(drop=True
 print("Reading small barriers and networks")
 small_barriers = gp.read_feather(barriers_dir / "small_barriers.feather").set_index("id").rename(columns=rename_cols)
 small_barriers["in_network_type"] = small_barriers.primary_network
+
+# FIXME: remove after next download
+small_barriers = small_barriers.rename(columns={"Link": "SourceLink"})
+
 
 small_barriers = small_barriers.loc[~(small_barriers.dropped | small_barriers.duplicate)].copy()
 fill_flowline_cols(small_barriers)
@@ -228,6 +240,10 @@ small_barriers.reset_index().to_feather(results_dir / "small_barriers.feather")
 tmp = small_barriers.loc[~small_barriers.Private, SB_API_FIELDS].reset_index()
 verify_domains(tmp)
 tmp["id"] = tmp.id.astype("uint32")
+
+# add report URL
+tmp["URL"] = "https://aquaticbarriers.org/report/combined_barriers/" + tmp.SARPID
+
 tmp.sort_values("SARPID").drop_duplicates(subset="SARPID").reset_index(drop=True).to_feather(
     api_dir / "small_barriers.feather"
 )
@@ -374,6 +390,9 @@ for network_type in [
     verify_domains(tmp)
     tmp["id"] = tmp.id.astype("uint32")
 
+    # add report URL
+    tmp["URL"] = f"https://aquaticbarriers.org/report/{network_type}/" + tmp.SARPID
+
     tmp.sort_values("SARPID").drop_duplicates(subset="SARPID").reset_index(drop=True).to_feather(
         api_dir / f"{network_type}.feather"
     )
@@ -391,6 +410,11 @@ for network_type in [
 print("Reading waterfalls and networks")
 waterfalls = gp.read_feather(barriers_dir / "waterfalls.feather").set_index("id").rename(columns=rename_cols)
 waterfalls = waterfalls.loc[~(waterfalls.dropped | waterfalls.duplicate)].copy()
+
+# FIXME: remove after next download
+waterfalls = waterfalls.rename(columns={"Link": "SourceLink"})
+
+
 fill_flowline_cols(waterfalls)
 
 tmp = waterfalls.copy()

@@ -3,7 +3,6 @@ from copy import deepcopy
 import httpx
 from math import ceil
 
-from requests import HTTPError
 import geopandas as gp
 import pandas as pd
 
@@ -52,7 +51,9 @@ def get_token(user, password):
 
     content = response.json()
     if "error" in content:
-        raise HTTPError("Error making request: {}\n{}".format(content["error"]["message"], content["error"]["details"]))
+        raise httpx.HTTPError(
+            "Error making request: {}\n{}".format(content["error"]["message"], content["error"]["details"])
+        )
 
     return content["token"]
 
@@ -85,7 +86,9 @@ async def get_json(client, url, params=None, token=None):
     response.raise_for_status()
     content = response.json()
     if "error" in content:
-        raise HTTPError(f'Error making request to: {url}\n{content["error"]["message"]}\n{content["error"]["details"]}')
+        raise httpx.HTTPError(
+            f'Error making request to: {url}\n{content["error"]["message"]}\n{content["error"]["details"]}'
+        )
 
     return content
 

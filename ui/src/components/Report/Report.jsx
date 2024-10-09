@@ -3,7 +3,6 @@ import PropTypes from 'prop-types'
 import { Document, Font, Page, StyleSheet } from '@react-pdf/renderer'
 
 import { extractHabitat } from 'components/Data/Habitat'
-import { hasWindow } from 'util/dom'
 
 import Contact from './Contact'
 import Credits from './Credits'

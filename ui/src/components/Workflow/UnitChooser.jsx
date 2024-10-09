@@ -1,7 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Flex, Heading, Text } from 'theme-ui'
-import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 
 import { barrierTypeLabels } from 'config'
 import { useBarrierType } from 'components/Data'

@@ -18,6 +18,7 @@ const LegendElement = ({ type, label, symbols, ...props }) => (
       {symbols ? (
         symbols.map((p, i) => (
           <LegendSymbol
+            /* eslint-disable-next-line react/no-array-index-key */
             key={`${p.color}-${p.borderColor}-${i}`}
             type={type}
             {...p}

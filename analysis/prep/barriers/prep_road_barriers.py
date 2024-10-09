@@ -249,7 +249,7 @@ df.loc[(df.YearFishPass > 0) & (df.YearFishPass < 1900), "YearFishPass"] = np.ui
 
 
 #########  Fill NaN fields and set data types
-for column in ["SourceID", "PartnerID", "CrossingCode", "Source", "Link", "ProtocolUsed"]:
+for column in ["SourceID", "PartnerID", "CrossingCode", "Source", "SourceLink", "ProtocolUsed"]:
     df[column] = df[column].fillna("").str.strip().replace("<Null>", "")
 
 

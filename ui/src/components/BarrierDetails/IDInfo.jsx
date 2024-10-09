@@ -16,7 +16,7 @@ const IDInfo = ({
   sourceid,
   partnerid,
   nearestusgscrossingid,
-  link,
+  sourcelink,
   lat,
   lon,
   attachments: rawAttachments,
@@ -129,9 +129,9 @@ const IDInfo = ({
         </Entry>
       ) : null}
 
-      {!isEmptyString(link) ? (
+      {!isEmptyString(sourcelink) ? (
         <Entry>
-          <ExternalLink to={link}>
+          <ExternalLink to={sourcelink}>
             Click here for more information about this barrier
           </ExternalLink>
         </Entry>
@@ -270,7 +270,7 @@ IDInfo.propTypes = {
   sourceid: PropTypes.string,
   partnerid: PropTypes.string,
   nearestusgscrossingid: PropTypes.string,
-  link: PropTypes.string,
+  sourcelink: PropTypes.string,
   lat: PropTypes.number.isRequired,
   lon: PropTypes.number.isRequired,
   attachments: PropTypes.string,
@@ -284,7 +284,7 @@ IDInfo.defaultProps = {
   sourceid: null,
   partnerid: null,
   nearestusgscrossingid: null,
-  link: null,
+  sourcelink: null,
   attachments: null,
 }
 

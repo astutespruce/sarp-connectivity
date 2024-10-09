@@ -184,6 +184,7 @@ const Legend = ({
                     {point.symbols ? (
                       point.symbols.map((p, i) => (
                         <Circle
+                          /* eslint-disable-next-line react/no-array-index-key */
                           key={`${p.color}-${p.borderColor}-${i}`}
                           {...p}
                         />

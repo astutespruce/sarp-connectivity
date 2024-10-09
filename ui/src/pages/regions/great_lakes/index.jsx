@@ -21,12 +21,7 @@ import { OutboundLink } from 'components/Link'
 import { HeaderImage } from 'components/Image'
 import { RegionActionLinks, RegionStats } from 'components/Regions'
 import { Chart } from 'components/Restoration'
-import {
-  REGIONS,
-  STATE_DATA_PROVIDERS,
-  STATES,
-  CONNECTIVITY_TEAMS,
-} from 'config'
+import { REGIONS, STATE_DATA_PROVIDERS } from 'config'
 import { formatNumber } from 'util/format'
 
 const regionID = 'great_lakes'

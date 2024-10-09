@@ -131,7 +131,7 @@ const FunctionalNetworkInfo = ({
             : null}
           {networkType === 'smallfish_barriers'
             ? ' for small-bodied fish '
-            : null}
+            : null}{' '}
           and has no functional network information.
         </Text>
       </Box>

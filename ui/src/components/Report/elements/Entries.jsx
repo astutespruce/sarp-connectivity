@@ -19,6 +19,7 @@ const Entries = ({ children, style }) => {
       <View style={style}>
         {children.map((child, i) =>
           child !== null ? (
+            /* eslint-disable-next-line react/no-array-index-key */
             <View key={i} style={i > 0 ? css : firstChildCSS}>
               {child}
             </View>
