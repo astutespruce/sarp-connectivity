@@ -1,4 +1,4 @@
-import { tableFromIPC } from '@apache-arrow/es2015-esm'
+import { tableFromIPC } from '@uwdata/flechette'
 import { fromArrow } from 'arquero'
 
 import { unpackBits, toCamelCaseFields } from 'util/data'
@@ -50,12 +50,14 @@ const fetchFeather = async (url, options, asTable = false) => {
       throw new Error(`Failed request to ${url}: ${response.statusText}`)
     }
 
-    const data = await tableFromIPC(response.arrayBuffer())
+    // WARNING: flechette (1.1.0) tableFromIPC will break if called with an IPC
+    // that batches with no rows; make sure that all responses from API use
+    // .combine_chunks() to aggregate data before encoding to Feather if using
+    // a selection of existing data
+    const data = tableFromIPC(await response.arrayBuffer())
 
     return {
-      data: asTable
-        ? fromArrow(data)
-        : data.toArray().map((row) => row.toJSON()),
+      data: asTable ? fromArrow(data) : data.toArray(),
       bounds: data.schema.metadata.get('bounds'),
     }
   } catch (err) {

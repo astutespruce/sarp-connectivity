@@ -40,7 +40,7 @@ async def rank(
     df = extractor.extract(
         columns=["id", "lat", "lon"] + METRICS,
         ranked=True,
-    )
+    ).combine_chunks()
     log.info(f"selected {len(df):,} {barrier_type.replace('_', ' ')} for ranking")
 
     # extract extent
