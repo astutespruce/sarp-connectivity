@@ -39,7 +39,8 @@ clean_dir = network_dir / "clean"
 out_dir = clean_dir / "removed"
 out_dir.mkdir(exist_ok=True)
 
-network_types = list(NETWORK_TYPES.keys())
+# NOTE: no need to calculate removed barriers for full / dams-only networks
+network_types = [t for t in NETWORK_TYPES.keys() if t not in {"full", "dams_only"}]
 
 start = time()
 
@@ -356,14 +357,19 @@ for network_type in network_types:
             isolated_networks = cur_networks.loc[~cur_networks.index.isin(network_pairs.downstream_barrier_id.unique())]
 
             # create a network of networks facing upstream
-            up_network_graph = DirectedGraph(
-                network_pairs.downstream_barrier_id.values.astype("int64"),
-                network_pairs.upstream_barrier_id.values.astype("int64"),
-            )
-            pairs = pd.DataFrame(
-                up_network_graph.network_pairs(network_pairs.downstream_barrier_id.unique().astype("int64")),
-                columns=["downstream_barrier_id", "upstream_barrier_id"],
-            )
+            ids = network_pairs.downstream_barrier_id.unique()
+            if len(ids):
+                up_network_graph = DirectedGraph(
+                    network_pairs.downstream_barrier_id.values.astype("int64"),
+                    network_pairs.upstream_barrier_id.values.astype("int64"),
+                )
+                pairs = pd.DataFrame(
+                    up_network_graph.network_pairs(ids.astype("int64")),
+                    columns=["downstream_barrier_id", "upstream_barrier_id"],
+                )
+            else:
+                pairs = pd.DataFrame([], columns=["downstream_barrier_id", "upstream_barrier_id"]).astype("uint32")
+
             # NOTE: we intentionally keep self-pairs because we are combining together all upstreams
             # update the upstream stats for non-isolated networks
             upstream_stats = (

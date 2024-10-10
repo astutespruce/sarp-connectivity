@@ -19,9 +19,7 @@ import pyarrow.compute as pc
 
 from analysis.constants import NETWORK_TYPES
 from analysis.lib.io import read_arrow_tables
-from analysis.network.lib.networks import (
-    create_barrier_networks,
-)
+from analysis.network.lib.networks import create_barrier_networks
 
 warnings.simplefilter("always")  # show geometry related warnings every time
 

@@ -35,6 +35,8 @@ from api.metadata import get_readme, get_terms
 from api.lib.domains import unpack_domains
 from analysis.constants import NETWORK_TYPES
 
+# NOTE: no need to aggregate stats for full / dams-only networks
+network_types = [t for t in NETWORK_TYPES.keys() if t not in {"full", "dams_only"}]
 
 start = time()
 
@@ -431,7 +433,7 @@ search_barriers = pd.concat(
 waterfalls["Unranked"] = False
 
 merged = None
-for network_type in NETWORK_TYPES.keys():
+for network_type in network_types:
     networks = get_network_results(waterfalls, network_type=network_type, state_ranks=False)
 
     # cast so that this gets correctly split out as -1/0/1 values
@@ -550,7 +552,7 @@ if out_db.exists():
     out_db.unlink()
 
 with duckdb.connect(str(out_db)) as con:
-    for network_type in NETWORK_TYPES.keys():
+    for network_type in network_types:
         print(f"Creating {network_type} table")
         ds = dataset(api_dir / f"{network_type}.feather", format="feather")
         _ = con.execute(f"CREATE TABLE {network_type} AS SELECT * from ds")

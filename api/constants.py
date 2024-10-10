@@ -24,7 +24,8 @@ class BarrierTypes(str, Enum):
     waterfalls = "waterfalls"
 
 
-# must match analysis/constants.py::NETWORK_TYPES keys
+# must match the subset of analysis/constants.py::NETWORK_TYPES keys
+# that are available for use in the tool
 class NetworkTypes(str, Enum):
     dams = "dams"
     combined_barriers = "combined_barriers"

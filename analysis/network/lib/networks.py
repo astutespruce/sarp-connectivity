@@ -13,7 +13,7 @@ from analysis.network.lib.stats import (
     calculate_downstream_stats,
 )
 
-
+pd.set_option("future.no_silent_downcasting", True)
 warnings.filterwarnings("ignore", message=".*DataFrame is highly fragmented.*")
 
 
@@ -189,19 +189,30 @@ def create_networks(joins, barrier_joins, flowlines):
     origin_idx = np.setdiff1d(origin_idx, barrier_upstream_idx)
 
     print(f"Generating networks for {len(origin_idx):,} origin points")
-    origin_network_segments = pd.DataFrame(
-        upstream_graph.network_pairs(origin_idx.astype("int64")),
-        columns=["networkID", "lineID"],
-    ).astype("uint32")
+    if len(origin_idx) > 0:
+        origin_network_segments = pd.DataFrame(
+            upstream_graph.network_pairs(origin_idx.astype("int64")),
+            columns=["networkID", "lineID"],
+        ).astype("uint32")
+
+    else:
+        origin_network_segments = pd.DataFrame([], columns=["networkID", "lineID"]).astype("uint32")
+
     origin_network_segments["type"] = "origin"
 
-    # barrier segments are the root of each upstream network from each barrier
-    # segments are indexed by the id of the segment at the root for each network
     print(f"Generating networks for {len(barrier_upstream_idx):,} barriers")
-    barrier_network_segments = pd.DataFrame(
-        upstream_graph.network_pairs(barrier_upstream_idx.astype("int64")),
-        columns=["networkID", "lineID"],
-    ).astype("uint32")
+    if len(barrier_upstream_idx):
+        # barrier segments are the root of each upstream network from each barrier
+        # segments are indexed by the id of the segment at the root for each network
+        barrier_network_segments = pd.DataFrame(
+            upstream_graph.network_pairs(barrier_upstream_idx.astype("int64")),
+            columns=["networkID", "lineID"],
+        ).astype("uint32")
+
+    else:
+        barrier_network_segments = pd.DataFrame([], columns=["networkID", "lineID"]).astype("uint32")
+    #     barrier_network_segments = pd.DataFrame({"networkID": np.array([], "uint32"), "lineID": np.array([], "uint32")})
+
     barrier_network_segments["type"] = "barrier"
 
     # Append network types back together
@@ -264,29 +275,34 @@ def create_networks(joins, barrier_joins, flowlines):
     # join where the upstream StreamOrder is different than downstream
     # (avoids smaller incoming tributaries)
     mainstem_ids = flowlines.loc[(flowlines.TotDASqKm >= 2.58999)].index.values
-    upstream_mainstem_joins = (
-        upstream_joins.loc[
-            upstream_joins.downstream_id.isin(mainstem_ids) & upstream_joins.upstream_id.isin(mainstem_ids)
-        ]
-        .join(flowlines.StreamOrder.rename("downstream_streamorder"), on="downstream_id")
-        .join(flowlines.StreamOrder.rename("upstream_streamorder"), on="upstream_id")
-    )
-    upstream_mainstem_joins = upstream_mainstem_joins.loc[
-        upstream_mainstem_joins.downstream_streamorder == upstream_mainstem_joins.upstream_streamorder
-    ].drop(columns=["downstream_streamorder", "upstream_streamorder"])
-
-    upstream_mainstem_graph = DirectedGraph(
-        upstream_mainstem_joins.downstream_id.values.astype("int64"),
-        upstream_mainstem_joins.upstream_id.values.astype("int64"),
-    )
-
     mainstem_barrier_upstream_idx = barrier_joins.loc[
         (barrier_joins.upstream_id != 0) & barrier_joins.upstream_id.isin(mainstem_ids)
     ].upstream_id.unique()
-    up_mainstem_network_df = pd.DataFrame(
-        upstream_mainstem_graph.network_pairs(mainstem_barrier_upstream_idx.astype("int64")),
-        columns=["networkID", "lineID"],
-    ).astype("uint32")
+
+    if len(mainstem_barrier_upstream_idx):
+        upstream_mainstem_joins = (
+            upstream_joins.loc[
+                upstream_joins.downstream_id.isin(mainstem_ids) & upstream_joins.upstream_id.isin(mainstem_ids)
+            ]
+            .join(flowlines.StreamOrder.rename("downstream_streamorder"), on="downstream_id")
+            .join(flowlines.StreamOrder.rename("upstream_streamorder"), on="upstream_id")
+        )
+        upstream_mainstem_joins = upstream_mainstem_joins.loc[
+            upstream_mainstem_joins.downstream_streamorder == upstream_mainstem_joins.upstream_streamorder
+        ].drop(columns=["downstream_streamorder", "upstream_streamorder"])
+
+        upstream_mainstem_graph = DirectedGraph(
+            upstream_mainstem_joins.downstream_id.values.astype("int64"),
+            upstream_mainstem_joins.upstream_id.values.astype("int64"),
+        )
+        up_mainstem_network_df = pd.DataFrame(
+            upstream_mainstem_graph.network_pairs(mainstem_barrier_upstream_idx.astype("int64")),
+            columns=["networkID", "lineID"],
+        ).astype("uint32")
+
+    else:
+        # up_mainstem_network_df = pd.DataFrame({"networkID": np.array([], "uint32"), "lineID": np.array([], "uint32")})
+        up_mainstem_network_df = pd.DataFrame([], columns=["networkID", "lineID"]).astype("uint32")
 
     # handle multiple upstreams like full networks above
     # find all networks where the downstream side of the network origin is a junction
@@ -342,17 +358,20 @@ def create_networks(joins, barrier_joins, flowlines):
         ["downstream_id", "upstream_id"],
     ].drop_duplicates(subset=["downstream_id", "upstream_id"])
 
-    downstream_graph = LinearDirectedGraph(
-        downstream_joins.upstream_id.values.astype("int64"),
-        downstream_joins.downstream_id.values.astype("int64"),
-    )
+    if len(barrier_downstream_idx):
+        downstream_graph = LinearDirectedGraph(
+            downstream_joins.upstream_id.values.astype("int64"),
+            downstream_joins.downstream_id.values.astype("int64"),
+        )
 
-    down_network_df = pd.DataFrame(
-        downstream_graph.network_pairs(barrier_downstream_idx.astype("int64")),
-        columns=["networkID", "lineID"],
-    )
-    down_network_df.networkID = down_network_df.networkID.astype("uint32")
-    down_network_df.lineID = down_network_df.lineID.astype("uint32")
+        down_network_df = pd.DataFrame(
+            downstream_graph.network_pairs(barrier_downstream_idx.astype("int64")),
+            columns=["networkID", "lineID"],
+        ).astype("uint32")
+
+    else:
+        # down_network_df = pd.DataFrame({"networkID": np.array([], "uint32"), "lineID": np.array([], "uint32")})
+        down_network_df = pd.DataFrame([], columns=["networkID", "lineID"]).astype("uint32")
 
     return (
         up_network_df.set_index("lineID").networkID,
@@ -493,7 +512,7 @@ def create_barrier_networks(
         network_stats[col] = network_stats[col].fillna(0).astype("uint32")
 
     for col in ["flows_to_ocean", "flows_to_great_lakes", "exits_region", "invasive_network"]:
-        network_stats[col] = network_stats[col].fillna(0).astype("bool")
+        network_stats[col] = network_stats[col].fillna(False).astype("bool")
 
     network_stats.barrier = network_stats.barrier.fillna("")
 
@@ -615,10 +634,10 @@ def create_barrier_networks(
 
     barrier_networks.barrier = barrier_networks.barrier.fillna("")
     barrier_networks.origin_HUC2 = barrier_networks.origin_HUC2.fillna("")
-    barrier_networks.flows_to_ocean = barrier_networks.flows_to_ocean.fillna(0).astype("bool")
-    barrier_networks.flows_to_great_lakes = barrier_networks.flows_to_great_lakes.fillna(0).astype("bool")
-    barrier_networks.exits_region = barrier_networks.exits_region.fillna(0).astype("bool")
-    barrier_networks.invasive_network = barrier_networks.invasive_network.fillna(0).astype("bool")
+
+    for col in ["flows_to_ocean", "flows_to_great_lakes", "exits_region", "invasive_network"]:
+        barrier_networks[col] = barrier_networks[col].fillna(False).astype("bool")
+
     # if isolated network or connects to marine / Great Lakes / exit, there
     # are no further miles downstream from this network
     barrier_networks.miles_to_outlet = barrier_networks.miles_to_outlet.fillna(0).astype("float32")
@@ -730,12 +749,13 @@ def create_barrier_networks(
     barrier_networks["PercentResilient"] = barrier_networks.PercentResilient.round().astype("int8")
 
     # assign downstream linear networks to barrier IDs
-    downstream_linear_networks = (
-        focal_barrier_joins[["downstream_id"]]
-        .join(downstream_linear_networks.reset_index().set_index("networkID"), on="downstream_id", how="inner")
-        .lineID.reset_index()
-    )
-
-    print("before return")
+    if len(focal_barrier_joins) > 0:
+        downstream_linear_networks = (
+            focal_barrier_joins[["downstream_id"]]
+            .join(downstream_linear_networks.reset_index().set_index("networkID"), on="downstream_id", how="inner")
+            .lineID.reset_index()
+        )
+    else:
+        downstream_linear_networks = pd.DataFrame([], columns=["id", "lineID"])
 
     return barrier_networks, network_stats, flowlines, downstream_linear_networks, downstream_stats

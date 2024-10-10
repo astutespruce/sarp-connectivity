@@ -22,7 +22,8 @@ bnd_dir = data_dir / "boundaries"
 out_dir = Path("tiles")
 tmp_dir = Path("/tmp")
 
-network_cols = list(NETWORK_TYPES.keys())
+# NOTE: no need to make tiles for full / dams-only networks
+network_cols = [t for t in NETWORK_TYPES.keys() if t not in {"full", "dams_only"}]
 
 # map sizeclasses
 sizeclasses = [0, 2, 5, 25, 100, 250, 500, 5000, 25000, 50000, 500000, 2000000]
@@ -307,10 +308,10 @@ print("\n-----------------------\nProcessing removed barrier networks")
 segments = read_arrow_tables(
     [
         src_dir / f"clean/removed/removed_{network_type}_network_segments.feather"
-        for network_type in sorted(NETWORK_TYPES.keys())
+        for network_type in sorted(network_cols)
     ],
     columns=["lineID", "barrier_id"],
-    new_fields={"network_type": sorted(NETWORK_TYPES.keys())},
+    new_fields={"network_type": sorted(network_cols)},
 ).to_pandas()
 
 

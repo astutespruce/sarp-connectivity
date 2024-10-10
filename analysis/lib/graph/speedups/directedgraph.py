@@ -1,5 +1,4 @@
-from numba import types
-from numba import njit
+from numba import njit, types
 from numba.typed import List
 import numpy as np
 
@@ -211,9 +210,7 @@ def is_reachable(adj_matrix, sources, targets, max_depth=None):
 
     out = np.zeros(shape=sources.shape, dtype="bool")
     for i in range(len(sources)):
-        out[i] = sources[i] in adj_matrix and _is_reachable_pair(
-            adj_matrix, sources[i], targets[i], max_depth
-        )
+        out[i] = sources[i] in adj_matrix and _is_reachable_pair(adj_matrix, sources[i], targets[i], max_depth)
 
     return out
 

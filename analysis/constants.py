@@ -1,17 +1,10 @@
 """Constants used in other scripts."""
 
-# Mapping of network type to barrier kinds that break that network
-# FIXME: deprecated
-# NETWORK_TYPES = {
-# "waterfalls": ["waterfall"],
-# "dams": ["waterfall", "dam"],
-# "small_barriers": ["waterfall", "dam", "small_barrier"],
-# "road_crossing": ["waterfall", "dam", "small_barrier", "road_crossing"],
-# }
-
 # Mapping of network type to barrier kinds that break the network based
 # on the value in the boolean column
 NETWORK_TYPES = {
+    "full": {"kinds": [], "column": "primary_network"},
+    "dams_only": {"kinds": ["dam"], "column": "primary_network"},
     "dams": {"kinds": ["waterfall", "dam"], "column": "primary_network"},
     "combined_barriers": {
         "kinds": ["waterfall", "dam", "small_barrier"],

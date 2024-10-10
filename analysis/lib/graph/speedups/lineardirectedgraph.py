@@ -1,5 +1,4 @@
-from numba import types
-from numba import njit
+from numba import njit, types
 from numba.typed import Dict, List
 import numpy as np
 
