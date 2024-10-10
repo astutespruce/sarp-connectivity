@@ -18,7 +18,7 @@ const Contact = ({ barrierType, sarpid, style }) => (
     }}
   >
     <Section title="Contact us">
-      <Text>
+      <Text style={{ padding: '0 12pt' }}>
         If you see an issue with the details for this barrier, please{' '}
         <Link
           href={`mailto:Kat@southeastaquatics.net?subject=Problem with SARP Inventory for ${

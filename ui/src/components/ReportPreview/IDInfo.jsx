@@ -1,5 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 import { Box, Flex, Grid, Heading, Image, Text } from 'theme-ui'
 
 import { siteMetadata, attachmentKeywords } from 'config'
@@ -20,6 +21,7 @@ const IDInfo = ({
   sourcelink,
   nearestusgscrossingid,
   attachments: rawAttachments,
+  estimated,
   sx,
 }) => {
   const fromWDFW = source && source.startsWith('WDFW')
@@ -191,6 +193,24 @@ const IDInfo = ({
           </Grid>
         </Box>
       ) : null}
+
+      {estimated ? (
+        <Flex sx={{ alignItems: 'center', mt: '1rem' }}>
+          <Box sx={{ color: 'grey.4', flex: '0 0 auto', mr: '0.5em' }}>
+            <ExclamationTriangle size="1.5rem" />
+          </Box>
+          <Text sx={{ flex: '1 1 auto', lineHeight: 1.1 }}>
+            Dam is estimated from other data sources and may be incorrect;
+            please{' '}
+            <a
+              href={`mailto:Kat@southeastaquatics.net?subject=Problem with Estimated Dam ${sarpid} (data version: ${dataVersion})`}
+            >
+              let us know
+            </a>
+            .
+          </Text>
+        </Flex>
+      ) : null}
     </Box>
   )
 }
@@ -206,6 +226,7 @@ IDInfo.propTypes = {
   sourcelink: PropTypes.string,
   nearestusgscrossingid: PropTypes.string,
   attachments: PropTypes.string,
+  estimated: PropTypes.bool,
   sx: PropTypes.object,
 }
 
@@ -218,6 +239,7 @@ IDInfo.defaultProps = {
   sourcelink: null,
   nearestusgscrossingid: null,
   attachments: null,
+  estimated: false,
   sx: null,
 }
 

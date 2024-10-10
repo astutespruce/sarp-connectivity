@@ -12,8 +12,10 @@ import Footer from './Footer'
 import Header from './Header'
 import IDInfo from './IDInfo'
 import InvasiveSpecies from './InvasiveSpecies'
+import LandscapeContext from './LandscapeContext'
 import Legend from './Legend'
-import LocationConstruction from './LocationConstruction'
+import Location from './Location'
+import Ownership from './Ownership'
 import { LocatorMap, Map } from './Map'
 import FunctionalNetworkInfo from './FunctionalNetworkInfo'
 import MainstemNetworkInfo from './MainstemNetworkInfo'
@@ -89,7 +91,19 @@ const Report = ({
       </Page>
 
       <Page style={styles.page} size="LETTER">
-        <LocationConstruction
+        <Location
+          style={{ marginTop: 24 }}
+          barrierType={barrierType}
+          {...data}
+        />
+
+        <Ownership
+          style={{ marginTop: 24 }}
+          barrierType={barrierType}
+          {...data}
+        />
+
+        <LandscapeContext
           style={{ marginTop: 24 }}
           barrierType={barrierType}
           {...data}

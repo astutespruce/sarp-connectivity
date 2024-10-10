@@ -23,7 +23,10 @@ import { isEmptyString } from 'util/string'
 
 import { PageError } from 'components/Layout'
 
-import LocationConstruction from './LocationConstruction'
+import LandscapeContext from './LandscapeContext'
+import Location from './Location'
+import Ownership from './Ownership'
+// import LocationConstruction from './LocationConstruction'
 import Contact from './Contact'
 import Credits from './Credits'
 import DiadromousInfo from './DiadromousInfo'
@@ -271,7 +274,11 @@ const Preview = ({ networkType, data }) => {
             },
           }}
         >
-          <LocationConstruction
+          <Location sx={{ mt: '3rem' }} barrierType={barrierType} {...data} />
+
+          <Ownership sx={{ mt: '3rem' }} barrierType={barrierType} {...data} />
+
+          <LandscapeContext
             sx={{ mt: '3rem' }}
             barrierType={barrierType}
             {...data}
