@@ -37,11 +37,13 @@ out_dir = Path("/tmp/sarp")
 out_dir.mkdir(exist_ok=True)
 
 #  one of "dams", "small_barriers", "combined_barriers", "road_crossings"
-barrier_type = "combined_barriers"
-suffix = ""  # use to set a filename suffix if filtering further
-rank = False
+barrier_type = "dams"
+suffix = "_0406"  # use to set a filename suffix if filtering further
+rank = True
 
 df = pd.read_feather(data_dir / f"{barrier_type}.feather")
+
+df = df.loc[df.HUC8.str.startswith("0406")].copy()
 
 if rank:
     rank_cols = CUSTOM_TIER_FIELDS

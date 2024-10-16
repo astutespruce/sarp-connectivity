@@ -13,7 +13,7 @@ out_dir.mkdir(exist_ok=True, parents=True)
 
 
 # full network scenarios are: "dams", "combined_barriers", "largefish_barriers", "smallfish_barriers"
-scenario = "dams"
+scenario = "full"
 mainstem = False
 ext = "fgb"
 driver = "FlatGeobuf"
@@ -25,23 +25,24 @@ scenario_suffix = "_mainstem" if mainstem else ""
 
 groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
 
-export_hucs = {
-    # "01",
-    # "02",
-    # "03"
-    # "04",
-    # "05",
-    # "06",
-    # "07",
-    # "08",
-    # "09",
-    # "14",
-    # "15",
-    # "16",
-    "17",
-    # "18",
-    # "21"
-}
+# export_hucs = {
+# "01",
+# "02",
+# "03"
+# "04",
+# "05",
+# "06",
+# "07",
+# "08",
+# "09",
+# "14",
+# "15",
+# "16",
+# "17",
+# "18",
+# "21"
+# }
+export_hucs = {"05"}
 
 
 floodplains = (
@@ -54,10 +55,9 @@ floodplains = (
 )
 floodplains["natfldpln"] = (100 * floodplains.natfldkm2 / floodplains.fldkm2).astype("float32")
 
-
 # FIXME:
 # for group in groups_df.groupby("group").HUC2.apply(set).values:
-for group in [{"17"}]:
+for group in [{"11", "06", "07", "10", "08", "05"}]:
     group = sorted(group)
 
     networkID_col = f"{scenario}{scenario_suffix}"
@@ -221,6 +221,9 @@ for group in [{"17"}]:
         # networks.loc[
         #     networks.intermittent & networks.altered, "symbol"
         # ] = "altered_intermittent"
+
+        # NOTE: this breaks when networks have a very large number of segments dissolved together into a multilinestring
+        # (in the millions) and simply won't be displayed in QGIS
 
         print(f"Serializing {len(networks):,} dissolved networks...")
         write_dataframe(networks, out_dir / f"region{huc2}_{scenario}{scenario_suffix}_networks.{ext}", driver=driver)
