@@ -54,7 +54,8 @@ const fetchFeather = async (url, options, asTable = false) => {
     // that batches with no rows; make sure that all responses from API use
     // .combine_chunks() to aggregate data before encoding to Feather if using
     // a selection of existing data
-    const data = tableFromIPC(await response.arrayBuffer())
+    const bytes = new Uint8Array(await response.arrayBuffer())
+    const data = await tableFromIPC(bytes)
 
     return {
       data: asTable ? fromArrow(data) : data.toArray(),
@@ -188,10 +189,11 @@ export const searchUnits = async (layers, query) => {
       throw new Error(`Failed request to ${url}: ${response.statusText}`)
     }
 
-    const data = await tableFromIPC(response.arrayBuffer())
+    const bytes = new Uint8Array(await response.arrayBuffer())
+    const data = await tableFromIPC(bytes)
 
     return {
-      results: data.toArray().map((row) => toCamelCaseFields(row.toJSON())),
+      results: data.toArray().map((row) => toCamelCaseFields(row)),
       remaining: parseInt(data.schema.metadata.get('count'), 10) - data.numRows,
     }
   } catch (err) {
@@ -210,9 +212,10 @@ export const fetchUnitList = async (layer, ids) => {
       throw new Error(`Failed request to ${url}: ${response.statusText}`)
     }
 
-    const data = await tableFromIPC(response.arrayBuffer())
+    const bytes = new Uint8Array(await response.arrayBuffer())
+    const data = await tableFromIPC(bytes)
 
-    return data.toArray().map((row) => toCamelCaseFields(row.toJSON()))
+    return data.toArray().map((row) => toCamelCaseFields(row))
   } catch (err) {
     captureException(err)
 
@@ -229,10 +232,11 @@ export const searchBarriers = async (query) => {
       throw new Error(`Failed request to ${url}: ${response.statusText}`)
     }
 
-    const data = await tableFromIPC(response.arrayBuffer())
+    const bytes = new Uint8Array(await response.arrayBuffer())
+    const data = await tableFromIPC(bytes)
 
     return {
-      results: data.toArray().map((row) => row.toJSON()),
+      results: data.toArray(),
       remaining: parseInt(data.schema.metadata.get('count'), 10) - data.numRows,
     }
   } catch (err) {
