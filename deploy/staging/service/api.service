@@ -15,7 +15,7 @@ User=app
 Group=www-data
 
 WorkingDirectory=/home/app/sarp-connectivity
-ExecStart=/home/app/.local/bin/poetry run gunicorn -k uvicorn.workers.UvicornWorker --name uvicorn --workers 2 -b ":5000" api.server:app
+ExecStart=/home/app/sarp-connectivity/.venv/bin/gunicorn -k uvicorn.workers.UvicornWorker --name uvicorn --workers 2 -b ":5000" api.server:app
 ExecReload=/bin/kill -USR1 $MAINPID
 
 [Install]

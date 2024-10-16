@@ -133,13 +133,10 @@ As `app` user:
 
 ```bash
 cd ~/sarp-connectivity
-curl -sSL https://install.python-poetry.org | python3 -
-echo 'export PATH="/home/app/.local/bin:$PATH"' >> ~/.bashrc
-source ~/.bashrc
-poetry install --only main --extras deploy
+curl -LsSf https://astral.sh/uv/install.sh | sh
+uv venv --python 3.12
+uv sync --frozen
 ```
-
-To activate the shell, use `poetry shell`.
 
 ## Install mbtileserver
 
@@ -231,7 +228,7 @@ sudo mv /tmp/*.feather /home/app/sarp-connectivity/data/api
 Verify that API starts correctly. As `app` user from within `~/sarp-connectivity`:
 
 ```bash
-/home/app/.local/bin/poetry run uvicorn api.server:app --port 5000
+/home/app/sarp-connectivity/.venv/bin/uvicorn api.server:app --port 5000
 ```
 
 `CTRL-C` to exit
@@ -239,7 +236,7 @@ Verify that API starts correctly. As `app` user from within `~/sarp-connectivity
 Verify that API starts correctly with gunicorn:
 
 ```bash
-/home/app/.local/bin/poetry run gunicorn -k uvicorn.workers.UvicornWorker --name uvicorn --workers 2 -b ":5000" api.server:app
+/home/app/sarp-connectivity/.venv/bin/gunicorn -k uvicorn.workers.UvicornWorker --name uvicorn --workers 2 -b ":5000" api.server:app
 ```
 
 `CTRL-C` to exit
