@@ -16,7 +16,7 @@ from api.logger import log_request
 router = APIRouter()
 
 
-SARPID_REGEX = re.compile("^\S\S\d+")
+SARPID_REGEX = re.compile(r"^\S\S\d+")
 
 NUM_BARRIER_SEARCH_RESULTS = 10
 
