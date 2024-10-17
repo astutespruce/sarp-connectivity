@@ -9,7 +9,11 @@ import { mapConfig as config } from '../config'
 const { mapboxToken } = siteMetadata
 
 const apiURL = 'https://api.mapbox.com/search/searchbox/v1'
-const { bounds } = config
+
+// mapbox limits requests to world domain, clip to -180
+const bounds = [...config.bounds]
+bounds[0] = Math.max(bounds[0], -180)
+
 const types = ['region', 'place', 'poi', 'address']
 const numResults = 5
 
