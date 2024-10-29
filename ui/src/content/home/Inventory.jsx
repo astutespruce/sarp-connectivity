@@ -41,13 +41,13 @@ const Inventory = () => {
               See an example of how the inventory can assist local partners to
               identify and prioritize barriers for removal.
             </Link>
-            <br />
+            {/* <br />
             <br />
             If you have recently completed a dam removal, fish passage, or
             barrier remediation project, please use the following links to
-            report these projects so they may be included in the inventory:
+            report these projects so they may be included in the inventory: */}
           </Paragraph>
-          <Box as="ul" sx={{ mt: '0.5rem' }}>
+          {/* <Box as="ul" sx={{ mt: '0.5rem' }}>
             <li>
               <OutboundLink to="https://arcg.is/1fvmXS1">
                 Dam removal and fish passage at dams
@@ -58,7 +58,7 @@ const Inventory = () => {
                 Road related barrier replacement
               </OutboundLink>
             </li>
-          </Box>
+          </Box> */}
         </Box>
 
         <Box
