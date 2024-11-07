@@ -7,7 +7,7 @@ src_dir = Path("data/barriers/source")
 cost = pd.read_excel(
     src_dir / "sarp_dam_costpred_V2.xlsx",
     engine="calamine",
-    usecols=["SARPID", "MeanCost", "95%PredictionInterval_UpperBound", "95%PredictionInterval_LowerBound", "DamHt_m"],
+    usecols=["SARPID", "MeanCost", "50%PredictionInterval_UpperBound", "50%PredictionInterval_LowerBound", "DamHt_m"],
 ).rename(
     columns={
         "MeanCost": "CostMean",
