@@ -160,6 +160,7 @@ async def download_small_barriers(token, private_token):
                 "Year_Removed": "YearRemoved",
                 "OwnerType": "BarrierOwnerType",
                 "Protocol_Used": "ProtocolUsed",
+                "Priority_Identified": "IsPriority",
             }
         )
 

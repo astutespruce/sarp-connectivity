@@ -2,7 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Text } from 'theme-ui'
 
-import { SALMONID_ESU, barrierTypeLabelSingular } from 'config'
+import { SALMONID_ESU, TROUT, barrierTypeLabelSingular } from 'config'
 import { Entry, Field } from 'components/Sidebar'
 
 const presentCSS = {
@@ -90,9 +90,16 @@ const SpeciesInfo = ({
       </Entry>
       <Entry>
         <Field label="Trout species present">
-          <Text sx={trout === 1 ? presentCSS : absentCSS}>
-            {trout === 1 ? 'Yes' : 'No'}
-          </Text>
+          {trout ? (
+            <Text sx={{ fontSize: 1 }}>
+              {trout
+                .split(',')
+                .map((code) => TROUT[code])
+                .join(', ')}
+            </Text>
+          ) : (
+            <Text sx={absentCSS}>none recorded</Text>
+          )}
         </Field>
       </Entry>
       {salmonidesu ? (
@@ -129,7 +136,7 @@ SpeciesInfo.propTypes = {
   tespp: PropTypes.number,
   regionalsgcnspp: PropTypes.number,
   statesgcnspp: PropTypes.number,
-  trout: PropTypes.number,
+  trout: PropTypes.string,
   salmonidesu: PropTypes.string,
 }
 
@@ -137,7 +144,7 @@ SpeciesInfo.defaultProps = {
   tespp: 0,
   regionalsgcnspp: 0,
   statesgcnspp: 0,
-  trout: 0,
+  trout: null,
   salmonidesu: null,
 }
 

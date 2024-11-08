@@ -172,7 +172,7 @@ RoadCrossingDetails.propTypes = {
   streamsizeclass: PropTypes.string,
   subwatershed: PropTypes.string,
   tespp: PropTypes.number,
-  trout: PropTypes.number,
+  trout: PropTypes.string,
   wildscenicriver: PropTypes.string,
 }
 
@@ -203,7 +203,7 @@ RoadCrossingDetails.defaultProps = {
   streamsizeclass: null,
   subwatershed: null,
   tespp: 0,
-  trout: 0,
+  trout: null,
   wildscenicriver: null,
 }
 

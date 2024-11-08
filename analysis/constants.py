@@ -262,6 +262,7 @@ SMALL_BARRIER_COLS = [
     "PassageFacility",
     "Link",
     "Private",
+    "Priority_Identified",
     # Not used:
     # "NumberOfStructures",
     # "CrossingComment",

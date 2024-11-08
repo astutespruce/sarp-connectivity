@@ -96,6 +96,10 @@ df = gp.read_feather(src_dir / "sarp_small_barriers.feather")
 if "PartnerID" not in df.columns:
     df["PartnerID"] = ""
 
+# FIXME: remove on next download
+if "IsPriority" not in df.columns:
+    df["IsPriority"] = 0
+
 print(f"Read {len(df):,} small barriers")
 
 ### Read in photo attachments, have to join on location
@@ -208,6 +212,9 @@ df.loc[ix, "PotentialProject"] = "Unassessed"
 # per guidance from Kat, anything where SARP_Score is 0 and potential project is
 # not severe barrier is not set correctly, set it to -1 (null)
 df.loc[(df.SARP_Score == 0) & (df.PotentialProject != "Severe Barrier"), "SARP_Score"] = -1
+
+# convert IsPriority to 0 vs 1  (1 = Yes, Null/0/2 = No / not set)
+df["IsPriority"] = df.IsPriority.map({1: 1, 0: 0, np.nan: 0, 2: 0}).fillna(0).astype("uint8")
 
 # convert Private to bool
 df["Private"] = (

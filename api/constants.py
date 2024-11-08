@@ -305,7 +305,14 @@ DAM_FILTER_FIELDS = FILTER_FIELDS + [
 ]
 DAM_FILTER_FIELD_MAP = {f.lower(): f for f in DAM_FILTER_FIELDS}
 
-SB_FILTER_FIELDS = FILTER_FIELDS + ["BarrierSeverity", "Constriction", "RoadType", "CrossingType", "Removed"]
+SB_FILTER_FIELDS = FILTER_FIELDS + [
+    "BarrierSeverity",
+    "Constriction",
+    "RoadType",
+    "CrossingType",
+    "Removed",
+    "IsPriority",
+]
 SB_FILTER_FIELD_MAP = {f.lower(): f for f in SB_FILTER_FIELDS}
 
 # BarrierSeverity included for API but not filtering
@@ -484,6 +491,7 @@ SB_CORE_FIELDS = (
         "SARP_Score",
         "ProtocolUsed",
         "Recon",
+        "IsPriority",
     ]
     + GENERAL_API_FIELDS2
 )
