@@ -902,9 +902,15 @@ export const DOWNSTREAM_OCEAN_MILES = {
 
 export const RARESPP = { 0: '0', 1: '1', 2: '2 - 4', 3: '5 - 9', 4: '>= 10' }
 
+// blank means that trout were not recorded
 export const TROUT = {
-  0: 'absent or not recorded',
-  1: 'one or more trout species present',
+  1: 'Apache trout',
+  2: 'cutthroat trout',
+  3: 'Gila trout',
+  4: 'redband trout',
+  5: 'bull trout',
+  6: 'brook trout',
+  7: 'lake trout',
 }
 
 export const STREAMORDER = {

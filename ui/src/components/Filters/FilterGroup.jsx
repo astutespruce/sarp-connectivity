@@ -69,7 +69,7 @@ const FilterGroup = ({ id, title, filters }) => {
           justifyContent: 'space-between',
           bg: 'grey.1',
           py: '0.5rem',
-          pl: '1rem',
+          pl: '0.15rem',
           pr: '1rem',
         }}
       >

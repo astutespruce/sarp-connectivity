@@ -90,6 +90,7 @@ const Filter = ({
   return (
     <Box
       sx={{
+        ml: '-0.25rem',
         py: '1rem',
         '&:not(:first-of-type)': {
           borderTop: '1px solid',

@@ -215,10 +215,11 @@ def add_spatial_joins(df):
         "TESpp",
         "StateSGCNSpp",
         "RegionalSGCNSpp",
-        "Trout",
         "SalmonidESUCount",
     ]:
         df[col] = df[col].fillna(0).astype("uint8")
-    df["SalmonidESU"] = df.SalmonidESU.fillna("")
+
+    for col in ["Trout", "SalmonidESU"]:
+        df[col] = df[col].fillna("")
 
     return df

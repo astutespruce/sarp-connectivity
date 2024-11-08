@@ -19,7 +19,7 @@ import pandas as pd
 from pyogrio import read_dataframe, list_layers, write_dataframe
 import shapely
 
-from analysis.constants import SARP_STATES
+from analysis.constants import SARP_STATES, TROUT_SPECIES_TO_CODE, TROUT_CODE_TO_NAME
 from analysis.lib.util import append
 
 
@@ -33,45 +33,9 @@ gdb = src_dir / "Results_Tables_2024.gdb"
 prev_gdb = src_dir / "Species_Results_Tables_2023.gdb"
 trout_layer = "Trout_Filter_2022"
 
-# TEMPORARY: use eastern brook trout habitat to backfill missing HUC12s in great lakes
-
-ebt_habitat = read_dataframe(out_dir / "eastern_brook_trout_habitat.fgb", columns=["geometry"])
 
 states = gp.read_feather(bnd_dir / "states.feather")
 huc12 = gp.read_feather(bnd_dir / "huc12.feather", columns=["HUC12", "geometry"]).set_index("HUC12")
-
-
-left, right = shapely.STRtree(ebt_habitat.geometry.values).query(huc12.geometry.values, predicate="intersects")
-pairs = pd.DataFrame(
-    {
-        "HUC12": huc12.index.values.take(left),
-        "HUC12_geom": huc12.geometry.values.take(left),
-        "geometry": ebt_habitat.geometry.values.take(right),
-    }
-)
-
-# exclude great lakes (also HUC12 fringe)
-pairs = pairs.loc[
-    ~pairs.HUC12.isin(
-        [
-            "041800000200",
-            "042800020200",
-            "042600000200",
-            "042400020200",
-            "041900000200",
-            "041800000102",
-            "042400020102",
-            "042800020102",
-            "042600000102",
-        ]
-    )
-].copy()
-
-# only keep HUC12s with at least 250m (arbitrary) of overlap
-pairs = pairs.groupby("HUC12").agg({"HUC12_geom": "first", "geometry": shapely.multilinestrings}).reset_index()
-pairs["geometry"] = shapely.intersection(pairs.HUC12_geom.values, pairs.geometry.values)
-pairs = pairs.loc[shapely.length(pairs.geometry.values) >= 250].copy()
-ebt_huc12 = pairs.HUC12.unique()
 
 secas_huc12 = huc12.take(
     np.unique(
@@ -79,9 +43,7 @@ secas_huc12 = huc12.take(
             states.loc[states.id.isin(SARP_STATES)].geometry.values, predicate="intersects"
         )[1]
     )
-)[[]]
-huc12 = pd.DataFrame(huc12[[]])
-
+)
 
 salmonid_huc12 = pd.read_feather(
     src_dir / "salmonid_esu.feather",
@@ -163,24 +125,65 @@ federal_spp = listed_df.loc[listed_df.official_status.isin(["E", "T"])].SNAME.un
 
 
 ################################################################################
-### Process trout data (not necessarily T/E/SGCN, just used for filtering)
+### Process trout data at species level for filtering
+# NOTE: these are not necessarily T/E/SGCN
 ################################################################################
 # NOTE: this is from an older version for the East and is joined in with HUC12s
 # already set as trout below
-prev_trout_huc12 = read_dataframe(
+prev_trout_df = read_dataframe(
     prev_gdb,
     layer=trout_layer,
-    columns=["HUC12_Code", "Common_Name", "Historical"],
+    columns=["HUC12_Code", "Common_Name", "Species_Name"],
     where=""" "Common_Name" != 'Trout-perch'""",
     use_arrow=True,
     read_geometry=False,
-).HUC12_Code.unique()
+).rename(columns={"HUC12_Code": "HUC12", "Species_Name": "SNAME", "Common_Name": "CNAME"})
+
+### TEMPORARY: use eastern brook trout habitat to backfill missing HUC12s in great lakes
+ebt_habitat = read_dataframe(out_dir / "eastern_brook_trout_habitat.fgb", columns=["geometry"])
+left, right = shapely.STRtree(ebt_habitat.geometry.values).query(huc12.geometry.values, predicate="intersects")
+pairs = pd.DataFrame(
+    {
+        "HUC12": huc12.index.values.take(left),
+        "HUC12_geom": huc12.geometry.values.take(left),
+        "geometry": ebt_habitat.geometry.values.take(right),
+    }
+)
+
+# exclude great lakes (also HUC12 fringe)
+pairs = pairs.loc[
+    ~pairs.HUC12.isin(
+        [
+            "041800000200",
+            "042800020200",
+            "042600000200",
+            "042400020200",
+            "041900000200",
+            "041800000102",
+            "042400020102",
+            "042800020102",
+            "042600000102",
+        ]
+    )
+].copy()
+
+# only keep HUC12s with at least 250m (arbitrary) of overlap
+pairs = pairs.groupby("HUC12").agg({"HUC12_geom": "first", "geometry": shapely.multilinestrings}).reset_index()
+pairs["geometry"] = shapely.intersection(pairs.HUC12_geom.values, pairs.geometry.values)
+pairs = pairs.loc[shapely.length(pairs.geometry.values) >= 250].copy()
+ebt_huc12 = pairs.HUC12.unique()
+
+ebt_df = pd.DataFrame({"HUC12": ebt_huc12})
+ebt_df["SNAME"] = "Salvelinus fontinalis"
+
+trout_df = pd.concat([prev_trout_df[["HUC12", "SNAME"]], ebt_df], ignore_index=True)
+
 
 ################################################################################
 ### Extract occurrence table from SARP
 ################################################################################
 
-status_cols = ["federal", "sgcn", "regional", "trout"]
+status_cols = ["federal", "sgcn", "regional"]
 
 merged = None
 for layer in list_layers(gdb)[:, 0]:
@@ -195,7 +198,7 @@ for layer in list_layers(gdb)[:, 0]:
             "SGCN_Listing": "sgcn",
             "Regional_SGCN": "regional",
             "Historical": "historical",
-            "Trout": "trout",
+            "Trout": "is_trout",
         }
     )
 
@@ -217,14 +220,17 @@ for layer in list_layers(gdb)[:, 0]:
     for col in status_cols:
         df[col] = ~df[col].isin(["No", ""])
 
+    df["is_trout"] = ~df.is_trout.isin(["No", ""])
     # fix trout-perch (not a trout)
-    df.loc[(df.SNAME == "Percopsis omiscomaycus") | (df.CNAME == "Trout-perch"), "trout"] = False
+    df.loc[(df.SNAME == "Percopsis omiscomaycus") | (df.CNAME == "Trout-perch"), "is_trout"] = False
 
-    df = df[["HUC12", "SNAME", "CNAME", "historical", "federal", "sgcn", "regional", "trout"]]
+    df = df[["HUC12", "SNAME", "CNAME", "historical", "federal", "sgcn", "regional", "is_trout"]]
 
     merged = append(merged, df)
 
 df = merged
+
+trout_df = pd.concat([trout_df, df.loc[df.is_trout, ["HUC12", "SNAME"]]], ignore_index=True)
 
 # drop duplicates, keeping the highest status per species per HUC12
 df = (
@@ -245,7 +251,8 @@ df.loc[~df.federal & df.SNAME.isin(federal_spp), "federal"] = True
 
 
 ### Export species presence per HUC12 - Kat @ SARP often needs this
-spp_presence = df.loc[df.federal | df.sgcn | df.regional].drop(columns=["trout"]).copy()
+spp_presence = df.loc[df.federal | df.sgcn | df.regional].copy()
+
 cols = ["historical", "federal", "sgcn", "regional"]
 spp_presence[cols] = spp_presence[cols].astype("uint8")
 write_dataframe(spp_presence, out_dir / "spp_HUC12_stats.gdb", layer="presence", driver="OpenFileGDB")
@@ -253,7 +260,8 @@ write_dataframe(spp_presence, out_dir / "spp_HUC12_stats.gdb", layer="presence",
 
 ### Extract counts for SECAS: exclude any entries that are historical
 huc12_counts_secas = (
-    secas_huc12.join(df.loc[~df.historical].groupby("HUC12")[["federal", "sgcn", "regional"]].sum())
+    secas_huc12[[]]
+    .join(df.loc[~df.historical].groupby("HUC12")[["federal", "sgcn", "regional"]].sum())
     .fillna(0)
     .astype("uint8")
     .reset_index()
@@ -262,17 +270,38 @@ huc12_counts_secas.to_excel(out_dir / "SECAS_spp_HUC12_count_no_historical.xlsx"
 write_dataframe(huc12_counts_secas, out_dir / "SECAS_spp_HUC12_count_no_historical.gdb", driver="OpenFileGDB")
 
 ### Extract summaries by HUC12 including salmonid ESUs
-df = huc12.join(df.groupby("HUC12")[status_cols].sum()).fillna(0).astype("uint8")
-# Update trout status based on previous list or eastern brook trout habitat
-df.loc[(df.trout == 0) & (df.index.isin(prev_trout_huc12) | (df.index.isin(ebt_huc12))), "trout"] = np.uint8(1)
+df = huc12[[]].join(df.groupby("HUC12")[status_cols].sum()).fillna(0).astype("uint8")
+
+
+# aggregate trout to species level and then assign codes
+trout_df["trout"] = (
+    trout_df.SNAME.apply(lambda x: " ".join(x.split(" ")[:2])).map(TROUT_SPECIES_TO_CODE).astype("uint8")
+)
+trout_df = pd.DataFrame(trout_df.groupby("HUC12").trout.unique())
+trout_df["trout_spp_count"] = trout_df.trout.apply(len)
+trout_df["trout_spp"] = trout_df.trout.apply(lambda x: ", ".join(sorted(TROUT_CODE_TO_NAME[v] for v in x)))
+trout_df["trout"] = trout_df.trout.apply(lambda x: ",".join([str(v) for v in sorted(x)]))
+
+# emit a message to manually update the hard-coded domain used for download
+tmp = trout_df.groupby("trout").trout_spp.first().to_dict()
+tmp.update({"": "not recorded"})
+
+print("------------------------------------------------------------------------")
+print("update TROUT_DOMAIN with the following entries:")
+print(tmp)
+print("------------------------------------------------------------------------")
+
+
+df = df.join(trout_df)
+df["trout"] = df.trout.fillna("")
+df["trout_spp_count"] = df.trout_spp_count.fillna(0).astype("uint8")
 
 df = df.join(salmonid_huc12)
 df["salmonid_esu_count"] = df.salmonid_esu_count.fillna(0).astype("uint8")
 df["salmonid_esu"] = df.salmonid_esu.fillna("")
 
 # drop any huc12s that don't have useful data
-df = df.loc[df[status_cols + ["salmonid_esu_count"]].max(axis=1) > 0].reset_index()
-df["trout"] = (df.trout > 0).astype("uint8")
+df = df.loc[df[status_cols + ["trout_spp_count", "salmonid_esu_count"]].max(axis=1) > 0].reset_index()
 
 df.to_feather(out_dir / "spp_HUC12.feather")
 write_dataframe(df, out_dir / "spp_HUC12_stats.gdb", layer="count", append=True, driver="OpenFileGDB")

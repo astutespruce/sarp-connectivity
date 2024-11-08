@@ -82,7 +82,7 @@ def unique(items):
 
 
 # Fields that have multiple values present, encoded as comma-delimited string
-MULTIPLE_VALUE_FIELDS = ["SalmonidESU", "DisadvantagedCommunity", "FishHabitatPartnership"]
+MULTIPLE_VALUE_FIELDS = ["Trout", "SalmonidESU", "DisadvantagedCommunity", "FishHabitatPartnership"]
 BOOLEAN_FILTER_FIELDS = ["Removed"]
 
 
@@ -1124,7 +1124,25 @@ INTERMITTENT_DOMAIN = {
     1: "stream is likely intermittent / ephemeral",
 }
 
-TROUT_DOMAIN = {0: "not recorded", 1: "yes"}
+# this domain is created dynamically in calculate_spp_stats and needs to be updated
+# whenever species data are reprocessed
+# IMPORTANT: the UI uses a domain for individual values
+TROUT_DOMAIN = {
+    "1": "Apache trout",
+    "1,3": "Apache trout, Gila trout",
+    "2": "cutthroat trout",
+    "2,4": "cutthroat trout, redband trout",
+    "2,4,5": "bull trout, cutthroat trout, redband trout",
+    "2,5": "bull trout, cutthroat trout",
+    "2,5,7": "bull trout, cutthroat trout, lake trout",
+    "2,7": "cutthroat trout, lake trout",
+    "3": "Gila trout",
+    "4": "redband trout",
+    "4,5": "bull trout, redband trout",
+    "5": "bull trout",
+    "6": "brook trout",
+    "": "not recorded",
+}
 
 SURVEYED_CROSSING_DOMAIN = {0: "not likely", 1: "likely"}
 
@@ -1372,7 +1390,7 @@ FIELD_DEFINITIONS = {
     "TESpp": "Number of federally-listed threatened or endangered aquatic species, compiled from element occurrence data within the same subwatershed (HUC12) as the {type}. Note: rare species information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
     "StateSGCNSpp": "Number of state-listed Species of Greatest Conservation Need (SGCN), compiled from element occurrence data within the same subwatershed (HUC12) as the {type}.  Note: rare species information is based on occurrences within the same subwatershed as the {type}.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
     "RegionalSGCNSpp": "Number of regionally-listed Species of Greatest Conservation Need (SGCN), compiled from element occurrence data within the same subwatershed (HUC12) as the {type}.  Note: rare species information is based on occurrences within the same subwatershed as the {type}.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
-    "Trout": "Identifies if one or more interior or eastern native trout species (Apache, brook, bull, cutthroat, Gila, lake, and redband) are present within the same subwatershed (HUC12) as the {type} based on in available natural heritage data.  Note: absence means that occurrences were not present in the available natural heritage data and should not be interpreted as true absences.",
+    "Trout": "Identifies one or more interior or eastern native trout species (Apache, brook, bull, cutthroat, Gila, lake, and redband) that are present within the same subwatershed (HUC12) as the {type} based on in available natural heritage data and other data sources.  Note: absence means that occurrences were not present in the available natural heritage data and should not be interpreted as true absences.",
     "OwnerType": "Land ownership type. This information is derived from the BLM Surface Management Agency dataset for federal lands and CBI Protected Areas Database and TNC Secured Lands Database for non-federal lands, to highlight ownership types of particular importance to partners.  NOTE: does not include most private land.",
     "BarrierOwnerType": "Barrier ownership type, if available.  For unsurveyed road / stream crossings, this information is derived from the National Bridge Inventory, US Census TIGER Roads route type, and USFS National Forest road / stream crossings database ownership information, and may not be fully accurate.",
     "ProtectedLand": "Indicates if the {type} occurs on public land as represented within the BLM Surface Management Agency dataset, CBI Protected Areas Database of the U.S., or TNC Secured Lands Database.",
