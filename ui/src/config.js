@@ -1027,6 +1027,13 @@ export const STATE_REGULATED = {
   2: 'No',
 }
 
+export const NRCSDAM = {
+  '-1': 'Not applicable (road-related barrier)', // small barriers only
+  // 0: 'Unknown', // not used
+  1: 'Yes',
+  2: 'No',
+}
+
 export const WATER_RIGHT = {
   '-1': 'Not applicable (road-related barrier)', // small barriers only
   0: 'Unknown',

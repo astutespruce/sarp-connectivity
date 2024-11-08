@@ -293,6 +293,7 @@ fill_columns = [
     # dam columns
     "FERCRegulated",
     "StateRegulated",
+    "NRCSDam",
     "WaterRight",
     "Hazard",
     "Construction",

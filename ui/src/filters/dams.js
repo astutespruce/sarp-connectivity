@@ -26,6 +26,7 @@ import {
   BARRIEROWNERTYPE,
   FERC_REGULATED,
   STATE_REGULATED,
+  NRCSDAM,
   WATER_RIGHT,
   BOOLEAN_FIELD,
   DOWNSTREAM_OCEAN_MILES,
@@ -146,6 +147,11 @@ export const dams = [
         help: 'Note: regulatory information is only available for a small number of dams.',
         hideMissingValues: true,
         ...getEntries(STATE_REGULATED, (v) => v >= 0),
+      },
+      {
+        field: 'nrcsdam',
+        title: 'NRCS flood control dam?',
+        ...getEntries(NRCSDAM, (v) => v > 0),
       },
       {
         field: 'waterright',
@@ -333,7 +339,7 @@ export const dams = [
 
   {
     id: 'species',
-    title: 'Presence of key species',
+    title: 'Presence of key species in watershed',
     filters: [
       {
         field: 'tesppclass',

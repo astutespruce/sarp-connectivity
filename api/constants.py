@@ -290,6 +290,7 @@ DAM_FILTER_FIELDS = FILTER_FIELDS + [
     "Hazard",
     "FERCRegulated",
     "StateRegulated",
+    "NRCSDam",
     "WaterRight",
     "Passability",
     "FeasibilityClass",
@@ -394,6 +395,7 @@ DAM_CORE_FIELDS = (
         "YearCompleted",
         "FERCRegulated",
         "StateRegulated",
+        "NRCSDam",
         "FedRegulatoryAgency",
         "WaterRight",
         "IsPriority",
@@ -982,6 +984,14 @@ STATE_REGULATED_DOMAIN = {
     2: "No",
 }
 
+NRCSDAM_DOMAIN = {
+    -1: "Not applicable",  # small barriers only
+    0: "Unknown",  # not used
+    1: "Yes",
+    2: "No",
+}
+
+
 WATER_RIGHT_DOMAIN = {
     -1: "Not applicable",  # small barriers only
     0: "Unknown",
@@ -1243,6 +1253,7 @@ DOMAINS = {
     # dam fields
     "FERCRegulated": FERCREGULATED_DOMAIN,
     "StateRegulated": STATE_REGULATED_DOMAIN,
+    "NRCSDam": NRCSDAM_DOMAIN,
     "WaterRight": WATER_RIGHT_DOMAIN,
     "Hazard": HAZARD_DOMAIN,
     "Construction": CONSTRUCTION_DOMAIN,
@@ -1308,6 +1319,7 @@ FIELD_DEFINITIONS = {
     "SourceLink": "Link to additional information about this {type} provided by the data source.",
     "FERCRegulated": "Identifies if the {type} is regulated by the Federal Energy Regulatory Commission, if known.",
     "StateRegulated": "Identifies if the {type} is regulated at the state level, if known.",
+    "NRCSDam": "Identifies if the {type} is a flood control dam constructed in partnership with the USDA Natural Resources Conservation Service.",
     "FedRegulatoryAgency": "Identifies the federal regulatory agency for this {type}, if known",
     "WaterRight": "Identifies if the {type} has an associated water right, if known.",
     "IsPriority": "Indicates if the {type} has been identified as a priority by resource managers, if known.",

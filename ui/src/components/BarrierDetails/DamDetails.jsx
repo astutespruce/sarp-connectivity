@@ -82,6 +82,7 @@ const DamDetails = ({
   nativeterritories,
   nidfederalid,
   nidid,
+  nrcsdam,
   onloop,
   ownertype,
   partnerid,
@@ -197,6 +198,7 @@ const DamDetails = ({
           barrierownertype={barrierownertype}
           fercregulated={fercregulated}
           stateregulated={stateregulated}
+          nrcsdam={nrcsdam}
           fedregulatoryagency={fedregulatoryagency}
           waterright={waterright}
           costlower={costlower}
@@ -517,6 +519,7 @@ DamDetails.propTypes = {
   nativeterritories: PropTypes.string,
   nidfederalid: PropTypes.string,
   nidid: PropTypes.string,
+  nrcsdam: PropTypes.number,
   onloop: PropTypes.bool,
   ownertype: PropTypes.number,
   partnerid: PropTypes.string,
@@ -669,6 +672,7 @@ DamDetails.defaultProps = {
   nativeterritories: null,
   nidfederalid: null,
   nidid: null,
+  nrcsdam: null,
   onloop: false,
   ownertype: null,
   partnerid: null,

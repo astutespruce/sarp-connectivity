@@ -76,6 +76,7 @@ async def download_dams(token):
                 "OwnerType": "BarrierOwnerType",
                 "StateAbbreviation": "SourceState",
                 "FERC_Dam": "FERCRegulated",
+                "NRCS_Dam": "NRCSDam",
                 "Fed_Regulatory_Agency": "FedRegulatoryAgency",
                 "STATE_REGULATED": "StateRegulated",
                 "Water_Right": "WaterRight",
@@ -86,15 +87,13 @@ async def download_dams(token):
                 "LENGTH": "Length",
                 "Priority_Identified": "IsPriority",
                 "NORMSTOR": "StorageVolume",
+                "Last_Updated": "EditDate",
             }
         )
 
         print("Projecting dams...")
 
         df = df.to_crs(CRS)
-
-        # convert from ESRI format to string
-        df["EditDate"] = pd.to_datetime(df.EditDate, unit="ms").dt.strftime("%m/%d/%Y")
 
         return df
 

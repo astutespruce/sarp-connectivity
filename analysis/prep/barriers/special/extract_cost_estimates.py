@@ -11,8 +11,8 @@ cost = pd.read_excel(
 ).rename(
     columns={
         "MeanCost": "CostMean",
-        "95%PredictionInterval_UpperBound": "CostUpper",
-        "95%PredictionInterval_LowerBound": "CostLower",
+        "50%PredictionInterval_UpperBound": "CostUpper",
+        "50%PredictionInterval_LowerBound": "CostLower",
     }
 )
 

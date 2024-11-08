@@ -223,17 +223,17 @@ DAM_FS_COLS = [
     "Fed_Regulatory_Agency",
     "STATE_REGULATED",
     "Regulatory_Agency",
-    "Private",  # FIXME: remove
     "Water_Right",
-    "Water_Right_Status",  # FIXME: check
-    "Beneficial_Use",  # FIXME: check
+    "Water_Right_Status",
+    "Beneficial_Use",
     "Link",
     "ManualReview",
-    "EditDate",
+    "Last_Updated",
     "Priority_Identified",
     "NORMSTOR",
     "FEDERAL_ID",  # new NID federal ID
     "Fatality",
+    "NRCS_Dam",
 ]
 
 

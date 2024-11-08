@@ -8,6 +8,7 @@ import {
   BARRIEROWNERTYPE,
   FERC_REGULATED,
   STATE_REGULATED,
+  NRCSDAM,
   WATER_RIGHT,
   STREAM_SIZECLASS,
   STREAM_SIZECLASS_DRAINAGE_AREA,
@@ -32,6 +33,7 @@ const LocationInfo = ({
   barrierownertype,
   fercregulated,
   stateregulated,
+  nrcsdam,
   fedregulatoryagency,
   waterright,
   costlower,
@@ -175,6 +177,15 @@ const LocationInfo = ({
         </Entry>
       ) : null}
 
+      {nrcsdam === 1 ? (
+        <Entry>
+          This is a NRCS flood control dam
+          {/* <Field label="NRCS flood control dam">
+            {NRCSDAM[nrcsdam].toLowerCase()}
+          </Field> */}
+        </Entry>
+      ) : null}
+
       {waterright !== null && waterright > 0 ? (
         <Entry>
           <Field label="Has an associated water right">
@@ -286,6 +297,7 @@ LocationInfo.propTypes = {
   barrierownertype: PropTypes.number,
   fercregulated: PropTypes.number,
   stateregulated: PropTypes.number,
+  nrcsdam: PropTypes.number,
   fedregulatoryagency: PropTypes.string,
   waterright: PropTypes.number,
   costlower: PropTypes.number,
@@ -313,6 +325,7 @@ LocationInfo.defaultProps = {
   barrierownertype: 0,
   fercregulated: null,
   stateregulated: null,
+  nrcsdam: null,
   fedregulatoryagency: null,
   waterright: null,
   costlower: 0,

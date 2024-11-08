@@ -32,6 +32,7 @@ const Ownership = ({
   fercregulated,
   stateregulated,
   fedregulatoryagency,
+  nrcsdam,
   waterright,
   hazard,
   construction,
@@ -91,6 +92,10 @@ const Ownership = ({
 
           {fedregulatoryagency ? (
             <Entry>Federal regulatory agency: {fedregulatoryagency}</Entry>
+          ) : null}
+
+          {nrcsdam === 1 ? (
+            <Entry>This is a NRCS flood control dam</Entry>
           ) : null}
 
           {waterright !== null && waterright > 0 ? (
@@ -245,6 +250,7 @@ Ownership.propTypes = {
   fercregulated: PropTypes.number,
   stateregulated: PropTypes.number,
   fedregulatoryagency: PropTypes.string,
+  nrcsdam: PropTypes.number,
   waterright: PropTypes.number,
   height: PropTypes.number,
   width: PropTypes.number,
@@ -276,6 +282,7 @@ Ownership.defaultProps = {
   fercregulated: null,
   stateregulated: null,
   fedregulatoryagency: null,
+  nrcsdam: null,
   waterright: null,
   height: 0,
   width: 0,

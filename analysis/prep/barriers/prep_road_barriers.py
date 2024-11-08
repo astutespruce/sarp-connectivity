@@ -357,7 +357,7 @@ removed_fields = {
 for field, values in removed_fields.items():
     ix = df[field].isin(values) & (df.YearRemoved <= datetime.today().year) & (~(df.dropped | df.removed))
     df.loc[ix, "removed"] = True
-    df.loc[ix, "log"] = format_log("removed", field, sorted(df.loc[ix][field].unique()))
+    df.loc[ix, "log"] = format_log("removed", field, sorted(df.loc[ix][field].unique().tolist()))
 
 
 # if YearFishPass is set and BarrierSeverity indicates no barrier, mark as removed (fully mitigated)
@@ -396,7 +396,7 @@ dropped_fields = {
 for field, values in dropped_fields.items():
     ix = df[field].isin(values) & (~(df.dropped | df.removed))
     df.loc[ix, "dropped"] = True
-    df.loc[ix, "log"] = format_log("dropped", field, sorted(df.loc[ix][field].unique()))
+    df.loc[ix, "log"] = format_log("dropped", field, sorted(df.loc[ix][field].unique().tolist()))
 
 
 ### Exclude barriers that should not be analyzed or prioritized based on Recon or ManualReview
@@ -406,7 +406,7 @@ exclude_fields = {"Recon": EXCLUDE_RECON, "ManualReview": EXCLUDE_MANUALREVIEW}
 for field, values in exclude_fields.items():
     ix = df[field].isin(values) & (~(df.dropped | df.removed | df.excluded))
     df.loc[ix, "excluded"] = True
-    df.loc[ix, "log"] = format_log("excluded", field, sorted(df.loc[ix][field].unique()))
+    df.loc[ix, "log"] = format_log("excluded", field, sorted(df.loc[ix][field].unique().tolist()))
 
 
 ### Mark any barriers that should cut the network but be excluded from ranking
@@ -415,7 +415,7 @@ unranked_fields = {"invasive": [True], "PotentialProject": UNRANKED_POTENTIAL_PR
 for field, values in unranked_fields.items():
     ix = df[field].isin(values) & (~(df.dropped | df.excluded | df.removed | df.unranked))
     df.loc[ix, "unranked"] = True
-    df.loc[ix, "log"] = format_log("unranked", field, sorted(df.loc[ix][field].unique()))
+    df.loc[ix, "log"] = format_log("unranked", field, sorted(df.loc[ix][field].unique().tolist()))
 
 ### Exclude any other PotentialProject values that we don't specfically allow
 # IMPORTANT: we now include Minor Barriers, but then exclude them from specific
@@ -494,7 +494,7 @@ exclude_snap_fields = {
 for field, values in exclude_snap_fields.items():
     ix = df[field].isin(values)
     exclude_snap_ix = exclude_snap_ix | ix
-    df.loc[ix, "snap_log"] = format_log("not snapped", field, sorted(df.loc[ix][field].unique()))
+    df.loc[ix, "snap_log"] = format_log("not snapped", field, sorted(df.loc[ix][field].unique().tolist()))
 
 to_snap = df.loc[~exclude_snap_ix].copy()
 
