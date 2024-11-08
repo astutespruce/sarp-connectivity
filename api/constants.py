@@ -95,6 +95,7 @@ METRIC_FIELDS = [
     "HasNetwork",
     "Ranked",
     "Intermittent",
+    "Canal",
     "StreamOrder",
     "Landcover",
     "SizeClasses",
@@ -132,6 +133,7 @@ METRIC_FIELDS = [
     "AlteredUpstreamMainstemMiles",
     "UnalteredUpstreamMainstemMiles",
     "PerennialUnalteredUpstreamMainstemMiles",
+    "PercentMainstemUnaltered",
     # downstream linear networks (to next barrier or outlet)
     "FreeLinearDownstreamMiles",
     "FreePerennialLinearDownstreamMiles",
@@ -180,10 +182,13 @@ DOWNSTREAM_LINEAR_NETWORK_FIELDS = [
 CUSTOM_TIER_FIELDS = [
     "NC_tier",
     "PNC_tier",
+    "MNC_tier",
     "WC_tier",
     "PWC_tier",
+    "MWC_tier",
     "NCWC_tier",
     "PNCWC_tier",
+    "MNCWC_tier",
 ]
 
 # Only present for dams
@@ -270,6 +275,7 @@ FILTER_FIELDS = [
     "OwnerType",
     "BarrierOwnerType",
     "Intermittent",
+    "Canal",
     "FlowsToOcean",
     "DownstreamOceanMilesClass",
     "DownstreamOceanBarriersClass",
@@ -323,6 +329,7 @@ ROAD_CROSSING_FILTER_FIELDS = [
     "StreamOrderClass",
     "AnnualFlowClass",
     "Intermittent",
+    "Canal",
     "CrossingType",
     "OwnerType",
     "BarrierOwnerType",
@@ -579,6 +586,7 @@ ROAD_CROSSING_CORE_FIELDS = (
         "Subwatershed",
         "CrossingType",
         "Intermittent",
+        "Canal",
         "StreamOrder",
         # specific to crossings
         "Surveyed",
@@ -1132,6 +1140,13 @@ INTERMITTENT_DOMAIN = {
     1: "stream is likely intermittent / ephemeral",
 }
 
+CANAL_DOMAIN = {
+    -1: "off network",
+    0: "stream is not identified by NHD as a canal/ditch",
+    1: "stream is identified by NHD as a canal/ditch",
+}
+
+
 # this domain is created dynamically in calculate_spp_stats and needs to be updated
 # whenever species data are reprocessed
 # IMPORTANT: the UI uses a domain for individual values
@@ -1263,6 +1278,7 @@ DOMAINS = {
     "Ranked": BOOLEAN_DOMAIN,
     "Invasive": BOOLEAN_DOMAIN,
     "Intermittent": INTERMITTENT_DOMAIN,
+    "Canal": CANAL_DOMAIN,
     "FlowsToOcean": BOOLEAN_OFFNETWORK_DOMAIN,
     "FlowsToGreatLakes": BOOLEAN_OFFNETWORK_DOMAIN,
     "ExitsRegion": BOOLEAN_OFFNETWORK_DOMAIN,
@@ -1424,6 +1440,7 @@ FIELD_DEFINITIONS = {
     "Invasive": "this {type} is identified as a beneficial to restricting the movement of invasive species and is not ranked",
     "OnLoop": "this {type} occurs on a loop within the NHD High Resolution aquatic network and is considered off-network for purposes of network analysis and ranking",
     "Intermittent": "indicates if this {type} was snapped to a a stream or river reach coded by NHDPlusHR as an intermittent or ephemeral. -1 = not available.",
+    "Canal": "indicates if this {type} was snapped to a a stream or river reach coded by NHDPlusHR as a canal or ditch. -1 = not available.",
     "StreamOrder": "NHDPlus Modified Strahler stream order. -1 = not available.",
     "Landcover": "average amount of the river floodplain in the upstream network that is in natural landcover types.  -1 = not available.",
     "SizeClasses": "number of unique upstream size classes that could be gained by removal of this {type}. -1 = not available.",
@@ -1460,6 +1477,7 @@ FIELD_DEFINITIONS = {
     "AlteredUpstreamMainstemMiles": "number of altered miles in the upstream mainstem river network from this {type}, including miles in waterbodies.  See TotalUpstreamMainstemMiles for definition of mainstem and AlteredUpstreamMiles for definition of altered reaches.  -1 = not available.",
     "UnalteredUpstreamMainstemMiles": "number of unaltered miles in the upstream mainstem river network from this {type}, including miles in waterbodies.  See TotalUpstreamMainstemMiles for definition of mainstem and UnalteredUpstreamMiles for definition of unaltered reaches.  -1 = not available.",
     "PerennialUnalteredUpstreamMainstemMiles": "number of unaltered perennial miles in the upstream mainstem river network from this {type}, including miles in waterbodies.  See TotalUpstreamMainstemMiles for definition of mainstem and PerennialUnalteredUpstreamMiles for definition of perennial unaltered reaches.   -1 = not available.",
+    "PercentMainstemUnaltered": "percent of the upstream mainstem river network length from this {type} that is not specifically identified in NHD or the National Wetlands Inventory as altered (canal / ditch, within a reservoir, or other channel alteration).  -1 = not available.",
     # downstream linear networks (to next barrier or outlet)
     "FreeLinearDownstreamMiles": "number of miles in the linear downstream flow direction between this {type} and the next barrier downstream (if any) or downstream-most point (e.g., ocean, river outlet, interior basin, etc) on the full aquatic network on which it occurs. Excludes miles in altered reaches in waterbodies.  -1 = not available.",
     "FreePerennialLinearDownstreamMiles": "number of perennial miles in the linear downstream flow direction between this {type} and the next barrier downstream or downstream-most point on the full aquatic network on which it occurs.  Excludes miles in altered reaches in waterbodies.  See PerennialUpstreamMiles for definition of perennial reaches. -1 = not available.",

@@ -8,7 +8,6 @@ import {
   BARRIEROWNERTYPE,
   FERC_REGULATED,
   STATE_REGULATED,
-  NRCSDAM,
   WATER_RIGHT,
   STREAM_SIZECLASS,
   STREAM_SIZECLASS_DRAINAGE_AREA,
@@ -44,6 +43,7 @@ const LocationInfo = ({
   fishhabitatpartnership,
   nativeterritories,
   intermittent,
+  canal,
   storagevolume,
   streamorder,
   streamsizeclass,
@@ -92,6 +92,11 @@ const LocationInfo = ({
       {intermittent === 1 ? (
         <Entry>This {barrierTypeLabel} is on an intermittent reach</Entry>
       ) : null}
+
+      {canal === 1 ? (
+        <Entry>This {barrierTypeLabel} is on canal or ditch</Entry>
+      ) : null}
+
       {storagevolume !== null ? (
         <Entry>
           <Field label="Normal storage volume">
@@ -99,6 +104,7 @@ const LocationInfo = ({
           </Field>
         </Entry>
       ) : null}
+
       {waterbodysizeclass > 0 ? (
         <Entry>
           This {barrierTypeLabel} is associated with a{' '}
@@ -308,6 +314,7 @@ LocationInfo.propTypes = {
   fishhabitatpartnership: PropTypes.string,
   nativeterritories: PropTypes.string,
   intermittent: PropTypes.number,
+  canal: PropTypes.number,
   storagevolume: PropTypes.number,
   streamorder: PropTypes.number,
   streamsizeclass: PropTypes.string,
@@ -336,6 +343,7 @@ LocationInfo.defaultProps = {
   fishhabitatpartnership: null,
   nativeterritories: null,
   intermittent: 0,
+  canal: 0,
   storagevolume: null,
   streamorder: 0,
   streamsizeclass: null,

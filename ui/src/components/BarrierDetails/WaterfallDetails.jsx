@@ -45,6 +45,7 @@ const WaterfallDetails = ({
   huc12,
   in_network_type,
   intermittent,
+  canal,
   landcover,
   milestooutlet,
   nativeterritories,
@@ -105,6 +106,7 @@ const WaterfallDetails = ({
           fishhabitatpartnership={fishhabitatpartnership}
           nativeterritories={nativeterritories}
           intermittent={intermittent}
+          canal={canal}
           streamorder={streamorder}
           streamsizeclass={streamsizeclass}
           wildscenicriver={wildscenicriver}
@@ -283,6 +285,7 @@ WaterfallDetails.propTypes = {
   nativeterritories: PropTypes.string,
   in_network_type: PropTypes.bool,
   intermittent: PropTypes.number,
+  canal: PropTypes.number,
   landcover: PropTypes.number,
   milestooutlet: PropTypes.number,
   onloop: PropTypes.bool,
@@ -402,7 +405,8 @@ WaterfallDetails.defaultProps = {
   huc12: null,
   nativeterritories: null,
   in_network_type: false,
-  intermittent: -1,
+  intermittent: 0,
+  canal: 0,
   landcover: null,
   milestooutlet: 0,
   onloop: false,

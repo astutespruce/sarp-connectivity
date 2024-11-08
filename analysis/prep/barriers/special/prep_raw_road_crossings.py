@@ -503,6 +503,9 @@ df["stream_type"] = df.FCode.map(FCODE_TO_STREAMTYPE).fillna(0).astype("uint8")
 # calculate intermittent + ephemeral
 df["intermittent"] = df.FCode.isin([46003, 46007])
 
+# calculate canal / ditch
+df["canal"] = df.FCode.isin([33600, 33601, 33603])
+
 # Fix missing field values
 df.StreamOrder = df.StreamOrder.fillna(-1).astype("int8")
 df["loop"] = df.loop.fillna(0).astype("bool")

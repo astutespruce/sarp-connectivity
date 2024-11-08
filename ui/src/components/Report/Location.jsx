@@ -17,6 +17,7 @@ const Location = ({
   annualflow,
   river,
   intermittent,
+  canal,
   subbasin,
   subwatershed,
   huc12,
@@ -64,12 +65,18 @@ const Location = ({
           </Entry>
         ) : null}
 
-        {intermittent ? (
+        {intermittent === 1 ? (
           <Entry>
             <Text>
               This {barrierTypeLabel} is located on a reach that has
               intermittent or ephemeral flow
             </Text>
+          </Entry>
+        ) : null}
+
+        {canal === 1 ? (
+          <Entry>
+            <Text>This {barrierTypeLabel} is located on a canal or ditch</Text>
           </Entry>
         ) : null}
 
@@ -119,6 +126,7 @@ Location.propTypes = {
   annualflow: PropTypes.number,
   river: PropTypes.string,
   intermittent: PropTypes.number,
+  canal: PropTypes.number,
   subbasin: PropTypes.string,
   subwatershed: PropTypes.string,
   huc12: PropTypes.string,
@@ -133,6 +141,7 @@ Location.defaultProps = {
   annualflow: null,
   river: null,
   intermittent: 0,
+  canal: 0,
   subbasin: null,
   subwatershed: null,
   huc12: null,

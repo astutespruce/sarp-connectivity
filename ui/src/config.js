@@ -1097,6 +1097,12 @@ export const INTERMITTENT = {
   1: 'stream is likely intermittent / ephemeral',
 }
 
+export const CANAL = {
+  // -1: "off network", // filtered out
+  0: 'stream is not identified by NHD as a canal/ditch',
+  1: 'stream is identified by NHD as a canal/ditch',
+}
+
 // barrier passability
 export const PASSABILITY = {
   0: 'unknown',

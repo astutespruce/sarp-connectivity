@@ -61,6 +61,7 @@ const BarrierDetails = ({
   barrierownertype,
   barrierseverity,
   basin,
+  canal,
   condition,
   congressionaldistrict,
   constriction,
@@ -177,6 +178,7 @@ const BarrierDetails = ({
           fishhabitatpartnership={fishhabitatpartnership}
           nativeterritories={nativeterritories}
           intermittent={intermittent}
+          canal={canal}
           streamorder={streamorder}
           streamsizeclass={streamsizeclass}
           wildscenicriver={wildscenicriver}
@@ -403,6 +405,7 @@ BarrierDetails.propTypes = {
   barrierownertype: PropTypes.number,
   barrierseverity: PropTypes.number,
   basin: PropTypes.string,
+  canal: PropTypes.number,
   condition: PropTypes.number,
   congressionaldistrict: PropTypes.string,
   constriction: PropTypes.number,
@@ -541,6 +544,7 @@ BarrierDetails.defaultProps = {
   barrierownertype: null,
   barrierseverity: null,
   basin: null,
+  canal: 0,
   condition: null,
   congressionaldistrict: null,
   constriction: null,

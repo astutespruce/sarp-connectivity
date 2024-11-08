@@ -41,6 +41,7 @@ const DamDetails = ({
   annualflow,
   barrierownertype,
   basin,
+  canal,
   condition,
   construction,
   congressionaldistrict,
@@ -209,6 +210,7 @@ const DamDetails = ({
           fishhabitatpartnership={fishhabitatpartnership}
           nativeterritories={nativeterritories}
           intermittent={intermittent}
+          canal={canal}
           storagevolume={storagevolume}
           streamorder={streamorder}
           streamsizeclass={streamsizeclass}
@@ -478,6 +480,7 @@ DamDetails.propTypes = {
   annualflow: PropTypes.number,
   barrierownertype: PropTypes.number,
   basin: PropTypes.string,
+  canal: PropTypes.number,
   condition: PropTypes.number,
   congressionaldistrict: PropTypes.string,
   construction: PropTypes.number,
@@ -632,6 +635,7 @@ DamDetails.defaultProps = {
   annualflow: null,
   barrierownertype: null,
   basin: null,
+  canal: 0,
   condition: null,
   congressionaldistrict: null,
   construction: null,
@@ -663,7 +667,7 @@ DamDetails.defaultProps = {
   height: 0,
   huc12: null,
   in_network_type: false,
-  intermittent: -1,
+  intermittent: 0,
   invasive: false,
   landcover: null,
   sourcelink: null,

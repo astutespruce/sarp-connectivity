@@ -5,6 +5,7 @@ import {
   SALMONID_ESU,
   SALMONID_ESU_COUNT,
   INTERMITTENT,
+  CANAL,
   CROSSING_TYPE,
   STREAMORDER,
   ANNUAL_FLOW,
@@ -101,6 +102,13 @@ export const roadCrossings = [
         title: 'Located on an Intermittent / Ephemeral Stream',
         help: 'Note: intermittent / ephemeral status is assigned in the underlying NHD data and is not consistently assigned for all stream reaches.  Non-intermittent reaches may have perennial flow or be assigned to a different stream reach type which precludes intermittent / ephemeral status.',
         ...getEntries(INTERMITTENT),
+      },
+      {
+        field: 'canal',
+        title: 'Located on a canal or ditch',
+        sort: false,
+        help: 'Note: canal / ditch status is assigned in the underlying NHD data and is not necessarily assigned for all stream reaches.',
+        ...getEntries(CANAL),
       },
       {
         field: 'annualflowclass',
