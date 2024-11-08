@@ -112,7 +112,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
   let state = ''
   let removed = false
   let yearremoved = null
-  let isPriority = false
+  let isPriority = 0
   let isSurveyed = false
 
   if (data) {

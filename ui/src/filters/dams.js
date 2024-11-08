@@ -114,6 +114,13 @@ export const dams = [
         help: 'Note: identifies barriers within 250 meters of a designated Wild & Scenic River.',
         ...getEntries(BOOLEAN_FIELD),
       },
+      {
+        field: 'ispriority',
+        title: 'Identified as a priority project',
+        sort: false,
+        help: 'Note: based on information about priority projects provided by resource managers, which is only available for a small number of dams.',
+        ...getEntries(BOOLEAN_FIELD),
+      },
     ],
   },
   {

@@ -112,7 +112,7 @@ Header.propTypes = {
   lon: PropTypes.number.isRequired,
   removed: PropTypes.bool,
   yearremoved: PropTypes.number,
-  ispriority: PropTypes.bool,
+  ispriority: PropTypes.number,
   lowheaddam: PropTypes.number,
   diversion: PropTypes.number,
   invasive: PropTypes.bool,
@@ -122,7 +122,7 @@ Header.propTypes = {
 Header.defaultProps = {
   removed: false,
   yearremoved: null,
-  ispriority: false,
+  ispriority: 0,
   lowheaddam: 0,
   diversion: 0,
   invasive: false,

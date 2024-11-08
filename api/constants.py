@@ -301,6 +301,7 @@ DAM_FILTER_FIELDS = FILTER_FIELDS + [
     "WaterbodySizeClass",
     "Removed",
     "CostClass",
+    "IsPriority",
 ]
 DAM_FILTER_FIELD_MAP = {f.lower(): f for f in DAM_FILTER_FIELDS}
 

@@ -229,8 +229,8 @@ df.loc[ix, "Feasibility"] = 9
 # drop invasive species column to prevent later confusion
 df = df.drop(columns=["InvasiveSpecies"])
 
-# convert IsPriority to a bool (1 = Yes, Null/0/2 = No / not set)
-df["IsPriority"] = df.IsPriority == 1
+# convert IsPriority to 0 vs 1  (1 = Yes, Null/0/2 = No / not set)
+df["IsPriority"] = df.IsPriority.map({1: 1, 0: 0, np.nan: 0, 2: 0}).fillna(0).astype("uint8")
 
 # TEMP: (private dams will eventually come from another service, backfill with False)
 df["Private"] = False

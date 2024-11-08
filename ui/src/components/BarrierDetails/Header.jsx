@@ -172,7 +172,7 @@ Header.propTypes = {
   lon: PropTypes.number.isRequired,
   removed: PropTypes.bool,
   yearremoved: PropTypes.number,
-  isPriority: PropTypes.bool,
+  isPriority: PropTypes.number,
   isSurveyed: PropTypes.bool,
   onClose: PropTypes.func.isRequired,
 }
@@ -183,7 +183,7 @@ Header.defaultProps = {
   state: '',
   removed: false,
   yearremoved: null,
-  isPriority: false,
+  isPriority: 0,
   isSurveyed: false,
 }
 
