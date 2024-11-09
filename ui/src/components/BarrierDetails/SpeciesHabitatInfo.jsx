@@ -34,8 +34,7 @@ const SpeciesHabitatInfo = ({ habitat }) => (
                     {limit ? (
                       <>
                         <br />
-                        Data are known to be limited to {limit} and do not cover
-                        the full range of this species.
+                        Data are known to be limited to {limit}.
                       </>
                     ) : null}
                   </InfoTooltip>

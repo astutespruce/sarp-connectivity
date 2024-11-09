@@ -43,8 +43,7 @@ const SpeciesHabitat = ({ habitat, sx }) => {
                 <Text>{label}</Text>
                 {limit ? (
                   <Text variant="help" sx={{ fontSize: 0 }}>
-                    Data are known to be limited to {limit} and do not cover the
-                    full range of this species.
+                    Data are known to be limited to {limit}.
                   </Text>
                 ) : null}
               </Box>

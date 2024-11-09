@@ -6,13 +6,18 @@ import pyarrow.compute as pc
 SCENARIOS = {
     # NetworkConnectivity
     "NC": ["GainMiles"],
-    "PNC": ["PerennialGainMiles"],
     # Watershed Condition
     "WC": ["PercentUnaltered", "Landcover", "SizeClasses"],
-    "PWC": ["PercentPerennialUnaltered", "Landcover", "SizeClasses"],
     # Network Connectivity Plus Watershed Condition
     "NCWC": ["NC", "WC"],
+    # Perennial reaches only (per direction from Kat on 11/8/2024, use full network landcover)
+    "PNC": ["PerennialGainMiles"],
+    "PWC": ["PercentPerennialUnaltered", "Landcover", "PerennialSizeClasses"],
     "PNCWC": ["PNC", "PWC"],
+    # Mainstem networks only
+    "MNC": ["MainstemGainMiles"],
+    "MWC": ["PercentMainstemUnaltered", "Landcover", "MainstemSizeClasses"],
+    "MNCWC": ["MNC", "MWC"],
 }
 
 # Metric fields that are inputs of the above scenarios
@@ -21,8 +26,12 @@ METRICS = [
     "PerennialGainMiles",
     "PercentUnaltered",
     "PercentPerennialUnaltered",
+    "MainstemGainMiles",
+    "PercentMainstemUnaltered",
     "Landcover",
     "SizeClasses",
+    "PerennialSizeClasses",
+    "MainstemSizeClasses",
 ]
 
 
@@ -48,11 +57,7 @@ def calculate_score(column, ascending=True):
     rank_size = len(unique) - 1 or 1  # to prevent divide by 0
 
     sort_indices = (
-        pc.sort_indices(
-            unique, sort_keys=[("", "ascending" if ascending else "descending")]
-        )
-        .to_numpy()
-        .astype("int64")
+        pc.sort_indices(unique, sort_keys=[("", "ascending" if ascending else "descending")]).to_numpy().astype("int64")
     )
 
     # convert position of value within sorted unique values to 0-1 scale
@@ -85,13 +90,9 @@ def calculate_composite_score(scores, columns, weights=None):
         weights = [1.0 / num_cols] * num_cols
 
     elif not len(weights) == num_cols:
-        raise ValueError(
-            "weights must be same length as number of columns in input data frame"
-        )
+        raise ValueError("weights must be same length as number of columns in input data frame")
 
-    score = np.sum(
-        [scores[col] * weight for col, weight in zip(columns, weights)], axis=0
-    )
+    score = np.sum([scores[col] * weight for col, weight in zip(columns, weights)], axis=0)
 
     return score
 
@@ -144,9 +145,7 @@ def calculate_tiers(df):
 
     tiers = {}
     for scenario, inputs in SCENARIOS.items():
-        scores[scenario] = calculate_composite_score(
-            scores, columns=[field for field in inputs]
-        )
+        scores[scenario] = calculate_composite_score(scores, columns=[field for field in inputs])
         tiers[f"{scenario}_tier"] = calculate_tier(scores[scenario])
 
     return pa.Table.from_pydict(tiers)

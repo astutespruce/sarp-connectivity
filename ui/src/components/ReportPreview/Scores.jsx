@@ -18,6 +18,9 @@ const Scores = ({
   state_pnc_tier,
   state_pwc_tier,
   state_pncwc_tier,
+  state_mnc_tier,
+  state_mwc_tier,
+  state_mncwc_tier,
   sx,
 }) => {
   if (!ranked) {
@@ -54,7 +57,7 @@ const Scores = ({
 
       <Box>
         <Table
-          columns="22em 1fr 12em"
+          columns="18em 1fr 1fr 1fr"
           sx={{
             mt: '2rem',
             '> div:not(:first-of-type)': {
@@ -62,28 +65,33 @@ const Scores = ({
             },
           }}
         >
-          <Row>
+          <Row
+            sx={{
+              lineHeight: 1.2,
+              alignItems: 'end',
+              '& > div+div': { textAlign: 'center' },
+            }}
+          >
             <Box sx={{ fontStyle: 'italic' }}>
               Compared to other {barrierTypeLabel} in {state}:
             </Box>
-            <Box>
-              <b>full network</b>
-            </Box>
-            <Box>
-              <b>perennial reaches only</b>
-            </Box>
+            <Box sx={{ fontWeight: 'bold' }}>full network</Box>
+            <Box sx={{ fontWeight: 'bold' }}>perennial reaches</Box>
+            <Box sx={{ fontWeight: 'bold' }}>mainstem network</Box>
           </Row>
-          <Row>
+          <Row sx={{ '& > div+div': { textAlign: 'center' } }}>
             <Box>Network connectivity tier</Box>
             <Box>{state_nc_tier}</Box>
             <Box>{state_pnc_tier}</Box>
+            <Box>{state_mnc_tier}</Box>
           </Row>
-          <Row>
+          <Row sx={{ '& > div+div': { textAlign: 'center' } }}>
             <Box>Watershed condition tier</Box>
             <Box>{state_wc_tier}</Box>
             <Box>{state_pwc_tier}</Box>
+            <Box>{state_mwc_tier}</Box>
           </Row>
-          <Row>
+          <Row sx={{ '& > div+div': { textAlign: 'center' } }}>
             <Box>
               Combined network connectivity &amp;
               <br />
@@ -91,15 +99,29 @@ const Scores = ({
             </Box>
             <Box>{state_ncwc_tier}</Box>
             <Box>{state_pncwc_tier}</Box>
+            <Box>{state_mncwc_tier}</Box>
           </Row>
         </Table>
       </Box>
 
       <Paragraph variant="help" sx={{ mt: '2rem', fontSize: 0 }}>
-        Note: perennial network connectivity is based on the total perennial
-        (non-intermittent or ephemeral) length in a given network. Perennial
-        watershed condition is based partly upon the percent of the perennial
-        stream reaches that are not altered (canals / ditches).
+        Note: network connectivity is based on the total perennial length in a
+        given network. Watershed condition is based on the percent of the total
+        length of stream reaches in the network that are not altered (canals /
+        ditches), the number of unique stream size classes, and the percent of
+        natural landcover in the floodplains. Perennial network connectivity is
+        based on the total perennial (non-intermittent or ephemeral) length in a
+        given network. Perennial watershed condition is based on the percent of
+        the total length of perennial stream reaches that are not altered
+        (canals / ditches), the number of unique stream size classes in
+        perennial reaches, and the percent of natural landcover in the
+        floodplains for the full network. Mainstem network connectivity is based
+        on the total mainstem network length in a given network. Mainstem
+        watershed condition is based on the percent of the total length of
+        stream reaches in the mainstem network that are not altered (canals /
+        ditches), the number of unique stream size classes in the mainstem
+        network, and the percent of natural landcover in the floodplains for the
+        full network.
       </Paragraph>
 
       <Box sx={{ mt: '1rem' }} />
@@ -118,6 +140,9 @@ Scores.propTypes = {
   state_pnc_tier: PropTypes.number,
   state_pwc_tier: PropTypes.number,
   state_pncwc_tier: PropTypes.number,
+  state_mnc_tier: PropTypes.number,
+  state_mwc_tier: PropTypes.number,
+  state_mncwc_tier: PropTypes.number,
   sx: PropTypes.object,
 }
 
@@ -130,6 +155,9 @@ Scores.defaultProps = {
   state_pnc_tier: null,
   state_pwc_tier: null,
   state_pncwc_tier: null,
+  state_mnc_tier: null,
+  state_mwc_tier: null,
+  state_mncwc_tier: null,
   sx: null,
 }
 

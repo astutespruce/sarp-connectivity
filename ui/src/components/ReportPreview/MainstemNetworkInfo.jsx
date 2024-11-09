@@ -1,10 +1,10 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Heading, Paragraph } from 'theme-ui'
+import { Box, Grid, Heading, Paragraph } from 'theme-ui'
 
 import { Table, Row } from 'components/Table'
 import { barrierTypeLabelSingular } from 'config'
-import { formatNumber } from 'util/format'
+import { formatNumber, formatPercent } from 'util/format'
 
 const MainstemNetworkInfo = ({
   barrierType,
@@ -13,6 +13,7 @@ const MainstemNetworkInfo = ({
   perennialupstreammainstemmiles,
   alteredupstreammainstemmiles,
   unalteredupstreammainstemmiles,
+  mainstemsizeclasses,
   freelineardownstreammiles,
   freeperenniallineardownstreammiles,
   freealteredlineardownstreammiles,
@@ -62,6 +63,10 @@ const MainstemNetworkInfo = ({
   const freeintermittentlineardownstreammiles =
     freelineardownstreammiles - freeperenniallineardownstreammiles
 
+  const percentAltered = totalupstreammainstemmiles
+    ? (100 * alteredupstreammainstemmiles) / totalupstreammainstemmiles
+    : 0
+
   return (
     <Box sx={sx}>
       <Heading as="h3">Mainstem network information</Heading>
@@ -76,7 +81,50 @@ const MainstemNetworkInfo = ({
         tributaries).
       </Paragraph>
 
-      <Box sx={{ mt: '1rem' }}>
+      <Grid
+        columns={totalupstreammainstemmiles > 0 ? 3 : 2}
+        gap={0}
+        sx={{
+          mt: '1rem',
+          '&>div': {
+            py: '0.5em',
+          },
+          '&>div + div': {
+            ml: '1rem',
+            pl: '1rem',
+            borderLeft: '1px solid',
+            borderLeftColor: 'grey.3',
+          },
+        }}
+      >
+        <Box>
+          <b>{formatNumber(mainstemGainMiles, 2, true)} total miles</b>{' '}
+          {removed ? 'were' : 'could be'} gained by removing this{' '}
+          {barrierTypeLabel} including{' '}
+          <b>{formatNumber(perennialMainstemGainMiles, 2, true)} miles</b> of
+          perennial reaches.
+        </Box>
+
+        {totalupstreammainstemmiles > 0 ? (
+          <Box>
+            <b>
+              {formatPercent(percentAltered)}% of the upstream mainstem network
+            </b>{' '}
+            is in altered stream reaches.
+          </Box>
+        ) : null}
+
+        <Box>
+          <b>
+            {mainstemsizeclasses} mainstem river size{' '}
+            {mainstemsizeclasses === 1 ? 'class' : 'classes'}
+          </b>{' '}
+          {removed ? 'were' : 'could be'} gained by removing this{' '}
+          {barrierTypeLabel}.
+        </Box>
+      </Grid>
+
+      <Box sx={{ mt: '3rem' }}>
         <Table
           columns="16rem 1fr 1fr"
           sx={{
@@ -206,6 +254,7 @@ MainstemNetworkInfo.propTypes = {
   perennialupstreammainstemmiles: PropTypes.number,
   alteredupstreammainstemmiles: PropTypes.number,
   unalteredupstreammainstemmiles: PropTypes.number,
+  mainstemsizeclasses: PropTypes.number,
   freelineardownstreammiles: PropTypes.number,
   freeperenniallineardownstreammiles: PropTypes.number,
   freealteredlineardownstreammiles: PropTypes.number,
@@ -224,6 +273,7 @@ MainstemNetworkInfo.defaultProps = {
   perennialupstreammainstemmiles: 0,
   alteredupstreammainstemmiles: 0,
   unalteredupstreammainstemmiles: 0,
+  mainstemsizeclasses: 0,
   freelineardownstreammiles: 0,
   freeperenniallineardownstreammiles: 0,
   freealteredlineardownstreammiles: 0,

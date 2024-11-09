@@ -79,6 +79,7 @@ const DamDetails = ({
   landcover,
   sourcelink,
   lowheaddam,
+  mainstemsizeclasses,
   milestooutlet,
   nativeterritories,
   nidfederalid,
@@ -381,6 +382,7 @@ const DamDetails = ({
             freeunalteredlineardownstreammiles={
               freeunalteredlineardownstreammiles
             }
+            mainstemsizeclasses={mainstemsizeclasses}
           />
         </Section>
       ) : null}
@@ -518,6 +520,7 @@ DamDetails.propTypes = {
   landcover: PropTypes.number,
   sourcelink: PropTypes.string,
   lowheaddam: PropTypes.number,
+  mainstemsizeclasses: PropTypes.number,
   milestooutlet: PropTypes.number,
   nativeterritories: PropTypes.string,
   nidfederalid: PropTypes.string,
@@ -672,6 +675,7 @@ DamDetails.defaultProps = {
   landcover: null,
   sourcelink: null,
   lowheaddam: null,
+  mainstemsizeclasses: 0,
   milestooutlet: 0,
   nativeterritories: null,
   nidfederalid: null,

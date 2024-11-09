@@ -59,6 +59,7 @@ NETWORK_COLUMNS = [
     "AlteredUpstreamMainstemMiles",
     "UnalteredUpstreamMainstemMiles",
     "PerennialUnalteredUpstreamMainstemMiles",
+    "PercentMainstemUnaltered",
     "FreeLinearDownstreamMiles",
     "FreePerennialLinearDownstreamMiles",
     "FreeIntermittentLinearDownstreamMiles",
@@ -66,6 +67,8 @@ NETWORK_COLUMNS = [
     "FreeUnalteredLinearDownstreamMiles",
     "natfldpln",
     "sizeclasses",
+    "perennial_sizeclasses",
+    "mainstem_sizeclasses",
     # "barrier",  # not used
     "fn_da_acres",
     "fn_waterfalls",
@@ -154,6 +157,8 @@ NETWORK_COLUMNS = [
 NETWORK_COLUMN_NAMES = {
     "natfldpln": "Landcover",
     "sizeclasses": "SizeClasses",
+    "perennial_sizeclasses": "PerennialSizeClasses",
+    "mainstem_sizeclasses": "MainstemSizeClasses",
     "fn_da_acres": "UpstreamDrainageAcres",
     "fn_dams": "UpstreamDams",
     "fn_small_barriers": "UpstreamSmallBarriers",
@@ -228,8 +233,9 @@ def get_network_results(df, network_type, state_ranks=False):
     # update data types and calculate total fields
     # calculate size classes GAINED instead of total
     # doesn't apply to those that don't have upstream networks
-    networks["SizeClasses"] = networks.SizeClasses.astype("int8")
-    networks.loc[networks.SizeClasses > 0, "SizeClasses"] = networks.loc[networks.SizeClasses > 0, "SizeClasses"] - 1
+    for col in ["SizeClasses", "PerennialSizeClasses", "MainstemSizeClasses"]:
+        networks[col] = networks[col].astype("int8")
+        networks.loc[networks[col] > 0, col] -= 1
 
     ### Calculate classes used for filtering
     networks["GainMilesClass"] = classify_gain_miles(networks.GainMiles)

@@ -301,7 +301,6 @@ def create_networks(joins, barrier_joins, flowlines):
         ).astype("uint32")
 
     else:
-        # up_mainstem_network_df = pd.DataFrame({"networkID": np.array([], "uint32"), "lineID": np.array([], "uint32")})
         up_mainstem_network_df = pd.DataFrame([], columns=["networkID", "lineID"]).astype("uint32")
 
     # handle multiple upstreams like full networks above
@@ -457,7 +456,7 @@ def create_barrier_networks(
     ].copy()
 
     mainstem_network_df = (
-        flowlines[["length", "intermittent", "altered"]]
+        flowlines[["length", "intermittent", "altered", "sizeclass"]]
         .join(upstream_mainstem_networks, how="inner")
         .reset_index()
         .set_index("networkID")
@@ -514,7 +513,10 @@ def create_barrier_networks(
     for col in ["flows_to_ocean", "flows_to_great_lakes", "exits_region", "invasive_network"]:
         network_stats[col] = network_stats[col].fillna(False).astype("bool")
 
-    network_stats.barrier = network_stats.barrier.fillna("")
+    for col in ["perennial_sizeclasses", "mainstem_sizeclasses"]:
+        network_stats[col] = network_stats[col].fillna(0).astype("uint8")
+
+    network_stats["barrier"] = network_stats.barrier.fillna("")
 
     for col in [c for c in network_stats.columns if c.endswith("_miles")] + ["miles_to_outlet"]:
         network_stats[col] = network_stats[col].fillna(0).astype("float32")
@@ -553,6 +555,7 @@ def create_barrier_networks(
                 "pct_unaltered": "PercentUnaltered",
                 "pct_perennial_unaltered": "PercentPerennialUnaltered",
                 "pct_resilient": "PercentResilient",
+                "pct_mainstem_unaltered": "PercentMainstemUnaltered",
                 "unaltered_waterbody_acres": "UpstreamUnalteredWaterbodyAcres",
                 "unaltered_wetland_acres": "UpstreamUnalteredWetlandAcres",
                 **{
@@ -671,7 +674,8 @@ def create_barrier_networks(
     for col in length_cols + ["natfldpln"]:
         barrier_networks[col] = barrier_networks[col].astype("float32")
 
-    barrier_networks.sizeclasses = barrier_networks.sizeclasses.astype("uint8")
+    for col in ["sizeclasses", "perennial_sizeclasses", "mainstem_sizeclasses"]:
+        barrier_networks[col] = barrier_networks[col].astype("uint8")
 
     # copy to degragment data frame
     barrier_networks = barrier_networks.copy()
@@ -740,7 +744,7 @@ def create_barrier_networks(
         barrier_networks[column] = barrier_networks[column].round(3).fillna(0)
 
     ### Round PercentUnaltered and PercentAltered to integers
-    for subset in ["", "Perennial"]:
+    for subset in ["", "Perennial", "Mainstem"]:
         barrier_networks[f"Percent{subset}Unaltered"] = (
             barrier_networks[f"Percent{subset}Unaltered"].round().astype("int8")
         )

@@ -3,7 +3,7 @@ import { fromArrow } from 'arquero'
 
 import { unpackBits, toCamelCaseFields } from 'util/data'
 import { captureException } from 'util/log'
-import { siteMetadata, TIER_PACK_BITS } from 'config'
+import { siteMetadata, TIER_FIELDS, TIER_PACK_INFO } from 'config'
 import { extractYearRemovedStats } from 'components/Restoration/util'
 
 const { apiHost } = siteMetadata
@@ -93,11 +93,23 @@ export const fetchBarrierRanks = async (barrierType, summaryUnits, filters) => {
     filters,
   })}`
 
-  // Unpack bit-packed tiers
+  // Unpack bit-packed tier scenarios
   const { data: packedTiers, bounds } = await fetchFeather(url, undefined)
-  const data = packedTiers.map(({ id, tiers }) => ({
+  const data = packedTiers.map(({ id, full, perennial, mainstem }) => ({
     id,
-    ...unpackBits(tiers, TIER_PACK_BITS),
+    // ...unpackBits(tiers, TIER_PACK_BITS),
+    ...unpackBits(
+      full,
+      TIER_FIELDS.map((field) => ({ field, ...TIER_PACK_INFO }))
+    ),
+    ...unpackBits(
+      perennial,
+      TIER_FIELDS.map((field) => ({ field: `p${field}`, ...TIER_PACK_INFO }))
+    ),
+    ...unpackBits(
+      mainstem,
+      TIER_FIELDS.map((field) => ({ field: `m${field}`, ...TIER_PACK_INFO }))
+    ),
   }))
 
   return {

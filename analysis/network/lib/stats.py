@@ -68,6 +68,13 @@ def calculate_upstream_network_stats(
 
     # count unique size classes in upstream functional network
     sizeclasses = up_network_df.groupby(level=0).sizeclass.nunique().astype("uint8").rename("sizeclasses")
+    perennial_sizeclasses = (
+        up_network_df.loc[~up_network_df.intermittent]
+        .groupby(level=0)
+        .sizeclass.nunique()
+        .astype("uint8")
+        .rename("perennial_sizeclasses")
+    )
 
     # create series of networkID indexed by lineID
     networkID = up_network_df.reset_index().set_index("lineID").networkID
@@ -204,6 +211,7 @@ def calculate_upstream_network_stats(
         .join(calculate_floodplain_stats(up_network_df))
         .join(calculate_upstream_waterbody_wetland_stats(up_network_df, unaltered_waterbodies, unaltered_wetlands))
         .join(sizeclasses)
+        .join(perennial_sizeclasses)
         .join(fn_upstream_counts)
         .join(fn_upstream_area)
         .join(tot_upstream_counts)
@@ -217,6 +225,9 @@ def calculate_upstream_network_stats(
     # backfill count columns
     count_cols = fn_upstream_counts.columns.tolist() + tot_upstream_counts.columns.tolist()
     results[count_cols] = results[count_cols].fillna(0)
+
+    # backfill sizeclass columns
+    results["perennial_sizeclasses"] = results.perennial_sizeclasses.fillna(0).astype("uint8")
 
     return results
 
@@ -412,7 +423,7 @@ def calculate_upstream_mainstem_stats(df):
     Parameters
     ----------
     df : DataFrame
-        must have length, free_flowing, and perennial, and be indexed on
+        must have length, free_flowing, perennial, and sizeclass, and be indexed on
         networkID
 
     Returns
@@ -438,15 +449,31 @@ def calculate_upstream_mainstem_stats(df):
         df.loc[~(df.intermittent | df.altered), "length"].groupby(level=0).sum() * METERS_TO_MILES
     ).rename("perennial_unaltered_mainstem_miles")
 
-    return (
-        pd.DataFrame(total_miles)
-        .join(perennial_miles)
-        .join(intermittent_miles)
-        .join(altered_miles)
-        .join(unaltered_miles)
-        .join(perennial_unaltered_miles)
-        .fillna(0)
-    ).astype("float32")
+    # calculate percent altered
+    pct_unaltered = (
+        (100.0 * (unaltered_miles / total_miles)).clip(0, 100).astype("float32").rename("pct_mainstem_unaltered")
+    )
+
+    sizeclasses = df.groupby(level=0).sizeclass.nunique().astype("uint8").rename("mainstem_sizeclasses")
+
+    results = (
+        (
+            pd.DataFrame(total_miles)
+            .join(perennial_miles)
+            .join(intermittent_miles)
+            .join(altered_miles)
+            .join(unaltered_miles)
+            .join(perennial_unaltered_miles)
+            .join(pct_unaltered)
+            .fillna(0)
+        )
+        .astype("float32")
+        .join(sizeclasses)
+    )
+
+    results["mainstem_sizeclasses"] = results.mainstem_sizeclasses.fillna(0).astype("uint8")
+
+    return results
 
 
 def calculate_upstream_waterbody_wetland_stats(df, unaltered_waterbodies, unaltered_wetlands):

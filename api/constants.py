@@ -52,10 +52,14 @@ class Formats(str, Enum):
 
 class Scenarios(str, Enum):
     NC = "NC"
-    PNC = "PNC"
     WC = "WC"
     NCWC = "NCWC"
+    PNC = "PNC"
+    PWC = "PWC"
     PNCWC = "PNCWC"
+    MNC = "MNC"
+    MWC = "MWC"
+    MNCWC = "MNCWC"
 
 
 def unique(items):
@@ -99,6 +103,8 @@ METRIC_FIELDS = [
     "StreamOrder",
     "Landcover",
     "SizeClasses",
+    "PerennialSizeClasses",
+    "MainstemSizeClasses",
     # full upstream functional network
     "TotalUpstreamMiles",
     "PerennialUpstreamMiles",
@@ -181,13 +187,13 @@ DOWNSTREAM_LINEAR_NETWORK_FIELDS = [
 # Only present when custom prioritization is performed
 CUSTOM_TIER_FIELDS = [
     "NC_tier",
-    "PNC_tier",
-    "MNC_tier",
     "WC_tier",
-    "PWC_tier",
-    "MWC_tier",
     "NCWC_tier",
+    "PNC_tier",
+    "PWC_tier",
     "PNCWC_tier",
+    "MNC_tier",
+    "MWC_tier",
     "MNCWC_tier",
 ]
 
@@ -694,11 +700,6 @@ SUMMARY_UNIT_FIELDS = [
     "total_road_crossings",
     "unsurveyed_road_crossings",
 ]
-
-
-### Bit-packing for tiers
-TIER_BITS = 5  # holds values 0...21 after subtracting offset
-CUSTOM_TIER_PACK_BITS = [{"field": c, "bits": TIER_BITS, "value_shift": 1} for c in CUSTOM_TIER_FIELDS]
 
 
 ### Domains for coded values in exported data
@@ -1444,6 +1445,8 @@ FIELD_DEFINITIONS = {
     "StreamOrder": "NHDPlus Modified Strahler stream order. -1 = not available.",
     "Landcover": "average amount of the river floodplain in the upstream network that is in natural landcover types.  -1 = not available.",
     "SizeClasses": "number of unique upstream size classes that could be gained by removal of this {type}. -1 = not available.",
+    "PerennialSizeClasses": "number of unique upstream size classes of perennial stream reaches that could be gained by removal of this {type}. -1 = not available.",
+    "MainstemSizeClasses": "number of unique upstream size classes within mainstem networks that could be gained by removal of this {type}. -1 = not available.",
     # upstream and downstream functional network stats
     "TotalUpstreamMiles": "number of miles in the upstream functional river network from this {type}, including miles in waterbodies. -1 = not available.",
     "PerennialUpstreamMiles": "number of perennial miles in the upstream functional river network from this {type}, including miles in waterbodies.  Perennial reaches are all those not specifically coded by NHD as ephemeral or intermittent, and include other types, such as canals and ditches that may not actually be perennial.  Networks are constructed using all flowlines, not just perennial reaches. -1 = not available.",
@@ -1574,15 +1577,21 @@ FIELD_DEFINITIONS = {
     "State_NC_tier": "network connectivity tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for network connectivity and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "State_WC_tier": "watershed condition tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "State_NCWC_tier": "combined network connectivity and watershed condition tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for the combined network connectivity and watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
-    "State_PNC_tier": "network connectivity tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for network connectivity and tier 20 represents the lowest 5%.  -1 = not prioritized.",
+    "State_PNC_tier": "perennial network connectivity tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for network connectivity and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "State_PWC_tier": "perennial watershed condition tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "State_PNCWC_tier": "combined perennial network connectivity and watershed condition tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for the combined network connectivity and watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
+    "State_MNC_tier": "mainstem network connectivity tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for network connectivity and tier 20 represents the lowest 5%.  -1 = not prioritized.",
+    "State_MWC_tier": "mainstem watershed condition tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
+    "State_MNCWC_tier": "combined mainstem network connectivity and watershed condition tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for the combined network connectivity and watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "NC_tier": "network connectivity tier for your selected subset.  Tier 1 represents the {type}s within the top 5% of scores for network connectivity and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "WC_tier": "watershed condition tier for your selected subset.  Tier 1 represents the {type}s within the top 5% of scores for watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "NCWC_tier": "combined network connectivity and watershed condition tier for your selected subset.  Tier 1 represents the {type}s within the top 5% of scores for the combined network connectivity and watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "PNC_tier": "perennial network connectivity tier for your selected subset.  Tier 1 represents the {type}s within the top 5% of scores for network connectivity and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "PWC_tier": "perennial watershed condition tier for your selected subset.  Tier 1 represents the {type}s within the top 5% of scores for watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "PNCWC_tier": "combined perennial network connectivity and watershed condition tier for your selected subset.  Tier 1 represents the {type}s within the top 5% of scores for the combined network connectivity and watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
+    "MNC_tier": "mainstem network connectivity tier for your selected subset.  Tier 1 represents the {type}s within the top 5% of scores for network connectivity and tier 20 represents the lowest 5%.  -1 = not prioritized.",
+    "MWC_tier": "mainstem watershed condition tier for your selected subset.  Tier 1 represents the {type}s within the top 5% of scores for watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
+    "MNCWC_tier": "mainstem combined network connectivity and watershed condition tier for your selected subset.  Tier 1 represents the {type}s within the top 5% of scores for the combined network connectivity and watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
 }
 
 DAM_FIELD_DEFINITIONS = {k: v.replace("{type}", "dam") for k, v in FIELD_DEFINITIONS.items()}

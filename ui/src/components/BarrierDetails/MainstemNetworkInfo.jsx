@@ -5,8 +5,8 @@ import { Box, Text } from 'theme-ui'
 import { barrierTypeLabelSingular } from 'config'
 import { Table, Row } from 'components/Table'
 import { InfoTooltip } from 'components/Tooltip'
-import { Entry } from 'components/Sidebar'
-import { formatNumber } from 'util/format'
+import { Entry, Field } from 'components/Sidebar'
+import { formatNumber, formatPercent } from 'util/format'
 
 const activeSideCSS = {
   fontWeight: 'bold',
@@ -26,6 +26,7 @@ const MainstemNetworkInfo = ({
   freeperenniallineardownstreammiles,
   freealteredlineardownstreammiles,
   freeunalteredlineardownstreammiles,
+  mainstemsizeclasses,
   fontSize,
   headerFontSize,
   removed,
@@ -72,6 +73,10 @@ const MainstemNetworkInfo = ({
     totalupstreammainstemmiles - perennialupstreammainstemmiles
   const freeintermittentlineardownstreammiles =
     freelineardownstreammiles - freeperenniallineardownstreammiles
+
+  const percentAltered = totalupstreammainstemmiles
+    ? (100 * alteredupstreammainstemmiles) / totalupstreammainstemmiles
+    : 0
 
   return (
     <Box {...props}>
@@ -367,6 +372,42 @@ const MainstemNetworkInfo = ({
           .
         </Text>
       </Entry>
+      {totalupstreammainstemmiles > 0 ? (
+        <>
+          <Entry>
+            <Field label="Percent of the upstream network in altered stream channels">
+              <Text
+                sx={{
+                  fontSize: 1,
+                  fontWeight: 'bold',
+                }}
+              >
+                {formatPercent(percentAltered)}%
+              </Text>
+            </Field>
+          </Entry>
+          <Entry>
+            <Field
+              label={
+                barrierType === 'waterfalls'
+                  ? 'Number of mainstem size classes upstream'
+                  : `Number of mainstem size classes that ${
+                      removed ? 'were' : 'could be'
+                    } gained by removing this barrier`
+              }
+            >
+              <Text
+                sx={{
+                  fontSize: 1,
+                  fontWeight: mainstemsizeclasses > 0 ? 'bold' : 'inherit',
+                }}
+              >
+                {mainstemsizeclasses}
+              </Text>
+            </Field>
+          </Entry>
+        </>
+      ) : null}
     </Box>
   )
 }
@@ -380,7 +421,7 @@ MainstemNetworkInfo.propTypes = {
   perennialupstreammainstemmiles: PropTypes.number,
   alteredupstreammainstemmiles: PropTypes.number,
   unalteredupstreammainstemmiles: PropTypes.number,
-  resilientupstreammiles: PropTypes.number,
+  mainstemsizeclasses: PropTypes.number,
   freelineardownstreammiles: PropTypes.number,
   freeperenniallineardownstreammiles: PropTypes.number,
   freealteredlineardownstreammiles: PropTypes.number,
@@ -400,7 +441,7 @@ MainstemNetworkInfo.defaultProps = {
   perennialupstreammainstemmiles: 0,
   alteredupstreammainstemmiles: 0,
   unalteredupstreammainstemmiles: 0,
-  resilientupstreammiles: 0,
+  mainstemsizeclasses: 0,
   freelineardownstreammiles: 0,
   freeperenniallineardownstreammiles: 0,
   freealteredlineardownstreammiles: 0,

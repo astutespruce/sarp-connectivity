@@ -443,8 +443,15 @@ for network_type in network_types:
             # (barrier_id == <id>) & (networkID == cur_networks.loc[<id>].upNetID)
 
             # update size classes based on updated segments
-            sibling_networks = sibling_networks.drop(columns=["sizeclasses"]).join(
-                cur_segments.groupby("barrier_id").sizeclass.unique().apply(len).rename("sizeclasses")
+            sibling_networks = (
+                sibling_networks.drop(columns=["sizeclasses", "perennial_sizeclasses"])
+                .join(cur_segments.groupby("barrier_id").sizeclass.nunique().rename("sizeclasses"))
+                .join(
+                    cur_segments.loc[~cur_segments.intermittent]
+                    .groupby("barrier_id")
+                    .sizeclass.nunique()
+                    .rename("perennial_sizeclasses")
+                )
             )
 
             cur_networks = pd.concat(

@@ -12,6 +12,8 @@ import { formatNumber, capitalize } from 'util/format'
 
 import Histogram from './Histogram'
 
+const resultTypePefix = { full: '', perennial: 'p', mainstem: 'm' }
+
 const Results = ({
   config: rawConfig,
   scenario: rawScenario,
@@ -24,7 +26,7 @@ const Results = ({
 }) => {
   const barrierType = useBarrierType()
   const barrierTypeLabel = barrierTypeLabels[barrierType]
-  const scenario = resultsType === 'perennial' ? `p${rawScenario}` : rawScenario
+  const scenario = `${resultTypePefix[resultsType]}${rawScenario}`
 
   let scenarioLabel = SCENARIOS[scenario].toLowerCase()
   if (scenario === 'ncwc') {

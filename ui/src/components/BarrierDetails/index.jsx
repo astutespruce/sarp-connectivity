@@ -182,7 +182,17 @@ const BarrierDetails = ({ barrier, onClose }) => {
       // Transform properties to priorities: <unit>_<metric>_score
       // For now, we are using tier to save space in data transport, so convert them to percent
       const scores = {}
-      const metrics = ['nc', 'wc', 'ncwc', 'pnc', 'pwc', 'pncwc']
+      const metrics = [
+        'nc',
+        'wc',
+        'ncwc',
+        'pnc',
+        'pwc',
+        'pncwc',
+        'mnc',
+        'mwc',
+        'mncwc',
+      ]
 
       // state ranks are only available for dams networks (not combined)
       if (

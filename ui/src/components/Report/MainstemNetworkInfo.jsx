@@ -2,9 +2,15 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Text, View } from '@react-pdf/renderer'
 
-import { formatNumber } from 'util/format'
+import { formatNumber, formatPercent } from 'util/format'
 
 import { Bold, Flex, Section } from './elements'
+
+const columnCSS = {
+  marginLeft: 14,
+  paddingLeft: 14,
+  borderLeft: '1px solid #cfd3d6',
+}
 
 const MainstemNetworkInfo = ({
   barrierType,
@@ -13,6 +19,7 @@ const MainstemNetworkInfo = ({
   perennialupstreammainstemmiles,
   alteredupstreammainstemmiles,
   unalteredupstreammainstemmiles,
+  mainstemsizeclasses,
   freelineardownstreammiles,
   freeperenniallineardownstreammiles,
   freealteredlineardownstreammiles,
@@ -63,6 +70,12 @@ const MainstemNetworkInfo = ({
   const freeintermittentlineardownstreammiles =
     freelineardownstreammiles - freeperenniallineardownstreammiles
 
+  const percentAltered = totalupstreammainstemmiles
+    ? (100 * alteredupstreammainstemmiles) / totalupstreammainstemmiles
+    : 0
+
+  const colWidth = totalupstreammainstemmiles > 0 ? 1 / 4 : 1 / 3
+
   return (
     <Section
       title="Mainstem network information"
@@ -85,6 +98,57 @@ const MainstemNetworkInfo = ({
         downstream-most point on that network (does not include any
         tributaries).
       </Text>
+
+      <Flex>
+        <View
+          style={{
+            flex: `1 1 ${colWidth}%`,
+          }}
+        >
+          <Text>
+            <Bold>{formatNumber(mainstemGainMiles, 2, true)} total miles</Bold>{' '}
+            {removed ? 'were' : 'could be'} reconnected by removing this{' '}
+            {barrierTypeLabel} including{' '}
+            <Bold>
+              {formatNumber(perennialMainstemGainMiles, 2, true)} miles
+            </Bold>{' '}
+            of perennial reaches.
+          </Text>
+        </View>
+
+        {totalupstreammainstemmiles > 0 ? (
+          <View
+            style={{
+              flex: `1 1 ${colWidth}%`,
+              ...columnCSS,
+            }}
+          >
+            <Text>
+              <Bold>
+                {formatPercent(percentAltered, 0)}% of the upstream mainstem
+                network
+              </Bold>{' '}
+              is in altered stream reaches.
+            </Text>
+          </View>
+        ) : null}
+
+        <View
+          style={{
+            flex: `1 1 ${colWidth}%`,
+            ...columnCSS,
+          }}
+        >
+          <Text>
+            <Bold>
+              {mainstemsizeclasses} mainstem river size{' '}
+              {mainstemsizeclasses === 1 ? 'class' : 'classes'}
+            </Bold>{' '}
+            {removed ? 'were' : 'could be'} gained by removing this{' '}
+            {barrierTypeLabel}.
+          </Text>
+        </View>
+      </Flex>
 
       <View style={{ marginTop: 36 }}>
         <Flex>
@@ -275,6 +339,7 @@ MainstemNetworkInfo.propTypes = {
   perennialupstreammainstemmiles: PropTypes.number,
   alteredupstreammainstemmiles: PropTypes.number,
   unalteredupstreammainstemmiles: PropTypes.number,
+  mainstemsizeclasses: PropTypes.number,
   freelineardownstreammiles: PropTypes.number,
   freeperenniallineardownstreammiles: PropTypes.number,
   freealteredlineardownstreammiles: PropTypes.number,
@@ -292,6 +357,7 @@ MainstemNetworkInfo.defaultProps = {
   perennialupstreammainstemmiles: 0,
   alteredupstreammainstemmiles: 0,
   unalteredupstreammainstemmiles: 0,
+  mainstemsizeclasses: 0,
   freelineardownstreammiles: 0,
   freeperenniallineardownstreammiles: 0,
   freealteredlineardownstreammiles: 0,

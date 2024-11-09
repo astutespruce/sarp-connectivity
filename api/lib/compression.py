@@ -26,6 +26,8 @@ def pack_bits(df, field_bits):
     elif tot_bits <= 16:
         dtype = "uint16"
     elif tot_bits > 32:
+        dtype = "uint64"
+        # cannot bit-shift 64 bit integers in JS
         raise ValueError(f"Packing requires {tot_bits} bits; needs to be less than 32")
 
     first = field_bits[0]
@@ -36,9 +38,7 @@ def pack_bits(df, field_bits):
 
     values = values.astype(dtype)
     if values.max() > (2 ** first["bits"]) - 1:
-        raise ValueError(
-            f"Values for {first['field']} cannot be stored in {first['bits']} bits"
-        )
+        raise ValueError(f"Values for {first['field']} cannot be stored in {first['bits']} bits")
 
     sum_bits = first["bits"]
     for entry in field_bits[1:]:
@@ -48,9 +48,7 @@ def pack_bits(df, field_bits):
             raise ValueError(f"Values for {entry['field']} must be >= 0")
 
         if field_values.max() > (2 ** entry["bits"]) - 1:
-            raise ValueError(
-                f"Values for {first['field']} cannot be stored in {entry['bits']} bits"
-            )
+            raise ValueError(f"Values for {first['field']} cannot be stored in {entry['bits']} bits")
 
         values = values | field_values.astype(dtype) << sum_bits
         sum_bits += entry["bits"]

@@ -89,6 +89,7 @@ const BarrierDetails = ({
   invasivenetwork,
   landcover,
   sourcelink,
+  mainstemsizeclasses,
   milestooutlet,
   nativeterritories,
   onloop,
@@ -342,6 +343,7 @@ const BarrierDetails = ({
             freeunalteredlineardownstreammiles={
               freeunalteredlineardownstreammiles
             }
+            mainstemsizeclasses={mainstemsizeclasses}
           />
         </Section>
       ) : null}
@@ -432,6 +434,7 @@ BarrierDetails.propTypes = {
   invasive: PropTypes.bool,
   landcover: PropTypes.number,
   sourcelink: PropTypes.string,
+  mainstemsizeclasses: PropTypes.string,
   milestooutlet: PropTypes.number,
   nativeterritories: PropTypes.string,
   onloop: PropTypes.bool,
@@ -570,6 +573,7 @@ BarrierDetails.defaultProps = {
   invasive: 0,
   landcover: null,
   sourcelink: null,
+  mainstemsizeclasses: 0,
   milestooutlet: 0,
   nativeterritories: null,
   onloop: false,

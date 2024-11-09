@@ -18,4 +18,10 @@ export const ScoresPropType = PropTypes.shape({
   nc: ScorePropType,
   wc: ScorePropType,
   ncwc: ScorePropType,
+  pnc: ScorePropType,
+  pwc: ScorePropType,
+  pncwc: ScorePropType,
+  mnc: ScorePropType,
+  mwc: ScorePropType,
+  mncwc: ScorePropType,
 })

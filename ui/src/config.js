@@ -1547,6 +1547,9 @@ export const SCENARIOS = {
   pnc: 'Perennial Network Connectivity',
   pwc: 'Perennial Watershed Condition',
   pncwc: 'Perennial Combined',
+  mnc: 'Mainstem Network Connectivity',
+  mwc: 'Mainstem Watershed Condition',
+  mncwc: 'Mainstem Combined',
 }
 
 export const LAYER_NAMES = {
@@ -1577,14 +1580,19 @@ export const SARP_BOUNDS = [
 // Note: all pack_bits fields are lowercase in UI but uppercase on backend
 
 // tiers use just the scenario as the key here
-export const TIER_PACK_BITS = [
-  { field: 'nc', bits: 5, value_shift: 1 },
-  { field: 'pnc', bits: 5, value_shift: 1 },
-  { field: 'wc', bits: 5, value_shift: 1 },
-  { field: 'pwc', bits: 5, value_shift: 1 },
-  { field: 'ncwc', bits: 5, value_shift: 1 },
-  { field: 'pncwc', bits: 5, value_shift: 1 },
-]
+export const TIER_FIELDS = ['nc', 'wc', 'ncwc']
+export const TIER_PACK_INFO = { bits: 5, value_shift: 1 }
+// export const FULL_TIER_PACK_BITS = [
+//   { field: 'nc', bits: 5, value_shift: 1 },
+//   { field: 'pnc', bits: 5, value_shift: 1 },
+//   { field: 'mnc', bits: 5, value_shift: 1 },
+//   { field: 'wc', bits: 5, value_shift: 1 },
+//   { field: 'pwc', bits: 5, value_shift: 1 },
+//   { field: 'mwc', bits: 5, value_shift: 1 },
+//   { field: 'ncwc', bits: 5, value_shift: 1 },
+//   { field: 'pncwc', bits: 5, value_shift: 1 },
+//   { field: 'mncwc', bits: 5, value_shift: 1 },
+// ]
 
 export const YEAR_REMOVED_BINS = {
   0: 'unknown',

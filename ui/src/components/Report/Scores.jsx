@@ -18,6 +18,9 @@ const Scores = ({
   state_pnc_tier,
   state_pwc_tier,
   state_pncwc_tier,
+  state_mnc_tier,
+  state_mwc_tier,
+  state_mncwc_tier,
   ...props
 }) => {
   if (!ranked) {
@@ -54,7 +57,7 @@ const Scores = ({
       </Text>
 
       <View style={{ marginTop: 24 }}>
-        <Flex>
+        <Flex style={{ alignItems: 'end', lineHeight: 1.2 }}>
           <View style={{ flex: '1 1 auto' }}>
             <Text>
               <Italic>
@@ -63,13 +66,18 @@ const Scores = ({
             </Text>
           </View>
           <View style={{ flex: '0 0 120pt' }}>
-            <Text>
+            <Text style={{ textAlign: 'center' }}>
               <Bold>full network</Bold>
             </Text>
           </View>
           <View style={{ flex: '0 0 120pt' }}>
-            <Text>
-              <Bold>perennial reaches only</Bold>
+            <Text style={{ textAlign: 'center' }}>
+              <Bold>perennial reaches</Bold>
+            </Text>
+          </View>
+          <View style={{ flex: '0 0 120pt' }}>
+            <Text style={{ textAlign: 'center' }}>
+              <Bold>mainstem network</Bold>
             </Text>
           </View>
         </Flex>
@@ -85,10 +93,13 @@ const Scores = ({
             <Text>Network connectivity tier</Text>
           </View>
           <View style={{ flex: '0 0 120pt' }}>
-            <Text>{state_nc_tier}</Text>
+            <Text style={{ textAlign: 'center' }}>{state_nc_tier}</Text>
           </View>
           <View style={{ flex: '0 0 120pt' }}>
-            <Text>{state_pnc_tier}</Text>
+            <Text style={{ textAlign: 'center' }}>{state_pnc_tier}</Text>
+          </View>
+          <View style={{ flex: '0 0 120pt' }}>
+            <Text style={{ textAlign: 'center' }}>{state_mnc_tier}</Text>
           </View>
         </Flex>
 
@@ -103,10 +114,13 @@ const Scores = ({
             <Text>Watershed condition tier</Text>
           </View>
           <View style={{ flex: '0 0 120pt' }}>
-            <Text>{state_wc_tier}</Text>
+            <Text style={{ textAlign: 'center' }}>{state_wc_tier}</Text>
           </View>
           <View style={{ flex: '0 0 120pt' }}>
-            <Text>{state_pwc_tier}</Text>
+            <Text style={{ textAlign: 'center' }}>{state_pwc_tier}</Text>
+          </View>
+          <View style={{ flex: '0 0 120pt' }}>
+            <Text style={{ textAlign: 'center' }}>{state_mwc_tier}</Text>
           </View>
         </Flex>
 
@@ -122,18 +136,34 @@ const Scores = ({
             <Text>watershed condition tier</Text>
           </View>
           <View style={{ flex: '0 0 120pt' }}>
-            <Text>{state_ncwc_tier}</Text>
+            <Text style={{ textAlign: 'center' }}>{state_ncwc_tier}</Text>
           </View>
           <View style={{ flex: '0 0 120pt' }}>
-            <Text>{state_pncwc_tier}</Text>
+            <Text style={{ textAlign: 'center' }}>{state_pncwc_tier}</Text>
+          </View>
+          <View style={{ flex: '0 0 120pt' }}>
+            <Text style={{ textAlign: 'center' }}>{state_mncwc_tier}</Text>
           </View>
         </Flex>
 
         <Text style={{ color: '#7f8a93', marginTop: 28, fontSize: 10 }}>
-          Note: perennial network connectivity is based on the total perennial
-          (non-intermittent or ephemeral) length in a given network. Perennial
-          watershed condition is based partly upon the percent of the perennial
-          stream reaches that are not altered (canals / ditches)
+          Note: network connectivity is based on the total perennial length in a
+          given network. Watershed condition is based on the percent of the
+          total length of stream reaches in the network that are not altered
+          (canals / ditches), the number of unique stream size classes, and the
+          percent of natural landcover in the floodplains. Perennial network
+          connectivity is based on the total perennial (non-intermittent or
+          ephemeral) length in a given network. Perennial watershed condition is
+          based on the percent of the total length of perennial stream reaches
+          that are not altered (canals / ditches), the number of unique stream
+          size classes in perennial reaches, and the percent of natural
+          landcover in the floodplains for the full network. Mainstem network
+          connectivity is based on the total mainstem network length in a given
+          network. Mainstem watershed condition is based on the percent of the
+          total length of stream reaches in the mainstem network that are not
+          altered (canals / ditches), the number of unique stream size classes
+          in the mainstem network, and the percent of natural landcover in the
+          floodplains for the full network.
         </Text>
       </View>
     </Section>
@@ -151,6 +181,9 @@ Scores.propTypes = {
   state_pnc_tier: PropTypes.number,
   state_pwc_tier: PropTypes.number,
   state_pncwc_tier: PropTypes.number,
+  state_mnc_tier: PropTypes.number,
+  state_mwc_tier: PropTypes.number,
+  state_mncwc_tier: PropTypes.number,
 }
 
 Scores.defaultProps = {
@@ -162,6 +195,9 @@ Scores.defaultProps = {
   state_pnc_tier: null,
   state_pwc_tier: null,
   state_pncwc_tier: null,
+  state_mnc_tier: null,
+  state_mwc_tier: null,
+  state_mncwc_tier: null,
 }
 
 export default Scores

@@ -47,6 +47,7 @@ const WaterfallDetails = ({
   intermittent,
   canal,
   landcover,
+  mainstemsizeclasses,
   milestooutlet,
   nativeterritories,
   onloop,
@@ -207,6 +208,7 @@ const WaterfallDetails = ({
             freeunalteredlineardownstreammiles={
               freeunalteredlineardownstreammiles
             }
+            mainstemsizeclasses={mainstemsizeclasses}
           />
         </Section>
       ) : null}
@@ -287,6 +289,7 @@ WaterfallDetails.propTypes = {
   intermittent: PropTypes.number,
   canal: PropTypes.number,
   landcover: PropTypes.number,
+  mainstemsizeclasses: PropTypes.number,
   milestooutlet: PropTypes.number,
   onloop: PropTypes.bool,
   partnerid: PropTypes.string,
@@ -408,6 +411,7 @@ WaterfallDetails.defaultProps = {
   intermittent: 0,
   canal: 0,
   landcover: null,
+  mainstemsizeclasses: 0,
   milestooutlet: 0,
   onloop: false,
   partnerid: null,

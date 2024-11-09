@@ -69,6 +69,7 @@ rename_cols = {
     "excluded": "Excluded",
     "removed": "Removed",
     "intermittent": "Intermittent",
+    "canal": "Canal",
     "is_estimated": "Estimated",
     "invasive": "Invasive",
     "unranked": "Unranked",
@@ -81,8 +82,10 @@ def fill_flowline_cols(df):
     # Fill flowline columns with -1 when not available and set to appropriate dtype
 
     df["NHDPlusID"] = df.NHDPlusID.fillna(-1).astype("int64")
-    df["Intermittent"] = df["Intermittent"].astype("int8")
+    df["Intermittent"] = df.Intermittent.astype("int8")
     df.loc[~df.Snapped, "Intermittent"] = -1
+    df["Canal"] = df.Canal.astype("int8")
+    df.loc[~df.Snapped, "Canal"] = -1
     df["AnnualFlow"] = df.AnnualFlow.fillna(-1).astype("float32")
     df["AnnualVelocity"] = df.AnnualVelocity.fillna(-1).astype("float32")
     df["TotDASqKm"] = df.TotDASqKm.fillna(-1).astype("float32")
@@ -93,10 +96,6 @@ def fill_flowline_cols(df):
 print("Reading dams and networks")
 dams = gp.read_feather(barriers_dir / "dams.feather").set_index("id").rename(columns=rename_cols)
 dams["in_network_type"] = dams.primary_network
-
-# FIXME: remove after next download
-dams = dams.rename(columns={"Link": "SourceLink"})
-
 
 fill_flowline_cols(dams)
 
@@ -177,10 +176,6 @@ tmp.sort_values("SARPID").drop_duplicates(subset="SARPID").reset_index(drop=True
 print("Reading small barriers and networks")
 small_barriers = gp.read_feather(barriers_dir / "small_barriers.feather").set_index("id").rename(columns=rename_cols)
 small_barriers["in_network_type"] = small_barriers.primary_network
-
-# FIXME: remove after next download
-small_barriers = small_barriers.rename(columns={"Link": "SourceLink"})
-
 
 small_barriers = small_barriers.loc[~(small_barriers.dropped | small_barriers.duplicate)].copy()
 fill_flowline_cols(small_barriers)
@@ -414,10 +409,6 @@ print("Reading waterfalls and networks")
 waterfalls = gp.read_feather(barriers_dir / "waterfalls.feather").set_index("id").rename(columns=rename_cols)
 waterfalls = waterfalls.loc[~(waterfalls.dropped | waterfalls.duplicate)].copy()
 
-# FIXME: remove after next download
-waterfalls = waterfalls.rename(columns={"Link": "SourceLink"})
-
-
 fill_flowline_cols(waterfalls)
 
 tmp = waterfalls.copy()
@@ -472,9 +463,7 @@ tmp = waterfalls[["id"] + WF_API_FIELDS].copy()
 verify_domains(tmp)
 tmp["id"] = tmp.id.astype("uint32")
 
-tmp.sort_values(by=["SARPID", "network_type"]).drop_duplicates(subset="SARPID").reset_index(drop=True).to_feather(
-    api_dir / "waterfalls.feather"
-)
+tmp.sort_values(by=["SARPID", "network_type"]).reset_index(drop=True).to_feather(api_dir / "waterfalls.feather")
 
 
 #########################################################################################
@@ -495,7 +484,6 @@ search_barriers = pd.concat(
     [search_barriers, tmp[BARRIER_SEARCH_RESULT_FIELDS].reset_index(drop=True)], ignore_index=True
 )
 
-# cast intermittent to int to match other types
 crossings["StreamOrderClass"] = classify_streamorder(crossings.StreamOrder)
 for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
     crossings[f"{col}Class"] = classify_spps(crossings[col])

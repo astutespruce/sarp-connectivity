@@ -50,8 +50,7 @@ const SpeciesHabitat = ({ habitat, ...props }) => {
             <Text>{label}</Text>
             {limit ? (
               <Text style={{ color: '#7f8a93', fontSize: 10 }}>
-                Data are known to be limited to {limit} and do not cover the
-                full range of this species.
+                Data are known to be limited to {limit}.
               </Text>
             ) : null}
           </View>

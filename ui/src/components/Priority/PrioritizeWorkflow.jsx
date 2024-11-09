@@ -41,9 +41,16 @@ const resultTypeOptions = [
   },
   {
     value: 'perennial',
-    label: 'perennial reaches only',
+    label: 'perennial reaches',
   },
+  { value: 'mainstem', label: 'mainstem networks' },
 ]
+
+const resultTypePrefix = {
+  full: '',
+  perennial: 'p',
+  mainstem: 'm',
+}
 
 const Prioritize = () => {
   const barrierType = useBarrierType()
@@ -550,7 +557,7 @@ const Prioritize = () => {
           rankedBarriers={rankData}
           tierThreshold={tierThreshold}
           resultsType={resultsType}
-          scenario={(resultsType === 'perennial' ? 'p' : '') + scenario}
+          scenario={resultTypePrefix[resultsType] + scenario}
           onSelectUnit={handleSelectUnit}
           onSelectBarrier={handleSelectBarrier}
           onMapLoad={handleMapLoad}
