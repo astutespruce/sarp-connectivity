@@ -86,6 +86,8 @@ def fill_flowline_cols(df):
     df.loc[~df.Snapped, "Intermittent"] = -1
     df["Canal"] = df.Canal.astype("int8")
     df.loc[~df.Snapped, "Canal"] = -1
+    df["DiadromousHabitat"] = df.DiadromousHabitat.astype("int8")
+    df.loc[~df.Snapped, "DiadromousHabitat"] = -1
     df["AnnualFlow"] = df.AnnualFlow.fillna(-1).astype("float32")
     df["AnnualVelocity"] = df.AnnualVelocity.fillna(-1).astype("float32")
     df["TotDASqKm"] = df.TotDASqKm.fillna(-1).astype("float32")

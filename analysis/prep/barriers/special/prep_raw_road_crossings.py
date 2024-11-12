@@ -14,6 +14,8 @@ from pathlib import Path
 from time import time
 import warnings
 
+import pyarrow as pa
+import pyarrow.compute as pc
 import geopandas as gp
 import pandas as pd
 import shapely
@@ -27,9 +29,10 @@ from analysis.constants import (
     CROSSING_TYPE_TO_DOMAIN,
 )
 from analysis.lib.graph.speedups import DirectedGraph
-from analysis.lib.io import read_feathers
+from analysis.lib.io import read_arrow_tables
 from analysis.prep.barriers.lib.snap import snap_to_flowlines
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
+from analysis.prep.species.lib.diadromous import get_diaadromous_ids
 
 warnings.filterwarnings("ignore", category=UserWarning, message=".*Measured.*")
 
@@ -466,8 +469,8 @@ df["CoastalHUC8"] = df.CoastalHUC8.fillna(0).astype("bool")
 
 ### Join to line atts
 flowlines = (
-    read_feathers(
-        [nhd_dir / "clean" / huc2 / "flowlines.feather" for huc2 in df.HUC2.unique() if huc2],
+    read_arrow_tables(
+        [nhd_dir / "clean" / huc2 / "flowlines.feather" for huc2 in df.HUC2.unique()],
         columns=[
             "lineID",
             "NHDPlusID",
@@ -481,12 +484,16 @@ flowlines = (
             "AnnualVelocity",
             "TotDASqKm",
         ],
+        filter=pc.is_in(pc.field("lineID"), pa.array(df.lineID.unique())),
     )
+    .to_pandas()
     .set_index("lineID")
     .rename(columns={"offnetwork": "offnetwork_flowline"})
 )
 
 df = df.join(flowlines, on="lineID")
+
+df["DiadromousHabitat"] = df.NHDPlusID.isin(get_diaadromous_ids())
 
 df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")

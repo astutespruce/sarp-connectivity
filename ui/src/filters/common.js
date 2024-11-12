@@ -26,6 +26,8 @@ export const hasDiadromousData = (data) =>
   data.numRows() > 0 &&
   data
     .filter(
-      (d) => d.downstreamoceanmilesclass > 0 && d.downstreamoceanmilesclass < 8
+      (d) =>
+        (d.downstreamoceanmilesclass > 0 && d.downstreamoceanmilesclass < 8) ||
+        d.diadromoushabitat === 1
     )
     .numRows() > 0

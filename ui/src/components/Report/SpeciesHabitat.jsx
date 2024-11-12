@@ -2,11 +2,17 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Text, View } from '@react-pdf/renderer'
 
+import { barrierTypeLabelSingular } from 'config'
 import { formatNumber } from 'util/format'
 
 import { Bold, Flex, Link, Section } from './elements'
 
-const SpeciesHabitat = ({ habitat, ...props }) => {
+const SpeciesHabitat = ({
+  barrierType,
+  diadromoushabitat,
+  habitat,
+  ...props
+}) => {
   const sources = [...new Set(habitat.map(({ source }) => source))]
 
   return (
@@ -71,6 +77,15 @@ const SpeciesHabitat = ({ habitat, ...props }) => {
         </Flex>
       ))}
 
+      {diadromoushabitat === 1 ? (
+        <View style={{ marginTop: 24 }}>
+          <Text>
+            This {barrierTypeLabelSingular[barrierType]} is located on a reach
+            with anadromous / catadromous species habitat.
+          </Text>
+        </View>
+      ) : null}
+
       <Text style={{ color: '#7f8a93', marginTop: 28, fontSize: 10 }}>
         Note: instream habitat is estimated from data provided by regional
         partners ({sources.join(', ')}) and assigned to NHDPlusHR flowlines;
@@ -89,6 +104,8 @@ const SpeciesHabitat = ({ habitat, ...props }) => {
 }
 
 SpeciesHabitat.propTypes = {
+  barrierType: PropTypes.string.isRequired,
+  diadromoushabitat: PropTypes.number,
   habitat: PropTypes.arrayOf(
     PropTypes.shape({
       key: PropTypes.string.isRequired,
@@ -102,6 +119,7 @@ SpeciesHabitat.propTypes = {
 }
 
 SpeciesHabitat.defaultProps = {
+  diadromoushabitat: 0,
   sx: null,
 }
 

@@ -29,7 +29,7 @@ import Ownership from './Ownership'
 // import LocationConstruction from './LocationConstruction'
 import Contact from './Contact'
 import Credits from './Credits'
-import DiadromousInfo from './DiadromousInfo'
+import MarineConnectivity from './MarineConnectivity'
 import Feasibility from './Feasibility'
 import Header from './Header'
 import IDInfo from './IDInfo'
@@ -306,11 +306,16 @@ const Preview = ({ networkType, data }) => {
           ) : null}
 
           {hasnetwork && habitat.length > 0 ? (
-            <SpeciesHabitat sx={{ mt: '3rem' }} habitat={habitat} />
+            <SpeciesHabitat
+              sx={{ mt: '3rem' }}
+              barrierType={barrierType}
+              {...data}
+              habitat={habitat}
+            />
           ) : null}
 
           {hasnetwork && flowstoocean && milestooutlet < 500 ? (
-            <DiadromousInfo
+            <MarineConnectivity
               sx={{ mt: '3rem' }}
               barrierType={barrierType}
               {...data}

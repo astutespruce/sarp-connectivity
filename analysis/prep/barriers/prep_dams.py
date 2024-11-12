@@ -22,6 +22,8 @@ from datetime import datetime
 from time import time
 import warnings
 
+import pyarrow as pa
+import pyarrow.compute as pc
 import geopandas as gp
 import pandas as pd
 import shapely
@@ -42,6 +44,7 @@ from analysis.prep.barriers.lib.duplicates import (
 
 from analysis.prep.barriers.lib.spatial_joins import get_huc2, add_spatial_joins
 from analysis.prep.barriers.lib.log import format_log
+from analysis.prep.species.lib.diadromous import get_diaadromous_ids
 from analysis.constants import (
     KM2_TO_ACRES,
     DAMS_ID_OFFSET,
@@ -71,7 +74,7 @@ from analysis.constants import (
     HAZARD_TO_DOMAIN,
     FERCREGULATED_TO_DOMAIN,
 )
-from analysis.lib.io import read_feathers
+from analysis.lib.io import read_arrow_tables
 
 
 ### Custom tolerance values for dams
@@ -902,8 +905,8 @@ df.loc[drop_ix, "log"] = "dropped: outside HUC12 / states"
 
 ### Join to line atts
 flowlines = (
-    read_feathers(
-        [nhd_dir / "clean" / huc2 / "flowlines.feather" for huc2 in df.HUC2.unique() if huc2],
+    read_arrow_tables(
+        [nhd_dir / "clean" / huc2 / "flowlines.feather" for huc2 in df.HUC2.unique()],
         columns=[
             "lineID",
             "NHDPlusID",
@@ -917,12 +920,16 @@ flowlines = (
             "AnnualVelocity",
             "TotDASqKm",
         ],
+        filter=pc.is_in(pc.field("lineID"), pa.array(df.lineID.unique())),
     )
+    .to_pandas()
     .set_index("lineID")
     .rename(columns={"offnetwork": "offnetwork_flowline"})
 )
 
 df = df.join(flowlines, on="lineID")
+
+df["DiadromousHabitat"] = df.NHDPlusID.isin(get_diaadromous_ids())
 
 df.StreamOrder = df.StreamOrder.fillna(-1).astype("int8")
 
@@ -961,12 +968,15 @@ print("dams on offnetwork flowlines: \n", df.groupby("offnetwork_flowline").size
 
 ### Join waterbody properties
 wb = (
-    read_feathers(
+    read_arrow_tables(
         [nhd_dir / "clean" / huc2 / "waterbodies.feather" for huc2 in df.HUC2.unique() if huc2],
         columns=["wbID", "km2"],
-    ).set_index("wbID")
-    * KM2_TO_ACRES
+        filter=pc.is_in(pc.field("wbID"), pa.array(df.wbID.unique())),
+    )
+    .to_pandas()
+    .set_index("wbID")
 ).rename(columns={"km2": "WaterbodyAcres"})
+wb["WaterbodyAcres"] = wb.WaterbodyAcres * KM2_TO_ACRES
 
 
 # classify waterbody size class (see WATERBODY_SIZECLASS_DOMAIN)

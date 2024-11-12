@@ -2,6 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Text } from 'theme-ui'
 
+import { barrierTypeLabelSingular } from 'config'
 import { Link } from 'components/Link'
 import { Entry } from 'components/Sidebar'
 import { Table, Row } from 'components/Table'
@@ -10,7 +11,7 @@ import { InfoTooltip } from 'components/Tooltip'
 
 import { formatNumber } from 'util/format'
 
-const SpeciesHabitatInfo = ({ habitat }) => (
+const SpeciesHabitatInfo = ({ barrierType, diadromoushabitat, habitat }) => (
   <>
     <Entry sx={{ pb: '.5rem', mx: '-0.5rem' }}>
       <Table sx={{ fontSize: 1 }} columns="12rem 1fr 1fr">
@@ -55,6 +56,14 @@ const SpeciesHabitatInfo = ({ habitat }) => (
         )}
       </Table>
     </Entry>
+
+    {diadromoushabitat === 1 ? (
+      <Entry>
+        This {barrierTypeLabelSingular[barrierType]} is located on a reach with
+        anadromous / catadromous species habitat.
+      </Entry>
+    ) : null}
+
     <Entry>
       <Text variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
         <ExpandableParagraph
@@ -76,6 +85,8 @@ const SpeciesHabitatInfo = ({ habitat }) => (
 )
 
 SpeciesHabitatInfo.propTypes = {
+  barrierType: PropTypes.string.isRequired,
+  diadromoushabitat: PropTypes.number,
   habitat: PropTypes.arrayOf(
     PropTypes.shape({
       key: PropTypes.string.isRequired,
@@ -86,6 +97,10 @@ SpeciesHabitatInfo.propTypes = {
       limit: PropTypes.string,
     })
   ).isRequired,
+}
+
+SpeciesHabitatInfo.defaultProps = {
+  diadromoushabitat: 0,
 }
 
 export default SpeciesHabitatInfo

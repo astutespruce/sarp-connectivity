@@ -27,6 +27,7 @@ import {
   FISH_HABITAT_PARTNERSHIPS,
   UNALTERED_WATERBODY_CLASS,
   UNALTERED_WETLAND_CLASS,
+  DIADROMOUS_HABITAT,
 } from 'config'
 
 import { getEntries, hasDiadromousData } from './common'
@@ -197,7 +198,7 @@ export const smallBarriers = [
   },
   {
     id: 'marine',
-    title: 'Marine connectivity',
+    title: 'Marine connectivity & diadromous species information',
     hasData: hasDiadromousData,
     filters: [
       {
@@ -208,11 +209,12 @@ export const smallBarriers = [
         ...getEntries(BOOLEAN_FIELD),
       },
       {
-        field: 'coastalhuc8',
-        title: 'Within a coastal subbasin',
+        field: 'diadromoushabitat',
+        title:
+          'Located on a reach with anadromous / catadromous species habitat',
         sort: false,
-        // help: '',
-        ...getEntries(BOOLEAN_FIELD),
+        help: 'Note: information on habitat of anadromous / catadromous species is quite limited, is compiled from multiple data sources, and may include a mix of current versus potential habitat for those species.',
+        ...getEntries(DIADROMOUS_HABITAT),
       },
       {
         field: 'downstreamoceanmilesclass',
@@ -228,6 +230,12 @@ export const smallBarriers = [
         sort: false,
         help: 'This value is based on any dams or assessed road-related barriers that occur on the downstream path between this dam and the ocean.  Note: this does not include any road crossings that have not been evaluated for barrier severity.',
         ...getEntries(DOWNSTREAM_OCEAN_SMALL_BARRIERS_DOMAIN),
+      },
+      {
+        field: 'coastalhuc8',
+        title: 'Within a coastal subbasin',
+        sort: false,
+        ...getEntries(BOOLEAN_FIELD),
       },
     ],
   },

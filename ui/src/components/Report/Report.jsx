@@ -6,7 +6,7 @@ import { extractHabitat } from 'components/Data/Habitat'
 
 import Contact from './Contact'
 import Credits from './Credits'
-import DiadromousInfo from './DiadromousInfo'
+import MarineConnectivity from './MarineConnectivity'
 import Feasibility from './Feasibility'
 import Footer from './Footer'
 import Header from './Header'
@@ -133,11 +133,15 @@ const Report = ({
         ) : null}
 
         {hasnetwork && habitat.length > 0 ? (
-          <SpeciesHabitat style={{ marginTop: 32 }} habitat={habitat} />
+          <SpeciesHabitat
+            style={{ marginTop: 32 }}
+            {...data}
+            habitat={habitat}
+          />
         ) : null}
 
         {hasnetwork && flowstoocean && milestooutlet < 500 ? (
-          <DiadromousInfo
+          <MarineConnectivity
             style={{ marginTop: 32 }}
             barrierType={barrierType}
             {...data}

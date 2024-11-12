@@ -1,11 +1,11 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box } from 'theme-ui'
+import { Box, Text } from 'theme-ui'
 
 import { Entry, Field, Section } from 'components/Sidebar'
 import { isEmptyString } from 'util/string'
 
-import { CROSSING_TYPE, ROAD_TYPE } from 'config'
+import { CROSSING_TYPE, ROAD_TYPE, barrierTypeLabelSingular } from 'config'
 
 import IDInfo from './IDInfo'
 import LocationInfo from './LocationInfo'
@@ -23,6 +23,7 @@ const RoadCrossingDetails = ({
   basin,
   congressionaldistrict,
   crossingtype,
+  diadromoushabitat,
   ejtract,
   ejtribal,
   fishhabitatpartnership,
@@ -107,6 +108,19 @@ const RoadCrossingDetails = ({
       ) : null}
     </Section>
 
+    {diadromoushabitat === 1 ? (
+      <Section title="Species habitat information for this network">
+        <Entry>
+          This {barrierTypeLabelSingular[barrierType]} is located on a reach
+          with anadromous / catadromous species habitat.
+        </Entry>
+        <Text sx={{ fontSize: 0, color: 'grey.8' }}>
+          Note: species habitat network statistics are not available for this{' '}
+          {barrierTypeLabelSingular[barrierType]}.
+        </Text>
+      </Section>
+    ) : null}
+
     <Section title="Functional network information">
       <NoNetworkInfo
         barrierType={barrierType}
@@ -115,8 +129,6 @@ const RoadCrossingDetails = ({
         onloop={onloop}
       />
     </Section>
-
-    {/* Note: diadromous species info not shown because these have no network */}
 
     <Section title="Species information for this subwatershed">
       <SpeciesWatershedPresenceInfo
@@ -153,6 +165,7 @@ RoadCrossingDetails.propTypes = {
   basin: PropTypes.string,
   congressionaldistrict: PropTypes.string,
   crossingtype: PropTypes.number,
+  diadromoushabitat: PropTypes.number,
   ejtract: PropTypes.bool,
   ejtribal: PropTypes.bool,
   fishhabitatpartnership: PropTypes.string,
@@ -190,6 +203,7 @@ RoadCrossingDetails.defaultProps = {
   huc12: null,
   intermittent: 0,
   canal: 0,
+  diadromoushabitat: 0,
   nativeterritories: null,
   onloop: false,
   barrierownertype: null,

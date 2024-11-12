@@ -14,6 +14,9 @@ from pathlib import Path
 from time import time
 
 import pandas as pd
+import pyarrow as pa
+import pyarrow.compute as pc
+
 import shapely
 import geopandas as gp
 import numpy as np
@@ -32,8 +35,9 @@ from analysis.constants import (
     INVASIVE_MANUALREVIEW,
 )
 
-from analysis.lib.io import read_feathers
+from analysis.lib.io import read_arrow_tables
 from analysis.lib.geometry import nearest
+from analysis.prep.species.lib.diadromous import get_diaadromous_ids
 from analysis.prep.barriers.lib.snap import snap_to_flowlines
 from analysis.prep.barriers.lib.duplicates import find_duplicates
 from analysis.prep.barriers.lib.spatial_joins import get_huc2, add_spatial_joins
@@ -285,23 +289,30 @@ df.loc[drop_ix, "dropped"] = True
 df.loc[drop_ix, "log"] = "dropped: outside HUC12 / states"
 
 ### Join to line atts
-flowlines = read_feathers(
-    [nhd_dir / "clean" / huc2 / "flowlines.feather" for huc2 in df.HUC2.unique()],
-    columns=[
-        "lineID",
-        "NHDPlusID",
-        "GNIS_Name",
-        "sizeclass",
-        "StreamOrder",
-        "FCode",
-        "loop",
-        "AnnualFlow",
-        "AnnualVelocity",
-        "TotDASqKm",
-    ],
-).set_index("lineID")
+flowlines = (
+    read_arrow_tables(
+        [nhd_dir / "clean" / huc2 / "flowlines.feather" for huc2 in df.HUC2.unique()],
+        columns=[
+            "lineID",
+            "NHDPlusID",
+            "GNIS_Name",
+            "sizeclass",
+            "StreamOrder",
+            "FCode",
+            "loop",
+            "AnnualFlow",
+            "AnnualVelocity",
+            "TotDASqKm",
+        ],
+        filter=pc.is_in(pc.field("lineID"), pa.array(df.lineID.unique())),
+    )
+    .to_pandas()
+    .set_index("lineID")
+)
 
 df = df.join(flowlines, on="lineID")
+
+df["DiadromousHabitat"] = df.NHDPlusID.isin(get_diaadromous_ids())
 
 df.StreamOrder = df.StreamOrder.fillna(-1).astype("int8")
 

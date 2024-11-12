@@ -17,6 +17,7 @@ const DiadromousInfo = ({
         {formatNumber(milestooutlet)}
       </Field>
     </Entry>
+
     {totaldownstreamdams >= 0 ? (
       <Entry>
         <Field label="Number of dams downstream">
@@ -24,6 +25,7 @@ const DiadromousInfo = ({
         </Field>
       </Entry>
     ) : null}
+
     {barrierType === 'small_barriers' && totaldownstreamsmallbarriers >= 0 ? (
       <Entry>
         <Field label="Number of assessed road-related barriers downstream">
@@ -31,6 +33,7 @@ const DiadromousInfo = ({
         </Field>
       </Entry>
     ) : null}
+
     {totaldownstreamwaterfalls >= 0 ? (
       <Entry>
         <Field label="Number of waterfalls downstream">

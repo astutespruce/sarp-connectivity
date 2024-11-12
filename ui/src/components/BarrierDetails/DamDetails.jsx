@@ -48,6 +48,7 @@ const DamDetails = ({
   costlower,
   costmean,
   costupper,
+  diadromoushabitat,
   diversion,
   ejtract,
   ejtribal,
@@ -343,12 +344,16 @@ const DamDetails = ({
 
       {hasnetwork && habitat.length > 0 ? (
         <Section title="Species habitat information for this network">
-          <SpeciesHabitatInfo habitat={habitat} />
+          <SpeciesHabitatInfo
+            barrierType={barrierType}
+            diadromoushabitat={diadromoushabitat}
+            habitat={habitat}
+          />
         </Section>
       ) : null}
 
       {hasnetwork && flowstoocean && milestooutlet < 500 ? (
-        <Section title="Diadromous species information">
+        <Section title="Marine connectivity">
           <DiadromousInfo
             barrierType={barrierType}
             milestooutlet={milestooutlet}
@@ -489,6 +494,7 @@ DamDetails.propTypes = {
   costlower: PropTypes.number,
   costmean: PropTypes.number,
   costupper: PropTypes.number,
+  diadromoushabitat: PropTypes.number,
   diversion: PropTypes.number,
   ejtract: PropTypes.bool,
   ejtribal: PropTypes.bool,
@@ -645,6 +651,7 @@ DamDetails.defaultProps = {
   costlower: 0,
   costmean: 0,
   costupper: 0,
+  diadromoushabitat: 0,
   diversion: 0,
   fatality: 0,
   ejtract: false,

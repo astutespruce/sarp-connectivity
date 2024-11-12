@@ -66,6 +66,7 @@ const BarrierDetails = ({
   congressionaldistrict,
   constriction,
   crossingtype,
+  diadromoushabitat,
   ejtract,
   ejtribal,
   excluded,
@@ -303,12 +304,16 @@ const BarrierDetails = ({
 
       {hasnetwork && habitat.length > 0 ? (
         <Section title="Species habitat information for this network">
-          <SpeciesHabitatInfo habitat={habitat} />
+          <SpeciesHabitatInfo
+            barrierType={barrierType}
+            diadromoushabitat={diadromoushabitat}
+            habitat={habitat}
+          />
         </Section>
       ) : null}
 
       {hasnetwork && flowstoocean && milestooutlet < 500 ? (
-        <Section title="Diadromous species information">
+        <Section title="Marine connectivity">
           <DiadromousInfo
             barrierType={barrierType}
             milestooutlet={milestooutlet}
@@ -412,6 +417,7 @@ BarrierDetails.propTypes = {
   congressionaldistrict: PropTypes.string,
   constriction: PropTypes.number,
   crossingtype: PropTypes.number,
+  diadromoushabitat: PropTypes.number,
   ejtract: PropTypes.bool,
   ejtribal: PropTypes.bool,
   excluded: PropTypes.bool,
@@ -552,6 +558,7 @@ BarrierDetails.defaultProps = {
   congressionaldistrict: null,
   constriction: null,
   crossingtype: null,
+  diadromoushabitat: 0,
   ejtract: false,
   ejtribal: false,
   excluded: false,

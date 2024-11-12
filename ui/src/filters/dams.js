@@ -36,6 +36,7 @@ import {
   INVASIVE_NETWORK,
   FISH_HABITAT_PARTNERSHIPS,
   COST_CLASS,
+  DIADROMOUS_HABITAT,
 } from 'config'
 
 import { getEntries, hasDiadromousData } from './common'
@@ -285,7 +286,7 @@ export const dams = [
   },
   {
     id: 'marine',
-    title: 'Marine connectivity',
+    title: 'Marine connectivity & diadromous species information',
     hasData: hasDiadromousData,
     filters: [
       {
@@ -296,11 +297,12 @@ export const dams = [
         ...getEntries(BOOLEAN_FIELD),
       },
       {
-        field: 'coastalhuc8',
-        title: 'Within a coastal subbasin',
+        field: 'diadromoushabitat',
+        title:
+          'Located on a reach with anadromous / catadromous species habitat',
         sort: false,
-        // help: '',
-        ...getEntries(BOOLEAN_FIELD),
+        help: 'Note: information on habitat of anadromous / catadromous species is quite limited, is compiled from multiple data sources, and may include a mix of current versus potential habitat for those species.',
+        ...getEntries(DIADROMOUS_HABITAT),
       },
       {
         field: 'downstreamoceanmilesclass',
@@ -315,6 +317,13 @@ export const dams = [
         sort: false,
         help: 'This value is based on any dams that occur on the downstream path between this dam and the ocean.',
         ...getEntries(DOWNSTREAM_OCEAN_DAMS_DOMAIN, (v) => v > 0),
+      },
+      {
+        field: 'coastalhuc8',
+        title: 'Within a coastal subbasin',
+        sort: false,
+        // help: '',
+        ...getEntries(BOOLEAN_FIELD),
       },
     ],
   },

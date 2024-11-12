@@ -296,6 +296,7 @@ FILTER_FIELDS = [
     "FishHabitatPartnership",
     "UpstreamUnalteredWaterbodyClass",
     "UpstreamUnalteredWetlandClass",
+    "DiadromousHabitat",
 ]
 
 DAM_FILTER_FIELDS = FILTER_FIELDS + [
@@ -349,6 +350,8 @@ ROAD_CROSSING_FILTER_FIELDS = [
     "Surveyed",
     "OnNetwork",
     "NearWildScenicRiver",
+    "CoastalHUC8",
+    "DiadromousHabitat",
     # "SlopeClass",
 ]
 ROAD_CROSSING_FILTER_FIELD_MAP = {f.lower(): f for f in ROAD_CROSSING_FILTER_FIELDS}
@@ -379,6 +382,7 @@ GENERAL_API_FIELDS2 = (
         "StateSGCNSpp",
         "RegionalSGCNSpp",
         "Trout",
+        "DiadromousHabitat",
         "OwnerType",
         "BarrierOwnerType",
         "ProtectedLand",
@@ -576,6 +580,7 @@ ROAD_CROSSING_CORE_FIELDS = (
         "TESpp",
         "StateSGCNSpp",
         "RegionalSGCNSpp",
+        "DiadromousHabitat",
         "Trout",
         "OwnerType",
         "BarrierOwnerType",
@@ -638,6 +643,7 @@ WF_CORE_FIELDS = (
         "TESpp",
         "StateSGCNSpp",
         "RegionalSGCNSpp",
+        "DiadromousHabitat",
         "Trout",
         "SalmonidESU",
         "FishHabitatPartnership",
@@ -1168,6 +1174,12 @@ TROUT_DOMAIN = {
     "": "not recorded",
 }
 
+DIADROMOUS_HABITAT_DOMAIN = {
+    -1: "off network",
+    0: "not located on a reach associated with anadromous / catadromous species habitat",
+    1: "located on a reach associated with anadromous / catadromous species habitat",
+}
+
 SURVEYED_CROSSING_DOMAIN = {0: "not likely", 1: "likely"}
 
 IS_PRIORITY_DOMAIN = {
@@ -1294,6 +1306,7 @@ DOMAINS = {
     "Removed": BOOLEAN_DOMAIN,
     "EJTract": BOOLEAN_DOMAIN,
     "EJTribal": BOOLEAN_DOMAIN,
+    "DiadromousHabitat": DIADROMOUS_HABITAT_DOMAIN,
     # dam fields
     "FERCRegulated": FERCREGULATED_DOMAIN,
     "StateRegulated": STATE_REGULATED_DOMAIN,
@@ -1416,6 +1429,7 @@ FIELD_DEFINITIONS = {
     "StateSGCNSpp": "Number of state-listed Species of Greatest Conservation Need (SGCN), compiled from element occurrence data within the same subwatershed (HUC12) as the {type}.  Note: rare species information is based on occurrences within the same subwatershed as the {type}.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
     "RegionalSGCNSpp": "Number of regionally-listed Species of Greatest Conservation Need (SGCN), compiled from element occurrence data within the same subwatershed (HUC12) as the {type}.  Note: rare species information is based on occurrences within the same subwatershed as the {type}.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
     "Trout": "Identifies one or more interior or eastern native trout species (Apache, brook, bull, cutthroat, Gila, lake, and redband) that are present within the same subwatershed (HUC12) as the {type} based on in available natural heritage data and other data sources.  Note: absence means that occurrences were not present in the available natural heritage data and should not be interpreted as true absences.",
+    "DiadromousHabitat": "Indicates if the {type} occurs on a stream reach associated with the habitat of one or more anadromous or catadromous species, based on multiple data sources.  Please see https://aquaticbarriers.org/habitat_methods for more information.  -1 = not available.",
     "OwnerType": "Land ownership type. This information is derived from the BLM Surface Management Agency dataset for federal lands and CBI Protected Areas Database and TNC Secured Lands Database for non-federal lands, to highlight ownership types of particular importance to partners.  NOTE: does not include most private land.",
     "BarrierOwnerType": "Barrier ownership type, if available.  For unsurveyed road / stream crossings, this information is derived from the National Bridge Inventory, US Census TIGER Roads route type, and USFS National Forest road / stream crossings database ownership information, and may not be fully accurate.",
     "ProtectedLand": "Indicates if the {type} occurs on public land as represented within the BLM Surface Management Agency dataset, CBI Protected Areas Database of the U.S., or TNC Secured Lands Database.",

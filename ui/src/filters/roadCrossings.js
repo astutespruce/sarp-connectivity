@@ -14,9 +14,10 @@ import {
   DISADVANTAGED_COMMUNITY,
   SURVEYED,
   FISH_HABITAT_PARTNERSHIPS,
+  DIADROMOUS_HABITAT,
 } from 'config'
 
-import { getEntries } from './common'
+import { getEntries, hasDiadromousData } from './common'
 
 export const roadCrossings = [
   {
@@ -116,6 +117,27 @@ export const roadCrossings = [
         sort: false,
         help: 'Note: annual flow rate is estimated at the downstream endpoint of the stream reach to which this barrier snapped and is not available for all reaches within the underlying NHD data.',
         ...getEntries(ANNUAL_FLOW),
+      },
+    ],
+  },
+  {
+    id: 'marine',
+    title: 'Marine connectivity & diadromous species information',
+    hasData: hasDiadromousData,
+    filters: [
+      {
+        field: 'diadromoushabitat',
+        title:
+          'Located on a reach with anadromous / catadromous species habitat',
+        sort: false,
+        help: 'Note: information on habitat of anadromous / catadromous species is quite limited, is compiled from multiple data sources, and may include a mix of current versus potential habitat for those species.',
+        ...getEntries(DIADROMOUS_HABITAT),
+      },
+      {
+        field: 'coastalhuc8',
+        title: 'Within a coastal subbasin',
+        sort: false,
+        ...getEntries(BOOLEAN_FIELD),
       },
     ],
   },

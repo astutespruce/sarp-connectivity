@@ -4,7 +4,7 @@ import { Box, Heading, Grid } from 'theme-ui'
 
 import { formatNumber, pluralize } from 'util/format'
 
-const DiadromousInfo = ({
+const MarineConnectivity = ({
   barrierType,
   milestooutlet,
   totaldownstreamdams,
@@ -20,7 +20,7 @@ const DiadromousInfo = ({
 
   return (
     <Box sx={sx}>
-      <Heading as="h3">Diadromous species information</Heading>
+      <Heading as="h3">Marine connectivity</Heading>
       <Grid
         columns={numCols}
         gap={0}
@@ -66,7 +66,7 @@ const DiadromousInfo = ({
   )
 }
 
-DiadromousInfo.propTypes = {
+MarineConnectivity.propTypes = {
   barrierType: PropTypes.string.isRequired,
   milestooutlet: PropTypes.number,
   totaldownstreamdams: PropTypes.number,
@@ -75,7 +75,7 @@ DiadromousInfo.propTypes = {
   sx: PropTypes.object,
 }
 
-DiadromousInfo.defaultProps = {
+MarineConnectivity.defaultProps = {
   milestooutlet: 0,
   totaldownstreamdams: 0,
   totaldownstreamsmallbarriers: 0,
@@ -83,4 +83,4 @@ DiadromousInfo.defaultProps = {
   sx: null,
 }
 
-export default DiadromousInfo
+export default MarineConnectivity

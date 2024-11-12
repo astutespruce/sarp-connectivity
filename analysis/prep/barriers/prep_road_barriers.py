@@ -32,13 +32,15 @@ import shapely
 import numpy as np
 import pandas as pd
 from pyogrio import write_dataframe
+import pyarrow as pa
 import pyarrow.compute as pc
 
 from analysis.prep.barriers.lib.snap import snap_to_flowlines, export_snap_dist_lines
 from analysis.prep.barriers.lib.duplicates import find_duplicates, export_duplicate_areas
 from analysis.prep.barriers.lib.spatial_joins import get_huc2, add_spatial_joins
 from analysis.prep.barriers.lib.log import format_log
-from analysis.lib.io import read_feathers
+from analysis.prep.species.lib.diadromous import get_diaadromous_ids
+from analysis.lib.io import read_arrow_tables
 from analysis.constants import (
     SMALL_BARRIERS_ID_OFFSET,
     GEO_CRS,
@@ -127,6 +129,12 @@ crossings = (
     .set_index("id", drop=False)
     .drop(columns=["maintainer", "tiger2020_linearids", "nhdhr_permanent_identifier"])
 )
+
+# FIXME: remove after next rerun of prep_raw_road_crossings
+# calculate canal / ditch
+crossings["canal"] = crossings.FCode.isin([33600, 33601, 33603])
+
+
 # save original USGS ID because SourceID gets overwritten on match with road barrier
 crossings["USGSCrossingID"] = crossings.SourceID.values
 crossings["Surveyed"] = np.uint8(0)
@@ -834,8 +842,8 @@ df.loc[drop_ix, "log"] = "dropped: outside HUC12 / states"
 
 ### Join to line atts
 flowlines = (
-    read_feathers(
-        [nhd_dir / "clean" / huc2 / "flowlines.feather" for huc2 in df.HUC2.unique() if huc2],
+    read_arrow_tables(
+        [nhd_dir / "clean" / huc2 / "flowlines.feather" for huc2 in df.HUC2.unique()],
         columns=[
             "lineID",
             "NHDPlusID",
@@ -849,12 +857,16 @@ flowlines = (
             "AnnualVelocity",
             "TotDASqKm",
         ],
+        filter=pc.is_in(pc.field("lineID"), pa.array(df.lineID.unique())),
     )
+    .to_pandas()
     .set_index("lineID")
     .rename(columns={"offnetwork": "offnetwork_flowline"})
 )
 
 df = df.join(flowlines, on="lineID")
+
+df["DiadromousHabitat"] = df.NHDPlusID.isin(get_diaadromous_ids())
 
 df.StreamOrder = df.StreamOrder.fillna(-1).astype("int8")
 

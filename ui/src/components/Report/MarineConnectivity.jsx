@@ -5,7 +5,7 @@ import { Text, View } from '@react-pdf/renderer'
 import { formatNumber, pluralize } from 'util/format'
 import { Bold, Flex, Section } from './elements'
 
-const DiadromousInfo = ({
+const MarineConnectivity = ({
   barrierType,
   milestooutlet,
   totaldownstreamdams,
@@ -13,7 +13,7 @@ const DiadromousInfo = ({
   totaldownstreamwaterfalls,
   ...props
 }) => (
-  <Section title="Diadromous species information" {...props} wrap={false}>
+  <Section title="Marine connectivity" {...props} wrap={false}>
     <Flex>
       <View
         style={{
@@ -78,7 +78,7 @@ const DiadromousInfo = ({
   </Section>
 )
 
-DiadromousInfo.propTypes = {
+MarineConnectivity.propTypes = {
   barrierType: PropTypes.string.isRequired,
   milestooutlet: PropTypes.number,
   totaldownstreamdams: PropTypes.number,
@@ -86,11 +86,11 @@ DiadromousInfo.propTypes = {
   totaldownstreamwaterfalls: PropTypes.number,
 }
 
-DiadromousInfo.defaultProps = {
+MarineConnectivity.defaultProps = {
   milestooutlet: 0,
   totaldownstreamdams: 0,
   totaldownstreamsmallbarriers: 0,
   totaldownstreamwaterfalls: 0,
 }
 
-export default DiadromousInfo
+export default MarineConnectivity

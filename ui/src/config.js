@@ -1103,6 +1103,12 @@ export const CANAL = {
   1: 'stream is identified by NHD as a canal/ditch',
 }
 
+export const DIADROMOUS_HABITAT = {
+  // -1: "off network", // filtered out
+  0: 'no',
+  1: 'yes',
+}
+
 // barrier passability
 export const PASSABILITY = {
   0: 'unknown',

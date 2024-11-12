@@ -131,6 +131,7 @@ export const Crossfilter = (filterConfig) => {
 
       // reset filtered data to full data
       let filteredData = data
+      // FIXME: this might be wrong if removing a filter
       let dimensionCounts = totalDimensionCounts
 
       const hasFilters =

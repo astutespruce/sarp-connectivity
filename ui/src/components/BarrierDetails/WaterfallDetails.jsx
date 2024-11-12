@@ -27,6 +27,7 @@ const WaterfallDetails = ({
   annualflow,
   basin,
   congressionaldistrict,
+  diadromoushabitat,
   excluded,
   falltype,
   fishhabitatpartnership,
@@ -169,12 +170,16 @@ const WaterfallDetails = ({
 
       {hasnetwork && habitat.length > 0 ? (
         <Section title="Species habitat information for this network">
-          <SpeciesHabitatInfo habitat={habitat} />
+          <SpeciesHabitatInfo
+            barrierType={barrierType}
+            diadromoushabitat={diadromoushabitat}
+            habitat={habitat}
+          />
         </Section>
       ) : null}
 
       {hasnetwork && flowstoocean && milestooutlet < 500 ? (
-        <Section title="Diadromous species information">
+        <Section title="Marine connectivity">
           <DiadromousInfo
             barrierType={barrierType}
             milestooutlet={milestooutlet}
@@ -269,6 +274,7 @@ WaterfallDetails.propTypes = {
   annualflow: PropTypes.number,
   basin: PropTypes.string,
   congressionaldistrict: PropTypes.string,
+  diadromoushabitat: PropTypes.number,
   excluded: PropTypes.bool,
   falltype: PropTypes.string,
   fishhabitatpartnership: PropTypes.string,
@@ -391,6 +397,7 @@ WaterfallDetails.defaultProps = {
   annualflow: null,
   basin: null,
   congressionaldistrict: null,
+  diadromoushabitat: 0,
   excluded: false,
   falltype: null,
   fishhabitatpartnership: null,
