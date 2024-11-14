@@ -46,9 +46,7 @@ def find_joins(df, ids, downstream_col="downstream", upstream_col="upstream", ex
     # find all upstream / downstream joins of ids returned at each iteration
     for i in range(expand):
         next_ids = (set(out[upstream_col]) | set(out[downstream_col])) - {0}
-        out = df.loc[
-            (df[upstream_col].isin(next_ids)) | (df[downstream_col].isin(next_ids))
-        ]
+        out = df.loc[(df[upstream_col].isin(next_ids)) | (df[downstream_col].isin(next_ids))]
 
     return out
 
@@ -87,9 +85,7 @@ def index_joins(df, downstream_col="downstream", upstream_col="upstream"):
     return df.reset_index().drop_duplicates().set_index("index")
 
 
-def create_upstream_index(
-    df, downstream_col="downstream", upstream_col="upstream", exclude=None
-):
+def create_upstream_index(df, downstream_col="downstream", upstream_col="upstream", exclude=None):
     """Create an index of downstream ids to all their respective upstream ids.
     This is so that network traversal can start from a downstream-most segment,
     and then traverse upward for all segments that have that as a downstream segment.
@@ -121,12 +117,7 @@ def create_upstream_index(
         ix = ix & (~df[upstream_col].isin(exclude))
 
     # NOTE: this looks backward but is correct for the way that grouping works.
-    return (
-        df[ix, [downstream_col, upstream_col]]
-        .set_index(upstream_col)
-        .groupby(downstream_col)
-        .groups
-    )
+    return df[ix, [downstream_col, upstream_col]].set_index(upstream_col).groupby(downstream_col).groups
 
 
 def remove_joins(df, ids, downstream_col="downstream", upstream_col="upstream"):
@@ -153,12 +144,8 @@ def remove_joins(df, ids, downstream_col="downstream", upstream_col="upstream"):
 
     # Update any joins that would have connected to these ids
     # on their downstream end
-    upstreams = df.loc[
-        (df[downstream_col].isin(ids)) & (df[upstream_col] != 0), upstream_col
-    ]
-    has_other_joins = df.loc[
-        df[upstream_col].isin(upstreams) & ~df[downstream_col].isin(ids), upstream_col
-    ]
+    upstreams = df.loc[(df[downstream_col].isin(ids)) & (df[upstream_col] != 0), upstream_col]
+    has_other_joins = df.loc[df[upstream_col].isin(upstreams) & ~df[downstream_col].isin(ids), upstream_col]
 
     # new terminals are ones that end ONLY in these ids
     new_terminals = upstreams.loc[~upstreams.isin(has_other_joins)]
@@ -167,9 +154,7 @@ def remove_joins(df, ids, downstream_col="downstream", upstream_col="upstream"):
 
     # Update any joins that would have connected to these ids
     # on their upstream end
-    downstreams = df.loc[
-        df[upstream_col].isin(ids) & (df[downstream_col] != 0), downstream_col
-    ]
+    downstreams = df.loc[df[upstream_col].isin(ids) & (df[downstream_col] != 0), downstream_col]
     has_other_joins = df.loc[
         df[downstream_col].isin(downstreams) & ~df[upstream_col].isin(ids),
         downstream_col,
@@ -178,9 +163,7 @@ def remove_joins(df, ids, downstream_col="downstream", upstream_col="upstream"):
     ix = df.loc[df[downstream_col].isin(new_terminals)].index
     df.loc[ix, upstream_col] = 0
 
-    return df.loc[
-        ~(df[upstream_col].isin(ids) | (df[downstream_col].isin(ids)))
-    ].drop_duplicates()
+    return df.loc[~(df[upstream_col].isin(ids) | (df[downstream_col].isin(ids)))].drop_duplicates()
 
 
 def update_joins(
@@ -210,19 +193,23 @@ def update_joins(
     -------
     DataFrame
     """
-    joins = joins.join(new_downstreams, on=downstream_col).join(
-        new_upstreams, on=upstream_col
+
+    new_downstream_col = f"new_{downstream_col}"
+    new_upstream_col = f"new_{upstream_col}"
+
+    joins = joins.join(new_downstreams.rename(new_downstream_col), on=downstream_col).join(
+        new_upstreams.rename(new_upstream_col), on=upstream_col
     )
 
     # copy new downstream IDs across
-    idx = joins.new_downstream_id.notnull()
+    idx = joins[new_downstream_col].notnull()
     joins.loc[idx, downstream_col] = joins[idx][new_downstreams.name].astype("uint32")
 
     # copy new upstream IDs across
-    idx = joins.new_upstream_id.notnull()
+    idx = joins[new_upstream_col].notnull()
     joins.loc[idx, upstream_col] = joins[idx][new_upstreams.name].astype("uint32")
 
-    return joins.drop(columns=["new_downstream_id", "new_upstream_id"])
+    return joins.drop(columns=[new_downstream_col, new_upstream_col])
 
 
 def find_downstream_terminals(df, downstream_col="downstream", upstream_col="upstream"):

@@ -1191,33 +1191,41 @@ def repair_disconnected_subnetworks(flowlines, joins, next_lineID):
     ).set_index("lineID")
 
     # transform new segments to create new joins
-    lineIDs = new_flowlines.groupby("origLineID").lineID
+    by_orig_lineID = new_flowlines[["origLineID", "lineID", "NHDPlusID"]].groupby("origLineID")
     # the first new line per original line is the furthest upstream, so use its
     # ID as the new downstream ID for anything that had this origLineID as its downstream
-    first = lineIDs.first().rename("new_downstream_id")
+    first = by_orig_lineID.first().rename(columns={"lineID": "new_downstream_id", "NHDPlusID": "new_downstream"})
     # the last new line per original line is the furthest downstream...
-    last = lineIDs.last().rename("new_upstream_id")
+    last = by_orig_lineID.last().rename(columns={"lineID": "new_upstream_id", "NHDPlusID": "new_upstream"})
 
     # Update existing joins with the new lineIDs we created at the upstream or downstream
     # ends of segments we just created
     updated_joins = update_joins(
         updated_joins,
-        first,
-        last,
+        first.new_downstream,
+        last.new_upstream,
+        downstream_col="downstream",
+        upstream_col="upstream",
+    )
+
+    updated_joins = update_joins(
+        updated_joins,
+        first.new_downstream_id,
+        last.new_upstream_id,
         downstream_col="downstream_id",
         upstream_col="upstream_id",
     )
 
     # For all new interior joins, create upstream & downstream ids per original line
     upstream_side = (
-        new_flowlines.loc[~new_flowlines.lineID.isin(last)][["origLineID", "position", "lineID"]]
+        new_flowlines.loc[~new_flowlines.lineID.isin(last)][["origLineID", "position", "lineID", "NHDPlusID"]]
         .set_index(["origLineID", "position"])
-        .rename(columns={"lineID": "upstream_id"})
+        .rename(columns={"lineID": "upstream_id", "NHDPlusID": "upstream"})
     )
 
-    downstream_side = new_flowlines.loc[~new_flowlines.lineID.isin(first)][["origLineID", "position", "lineID"]].rename(
-        columns={"lineID": "downstream_id"}
-    )
+    downstream_side = new_flowlines.loc[~new_flowlines.lineID.isin(first)][
+        ["origLineID", "position", "lineID", "NHDPlusID"]
+    ].rename(columns={"lineID": "downstream_id", "NHDPlusID": "downstream"})
     downstream_side.position = downstream_side.position - 1
     downstream_side = downstream_side.set_index(["origLineID", "position"])
 
@@ -1232,9 +1240,7 @@ def repair_disconnected_subnetworks(flowlines, joins, next_lineID):
         .join(upstream_side)
         .join(downstream_side)
         .reset_index()
-        .join(grouped.target_NHDPlusID.rename("upstream"), on="origLineID")
     )
-    new_joins["downstream"] = new_joins.upstream
     new_joins["type"] = "internal"
     new_joins["marine"] = False
     new_joins["great_lakes"] = False
@@ -1242,12 +1248,15 @@ def repair_disconnected_subnetworks(flowlines, joins, next_lineID):
 
     # update the downstream end of the incoming tributaries
     updated_joins = updated_joins.join(
-        new_joins.set_index("src_id").downstream_id.rename("new_downstream_id"),
+        new_joins[["src_id", "downstream_id", "downstream"]]
+        .set_index("src_id")
+        .rename(columns={"downstream_id": "new_downstream_id", "downstream": "new_downstream"}),
         on="upstream_id",
     )
     ix = updated_joins.new_downstream_id.notnull()
+    updated_joins.loc[ix, "downstream"] = updated_joins.loc[ix].new_downstream.astype("uint64")
     updated_joins.loc[ix, "downstream_id"] = updated_joins.loc[ix].new_downstream_id.astype("uint32")
-    updated_joins = updated_joins.drop(columns=["new_downstream_id"])
+    updated_joins = updated_joins.drop(columns=["new_downstream", "new_downstream_id"])
 
     updated_joins = pd.concat(
         [
