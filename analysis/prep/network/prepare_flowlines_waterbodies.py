@@ -29,6 +29,7 @@ from time import time
 import geopandas as gp
 import numpy as np
 import pandas as pd
+import pyarrow.compute as pc
 import shapely
 from pyogrio import write_dataframe
 
@@ -55,6 +56,8 @@ from analysis.lib.flowlines import (
     mark_altered_flowlines,
     repair_disconnected_subnetworks,
 )
+from analysis.lib.graph.speedups import DirectedGraph
+from analysis.lib.io import read_arrow_tables
 from analysis.prep.network.lib.drains import create_drain_points
 
 
@@ -310,5 +313,74 @@ for huc2 in huc2s:
     del joins
     del waterbodies
     del wb_joins
+
+
+##########################################################################################
+### Identify all flowlines that are part of networks that connect to marine or Great Lakes
+### IMPORTANT: this is done after all of the above because joins need to be clean
+### and marine / Great Lakes joins need to be correctly identified
+##########################################################################################
+
+all_joins = read_arrow_tables(
+    [out_dir / huc2 / "flowline_joins.feather" for huc2 in huc2s],
+    columns=[
+        "upstream",
+        "downstream",
+        "marine",
+        "great_lakes",
+    ],
+    new_fields={"HUC2": huc2s},
+    filter=pc.field("upstream") != 0,
+).to_pandas()
+
+
+# only need to keep joins at level of NHD flowlines
+all_joins = all_joins.drop_duplicates(subset=["upstream", "downstream", "marine", "great_lakes"])
+
+# create a directed graph facing upstream; loops are OK because we use a check
+# against nodes seen from any starting point
+graph = DirectedGraph(all_joins.downstream.values.astype("int64"), all_joins.upstream.values.astype("int64"))
+
+### find any that start from marine areas
+marine_huc2 = sorted(all_joins.loc[all_joins.marine].HUC2.unique())
+
+marine_ids = None
+for huc2 in marine_huc2:
+    print(f"Processing marine networks that start from {huc2}...")
+
+    origins = all_joins.loc[
+        (all_joins.HUC2 == huc2) & all_joins.marine & ~all_joins.downstream.isin(all_joins.upstream.unique())
+    ].upstream.unique()
+    networks = graph.network_pairs_global(origins.astype("int64"))
+    networks = pd.DataFrame(networks, columns=["networkID", "NHDPlusID"])
+
+    if marine_ids is None:
+        marine_ids = networks.NHDPlusID.values
+    else:
+        marine_ids = np.concatenate([marine_ids, networks.NHDPlusID.values])
+
+pd.DataFrame({"NHDPlusID": marine_ids}).to_feather(out_dir / "all_marine_flowlines.feather")
+
+
+# find any that start from the Great Lakes
+great_lakes_huc2 = sorted(all_joins.loc[all_joins.great_lakes].HUC2.unique())
+
+great_lake_ids = None
+for huc2 in great_lakes_huc2:
+    print(f"Processing Great Lakes networks that start from {huc2}...")
+
+    origins = all_joins.loc[
+        (all_joins.HUC2 == huc2) & all_joins.marine & ~all_joins.downstream.isin(all_joins.upstream.unique())
+    ].upstream.unique()
+    networks = graph.network_pairs_global(origins.astype("int64"))
+    networks = pd.DataFrame(networks, columns=["networkID", "NHDPlusID"])
+
+    if great_lake_ids is None:
+        great_lake_ids = networks.NHDPlusID.values
+    else:
+        great_lake_ids = np.concatenate([great_lake_ids, networks.NHDPlusID.values])
+
+pd.DataFrame({"NHDPlusID": great_lake_ids}).to_feather(out_dir / "all_great_lakes_flowlines.feather")
+
 
 print("==============\nAll done in {:.2f}s".format(time() - start))

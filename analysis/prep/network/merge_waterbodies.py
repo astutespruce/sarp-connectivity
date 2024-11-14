@@ -50,6 +50,9 @@ huc2s = sorted(pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["H
 
 start = time()
 
+# read LAGOS reservoir points
+lagos_pt = gp.read_feather("data/lagos/lagos_reservoir_pt.feather")
+
 print("Reading state level datasets")
 
 overlaps_mn = False
@@ -105,6 +108,11 @@ for huc2 in huc2s:
         ignore_index=True,
         sort=False,
     )
+
+    # mark as altered based on LAGOS
+    tree = shapely.STRtree(lagos_pt.loc[lagos_pt.HUC2 == huc2].geometry.values)
+    ix = np.unique(tree.query(df.geometry.values, predicate="intersects")[0])
+    df.loc[df.index.isin(df.index.values.take(ix)), "altered"] = True
 
     altered = df.loc[df.altered].copy()
 

@@ -73,9 +73,6 @@ all_barriers = (
     .to_pandas()
 )
 
-# FIXME: remove after re-running prep_dams.py
-all_barriers.loc[(all_barriers.YearRemoved > 0) & (all_barriers.YearRemoved < 1900), "YearRemoved"] = np.uint16(0)
-
 # 1 represents everything < 2000 so that sorting works
 all_barriers.loc[(all_barriers.YearRemoved > 0) & (all_barriers.YearRemoved < 2000), "YearRemoved"] = 1
 

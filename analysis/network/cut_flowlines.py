@@ -254,6 +254,10 @@ for huc2 in huc2s:
             "km2": waterbodies.km2.values.take(left),
         }
     )
+
+    # drop any waterbodies now marked as altered because of impoundments above
+    drop_ids = pairs.loc[pairs.lineID.isin(flowlines.loc[flowlines.impoundment].lineID.unique())].wbID.unique()
+    pairs = pairs.loc[~pairs.wbID.isin(drop_ids)].reset_index(drop=True)
     pairs.to_feather(huc2_dir / "flowline_waterbodies.feather")
 
     ### Build lookup table of flowlines to wetlands

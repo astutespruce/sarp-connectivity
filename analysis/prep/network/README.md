@@ -6,15 +6,16 @@ This stage involves processing NHD data and related data into data structures th
 
 1. Run `download_nhd.py` to download NHD High Resolution Plus data for all applicable HUC4s that have dams.
 2. Run `download_nwi.py` to download National Wetlands Inventory data.
-3. Manually download state-level LIDAR waterbody datasets.
+3. Manually download and extract state-level LIDAR waterbody datasets.
 4. Run `extract_nhd.py` to extract flowlines, flowline joins, waterbodies, NHD barriers (points, lines, polygons) for each HUC2.
 5. Run `merge_marine.py` to merge all marine areas.
 6. Run any special pre-processing scripts in `special` (e.g. `find_loops.py`)
 7. Run `extract_nwi.py` to extract NWI waterbodies and altered rivers that intersect the above flowlines.
-8. Run `merge_waterbodies.py` to merge NHD and NWI waterbodies (and others, depending on region) and `merge_wetlands` to merge NHD and NWI wetlands.
-9. Run `prepare_flowlines_waterbodies.py` to preprocess flowlines and waterbodies into data structures ready for analysis.
-10. Run `find_nhd_dams.py` to intersect NHD dam-related features with flowlines and extract intersection points.
-11. Run `prep_floodplain_stats.py` to extract pre-calculated statistics on natural landcover within floodplains for each flowline's catchment.
+8. Run `extract_lagos.py` to extract reservoirs from the LAGOS dataset.
+9. Run `merge_waterbodies.py` to merge NHD and NWI waterbodies (and others, depending on region) and `merge_wetlands` to merge NHD and NWI wetlands.
+10. Run `prepare_flowlines_waterbodies.py` to preprocess flowlines and waterbodies into data structures ready for analysis.
+11. Run `find_nhd_dams.py` to intersect NHD dam-related features with flowlines and extract intersection points.
+12. Run `prep_floodplain_stats.py` to extract pre-calculated statistics on natural landcover within floodplains for each flowline's catchment.
 
 Now the underlying aquatic networks are ready for the network analysis.
 
@@ -139,7 +140,11 @@ This creates a directory (`data/nhd/raw/<region>`) for each region containing:
 - flowlines are identified using `lineID` from this point forward; this is a unique ID assigned to this specific run of the data extraction. These ids are NOT durable from one extraction to the next. These are used because the flowlines are cut, yet we retain the original NHDPlusID of each original segment to be able to relate it back to NHD.
 - waterbodies are identified using `wbID`. These are also specific to this particular extraction.
 
-### 5. Run any special preprocessing scripts or hand-inspect NHD data
+### 5. Merge marine areas
+
+Run `merge_marine.py` to merge all marine areas.
+
+### 6. Run any special preprocessing scripts or hand-inspect NHD data
 
 To get around issues with NHD HR+ Beta data, you likely need to inspect the NHD data first for errors:
 
@@ -182,7 +187,7 @@ above average in the TNC resilience dataset.
 
 Run `special/prepare_tnc_resilience.py` to extract TNC resilience to NHD flowlines.
 
-### 6. Extract NWI waterbodies and altered rivers
+### 7. Extract NWI waterbodies and altered rivers
 
 Run `extract_nwi.py` to extract NWI waterbodies and altered rivers that intersect
 the above flowlines. Altered rivers are those that have been marked in NWI as
@@ -193,7 +198,15 @@ This creates a directory (`data/nwi/raw/<region>`) for each region containing:
 - waterbodies.feather
 - altered_rivers.feather
 
-### 7. Merge waterbodies
+### 8. Extract LAGOS reservoirs
+
+LAGOS reservoirs were downloaded from https://portal.edirepository.org/nis/mapbrowse?scope=edi&identifier=1016
+on 12/12/2024.
+
+These are preprocessed to extract representative points that can be used to
+attribute merged waterbodies using `extract_lagos.py`.
+
+### 9. Merge waterbodies
 
 Run `merge_waterbodies.py` to merge NHD, NWI, and other waterbodies. This first
 dissolves any overlapping waterbodies. It then uses the NHD data to determine
@@ -213,7 +226,7 @@ keeps NHD wetlands that don't intersect with NWI wetlands.
 
 This creates `data/wetlands/<region>/wetlands.feather`.
 
-### 6. Prepare flowlines and waterbodies:
+### 10. Prepare flowlines and waterbodies:
 
 Run `prepare_flowlines_waterbodies.py` to preprocess flowlines and waterbodies into data structures ready for analysis. This implements the bulk of the logic to extract the appropriate flowline and waterbodies. This logic may need to be tuned to refine the network connectivity analysis.
 
@@ -243,7 +256,7 @@ This creates "clean" data for further analysis in `data/nhd/clean/<region>`:
 
 The script outputs files with erroneous data, if errors are detected during processing. These are identified by `error_*` with a name that indicates the nature of the error.
 
-### 7. Find NHD dams
+### 11. Find NHD dams
 
 Run `find_nhd_dams.py` to extract NHD dams from `nhd_lines.feather` and `nhd_areas.feather` above.
 
@@ -263,7 +276,7 @@ WARNING: there are data issues apparent in the NHD lines and areas. Some feature
 
 This creates `data/nhd/merged/nhd_dams_pt.feather`
 
-### 8. Prepare floodplain metrics
+### 12. Prepare floodplain metrics
 
 Run `prepare_floodplain_stats.py` to prepare the floodplain data provided by SARP for later analysis.
 

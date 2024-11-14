@@ -106,6 +106,53 @@ def network_pairs(adj_matrix, root_ids):
     return np.asarray(pairs, dtype="int64")
 
 
+@njit(cache=True)
+def network_pairs_global(adj_matrix, root_ids):
+    """Return ndarray of shape(n, 2) where each entry is [root_id, target_id]
+
+    Like the above, but with a global "seen" set to handle overlaps.  This can
+    be used to build large networks that may have multiple origin points into the
+    same network.  The first network that encounters a given node claims it.
+
+    Note: includes self: [root_id, root_id]
+
+    Parameters
+    ----------
+    adj_matrix : dict
+        adjacency matrix
+    root_ids : 1-d array of int64
+        of root_ids that are at the root of each network
+
+    Returns
+    -------
+    ndarray of shape(n, 2)
+        where each entry is [root_id, target_id]
+    """
+
+    pairs = []
+    seen = set(root_ids)
+    for i in range(len(root_ids)):
+        node = root_ids[i]
+        # add self
+        pairs.append([node, node])
+
+        collected = set()  # per root node
+        if node in adj_matrix:
+            next_nodes = set(adj_matrix[node])
+            while next_nodes:
+                nodes = next_nodes
+                next_nodes = set()
+                for next_node in nodes:
+                    if next_node not in seen:
+                        seen.add(next_node)
+                        collected.add(next_node)
+                        if next_node in adj_matrix:
+                            next_nodes.update(adj_matrix[next_node])
+        for target_node in collected:
+            pairs.append([node, target_node])
+    return np.asarray(pairs, dtype="int64")
+
+
 @njit
 def components(adj_matrix):
     groups = []
@@ -299,3 +346,6 @@ class DirectedGraph(object):
 
     def network_pairs(self, sources):
         return network_pairs(self.adj_matrix, sources)
+
+    def network_pairs_global(self, sources):
+        return network_pairs_global(self.adj_matrix, sources)
