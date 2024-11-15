@@ -37,9 +37,7 @@ floodplains = (
     .set_index("NHDPlusID")
     .rename(columns={"nat_floodplain_km2": "natfldkm2", "floodplain_km2": "fldkm2"})
 )
-floodplains["natfldpln"] = (100 * floodplains.natfldkm2 / floodplains.fldkm2).astype(
-    "float32"
-)
+floodplains["natfldpln"] = (100 * floodplains.natfldkm2 / floodplains.fldkm2).astype("float32")
 
 for group in huc2_groups:
     segments = (
@@ -52,10 +50,7 @@ for group in huc2_groups:
     )
 
     stats = read_feathers(
-        [
-            src_dir / "clean" / huc2 / f"{scenario}_network_stats.feather"
-            for huc2 in group
-        ],
+        [src_dir / "clean" / huc2 / f"{scenario}_network_stats.feather" for huc2 in group],
         columns=[
             "networkID",
             "total_miles",
@@ -72,6 +67,7 @@ for group in huc2_groups:
             "free_perennial_unaltered_miles",
             "pct_unaltered",
             "pct_perennial_unaltered",
+            "pct_mainstem_unaltered",
             "natfldpln",
             "sizeclasses",
             "barrier",

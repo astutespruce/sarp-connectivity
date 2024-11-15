@@ -39,7 +39,7 @@ from analysis.prep.barriers.lib.snap import snap_to_flowlines, export_snap_dist_
 from analysis.prep.barriers.lib.duplicates import find_duplicates, export_duplicate_areas
 from analysis.prep.barriers.lib.spatial_joins import get_huc2, add_spatial_joins
 from analysis.prep.barriers.lib.log import format_log
-from analysis.prep.species.lib.diadromous import get_diaadromous_ids
+from analysis.prep.species.lib.diadromous import get_diadromous_ids
 from analysis.lib.io import read_arrow_tables
 from analysis.constants import (
     SMALL_BARRIERS_ID_OFFSET,
@@ -866,9 +866,28 @@ flowlines = (
 
 df = df.join(flowlines, on="lineID")
 
-df["DiadromousHabitat"] = df.NHDPlusID.isin(get_diaadromous_ids())
-
+df["NHDPlusID"] = df.NHDPlusID.fillna(-1).astype("int64")
 df.StreamOrder = df.StreamOrder.fillna(-1).astype("int8")
+
+df["DiadromousHabitat"] = df.NHDPlusID.isin(get_diadromous_ids()).astype("int8")
+df.loc[~df.snapped, "DiadromousHabitat"] = -1
+
+marine_ids = (
+    pa.dataset.dataset(nhd_dir / "clean/all_marine_flowlines.feather", format="feather")
+    .to_table(filter=pc.is_in(pc.field("NHDPlusID"), pa.array(flowlines.NHDPlusID.unique())))["NHDPlusID"]
+    .to_numpy()
+)
+df["FlowsToOcean"] = df.NHDPlusID.isin(marine_ids).astype("int8")
+df.loc[~df.snapped, "FlowsToOcean"] = -1
+
+great_lake_ids = (
+    pa.dataset.dataset(nhd_dir / "clean/all_great_lakes_flowlines.feather", format="feather")
+    .to_table(filter=pc.is_in(pc.field("NHDPlusID"), pa.array(flowlines.NHDPlusID.unique())))["NHDPlusID"]
+    .to_numpy()
+)
+df["FlowsToGreatLakes"] = df.NHDPlusID.isin(great_lake_ids).astype("int8")
+df.loc[~df.snapped, "FlowsToGreatLakes"] = -1
+
 
 # Add name from snapped flowline if not already present
 df["GNIS_Name"] = df.GNIS_Name.fillna("").str.strip()
@@ -883,10 +902,12 @@ df.loc[ix, "Name"] = "Road barrier - " + df.loc[ix].River
 df["stream_type"] = df.FCode.map(FCODE_TO_STREAMTYPE).fillna(0).astype("uint8")
 
 # calculate intermittent + ephemeral
-df["intermittent"] = df.FCode.isin([46003, 46007])
+df["Intermittent"] = df.FCode.isin([46003, 46007]).astype("int8")
+df.loc[~df.snapped, "Intermittent"] = -1
 
 # calculate canal / ditch
-df["canal"] = df.FCode.isin([33600, 33601, 33603])
+df["Canal"] = df.FCode.isin([33600, 33601, 33603]).astype("int8")
+df.loc[~df.snapped, "Canal"] = 1
 
 # Fix missing field values
 df["loop"] = df.loop.fillna(0).astype("bool")
@@ -894,11 +915,11 @@ df["offnetwork_flowline"] = df.offnetwork_flowline.fillna(0).astype("bool")
 df["sizeclass"] = df.sizeclass.fillna("")
 df["FCode"] = df.FCode.fillna(-1).astype("int32")
 # -9998.0 values likely indicate AnnualVelocity data is not available, equivalent to null
-df.loc[df.AnnualVelocity < 0, "AnnualVelocity"] = np.nan
-df.loc[df.AnnualFlow <= 0, "AnnualFlow"] = np.nan
+df.loc[df.AnnualVelocity < 0, "AnnualVelocity"] = -1
+df.loc[df.AnnualFlow <= 0, "AnnualFlow"] = -1
 
 for field in ["AnnualVelocity", "AnnualFlow", "TotDASqKm"]:
-    df[field] = df[field].astype("float32")
+    df[field] = df[field].fillna(-1).astype("float32")
 
 print(df.groupby("loop").size())
 

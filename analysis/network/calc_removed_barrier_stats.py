@@ -29,7 +29,7 @@ DROP_COLS = (
     + [f"tot_{kind}" for kind in BARRIER_COUNT_KINDS]
     + [f"fn_{kind}" for kind in BARRIER_COUNT_KINDS]
 )
-DOWNSTREAM_COLS = ["miles_to_outlet", "flows_to_ocean", "flows_to_great_lakes", "exits_region", "invasive_network"]
+DOWNSTREAM_COLS = ["miles_to_outlet", "flows_to_ocean", "flows_to_great_lakes", "invasive_network"]
 
 
 data_dir = Path("data")
@@ -309,7 +309,7 @@ for network_type in network_types:
         )
         # add in miles_to_outlet based on length downstream of subnetwork this barrier is on
         cur_networks["miles_to_outlet"] += cur_networks.miles_to_outlet_prev
-        for col in ["flows_to_ocean", "flows_to_great_lakes", "exits_region"]:
+        for col in ["flows_to_ocean", "flows_to_great_lakes"]:
             cur_networks[col] |= cur_networks[f"{col}_prev"]
         cur_networks = cur_networks.drop(columns=[col for col in cur_networks.columns if col.endswith("_prev")])
 

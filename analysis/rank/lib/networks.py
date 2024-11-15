@@ -86,9 +86,6 @@ NETWORK_COLUMNS = [
     "totd_small_barriers",
     "totd_road_crossings",
     "miles_to_outlet",
-    "flows_to_ocean",
-    "flows_to_great_lakes",
-    "exits_region",
     "invasive_network",
     # species upstream / downstream habitat
     "AlewifeHabitatUpstreamMiles",
@@ -175,9 +172,6 @@ NETWORK_COLUMN_NAMES = {
     "totd_small_barriers": "TotalDownstreamSmallBarriers",
     "totd_waterfalls": "TotalDownstreamWaterfalls",
     "miles_to_outlet": "MilesToOutlet",
-    "flows_to_ocean": "FlowsToOcean",
-    "flows_to_great_lakes": "FlowsToGreatLakes",
-    "exits_region": "ExitsRegion",
     "invasive_network": "InvasiveNetwork",
 }
 
@@ -192,7 +186,7 @@ def get_network_results(df, network_type, state_ranks=False):
     Parameters
     ----------
     df : DataFrame
-        barriers data; must contain State and Unranked
+        barriers data; must contain State, Unranked, FlowsToOcean, FlowsToGreatLakes
     network_type : {"dams", "combined_barriers", "largefish_barriers", "smallfish_barriers"}
     state_ranks : bool, optional (default: False)
         if True, results will include tiers for the state level
@@ -216,7 +210,9 @@ def get_network_results(df, network_type, state_ranks=False):
     )
 
     # join back to df using inner join, which limits to barrier types present in df
-    networks = networks.join(df[df.columns.intersection(["Unranked", "State"])], how="inner")
+    networks = networks.join(
+        df[df.columns.intersection(["Unranked", "State", "FlowsToOcean", "FlowsToGreatLakes"])], how="inner"
+    )
 
     # sanity check to make sure no duplicate networks
     if networks.groupby(level=0).size().max() > 1:
@@ -263,14 +259,14 @@ def get_network_results(df, network_type, state_ranks=False):
     # Diadromous related filters - must have FlowsToOcean == True
     networks["DownstreamOceanMilesClass"] = classify_downstream_miles(networks.MilesToOutlet)
     networks["DownstreamOceanBarriersClass"] = classify_downstream_barriers(num_downstream)
-    ix = ~networks.FlowsToOcean
+    ix = networks.FlowsToOcean == 1
     networks.loc[ix, "DownstreamOceanMilesClass"] = 0
     networks.loc[ix, "DownstreamOceanBarriersClass"] = 0
 
     # similar for Great Lakes
     networks["DownstreamGreatLakesMilesClass"] = classify_downstream_miles(networks.MilesToOutlet)
     networks["DownstreamGreatLakesBarriersClass"] = classify_downstream_barriers(num_downstream)
-    ix = ~networks.FlowsToGreatLakes
+    ix = networks.FlowsToGreatLakes == 1
     networks.loc[ix, "DownstreamGreatLakesMilesClass"] = 0
     networks.loc[ix, "DownstreamGreatLakesBarriersClass"] = 0
 
@@ -289,11 +285,11 @@ def get_network_results(df, network_type, state_ranks=False):
             col = f"{stat_type}{t}"
             networks[col] = networks[col].astype("int32")
 
-    for col in ("Landcover", "FlowsToOcean", "FlowsToGreatLakes", "ExitsRegion"):
+    for col in ("Landcover",):
         networks[col] = networks[col].astype("int8")
 
     if not state_ranks:
-        return networks.drop(columns=["Unranked", "State"])
+        return networks.drop(columns=["Unranked", "State", "FlowsToOcean", "FlowsToGreatLakes"])
 
     ### Calculate state tiers for each of total and perennial
     # (exclude unranked invasive spp. barriers / no structure diversions)
@@ -313,7 +309,7 @@ def get_network_results(df, network_type, state_ranks=False):
     for col in [col for col in networks.columns if col.endswith("_tier")]:
         networks[col] = networks[col].fillna(np.int8(-1)).astype("int8")
 
-    return networks.drop(columns=["Unranked", "State"])
+    return networks.drop(columns=["Unranked", "State", "FlowsToOcean", "FlowsToGreatLakes"])
 
 
 def get_removed_network_results(df, network_type):
@@ -360,7 +356,7 @@ def get_removed_network_results(df, network_type):
         # Force to -1 since these aren't part of standard networks
         networks[col] = -1
 
-    for col in ("Landcover", "FlowsToOcean", "FlowsToGreatLakes", "ExitsRegion"):
+    for col in ("Landcover",):
         networks[col] = networks[col].astype("int8")
 
     return networks.drop(columns=["Unranked", "State"])

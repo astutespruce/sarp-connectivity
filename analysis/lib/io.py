@@ -74,6 +74,7 @@ def read_arrow_tables(paths, columns=None, filter=None, new_fields=None):
             continue
 
         table = dataset(path, format="feather").to_table(columns=columns, filter=filter)
+
         if new_fields is not None:
             for field, values in new_fields.items():
                 new_col = pa.array(np.repeat(values[i], len(table)))

@@ -13,7 +13,7 @@ out_dir.mkdir(exist_ok=True, parents=True)
 
 
 # full network scenarios are: "dams", "combined_barriers", "largefish_barriers", "smallfish_barriers"
-scenario = "full"
+scenario = "dams"
 mainstem = False
 ext = "fgb"
 driver = "FlatGeobuf"
@@ -21,28 +21,32 @@ driver = "FlatGeobuf"
 # driver = "OpenFileGDB"
 
 
+# Doesn't appear to work in QGIS
+# layer_options = {"TARGET_ARCGIS_VERSION": "ARCGIS_PRO_3_2_OR_LATER"} if driver == "OpenFileGDB" else None
+layer_options = None
+
 scenario_suffix = "_mainstem" if mainstem else ""
 
 groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
 
-# export_hucs = {
-# "01",
-# "02",
-# "03"
-# "04",
-# "05",
-# "06",
-# "07",
-# "08",
-# "09",
-# "14",
-# "15",
-# "16",
-# "17",
-# "18",
-# "21"
-# }
-export_hucs = {"05"}
+export_hucs = {
+    # "01",
+    # "02",
+    # "03"
+    # "04",
+    # "05",
+    # "06",
+    # "07",
+    # "08",
+    # "09",
+    # "14",
+    # "15",
+    # "16",
+    # "17",
+    "18",
+    # "21"
+}
+# export_hucs = {"08", "11"}
 
 
 floodplains = (
@@ -57,7 +61,7 @@ floodplains["natfldpln"] = (100 * floodplains.natfldkm2 / floodplains.fldkm2).as
 
 # FIXME:
 # for group in groups_df.groupby("group").HUC2.apply(set).values:
-for group in [{"11", "06", "07", "10", "08", "05"}]:
+for group in [{"18"}]:
     group = sorted(group)
 
     networkID_col = f"{scenario}{scenario_suffix}"
@@ -104,6 +108,7 @@ for group in [{"11", "06", "07", "10", "08", "05"}]:
             "altered_mainstem_miles",
             "unaltered_mainstem_miles",
             "perennial_unaltered_mainstem_miles",
+            "pct_mainstem_unaltered",
             # downstream linear network miles (downstream to next barrier / outlet)
             "total_linear_downstream_miles",
             "free_linear_downstream_miles",
@@ -132,7 +137,7 @@ for group in [{"11", "06", "07", "10", "08", "05"}]:
             if col in stats.columns:
                 stats[col] = stats[col].fillna(0).astype("uint32")
 
-    for col in ["flows_to_ocean", "flows_to_great_lakes", "exits_region", "invasive_network"]:
+    for col in ["flows_to_ocean", "flows_to_great_lakes", "invasive_network"]:
         if col in stats.columns:
             stats[col] = stats[col].astype("uint8")
 
@@ -192,7 +197,10 @@ for group in [{"11", "06", "07", "10", "08", "05"}]:
         ### To export flowline segments
         print(f"Serializing {len(flowlines):,} network segments...")
         write_dataframe(
-            flowlines, out_dir / f"region{huc2}_{scenario}{scenario_suffix}_network_segments.{ext}", driver=driver
+            flowlines,
+            out_dir / f"region{huc2}_{scenario}{scenario_suffix}_network_segments.{ext}",
+            driver=driver,
+            layer_options=layer_options,
         )
 
         ### To export dissolved networks
@@ -226,4 +234,9 @@ for group in [{"11", "06", "07", "10", "08", "05"}]:
         # (in the millions) and simply won't be displayed in QGIS
 
         print(f"Serializing {len(networks):,} dissolved networks...")
-        write_dataframe(networks, out_dir / f"region{huc2}_{scenario}{scenario_suffix}_networks.{ext}", driver=driver)
+        write_dataframe(
+            networks,
+            out_dir / f"region{huc2}_{scenario}{scenario_suffix}_networks.{ext}",
+            driver=driver,
+            layer_options=layer_options,
+        )

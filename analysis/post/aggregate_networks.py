@@ -68,8 +68,6 @@ rename_cols = {
     "snapped": "Snapped",
     "excluded": "Excluded",
     "removed": "Removed",
-    "intermittent": "Intermittent",
-    "canal": "Canal",
     "is_estimated": "Estimated",
     "invasive": "Invasive",
     "unranked": "Unranked",
@@ -78,28 +76,11 @@ rename_cols = {
 }
 
 
-def fill_flowline_cols(df):
-    # Fill flowline columns with -1 when not available and set to appropriate dtype
-
-    df["NHDPlusID"] = df.NHDPlusID.fillna(-1).astype("int64")
-    df["Intermittent"] = df.Intermittent.astype("int8")
-    df.loc[~df.Snapped, "Intermittent"] = -1
-    df["Canal"] = df.Canal.astype("int8")
-    df.loc[~df.Snapped, "Canal"] = -1
-    df["DiadromousHabitat"] = df.DiadromousHabitat.astype("int8")
-    df.loc[~df.Snapped, "DiadromousHabitat"] = -1
-    df["AnnualFlow"] = df.AnnualFlow.fillna(-1).astype("float32")
-    df["AnnualVelocity"] = df.AnnualVelocity.fillna(-1).astype("float32")
-    df["TotDASqKm"] = df.TotDASqKm.fillna(-1).astype("float32")
-
-
 #######################################################################################
 ### Read dams and associated networks
 print("Reading dams and networks")
 dams = gp.read_feather(barriers_dir / "dams.feather").set_index("id").rename(columns=rename_cols)
 dams["in_network_type"] = dams.primary_network
-
-fill_flowline_cols(dams)
 
 # add stream order and species classes for filtering
 dams["StreamOrderClass"] = classify_streamorder(dams.StreamOrder)
@@ -180,7 +161,6 @@ small_barriers = gp.read_feather(barriers_dir / "small_barriers.feather").set_in
 small_barriers["in_network_type"] = small_barriers.primary_network
 
 small_barriers = small_barriers.loc[~(small_barriers.dropped | small_barriers.duplicate)].copy()
-fill_flowline_cols(small_barriers)
 
 # add stream order and species classes for filtering
 small_barriers["StreamOrderClass"] = classify_streamorder(small_barriers.StreamOrder)
@@ -411,8 +391,6 @@ print("Reading waterfalls and networks")
 waterfalls = gp.read_feather(barriers_dir / "waterfalls.feather").set_index("id").rename(columns=rename_cols)
 waterfalls = waterfalls.loc[~(waterfalls.dropped | waterfalls.duplicate)].copy()
 
-fill_flowline_cols(waterfalls)
-
 tmp = waterfalls.copy()
 tmp["BarrierType"] = "waterfalls"
 
@@ -474,8 +452,6 @@ tmp.sort_values(by=["SARPID", "network_type"]).reset_index(drop=True).to_feather
 # NOTE: these don't currently have network data, but share logic with above
 print("Processing road crossings")
 crossings = gp.read_feather(barriers_dir / "road_crossings.feather").set_index("id").rename(columns=rename_cols)
-
-fill_flowline_cols(crossings)
 
 crossings["OnNetwork"] = ~(crossings.OnLoop | crossings.offnetwork_flowline)
 

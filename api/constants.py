@@ -178,9 +178,6 @@ DOWNSTREAM_LINEAR_NETWORK_FIELDS = [
     "TotalDownstreamSmallBarriers",
     # "TotalDownstreamRoadCrossings", # not used
     "MilesToOutlet",
-    "FlowsToOcean",
-    "FlowsToGreatLakes",
-    "ExitsRegion",
     "InvasiveNetwork",
 ]
 
@@ -352,6 +349,8 @@ ROAD_CROSSING_FILTER_FIELDS = [
     "NearWildScenicRiver",
     "CoastalHUC8",
     "DiadromousHabitat",
+    "FlowsToOcean",
+    "FlowsToGreatLakes",
     # "SlopeClass",
 ]
 ROAD_CROSSING_FILTER_FIELD_MAP = {f.lower(): f for f in ROAD_CROSSING_FILTER_FIELDS}
@@ -370,6 +369,8 @@ GENERAL_API_FIELDS1 = [
     "NHDPlusID",
     "River",
     "StreamSizeClass",
+    "FlowsToOcean",
+    "FlowsToGreatLakes",
 ]
 
 GENERAL_API_FIELDS2 = (
@@ -1294,7 +1295,6 @@ DOMAINS = {
     "Canal": CANAL_DOMAIN,
     "FlowsToOcean": BOOLEAN_OFFNETWORK_DOMAIN,
     "FlowsToGreatLakes": BOOLEAN_OFFNETWORK_DOMAIN,
-    "ExitsRegion": BOOLEAN_OFFNETWORK_DOMAIN,
     "InvasiveNetwork": BOOLEAN_OFFNETWORK_DOMAIN,
     "OwnerType": OWNERTYPE_DOMAIN,
     "BarrierOwnerType": BARRIEROWNERTYPE_DOMAIN,
@@ -1587,7 +1587,6 @@ FIELD_DEFINITIONS = {
     "FreeWhiteSturgeonHabitatDownstreamMiles": "number of free-flowing miles in the downstream river network from this {type} that are attributed as habitat for white sturgeon.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by StreamNet; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
     "YellowstoneCutthroatTroutHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for Yellowstone cutthroat trout.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by StreamNet; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
     "FreeYellowstoneCutthroatTroutHabitatDownstreamMiles": "number of free-flowing miles in the downstream river network from this {type} that are attributed as habitat for Yellowstone cutthroat trout.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by StreamNet; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
-    # "ExitsRegion": "indicates this {type} was snapped to a stream or river that exits the region of analysis (e.g., flows into Canada or Mexico) or flows into the ocean.",
     "State_NC_tier": "network connectivity tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for network connectivity and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "State_WC_tier": "watershed condition tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "State_NCWC_tier": "combined network connectivity and watershed condition tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for the combined network connectivity and watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",

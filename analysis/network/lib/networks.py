@@ -1,6 +1,9 @@
+from pathlib import Path
 from time import time
 import warnings
 
+import pyarrow as pa
+import pyarrow.compute as pc
 import pandas as pd
 import numpy as np
 
@@ -15,6 +18,8 @@ from analysis.network.lib.stats import (
 
 pd.set_option("future.no_silent_downcasting", True)
 warnings.filterwarnings("ignore", message=".*DataFrame is highly fragmented.*")
+
+data_dir = Path("data")
 
 
 def connect_huc2s(joins):
@@ -482,20 +487,8 @@ def create_barrier_networks(
 
     upstream_mainstem_stats = calculate_upstream_mainstem_stats(mainstem_network_df)
 
-    # lineIDs that terminate in marine or downstream exits of HUC2
-    marine_ids = joins.loc[joins.marine].upstream_id.unique()
-    great_lake_ids = joins.loc[joins.great_lakes].upstream_id.unique()
-    exit_ids = joins.loc[joins.type == "huc2_drain"].upstream_id.unique()
-
     # downstream_stats are indexed on the ID of the barrier
-    downstream_stats = calculate_downstream_stats(
-        down_network_df,
-        focal_barrier_joins,
-        barrier_joins,
-        marine_ids,
-        great_lake_ids,
-        exit_ids,
-    )
+    downstream_stats = calculate_downstream_stats(down_network_df, focal_barrier_joins, barrier_joins)
 
     ### Join upstream network stats to downstream network stats
     # NOTE: a network will only have downstream stats if it is upstream of a
@@ -510,7 +503,7 @@ def create_barrier_networks(
         col = f"totd_{kind}"
         network_stats[col] = network_stats[col].fillna(0).astype("uint32")
 
-    for col in ["flows_to_ocean", "flows_to_great_lakes", "exits_region", "invasive_network"]:
+    for col in ["flows_to_ocean", "flows_to_great_lakes", "invasive_network"]:
         network_stats[col] = network_stats[col].fillna(False).astype("bool")
 
     for col in ["perennial_sizeclasses", "mainstem_sizeclasses"]:
@@ -521,20 +514,10 @@ def create_barrier_networks(
     for col in [c for c in network_stats.columns if c.endswith("_miles")] + ["miles_to_outlet"]:
         network_stats[col] = network_stats[col].fillna(0).astype("float32")
 
-    # set to_ocean, to_great_lakes, and exits_region for functional networks that terminate
-    # in marine or Great Lakes or leave region and have no downstream barrier
-    network_stats.loc[network_stats.index.isin(marine_ids), "flows_to_ocean"] = True
-    network_stats.loc[network_stats.index.isin(great_lake_ids), "flows_to_great_lakes"] = True
-    # if segments connect to marine they also leave the region
-    network_stats.loc[
-        network_stats.index.isin(np.unique(np.append(marine_ids, exit_ids))),
-        "exits_region",
-    ] = True
-
     print(f"calculated stats in {time() - stats_start:.2f}s")
 
     #### Calculate up and downstream network attributes for barriers
-    # NOTE: some statistics (totd_*, miles_to_outlet, flows_to_ocean, exits_region)
+    # NOTE: some statistics (totd_*, miles_to_outlet, flows_to_ocean, flows_to_great_lakes)
     # are evaluated from the upstream functional network (i.e., these are statistics)
     # downstream of the barrier associated with that functional network
     # WARNING: some barriers are on the upstream end or downstream end of the
@@ -638,7 +621,7 @@ def create_barrier_networks(
     barrier_networks.barrier = barrier_networks.barrier.fillna("")
     barrier_networks.origin_HUC2 = barrier_networks.origin_HUC2.fillna("")
 
-    for col in ["flows_to_ocean", "flows_to_great_lakes", "exits_region", "invasive_network"]:
+    for col in ["flows_to_ocean", "flows_to_great_lakes", "invasive_network"]:
         barrier_networks[col] = barrier_networks[col].fillna(False).astype("bool")
 
     # if isolated network or connects to marine / Great Lakes / exit, there

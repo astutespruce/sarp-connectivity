@@ -123,8 +123,18 @@ export const roadCrossings = [
   {
     id: 'marine',
     title: 'Marine connectivity & diadromous species information',
-    hasData: hasDiadromousData,
+    hasData: (data) =>
+      data &&
+      data.numRows() > 0 &&
+      data.filter((d) => d.diadromoushabitat === 1).numRows() > 0,
     filters: [
+      {
+        field: 'flowstoocean',
+        title: 'On a network that flows to ocean',
+        sort: false,
+        help: 'Note: this is limited to networks that are known to connect to marine areas identified by NHD for NHD regions included in this tool, and may not be set correctly for networks that flow through other NHD regions not included in the analysis or outside the U.S. before connecting to marine areas.',
+        ...getEntries(BOOLEAN_FIELD),
+      },
       {
         field: 'diadromoushabitat',
         title:

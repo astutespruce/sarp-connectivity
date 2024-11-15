@@ -9,7 +9,7 @@ data_dir = Path("data")
 src_dir = data_dir / "species/derived"
 
 
-def get_diaadromous_ids():
+def get_diadromous_ids():
     """Get an array of NHDPlusID values for every flowline associated with
     anadromous or diadromous species habitat
 

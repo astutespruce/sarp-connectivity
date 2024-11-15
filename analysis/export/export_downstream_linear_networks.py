@@ -93,7 +93,7 @@ for group in [{"17"}]:
         if col in stats.columns:
             stats[col] = stats[col].fillna(0).astype("uint32")
 
-    for col in ["flows_to_ocean", "flows_to_great_lakes", "exits_region", "invasive_network"]:
+    for col in ["flows_to_ocean", "flows_to_great_lakes", "invasive_network"]:
         if col in stats.columns:
             stats[col] = stats[col].astype("uint8")
 
