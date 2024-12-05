@@ -440,7 +440,7 @@ BarrierDetails.propTypes = {
   invasive: PropTypes.bool,
   landcover: PropTypes.number,
   sourcelink: PropTypes.string,
-  mainstemsizeclasses: PropTypes.string,
+  mainstemsizeclasses: PropTypes.number,
   milestooutlet: PropTypes.number,
   nativeterritories: PropTypes.string,
   onloop: PropTypes.bool,

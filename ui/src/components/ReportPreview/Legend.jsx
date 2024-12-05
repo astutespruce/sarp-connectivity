@@ -11,7 +11,7 @@ const Legend = ({ networkType, name, visibleLayers }) => {
   return (
     <Box
       sx={{
-        fontSize: 1,
+        fontSize: '13px',
         '> div + div': {
           mt: '0.5em',
         },

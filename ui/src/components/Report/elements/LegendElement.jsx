@@ -6,13 +6,13 @@ import Flex from './Flex'
 import LegendSymbol from './LegendSymbol'
 
 const LegendElement = ({ type, label, symbols, ...props }) => (
-  <Flex style={{ marginBottom: 4, alignItems: 'center' }}>
+  <Flex style={{ alignItems: 'center', lineHeight: 1 }}>
     <Flex
       style={{
         width: 30,
         alignItems: symbols ? 'baseline' : 'center',
         flex: '0 0 auto',
-        gap: 2,
+        gap: 0,
       }}
     >
       {symbols ? (
@@ -29,7 +29,7 @@ const LegendElement = ({ type, label, symbols, ...props }) => (
       )}
     </Flex>
 
-    <Text style={{ flex: '1 1 auto', fontSize: 10 }}>{label}</Text>
+    <Text style={{ flex: '1 1 auto', fontSize: 9 }}>{label}</Text>
   </Flex>
 )
 

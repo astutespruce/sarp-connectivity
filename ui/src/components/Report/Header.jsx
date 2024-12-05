@@ -28,7 +28,7 @@ const Header = ({
   return (
     <View style={{ marginBottom: 4 }}>
       <Text
-        style={{ fontFamily: 'Helvetica-Bold', fontSize: 24, lineHeight: 1.2 }}
+        style={{ fontFamily: 'Helvetica-Bold', fontSize: 18, lineHeight: 1.2 }}
       >
         {name}
       </Text>
@@ -66,7 +66,7 @@ const Header = ({
       {ispriority && !removed ? (
         <Flex
           style={{
-            marginTop: '2pt',
+            marginTop: '1pt',
             lineHeight: 1,
           }}
         >
@@ -119,6 +119,7 @@ const Header = ({
           style={{
             flex: '1 1 auto',
             fontSize: 12,
+            lineHeight: 1,
             color: '#5f6e78',
           }}
         >
