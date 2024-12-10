@@ -2,30 +2,23 @@
 
 https://aquaticbarriers.org/
 
-## Purpose
+## About
 
-The [Southeast Aquatic Resources Partnership](https://southeastaquatics.net) has created and maintained the most complete and value-added inventory of aquatic barriers in the Southeastern U.S. This tool helps users prioritize aquatic barriers for removal and mitigation based on metrics that describe aquatic network connectivity.
+The [Southeast Aquatic Resources Partnership](https://southeastaquatics.net)(SARP) has created and maintained the most complete and value-added inventory of aquatic barriers in the U.S. This tool helps users prioritize aquatic barriers for removal and mitigation based on metrics that describe aquatic network connectivity.
 
-Three types of barriers are considered in these analyses:
+Four types of barriers are considered in these analyses:
+- waterfalls: these natural barriers break the aquatic network and thus constrain the networks that could be reconnected by removing artificial barriers.
+- dams: large artificial barriers that break the aquatic network and may be evaluated for network connectivity.
+- surveyed road-related barriers: road / stream crossings that have been evaluated for impact to aquatic organisms and may be evaluated for network connectivity.
+- unsurveyed modeled road / stream crossings: intersections between stream and road datasets that may indicate potential road-related barriers. These are not evaluated for network connectivity because they have not yet been surveyed to determine impact to aquatic organisms.
 
-#### Waterfalls:
-
-These natural barriers are considered "hard" barriers that break the aquatic network. These are not assessed for removal but are used to constrain the available aquatic networks used to prioritize artificial barriers.
-
-#### Dams:
-
-These large artificial barriers are considered "hard" barriers that break the aquatic network. Aquatic networks, already divided by waterfalls above, are further divided by these dams. The potential gain of removing a dam is determined by ranking the connectivity metrics for each dam compared to other dams. Small barriers are not included in this analysis.
-
-#### Small barriers (road / stream crossings):
-
-These barriers may or may not break the network, depending on site-specific factors. These include culverts or other small artificial barriers that may impede the flow of aquatic organisms. Aquatic networks, divided by waterfalls and dams above, are further subdivided to assess the network connectivity of each small barrier.
-
-#### Outputs:
-
-These large and small barriers are analyzed to produce two groups of outputs:
-
-1. network metrics for dams, based on cutting the network for all dams and waterfalls
-2. network metrics for small barriers, based on cutting the network for all dams, waterfalls, and small barriers
+These barriers are compiled by SARP from multiple data sources at the national, state, and local levels, and are supplemented with additional information from field reconnaissance where available.  Based on their degree of impact to aquatic organisms, these barriers may be used in different aquatic connectivity analyses.  The tool currently includes the following aquatic connectivity analyses that are used to help prioritize these barriers for removal or mitigation:
+- dams: aquatic networks are cut by waterfalls and dams in order to prioritize dams for removal or mitigation.
+- road-related barriers: aquatic networks are cut by waterfalls, dams, and surveyed road-related barriers with at least moderate barrier severity in order to prioritize road-related barriers for removal or mitigation.
+- dam & road-related barriers: aquatic networks are cut by waterfalls, dams, and surveyed road-related barriers with at least moderate barrier severity in order to prioritize dams and road-related barriers for removal or mitigation.
+- large-bodied fish barriers: aquatic networks are cut by waterfalls and dams that do not have partial or seasonal passibility for salmonids and non-salmonids, and surveyed road-related barriers with severe or significant barrier severity in order to prioritize dams and road-related barriers for removal or mitigation.
+- small-bodied fish barriers: aquatic networks are cut by waterfalls, dams, and surveyed road-related barriers with at least minor severity in order to prioritize dams and road-related barriers for removal or mitigation.
+ 
 
 ## Data processing
 
@@ -55,11 +48,20 @@ Then from appropriate directory (or if installed via `go get` and `~/go/bin` is 
 You should now be able to open `http://localhost:8001/services` to see a listing of available tile services.
 
 ### UI Initial setup:
+The NodeJS version is managed
+using [nvm](https://github.com/nvm-sh/nvm) and dependencies are installed using `npm`.
 
 See `ui/package.json` for NodeJS dependencies used by the UI tier.
 
-- `cd ui`
-- run `npm install` to install all dependencies.
+The user interface is contained in the `ui` folder. 
+```bash
+cd ui
+
+# activate NodeJS version specified in .nvmrc
+nvm use
+npm ci --legacy-peer-deps
+```
+
 
 The following environment variables must be sent in `/ui/.env.development`:
 
@@ -69,11 +71,30 @@ GATSBY_API_HOST = <root URL of API host, likely http://localhost/:5000 for local
 GATSBY_TILE_HOST = <root URL of tile host, likely http://localhost:8001 for local mbtileserver >
 ```
 
+
+The user interface is built using GatsbyJS.
+
+To start the development server (on port 8000, by default):
+
+```bash
+gatsby clean
+gatsby develop
+```
+
+#### Updating Javascript dependencies
+```bash
+# list outdated dependencies
+npm outdated
+
+# install updated packages
+npm install --legacy-peer-deps <package>@latest ...
+``` 
+
 ### API initial setup:
 
 See `pyproject.toml` for Python dependencies. The development dependencies are required for the data processing scripts.
 
-Python dependencies are managed using `uv`.
+Python dependencies are managed using [uv](https://github.com/astral-sh/uv).
 
 ```bash
 uv venv .venv --python=3.12
@@ -82,18 +103,22 @@ source .venv/bin/activate.fish
 uv pip install -e .[dev]
 ```
 
-#### User interface
+#### Updating Python dependencies
 
-The user interface is built using GatsbyJS.
+```bash
+# list outdated dependencies
+uv lock --upgrade --dry-run
 
-To start the development server (on port 8000, by default):
+# upgrade them all
+uv lock --upgrade
 
-- `cd ui`
-- `gatsby develop`
+# or updgrade specific package(s)
+uv lock --upgrade <package>
+```
 
 #### Run API:
 
-Within an active Python environment (`pipenv shell`).
+Within an active Python environment (`source `).
 
 To start the API server (on port 5000, by default), with reloading:
 
@@ -126,4 +151,4 @@ This project was made possible in partnership with the [Southeast Aquatic Resour
 
 It was supported in part by grants from the [U.S. Fish and Wildlife Service Fish Passage Program](https://www.fws.gov/fisheries/fish-passage.html), [Gulf Coastal Plains and Ozarks Landscape Conservation Cooperative](https://gcpolcc.org/), and [Florida State Wildlife Grants Program](https://myfwc.com/conservation/special-initiatives/fwli/grant/).
 
-This project was originally created by [Brendan C. Ward](https://github.com/brendan-ward) at the [Conservation Biology Institute](https://consbio.org/). Brendan, now with [Astute Spruce, LLC](https://astutespruce.com/), has continued to enhance this project in partnership with SARP.
+This project was created by [Brendan C. Ward](https://github.com/brendan-ward) in partnership with SARP.
