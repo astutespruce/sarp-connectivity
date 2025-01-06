@@ -84,8 +84,7 @@ export const roadCrossings = [
         field: 'crossingtype',
         title: 'Crossing type',
         sort: true,
-        // show road/stream crossing specific types
-        ...getEntries(CROSSING_TYPE, (v) => v === 5 || v === 98 || v === 99),
+        ...getEntries(CROSSING_TYPE, (v) => v >= 0),
       },
     ],
   },
