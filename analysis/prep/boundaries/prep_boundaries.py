@@ -160,8 +160,9 @@ fhp = pd.concat(
 fhp.to_feather(out_dir / "fhp_boundary.feather")
 write_dataframe(fhp, out_dir / "fhp_boundary.fgb")
 
-
+################################################################################
 ### Extract bounds and names for unit search in user interface
+################################################################################
 print("Projecting geometries to geographic coordinates for search index")
 
 print("Processing regions")
@@ -342,7 +343,9 @@ for i, unit in enumerate(["HUC2", "HUC6", "HUC8", "HUC10", "HUC12"]):
 
 out.reset_index(drop=True).to_feather(out_dir / "unit_bounds.feather")
 
+################################################################################
 ### Protected areas / land ownership
+################################################################################
 print("Extracting land ownership & protection information (will take a while)...")
 
 # Extract USFS parcel ownership boundaries (highest priority)
@@ -505,8 +508,9 @@ df["ProtectedLand"] = df.OwnerType.map(OWNERTYPE_TO_PUBLIC_LAND).fillna(0).astyp
 df = df[["geometry", "OwnerType", "ProtectedLand"]].explode(ignore_index=True)
 df.to_feather(out_dir / "protected_areas.feather")
 
-
+################################################################################
 ### Priority layers
+################################################################################
 
 # Conservation opportunity areas (for now the only priority type) joined to HUC8
 # 1 = COA
@@ -549,11 +553,30 @@ for filename in src_dir.glob("Hawaii FHP Focus Areas/*.shp"):
 hi_gfa = merged.reset_index(drop=True)
 hi_gfa["type"] = "hifhp_gfa"
 
-df = append(sarp_coa, hi_gfa).explode(ignore_index=True)
+
+wsr = (
+    read_dataframe(
+        src_dir / "S_USA.WildScenicRiver_LN/S_USA.WildScenicRiver_LN.shp", columns=["WSR_RIVER1"], use_arrow=True
+    )
+    .to_crs(CRS)
+    .rename(columns={"WSR_RIVER1": "name"})
+)
+# Buffer the Wild & Scenic Rivers by 250m (arbitrary)
+wsr["geometry"] = shapely.buffer(wsr.geometry.values, 250)
+# export for spatial joins
+wsr.to_feather(out_dir / "wild_scenic_rivers.feather")
+
+wsr["type"] = "wsr"
+
+# combine all 3 priority area types for overla
+df = pd.concat([sarp_coa, hi_gfa, wsr], ignore_index=True).explode(ignore_index=True)
 df = dissolve(df.explode(ignore_index=True), by=["type", "name"])
 df.to_feather(out_dir / "priority_areas.feather")
 
+
+################################################################################
 ### Environmental justice disadvantaged communities
+################################################################################
 print("Processing environmental justice areas")
 
 # Process Census tracts for disadvantaged communities
@@ -590,8 +613,9 @@ df = (
 
 df.to_feather(out_dir / "tribal_lands.feather")
 
-
+################################################################################
 ### Process native territories
+################################################################################
 df = (
     read_dataframe(src_dir / "indigenousTerritories.json", columns=["Name"], use_arrow=True)
     .rename(columns={"Name": "name"})

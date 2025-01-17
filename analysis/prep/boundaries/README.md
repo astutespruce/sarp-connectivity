@@ -5,8 +5,7 @@
 1. define analysis regions
 2. prepare hydrologic unit boundaries
 3. prepare administrative and ecological boundaries
-4. prepare other datasets used for spatial joins
-5. create boundary vector tiles
+4. create boundary vector tiles
 
 ## 1. Define analysis regions
 
@@ -81,6 +80,17 @@ These include:
 
 Priority areas are only used for overlay in the maps, not filtering.
 
+### Wild & Scenic rivers
+
+Wild & scenic rivers were provided by Kat Hoenke via email from USFS on 9/12/2024.
+
+These were prepared using `analysis/prep/boundaries/prep_wild_scenic_rivers.py`.
+
+These are used to create buffers that are used for spatial joins because the
+wild and scenic rivers may be based on different linework than NHD HR.
+
+These are included alongside the priority areas above for overlay in the map as well.
+
 ### Counties
 
 County boundaries (2023 version) were downloaded from CENSUS Tiger website.
@@ -121,18 +131,7 @@ were downloaded from the Census TIGER website.
 Native territories were downloaded from Native Land Digital (https://native-land.ca/)
 on 4/10/2024.
 
-## 4. Prepare other datasets used for spatial joins
-
-### Wild & Scenic rivers
-
-Wild & scenic rivers were provided by Kat Hoenke via email from USFS on 9/12/2024.
-
-These were prepared using `analysis/prep/boundaries/prep_wild_scenic_rivers.py`.
-
-These are used to create buffers that are used for spatial joins because the
-wild and scenic rivers may be based on different linework than NHD HR.
-
-## 5. Create boundary vector tiles
+## 4. Create boundary vector tiles
 
 Vector tiles are are created for each of the boundary layers using `analysis/prep/boundaries/create_map_unit_tiles.py`.
 

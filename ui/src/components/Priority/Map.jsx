@@ -165,7 +165,17 @@ const PriorityMap = ({
         'mousemove',
         priorityAreaLayers[0].id,
         ({ features: [feature], lngLat }) => {
-          if (map.getZoom() > 10) {
+          const {
+            id: featureId,
+            properties: { type, name },
+          } = feature
+
+          // only show tooltips for broad priority areas at lower zooms, but
+          // always show for Wild & Scenic Rivers
+          if (
+            (type === 'hifhp_gfa' || type === 'sarp_coa') &&
+            map.getZoom() > 10
+          ) {
             if (hoverPriorityAreaRef.current !== null) {
               map.removeFeatureState({
                 id: hoverPriorityAreaRef.current,
@@ -177,11 +187,6 @@ const PriorityMap = ({
             return
           }
 
-          const {
-            id: featureId,
-            properties: { type, name },
-          } = feature
-
           if (hoverPriorityAreaRef.current !== featureId) {
             map.removeFeatureState({
               id: hoverPriorityAreaRef.current,
@@ -190,15 +195,14 @@ const PriorityMap = ({
             })
           }
 
-          const priorityLabel = priorityAreasLegend.entries.filter(
-            ({ id }) => id === type
-          )[0].label
+          const { label: priorityLabel, tooltipLabel: priorityTooltipLabel } =
+            priorityAreasLegend.entries.filter(({ id }) => id === type)[0]
 
           /* eslint-disable-next-line no-param-reassign */
           map.getCanvas().style.cursor = 'pointer'
           tooltip
             .setLngLat(lngLat)
-            .setHTML(`<b>${priorityLabel}: ${name}</b>`)
+            .setHTML(`<b>${priorityTooltipLabel || priorityLabel}: ${name}</b>`)
             .addTo(map)
 
           map.setFeatureState(

@@ -67,5 +67,10 @@ export const priorityAreasLegend = {
     },
 
     { id: 'sarp_coa', label: 'SARP conservation opportunity areas' },
+    {
+      id: 'wsr',
+      label: '250 meter buffer around designated Wild & Scenic Rivers',
+      tooltipLabel: 'Wild & Scenic Rivers',
+    },
   ],
 }
