@@ -120,14 +120,14 @@ def create_upstream_index(df, downstream_col="downstream", upstream_col="upstrea
     return df[ix, [downstream_col, upstream_col]].set_index(upstream_col).groupby(downstream_col).groups
 
 
-def remove_joins(df, ids, downstream_col="downstream", upstream_col="upstream"):
+def remove_joins(joins, ids, downstream_col="downstream", upstream_col="upstream"):
     """Remove any joins to or from ids.
     This sets any joins that terminate downstream to one of these ids to 0 in order to mark them
     as new downstream terminals.  A join that includes other downstream ids not in ids will be left as is.
 
     Parameters
     ----------
-    df : DataFrame
+    joins : DataFrame
         Data frame containing the pairs of upstream_col and downstream_col that
         represent the joins between segments.
     ids : list-like
@@ -144,26 +144,34 @@ def remove_joins(df, ids, downstream_col="downstream", upstream_col="upstream"):
 
     # Update any joins that would have connected to these ids
     # on their downstream end
-    upstreams = df.loc[(df[downstream_col].isin(ids)) & (df[upstream_col] != 0), upstream_col]
-    has_other_joins = df.loc[df[upstream_col].isin(upstreams) & ~df[downstream_col].isin(ids), upstream_col]
+    upstreams = joins.loc[(joins[downstream_col].isin(ids)) & (joins[upstream_col] != 0), upstream_col]
+    has_other_joins = joins.loc[joins[upstream_col].isin(upstreams) & ~joins[downstream_col].isin(ids), upstream_col]
 
     # new terminals are ones that end ONLY in these ids
     new_terminals = upstreams.loc[~upstreams.isin(has_other_joins)]
-    ix = df.loc[df[upstream_col].isin(new_terminals)].index
-    df.loc[ix, downstream_col] = 0
+    ix = joins.loc[joins[upstream_col].isin(new_terminals)].index
+    joins.loc[ix, downstream_col] = 0
+    # make sure this is applied to the downstream_id as well
+    if downstream_col == "downstream" and "downstream_id" in joins.columns:
+        joins.loc[ix, "downstream_id"] = 0
 
     # Update any joins that would have connected to these ids
     # on their upstream end
-    downstreams = df.loc[df[upstream_col].isin(ids) & (df[downstream_col] != 0), downstream_col]
-    has_other_joins = df.loc[
-        df[downstream_col].isin(downstreams) & ~df[upstream_col].isin(ids),
+    downstreams = joins.loc[joins[upstream_col].isin(ids) & (joins[downstream_col] != 0), downstream_col]
+    has_other_joins = joins.loc[
+        joins[downstream_col].isin(downstreams) & ~joins[upstream_col].isin(ids),
         downstream_col,
     ]
     new_terminals = downstreams.loc[~downstreams.isin(has_other_joins)]
-    ix = df.loc[df[downstream_col].isin(new_terminals)].index
-    df.loc[ix, upstream_col] = 0
+    ix = joins.loc[joins[downstream_col].isin(new_terminals)].index
+    joins.loc[ix, upstream_col] = 0
+    # make sure this is applied to the upstream_id as well
+    if upstream_col == "upstream" and "upstream_id" in joins.columns:
+        joins.loc[ix, "upstream_id"] = 0
 
-    return df.loc[~(df[upstream_col].isin(ids) | (df[downstream_col].isin(ids)))].drop_duplicates()
+    # now that we've marked terminals for flowlines that connected to the removed
+    # flowlines, now remove any that still reference them
+    return joins.loc[~(joins[upstream_col].isin(ids) | (joins[downstream_col].isin(ids)))].drop_duplicates()
 
 
 def update_joins(

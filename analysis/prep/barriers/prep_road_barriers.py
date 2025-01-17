@@ -592,11 +592,6 @@ print(f"Snapped {df.snapped.sum():,} small barriers in {time() - snap_start:.2f}
 print("\n--------------\n")
 
 
-# FIXME:remove
-df.to_feather("/tmp/small_barriers.feather")
-crossings.to_feather("/tmp/road_crossings.feather")
-
-
 ################################################################################
 ### Remove duplicates after snapping, in case any snapped to the same position
 ################################################################################

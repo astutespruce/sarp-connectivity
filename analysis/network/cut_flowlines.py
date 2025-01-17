@@ -227,9 +227,7 @@ for huc2 in huc2s:
     flowlines.to_feather(huc2_dir / "flowlines.feather")
 
     joins.reset_index(drop=True).to_feather(huc2_dir / "flowline_joins.feather")
-    barrier_joins.reset_index(drop=True).to_feather(
-        huc2_dir / "barrier_joins.feather",
-    )
+    barrier_joins.reset_index(drop=True).to_feather(huc2_dir / "barrier_joins.feather")
 
     ### Build lookup table of flowlines to non-impounded / unaltered waterbodies (excluding Great Lakes)
     tree = shapely.STRtree(flowlines.geometry.values)

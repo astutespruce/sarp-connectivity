@@ -27,6 +27,10 @@ def remove_pipelines(flowlines, joins, max_pipeline_length=100, keep_ids=None):
     """Remove pipelines and underground connectors that are above max length,
     based on contiguous length of pipeline segments.
 
+    NOTE: this works at the level of the original NHD flowlines and removes
+    them entirely.  This assumes that lines have not been cut into segments
+    prior to running this function.
+
     Parameters
     ----------
     flowlines : GeoDataFrame
@@ -35,7 +39,7 @@ def remove_pipelines(flowlines, joins, max_pipeline_length=100, keep_ids=None):
     max_pipeline_length : int, optional (default: 100)
         length above which pipelines are dropped
     keep_ids : list-like (default: None)
-        list of pipeline IDs to keep
+        list of pipeline NHDPlusIDs to keep
 
 
     Returns
@@ -48,54 +52,62 @@ def remove_pipelines(flowlines, joins, max_pipeline_length=100, keep_ids=None):
 
     keep_ids = keep_ids or []
 
-    pids = flowlines.loc[(flowlines.FType.isin(PIPELINE_FTYPES)) & (~flowlines.NHDPlusID.isin(keep_ids))].index
-    pjoins = find_joins(joins, pids, downstream_col="downstream_id", upstream_col="upstream_id")[
-        ["downstream_id", "upstream_id"]
-    ]
+    pids = flowlines.loc[
+        (flowlines.FType.isin(PIPELINE_FTYPES)) & (~flowlines.NHDPlusID.isin(keep_ids))
+    ].NHDPlusID.unique()
+    pjoins = find_joins(joins, pids, downstream_col="downstream", upstream_col="upstream")[["downstream", "upstream"]]
     print(f"Found {len(pids):,} pipelines and {len(pjoins):,} pipeline-related joins")
 
     # Drop any isolated pipelines no matter what size
     # these either are one segment long, or are upstream / downstream terminals for
     # non-pipeline segments
-    join_idx = index_joins(pjoins, downstream_col="downstream_id", upstream_col="upstream_id")
+    join_idx = index_joins(pjoins, downstream_col="downstream", upstream_col="upstream")
     drop_ids = join_idx.loc[
-        (join_idx.upstream_id == join_idx.downstream_id)  # has upstream and downstream of 0s
+        (join_idx.upstream == join_idx.downstream)  # has upstream and downstream of 0s
         | (
-            ((join_idx.upstream_id == 0) & (~join_idx.downstream_id.isin(pids)))
-            | ((join_idx.downstream_id == 0) & (~join_idx.upstream_id.isin(pids)))
+            ((join_idx.upstream == 0) & (~join_idx.downstream.isin(pids)))
+            | ((join_idx.downstream == 0) & (~join_idx.upstream.isin(pids)))
         )
-    ].index
+    ].index.unique()
     print(f"Removing {len(drop_ids):,} isolated pipeline segments")
 
     # remove from flowlines, joins, pjoins
-    flowlines = flowlines.loc[~flowlines.index.isin(drop_ids)].copy()
-    joins = remove_joins(joins, drop_ids, downstream_col="downstream_id", upstream_col="upstream_id")
-    pjoins = remove_joins(pjoins, drop_ids, downstream_col="downstream_id", upstream_col="upstream_id")
+    flowlines = flowlines.loc[~flowlines.NHDPlusID.isin(drop_ids)].copy()
+    joins = remove_joins(joins, drop_ids, downstream_col="downstream", upstream_col="upstream")
+
+    # update new endpoints for flowlines that originally ended in terminal pipelines;
+    # these are now downstream endpoints on the network because the only thing that
+    # was further downstream were the now-removed pipeline flowlines
+    joins.loc[(joins.downstream == 0) & (joins.type == "internal"), "type"] = "terminal"
+
+    pjoins = remove_joins(pjoins, drop_ids, downstream_col="downstream", upstream_col="upstream")
     join_idx = join_idx.loc[~join_idx.index.isin(drop_ids)].copy()
 
     ### Construct a graph facing upstream for all pipeline joins
-    tmp = pjoins.loc[(pjoins.upstream_id != 0) & (pjoins.downstream_id != 0) & (pjoins.upstream_id.isin(pids))]
-    graph = DirectedGraph(tmp.downstream_id.values.astype("int64"), tmp.upstream_id.values.astype("int64"))
+    tmp = pjoins.loc[(pjoins.upstream != 0) & (pjoins.downstream != 0) & (pjoins.upstream.isin(pids))]
+    graph = DirectedGraph(tmp.downstream.values.astype("int64"), tmp.upstream.values.astype("int64"))
     start_ids = pjoins.loc[
-        (pjoins.downstream_id == 0) | ((pjoins.upstream_id != 0) & ~pjoins.downstream_id.isin(pids))
-    ].upstream_id.unique()
+        (pjoins.downstream == 0) | ((pjoins.upstream != 0) & ~pjoins.downstream.isin(pids))
+    ].upstream.unique()
 
-    pairs = pd.DataFrame(graph.network_pairs(start_ids.astype("int64")), columns=["networkID", "lineID"]).join(
-        flowlines["length"], on="lineID"
+    pairs = pd.DataFrame(graph.network_pairs(start_ids.astype("int64")), columns=["networkID", "NHDPlusID"]).join(
+        flowlines[["NHDPlusID", "length"]].set_index("NHDPlusID"), on="NHDPlusID"
     )
     lengths = pairs.groupby("networkID")["length"].sum()
     drop_networks = lengths.loc[lengths >= max_pipeline_length].index.values
-    drop_ids = pairs.loc[pairs.networkID.isin(drop_networks)].lineID.unique()
+    drop_ids = pairs.loc[pairs.networkID.isin(drop_networks)].NHDPlusID.unique()
 
     print(f"Dropping {len(drop_ids):,} pipelines that are greater than {max_pipeline_length:,}m")
 
-    flowlines = flowlines.loc[~flowlines.index.isin(drop_ids)].copy()
-    joins = remove_joins(joins, drop_ids, downstream_col="downstream_id", upstream_col="upstream_id")
+    flowlines = flowlines.loc[~flowlines.NHDPlusID.isin(drop_ids)].copy()
+    joins = remove_joins(joins, drop_ids, downstream_col="downstream", upstream_col="upstream")
+
+    # mark joins that ended in these flowlines.  Because the network continues
+    # starting from the other end of the pipeline, we don't mark these as downstream
+    # terminals
+    joins.loc[(joins.downstream == 0) & (joins.type == "internal"), "type"] = "former_pipeline_join"
 
     print(f"Retained {flowlines.FType.isin(PIPELINE_FTYPES).sum():,} pipeline segments")
-
-    # update NHDPlusIDs to match zeroed out ids
-    joins.loc[(joins.downstream_id == 0) & (joins.type == "internal"), "type"] = "former_pipeline_join"
 
     print(f"Done processing pipelines in {time() - start:.2f}s")
 
@@ -845,9 +857,7 @@ def remove_flowlines(flowlines, joins, ids):
     joins = remove_joins(joins, ids, downstream_col="downstream", upstream_col="upstream")
 
     # update our ids to match zeroed out ids
-    joins.loc[joins.downstream == 0, "downstream_id"] = 0
-    joins.loc[joins.downstream == 0, "type"] = "terminal"
-    joins.loc[joins.upstream == 0, "upstream_id"] = 0
+    joins.loc[(joins.downstream == 0) & (joins.type == "internal"), "type"] = "terminal"
 
     return flowlines, joins
 
@@ -856,6 +866,10 @@ def remove_marine_flowlines(flowlines, joins, marine):
     """Remove flowlines that originate within or are mostly within marine areas
     for coastal HUC2s.  Marks any that have endpoints in marine areas or are
     upstream of those removed here as terminating in marine.
+
+    NOTE: this works at the level of the original NHD flowlines and removes
+    them entirely.  This assumes that lines have not been cut into segments
+    prior to running this function.
 
     Parameters
     ----------
@@ -873,27 +887,30 @@ def remove_marine_flowlines(flowlines, joins, marine):
     points = shapely.get_point(flowlines.geometry.values, 0)
     tree = shapely.STRtree(points)
     left, right = tree.query(marine.geometry.values, predicate="intersects")
-    ix = flowlines.index.take(np.unique(right))
+    drop_ids = flowlines.NHDPlusID.take(np.unique(right)).values
 
-    print(f"Removing {len(ix):,} flowlines that originate in marine areas")
+    print(f"Removing {len(drop_ids):,} flowlines that originate in marine areas")
     # mark any that terminated in those as marine
-    joins.loc[joins.downstream_id.isin(ix), "marine"] = True
-    flowlines = flowlines.loc[~flowlines.index.isin(ix)].copy()
-    joins = remove_joins(joins, ix, downstream_col="downstream_id", upstream_col="upstream_id")
+    joins.loc[joins.downstream.isin(drop_ids) & (~joins.upstream.isin(drop_ids)), "marine"] = True
+    flowlines = flowlines.loc[~flowlines.NHDPlusID.isin(drop_ids)].copy()
+    joins = remove_joins(joins, drop_ids, downstream_col="downstream", upstream_col="upstream")
+
+    # update new endpoints for flowlines that originally ended in flowlines that have now been removed
+    joins.loc[(joins.downstream_id == 0) & (joins.type == "internal"), "type"] = "terminal"
 
     # Mark those that end in marine areas as marine
     endpoints = shapely.get_point(flowlines.geometry.values, -1)
     tree = shapely.STRtree(endpoints)
     left, right = tree.query(marine.geometry.values, predicate="intersects")
-    ix = flowlines.index.take(np.unique(right))
-    joins.loc[joins.upstream_id.isin(ix), "marine"] = True
+    ix = flowlines.NHDPlusID.take(np.unique(right))
+    joins.loc[joins.upstream.isin(ix), "marine"] = True
 
     # For any that end in marine but didn't originate there, check the amount of overlap;
     # any that are >= 90% in marine should get cut
     print("Calculating overlap of remaining lines with marine areas")
     tmp = pd.DataFrame(
         {
-            "lineID": flowlines.iloc[right].index,
+            "NHDPlusID": flowlines.iloc[right].NHDPlusID,
             "geometry": flowlines.iloc[right].geometry.values,
             "marine": marine.iloc[left].geometry.values,
         }
@@ -901,19 +918,16 @@ def remove_marine_flowlines(flowlines, joins, marine):
     tmp["overlap"] = shapely.intersection(tmp.geometry, tmp.marine)
     tmp["pct_overlap"] = 100 * shapely.length(tmp.overlap) / shapely.length(tmp.geometry)
 
-    ix = tmp.loc[tmp.pct_overlap >= 90].lineID.unique()
+    ix = tmp.loc[tmp.pct_overlap >= 90].NHDPlusID.unique()
 
     print(f"Removing {len(ix):,} flowlines that mostly overlap marine areas")
     # mark any that terminated in those as marine
-    joins_ix = joins.downstream_id.isin(ix)
+    joins_ix = joins.downstream.isin(ix)
     joins.loc[joins_ix, "marine"] = True
     joins.loc[joins_ix, "type"] = "terminal"
 
-    flowlines = flowlines.loc[~flowlines.index.isin(ix)].copy()
-    joins = remove_joins(joins, ix, downstream_col="downstream_id", upstream_col="upstream_id")
-
-    # mark any new terminals as such
-    joins.loc[(joins.downstream_id == 0) & (joins.type == "internal"), "type"] = "terminal"
+    flowlines = flowlines.loc[~flowlines.NHDPlusID.isin(ix)].copy()
+    joins = remove_joins(joins, ix, downstream_col="downstream", upstream_col="upstream")
 
     return flowlines, joins
 
@@ -923,6 +937,10 @@ def remove_great_lakes_flowlines(flowlines, joins, waterbodies):
     (they are not well-connected networks) and any that form the borders of the
     Great Lakes because NHD coded coastlines as artificial paths instead of the
     coastlines FType.
+
+    NOTE: this works at the level of the original NHD flowlines and removes
+    them entirely.  This assumes that lines have not been cut into segments
+    prior to running this function.
 
     Parameters
     ----------
@@ -951,7 +969,7 @@ def remove_great_lakes_flowlines(flowlines, joins, waterbodies):
     pairs = pd.DataFrame(
         {
             "wb": great_lakes.geometry.values.take(left),
-            "lineID": tmp.index.values.take(right),
+            "NHDPlusID": tmp.NHDPlusID.values.take(right),
             "first_point": shapely.get_point(tmp.geometry.values.take(right), 0),
             "last_point": shapely.get_point(tmp.geometry.values.take(right), -1),
         }
@@ -969,7 +987,7 @@ def remove_great_lakes_flowlines(flowlines, joins, waterbodies):
     )
 
     # remove any that were within or bordered the Great Lakes
-    drop_ids = pairs.loc[close_enough].lineID.unique()
+    drop_ids = pairs.loc[close_enough].NHDPlusID.unique()
 
     # also add any that were picked up in manual review but not via methods above
     other_drop_ids = flowlines.loc[flowlines.NHDPlusID.isin(CONVERT_TO_GREAT_LAKES["04"])].index.unique()
@@ -978,19 +996,13 @@ def remove_great_lakes_flowlines(flowlines, joins, waterbodies):
 
     print(f"Removing {len(drop_ids):,} flowlines that border or fall within the Great Lakes")
 
-    flowlines = flowlines.loc[~flowlines.index.isin(drop_ids)].copy()
-    # remove joins will mark new endpoints with 0
-    joins = remove_joins(joins, drop_ids, downstream_col="downstream_id", upstream_col="upstream_id")
+    # mark any that terminated in those as in the Great Lakes
+    joins_ix = joins.downstream.isin(drop_ids)
+    joins["great_lakes"] = joins_ix
+    joins.loc[joins_ix, "type"] = "terminal"
 
-    # drop any that are now defunct
-    joins = joins.loc[~((joins.upstream_id == 0) & (joins.downstream_id == 0))].copy()
-
-    # mark any new terminals as such and mark them as flowing into Great Lakes
-    ix = (joins.downstream_id == 0) & (joins.type == "internal")
-    joins.loc[ix, "type"] = "terminal"
-
-    joins["great_lakes"] = False
-    joins.loc[ix, "great_lakes"] = True
+    flowlines = flowlines.loc[~flowlines.NHDPlusID.isin(drop_ids)].copy()
+    joins = remove_joins(joins, drop_ids, downstream_col="downstream", upstream_col="upstream")
 
     return flowlines, joins
 

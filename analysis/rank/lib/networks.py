@@ -259,14 +259,14 @@ def get_network_results(df, network_type, state_ranks=False):
     # Diadromous related filters - must have FlowsToOcean == True
     networks["DownstreamOceanMilesClass"] = classify_downstream_miles(networks.MilesToOutlet)
     networks["DownstreamOceanBarriersClass"] = classify_downstream_barriers(num_downstream)
-    ix = networks.FlowsToOcean == 1
+    ix = networks.FlowsToOcean == 0
     networks.loc[ix, "DownstreamOceanMilesClass"] = 0
     networks.loc[ix, "DownstreamOceanBarriersClass"] = 0
 
     # similar for Great Lakes
     networks["DownstreamGreatLakesMilesClass"] = classify_downstream_miles(networks.MilesToOutlet)
     networks["DownstreamGreatLakesBarriersClass"] = classify_downstream_barriers(num_downstream)
-    ix = networks.FlowsToGreatLakes == 1
+    ix = networks.FlowsToGreatLakes == 0
     networks.loc[ix, "DownstreamGreatLakesMilesClass"] = 0
     networks.loc[ix, "DownstreamGreatLakesBarriersClass"] = 0
 

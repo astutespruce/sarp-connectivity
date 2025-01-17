@@ -165,7 +165,7 @@ UPSTREAM_COUNT_FIELDS = [
     "TotalUpstreamRoadCrossings",
     # remaining total upstream metrics are not used
     # "TotalUpstreamWaterfalls",
-    # "TotalUpstreamDams",
+    "TotalUpstreamDams",
     # "TotalUpstreamSmallBarriers",
     # "TotalUpstreamHeadwaters",
 ]
@@ -1515,7 +1515,7 @@ FIELD_DEFINITIONS = {
     "TotalUpstreamWaterfalls": "total number of waterfalls upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
     "TotalUpstreamDams": "total number of dams upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
     "TotalUpstreamSmallBarriers": "total number of assessed road/stream crossings upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
-    "TotalUpstreamRoadCrossings": "total number of uninventroeid estimated road crossings upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
+    "TotalUpstreamRoadCrossings": "total number of uninventoried estimated road crossings upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
     "TotalUpstreamHeadwaters": "total number of headwaters upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
     "TotalDownstreamWaterfalls": "total number of waterfalls between this {type} and the downstream-most point the full aquatic network on which it occurs. -1 = not available.",
     "TotalDownstreamDams": "total number of dams between this {type} and the downstream-most point the full aquatic network on which it occurs (e.g., river mouth). -1 = not available.",
