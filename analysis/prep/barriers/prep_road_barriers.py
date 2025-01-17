@@ -93,15 +93,6 @@ start = time()
 
 print("Reading data")
 df = gp.read_feather(src_dir / "sarp_small_barriers.feather")
-
-# TODO: remove once field is added to ArcGIS service
-if "PartnerID" not in df.columns:
-    df["PartnerID"] = ""
-
-# FIXME: remove on next download
-if "IsPriority" not in df.columns:
-    df["IsPriority"] = 0
-
 print(f"Read {len(df):,} small barriers")
 
 ### Read in photo attachments, have to join on location
@@ -130,11 +121,6 @@ crossings = (
     .drop(columns=["maintainer", "tiger2020_linearids", "nhdhr_permanent_identifier"])
 )
 
-# FIXME: remove after next rerun of prep_raw_road_crossings
-# calculate canal / ditch
-crossings["canal"] = crossings.FCode.isin([33600, 33601, 33603])
-
-
 # save original USGS ID because SourceID gets overwritten on match with road barrier
 crossings["USGSCrossingID"] = crossings.SourceID.values
 crossings["Surveyed"] = np.uint8(0)
@@ -151,6 +137,9 @@ crossings["Constriction"] = np.uint8(0)
 crossings["SARP_Score"] = np.float32(-1.0)
 crossings["ProtocolUsed"] = ""
 crossings["PartnerID"] = ""
+# add join field to join surveyed barriers to the older version of the IDs used for crossings
+crossings["USGSJoinID"] = "cr" + crossings.USGSCrossingID.values
+
 print(f"Read {len(crossings):,} road crossings")
 
 # if assumed culvert crossings are on larger stream orders (except loops), assume
@@ -162,7 +151,6 @@ crossings.loc[ix, "CrossingType"] = 98
 # only cross-check against dams / waterfalls that break networks
 dams = gp.read_feather(snapped_dir / "dams.feather", columns=["geometry"])
 waterfalls = gp.read_feather(snapped_dir / "waterfalls.feather", columns=["geometry"])
-
 
 # remove road crossings that are too close to dams or waterfalls
 tree = shapely.STRtree(crossings.geometry.values)
@@ -501,7 +489,7 @@ original_locations = df.copy()
 
 # IMPORTANT: do not snap manually reviewed off-network small barriers, or ones without HUC2!
 # do not snapped dropped  barriers
-exclude_snap_ix = False
+exclude_snap_ix = np.zeros((len(df),)).astype("bool")
 exclude_snap_fields = {
     "dropped": [True],
     "ManualReview": OFFSTREAM_MANUALREVIEW,
@@ -518,6 +506,44 @@ to_snap = df.loc[~exclude_snap_ix].copy()
 # df.to_feather("/tmp/small_barriers.feather")
 # to_snap.to_feather("/tmp/to_snap.feather")
 # crossings.to_feather("/tmp/crossings.feather")
+
+### Snap to crossing joined on USGS ID
+# NOTE: this snaps the surveyed barrier to the crossing identified by SourceID
+# when that was set from an older version of the crossings ("cr" prefix in USGS ID)
+matches = (
+    df.loc[df.SourceID.str.startswith("cr"), ["SARPID", "SourceID", "geometry"]]
+    .rename(columns={"geometry": "barrier_geometry"})
+    .join(
+        crossings[["id", "USGSJoinID", "geometry", "lineID"]]
+        .rename(columns={"id": "crossing_id"})
+        .set_index("USGSJoinID"),
+        on="SourceID",
+        how="inner",
+    )
+)
+if len(matches):
+    matches["snap_dist"] = shapely.distance(matches.barrier_geometry.values, matches.geometry.values)
+    # NOTE: some of these are too far away to be reasonable, discard them
+    matches = matches.loc[matches.snap_dist < 250].copy()
+
+    ix = matches.index
+    df.loc[ix, "snapped"] = True
+    df.loc[ix, "geometry"] = matches.geometry.values
+    df.loc[ix, "snap_dist"] = matches.snap_dist.values
+    df.loc[ix, "lineID"] = matches.lineID.values
+    df.loc[ix, "snap_log"] = "snapped: matched to USGS road crossing on SourceID"
+    df.loc[ix, "crossing_id"] = matches.crossing_id.values
+
+    to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
+
+    # link the corresponding crossings to the closest barrier
+    # NOTE: multiple barriers may be linked to the same crossing
+    nearest_barriers = (
+        matches.sort_values(by=["crossing_id", "snap_dist"]).reset_index().groupby("crossing_id").id.first()
+    )
+    crossings.loc[nearest_barriers.index, "barrier_id"] = nearest_barriers.values
+    # mark these as known surveyed
+    crossings.loc[nearest_barriers.index, "Surveyed"] = np.uint8(1)
 
 
 ### Snap to nearest crossing (all of which are already snapped to flowlines)
@@ -723,7 +749,7 @@ crossings = crossings.join(
 
 # NOTE: surveyed status can only be set for non-private barriers
 surveyed = crossings.SARPID_barrier.notnull()
-crossings.loc[surveyed, "Surveyed"] = np.uint8(1)
+crossings.loc[surveyed & (crossings.Surveyed == 0), "Surveyed"] = np.uint8(2)
 
 # override CrossingCode if present in inventoried barrier
 ix = surveyed & (crossings.CrossingCode_barrier != "")
@@ -1000,6 +1026,8 @@ write_dataframe(to_analyze, qa_dir / "snapped_small_barriers.fgb")
 ### Output road crossings
 ################################################################################
 
+crossings = crossings.drop(columns=["USGSJoinID"])
+
 ### Merge in non-private road barriers that have no associated crossing
 tmp = df.loc[
     (~(df.dropped | df.duplicate | df.Private))
@@ -1009,6 +1037,7 @@ tmp = df.loc[
     & (df.crossing_id.isnull()),
     list(set(crossings.columns).intersection(df.columns)),
 ].reset_index(drop=True)
+# mark these as known surveyed
 tmp["Surveyed"] = np.uint8(1)
 print(f"Merging {len(tmp):,} inventoried barriers into crossings that have no associated crossing point")
 
