@@ -355,8 +355,9 @@ for col in ["upstream", "downstream"]:
     all_joins.loc[all_joins[col].isin(great_lake_ids) & (~all_joins.great_lakes), "great_lakes"] = True
 
 # drop any terminals that are also incoming from the adjacent HUC2
+# note that there are some instances of huc_in that have downstream == 0
 incoming = all_joins.loc[all_joins.type == "huc_in"].upstream.unique()
-drop_ix = all_joins.upstream.isin(incoming) & (all_joins.downstream == 0)
+drop_ix = all_joins.upstream.isin(incoming) & (all_joins.downstream == 0) & (all_joins.type != "huc_in")
 all_joins = all_joins.loc[~drop_ix].copy()
 
 

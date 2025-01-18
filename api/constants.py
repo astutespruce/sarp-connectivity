@@ -1181,7 +1181,7 @@ DIADROMOUS_HABITAT_DOMAIN = {
     1: "located on a reach associated with anadromous / catadromous species habitat",
 }
 
-SURVEYED_CROSSING_DOMAIN = {0: "not likely", 1: "likely"}
+SURVEYED_CROSSING_DOMAIN = {0: "not likely", 1: "yes", 2: "likely"}
 
 IS_PRIORITY_DOMAIN = {
     0: "not identified as a priority by resource managers",
@@ -1412,7 +1412,7 @@ FIELD_DEFINITIONS = {
     "SARP_Score": "The best way to consider the aquatic passability scores is that they represent the degree to which crossings deviate from an ideal crossing. We assume that those crossings that are very close to the ideal (scores > 0.6) will present only a minor or insignificant barrier to aquatic organisms. Those structures that are farthest from the ideal (scores < 0.4) are likely to be either significant or severe barriers. These are, however, arbitrary distinctions imposed on a continuous scoring system and should be used with that in mind. -1 = not available.",
     "ProtocolUsed": "Name of survey protocol used",
     # crossing-specific fields
-    "Surveyed": "Indicates if the crossing has likely been surveyed according to assessed road/stream crossing data.  'likely': inventoried barrier within 50m, 'not likely': no inventoried barrier within 50m.",
+    "Surveyed": "Indicates if the crossing has likely been surveyed according to assessed road/stream crossing data.  'yes': inventoried barrier was linked to crossing at time of survey, 'likely': inventoried barrier within 50m, 'not likely': no inventoried barrier within 50m.",
     "OnNetwork": "if yes, this {type} was snapped to the aquatic network and does not occur on a loop within the NHD High Resolution aquatic network and is not snapped to an off-network canal or ditch; if no, this {type} is either on a loop or an off-network canal or ditch considered off-network for purposes of network analysis and ranking",
     "USGSCrossingID": "The ID of the road/stream crossing point in the USGS Database of Stream Crossings in the United States (2022); will be blank for crossings from other sources.",
     # other general fields

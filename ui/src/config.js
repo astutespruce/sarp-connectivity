@@ -1445,7 +1445,8 @@ export const INVASIVE_NETWORK = {
 
 export const SURVEYED = {
   0: 'not likely surveyed',
-  1: 'likely surveyed',
+  1: 'surveyed',
+  2: 'likely surveyed',
 }
 
 export const SLOPE_CLASS = {

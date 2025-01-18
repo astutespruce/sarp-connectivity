@@ -39,7 +39,7 @@ data_dir = Path("data")
 nhd_dir = data_dir / "nhd"
 src_dir = nhd_dir / "raw"
 
-huc2 = "02"
+huc2 = "01"
 
 ################################################################################
 ### Apply join fixes from the top of prepare_flowlines_waterbodies
