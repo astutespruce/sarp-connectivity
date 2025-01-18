@@ -223,7 +223,6 @@ const PNWRegionPage = ({
 PNWRegionPage.propTypes = {
   data: PropTypes.shape({
     headerImage: PropTypes.object.isRequired,
-    salmonPhoto: PropTypes.object.isRequired,
     map: PropTypes.object.isRequired,
   }).isRequired,
 }
