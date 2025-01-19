@@ -2,7 +2,7 @@
 import React, { useRef, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import { Box, Button, Heading, Flex, Text, Paragraph } from 'theme-ui'
-import { AngleDoubleRight } from '@emotion-icons/fa-solid'
+import { AngleDoubleRight, ExclamationTriangle } from '@emotion-icons/fa-solid'
 
 import { Link } from 'components/Link'
 import { Downloader } from 'components/Download'
@@ -12,6 +12,9 @@ import { formatNumber, pluralize } from 'util/format'
 
 import UnitListItem from './UnitListItem'
 import { layers } from './layers'
+
+// limit determined through trial and error of what will time out on the server
+const DOWNLOAD_LIMIT = 250000
 
 const UnitSummary = ({
   barrierType,
@@ -162,9 +165,12 @@ const UnitSummary = ({
   }
 
   let downloadButtons = null
+  let overDownloadLimit = false
 
   switch (barrierType) {
     case 'dams': {
+      overDownloadLimit = dams > DOWNLOAD_LIMIT
+
       downloadButtons = (
         <Box sx={{ width: '10rem' }}>
           <Flex sx={{ ml: '1rem', flex: '1 1 auto' }}>
@@ -172,7 +178,7 @@ const UnitSummary = ({
               barrierType="dams"
               label={barrierTypeLabels.dams}
               config={downloaderConfig}
-              disabled={dams === 0}
+              disabled={dams === 0 || overDownloadLimit}
               showOptions={false}
               includeUnranked
             />
@@ -183,6 +189,8 @@ const UnitSummary = ({
       break
     }
     case 'small_barriers': {
+      overDownloadLimit = totalRoadCrossings > DOWNLOAD_LIMIT
+
       downloadButtons = (
         <>
           <Downloader
@@ -200,7 +208,7 @@ const UnitSummary = ({
             config={{
               summaryUnits: summaryUnitsForDownload,
             }}
-            disabled={totalRoadCrossings === 0}
+            disabled={totalRoadCrossings === 0 || overDownloadLimit}
             showOptions={false}
             includeUnranked
           />
@@ -209,12 +217,14 @@ const UnitSummary = ({
       break
     }
     case 'combined_barriers': {
+      overDownloadLimit = dams + totalSmallBarriers > DOWNLOAD_LIMIT
+
       downloadButtons = (
         <Downloader
           barrierType="combined_barriers"
           label={barrierTypeLabels.combined_barriers}
           config={downloaderConfig}
-          disabled={dams + totalSmallBarriers === 0}
+          disabled={dams + totalSmallBarriers === 0 || overDownloadLimit}
           showOptions={false}
           includeUnranked
         />
@@ -546,12 +556,9 @@ const UnitSummary = ({
         ) : null}
       </Box>
 
-      <Flex
+      <Box
         sx={{
           flex: '0 0 auto',
-          flexWrap: barrierType === 'small_barriers' ? 'wrap' : 'nowrap',
-          alignItems: 'center',
-          gap: '1rem',
           pt: '0.5rem',
           px: '1rem',
           pb: '1rem',
@@ -564,18 +571,40 @@ const UnitSummary = ({
           },
         }}
       >
-        <Text sx={{ lineHeight: 1, flex: '1 1 auto' }}>Download:</Text>
         <Flex
           sx={{
-            flex: '0 0 auto',
-            width: barrierType === 'small_barriers' ? '100%' : 'auto',
-            justifyContent: 'space-between',
+            flexWrap: barrierType === 'small_barriers' ? 'wrap' : 'nowrap',
+            alignItems: 'center',
             gap: '1rem',
           }}
         >
-          {downloadButtons}
+          <Text sx={{ lineHeight: 1, flex: '1 1 auto' }}>Download:</Text>
+          <Flex
+            sx={{
+              flex: '0 0 auto',
+              width: barrierType === 'small_barriers' ? '100%' : 'auto',
+              justifyContent: 'space-between',
+              gap: '1rem',
+            }}
+          >
+            {downloadButtons}
+          </Flex>
         </Flex>
-      </Flex>
+        {overDownloadLimit ? (
+          <Text
+            variant="help"
+            sx={{ mt: '0.5rem', lineHeight: 1.2, color: 'highlight' }}
+          >
+            <ExclamationTriangle size="1em" style={{ marginRight: '0.25em' }} />
+            Too many{' '}
+            {barrierType === 'small_barriers'
+              ? 'road crossings'
+              : barrierTypeLabels[barrierType]}{' '}
+            in selected area; select a smaller area to download (limit=
+            {formatNumber(DOWNLOAD_LIMIT)}).
+          </Text>
+        ) : null}
+      </Box>
     </Flex>
   )
 }

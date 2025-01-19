@@ -20,7 +20,7 @@ import { unitLayerConfig } from 'components/Workflow/config'
 
 import Map from './Map'
 
-const MAX_RECORDS = 500000
+const MAX_RECORDS = 250000
 
 const SurveyWorkflow = () => {
   const barrierType = useBarrierType()

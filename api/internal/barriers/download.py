@@ -27,7 +27,8 @@ from api.metadata import get_readme, get_terms
 from api.response import zip_csv_response
 
 
-MAX_CROSSINGS = 1e6  # limit to 1M crossings in downloads
+# limit determined through trial and error of what will timeout on the server
+MAX_CROSSINGS = 250000
 
 
 router = APIRouter()
@@ -49,7 +50,6 @@ async def download_national(
         return FileResponse(
             filename,
             media_type="application/zip",
-            # headers={"Content-Disposition": "attachment"},
             filename="aquatic_barrier_ranks.zip",
         )
 
