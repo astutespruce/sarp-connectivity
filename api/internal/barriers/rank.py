@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.requests import Request
 import pyarrow as pa
 import pyarrow.compute as pc
 
 from api.lib.compression import pack_bits
 from api.lib.tiers import calculate_tiers, METRICS
-from api.constants import BarrierTypes
-from api.dependencies import RecordExtractor
+from api.constants import RankedBarrierTypes
+from api.dependencies import get_unit_ids, get_filter_params
+from api.lib.extract import extract_records
 from api.logger import log, log_request
 from api.response import feather_response
 
@@ -17,8 +18,9 @@ router = APIRouter()
 @router.get("/{barrier_type}/rank")
 async def rank(
     request: Request,
-    barrier_type: BarrierTypes,
-    extractor: RecordExtractor = Depends(RecordExtractor),
+    barrier_type: RankedBarrierTypes,
+    unit_ids: get_unit_ids = Depends(),
+    filters: get_filter_params = Depends(),
 ):
     """Rank a subset of barrier_type data.
 
@@ -32,15 +34,17 @@ async def rank(
 
     log_request(request)
 
+    if len(unit_ids) == 0 and len(filters) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="At least one summary unit layer must have ids present or at least one filter must be defined",
+        )
+
     barrier_type = barrier_type.value
 
-    if barrier_type == "road_crossings":
-        raise NotImplementedError("rank is not supported for road crossings")
-
-    df = extractor.extract(
-        columns=["id", "lat", "lon"] + METRICS,
-        ranked=True,
-    ).combine_chunks()
+    df = extract_records(
+        barrier_type, unit_ids=unit_ids, filters=filters, columns=["id", "lat", "lon"] + METRICS, ranked=True
+    )
     log.info(f"selected {len(df):,} {barrier_type.replace('_', ' ')} for ranking")
 
     # extract extent

@@ -1,14 +1,12 @@
-from pathlib import Path
-
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.requests import Request
 from fastapi.responses import FileResponse
 import pyarrow as pa
 import pyarrow.compute as pc
 
 from api.constants import (
-    CoreBarrierTypes,
-    BarrierTypes,
+    NationalDownloadBarrierTypes,
+    FullySupportedBarrierTypes,
     Scenarios,
     Formats,
     CUSTOM_TIER_FIELDS,
@@ -22,7 +20,8 @@ from api.data import data_dir
 from api.lib.domains import unpack_domains
 from api.lib.tiers import calculate_tiers
 from api.logger import log, log_request
-from api.dependencies import RecordExtractor
+from api.dependencies import get_unit_ids, get_filter_params
+from api.lib.extract import extract_records
 from api.metadata import get_readme, get_terms
 from api.response import zip_csv_response
 
@@ -37,7 +36,7 @@ router = APIRouter()
 @router.get("/{barrier_type}/{format}/national")
 async def download_national(
     request: Request,
-    barrier_type: CoreBarrierTypes,
+    barrier_type: NationalDownloadBarrierTypes,
     format: Formats = "csv",
 ):
     log_request(request)
@@ -59,10 +58,11 @@ async def download_national(
 @router.get("/{barrier_type}/{format}")
 async def download(
     request: Request,
-    barrier_type: BarrierTypes,
+    barrier_type: FullySupportedBarrierTypes,
     format: Formats = "csv",
-    extractor: RecordExtractor = Depends(),
-    custom: bool = False,
+    unit_ids: get_unit_ids = Depends(),
+    filters: get_filter_params = Depends(),
+    custom_rank: bool = False,
     include_unranked=False,
     sort: Scenarios = "NCWC",
 ):
@@ -75,13 +75,19 @@ async def download(
 
     Query parameters:
     * one more more ids (comma delimited) for each of the unit types, e.g., State=OR,WA
-    * custom: bool (default: False); set to true to perform custom ranking of subset defined here
+    * custom_rank: bool (default: False); set to true to perform custom ranking of subset defined here
     * include_unranked: bool (default: False); set to true to include unranked barriers in output
     * sort: str, one of 'NC', 'WC', 'NCWC'
     * filters are defined using a lowercased version of column name and a comma-delimited list of values
     """
 
     log_request(request)
+
+    if len(unit_ids) == 0 and len(filters) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="At least one summary unit layer must have ids present or at least one filter must be defined",
+        )
 
     barrier_type = barrier_type.value
     format = format.value
@@ -100,7 +106,10 @@ async def download(
 
     columns = [c for c in columns if c not in CUSTOM_TIER_FIELDS]
 
-    df = extractor.extract(
+    df = extract_records(
+        barrier_type,
+        unit_ids=unit_ids,
+        filters=filters,
         columns=columns,
         ranked=not (include_unranked or barrier_type == "road_crossings"),
     )
@@ -125,7 +134,7 @@ async def download(
 
             # calculate custom ranks
             # NOTE: can only calculate ranks for those that have networks and are not excluded from ranking
-            if custom:
+            if custom_rank:
                 to_rank = df.filter(pc.equal(df["Ranked"], True))
                 tiers = calculate_tiers(to_rank)
                 # cast to int8 to allow setting -1 null values
@@ -158,18 +167,15 @@ async def download(
         f"road_stream_crossings.{format}" if barrier_type == "road_crossings" else f"aquatic_barrier_ranks.{format}"
     )
 
-    url = f"{request.base_url.scheme}://{request.base_url.netloc}"
-
     ### Get metadata
     readme = get_readme(
         filename=filename,
         barrier_type=barrier_type,
         fields=df.column_names,
-        url=url,
-        unit_ids=extractor.unit_ids,
+        unit_ids=unit_ids,
         warnings=warnings,
     )
-    terms = get_terms(url=url)
+    terms = get_terms()
 
     if format == "csv":
         return zip_csv_response(

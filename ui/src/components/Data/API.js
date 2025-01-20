@@ -33,7 +33,7 @@ const apiQueryParams = ({
     query += '&include_unranked=1'
   }
   if (customRank) {
-    query += '&custom=1'
+    query += '&custom_rank=1'
   }
   if (sort) {
     query += `&sort=${sort}`

@@ -1,11 +1,10 @@
-from enum import Enum
-
 from fastapi import APIRouter, HTTPException
 from fastapi.requests import Request
 import pyarrow as pa
 import pyarrow.compute as pc
 
 from api.constants import (
+    PublicAPIBarrierTypes,
     STATES,
     DAM_PUBLIC_EXPORT_FIELDS,
     SB_PUBLIC_EXPORT_FIELDS,
@@ -17,12 +16,6 @@ from api.response import csv_response
 
 
 router = APIRouter()
-
-
-class PublicAPIBarrierTypes(str, Enum):
-    dams = "dams"
-    # NOTE: small_barriers is referred to as barriers for public API
-    barriers = "barriers"
 
 
 @router.get("/{barrier_type}/state")

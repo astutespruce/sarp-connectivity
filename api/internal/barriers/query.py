@@ -1,19 +1,18 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.requests import Request
 import pyarrow as pa
 import pyarrow.compute as pc
 
 from api.constants import (
-    BarrierTypes,
+    FullySupportedBarrierTypes,
     DAM_FILTER_FIELDS,
     SB_FILTER_FIELDS,
     COMBINED_FILTER_FIELDS,
     ROAD_CROSSING_FILTER_FIELDS,
 )
 
-from api.dependencies import (
-    RecordExtractor,
-)
+from api.dependencies import get_unit_ids, get_filter_params
+from api.lib.extract import extract_records
 from api.logger import log, log_request
 from api.response import feather_response
 
@@ -24,8 +23,9 @@ router = APIRouter()
 @router.get("/{barrier_type}/query")
 async def query(
     request: Request,
-    barrier_type: BarrierTypes,
-    extractor: RecordExtractor = Depends(RecordExtractor),
+    barrier_type: FullySupportedBarrierTypes,
+    unit_ids: get_unit_ids = Depends(),
+    filters: get_filter_params = Depends(),
 ):
     """Return subset of barrier_type based on summary unit ids within layer.
 
@@ -37,6 +37,12 @@ async def query(
     """
 
     log_request(request)
+
+    if len(unit_ids) == 0 and len(filters) == 0:
+        raise HTTPException(
+            400,
+            detail="At least one summary unit layer must have ids present or at least one filter must be defined",
+        )
 
     barrier_type = barrier_type.value
 
@@ -54,10 +60,18 @@ async def query(
             filter_fields = ROAD_CROSSING_FILTER_FIELDS
 
         case _:
-            raise NotImplementedError(f"query is not supported for {barrier_type}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail=f"query is not supported for {barrier_type}"
+            )
 
     # always extract ranked barriers unless type is road_crossings (not applicable)
-    df = extractor.extract(columns=["id", "lon", "lat"] + filter_fields, ranked=barrier_type != "road_crossings")
+    df = extract_records(
+        barrier_type,
+        unit_ids=unit_ids,
+        filters=filters,
+        columns=["id", "lon", "lat"] + filter_fields,
+        ranked=barrier_type != "road_crossings",
+    )
 
     # extract extent
     xmin, xmax = pc.min_max(df["lon"]).as_py().values()
@@ -65,7 +79,7 @@ async def query(
     bounds = [xmin, ymin, xmax, ymax]
 
     # group by filter fields
-    counts = df.combine_chunks().group_by(filter_fields).aggregate([("id", "count")])
+    counts = df.group_by(filter_fields).aggregate([("id", "count")])
     schema = counts.schema
     # cast count to uint32
     fields = [pa.field("id_count", "uint32") if c == "id_count" else schema.field(c) for c in schema.names]

@@ -3,7 +3,7 @@ Comprehensive Aquatic Barrier Inventory - {type}
 
 Data version: {data_version}
 Data published: {data_date}
-Downloaded from: {url}
+Downloaded from: https://aquaticbarriers.org
 Filename: {filename}
 
 Selected Area:

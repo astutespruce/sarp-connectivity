@@ -86,8 +86,8 @@ def zip_csv_response(df, filename, extra_str=None, extra_path=None, cache_filena
     zip_stream = BytesIO()
     with ZipFile(zip_stream, "w", compression=ZIP_DEFLATED, compresslevel=5) as zf:
         csv_stream = BytesIO()
-        # combine_chunks() is necessary to avoid repeated headers
-        write_csv(df.combine_chunks(), csv_stream)
+        # FIXME: make sure to always call combine_chunks() first to avoid repeated headers
+        write_csv(df, csv_stream)
         zf.writestr(filename, csv_stream.getvalue())
 
         if extra_str is not None:
