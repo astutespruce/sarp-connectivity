@@ -472,7 +472,7 @@ snap_start = time()
 
 df["snapped"] = False
 df["snap_log"] = "not snapped"
-df["lineID"] = np.nan  # line to which dam was snapped
+df["lineID"] = np.nan  # line to which barrier was snapped
 df["snap_tolerance"] = SNAP_TOLERANCE["default"]
 
 ix = df.Source.str.contains("WDFW Fish Passage Barrier Database") | df.Source.str.contains(
