@@ -131,7 +131,7 @@ async def download(
 
     tmp_dir = Path(tempfile.mkdtemp(dir=CUSTOM_DOWNLOAD_DIR))
     # grant permissions to Caddy to read from this directory; the default is too restrictive
-    os.chmod(tmp_dir, 755)
+    os.chmod(tmp_dir, 0o755)
 
     filename = f"road_stream_crossings.{format}" if barrier_type == "road_crossings" else f"{barrier_type}.{format}"
 
@@ -206,7 +206,7 @@ async def custom_download_task(
 
     tmp_dir = Path(tempfile.mkdtemp(dir=CUSTOM_DOWNLOAD_DIR))
     # grant permissions to Caddy to read from this directory; the default is too restrictive
-    os.chmod(tmp_dir, 755)
+    os.chmod(tmp_dir, 0o755)
 
     filename = f"road_stream_crossings.{format}" if barrier_type == "road_crossings" else f"{barrier_type}.{format}"
 
