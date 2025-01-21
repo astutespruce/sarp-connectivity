@@ -262,6 +262,15 @@ const pollJob = async (jobId, onProgress = null) => {
       continue
     }
 
+    if (response.status === 500) {
+      const error = await response.text()
+      console.error('server error for download job', error)
+      captureException('server error for download job', error)
+      return {
+        error: 'server error',
+      }
+    }
+
     const json = await response.json()
     const {
       status = null,
@@ -274,7 +283,7 @@ const pollJob = async (jobId, onProgress = null) => {
     } = json
 
     if (response.status !== 200 || status === 'failed') {
-      captureException('Report job failed', json)
+      captureException('Download job failed', json)
       if (error) {
         return { error }
       }
@@ -283,7 +292,7 @@ const pollJob = async (jobId, onProgress = null) => {
     }
 
     if (status === 'success') {
-      return { url: `${apiHost}${path}`, inProgress: false }
+      return { url: `${apiHost}${path}` }
     }
 
     if (
@@ -309,7 +318,7 @@ const pollJob = async (jobId, onProgress = null) => {
 
   // if we got here, it meant that we hit a timeout error or a fetch error
   if (failedRequests) {
-    captureException(`Report job encountered ${failedRequests} fetch errors`)
+    captureException(`Download job encountered ${failedRequests} fetch errors`)
 
     return {
       error:
@@ -318,7 +327,7 @@ const pollJob = async (jobId, onProgress = null) => {
   }
 
   if (time >= jobTimeout) {
-    captureException('Report job timed out')
+    captureException('Download job timed out')
     return {
       error:
         'timeout while creating your download.  Try selecting a smaller area or number of records to download.',
@@ -366,29 +375,43 @@ export const getDownloadURL = async (
     }
   )
 
-  const json = await response.json()
-  const { status, job, detail, path } = json
-
-  if (response.status === 400) {
-    // indicates error with user request, show error to user
-
-    // just for logging
-    console.error('Bad download request', json)
-    captureException('download request', json)
-
-    return { error: detail }
-  }
-
   if (response.status !== 200) {
-    console.error('Bad response', json)
-    captureException('Bad upload response', json)
+    let error = await response.text()
+    try {
+      const { detail } = JSON.parse(error)
+      error = detail
+    } catch (ex) {
+      // don't do anything here
+    }
 
-    throw new Error(response.statusText)
+    error = error || 'unhandled error'
+
+    if (response.status === 500) {
+      // this happens if redis is offline on the server
+      console.error('server error for download request', error)
+      captureException('server error for download request', error)
+    } else {
+      console.error('unhandled download request error', error)
+      captureException('unhandled download request error', error)
+    }
+    return {
+      error,
+    }
   }
+
+  const { status, job, path } = await response.json()
 
   // created download immediately, no need to poll job
   if (status === 'success' && path) {
-    return { url: `${apiHost}${path}`, inProgress: false }
+    return { url: `${apiHost}${path}` }
+  }
+
+  if (onProgress) {
+    onProgress({
+      status: 'queued',
+      inProgress: true,
+      progress: 0,
+    })
   }
 
   const result = await pollJob(job, onProgress)

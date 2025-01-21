@@ -122,7 +122,7 @@ const Downloader = ({
     let downloadURL = null
 
     if (summaryUnits) {
-      // TODO: have to await this
+      // NOTE: this doesn't complete until the background job is completed
       const { url, error: requestError } = await getDownloadURL(
         {
           barrierType,
@@ -138,19 +138,23 @@ const Downloader = ({
         handleProgress
       )
 
-      if (error) {
+      if (requestError) {
         setState((prevState) => ({
           ...prevState,
           error: requestError,
           progress: 0,
           progressMessage: null,
+          inProgress: false,
         }))
+        return
       }
 
       downloadURL = url
     } else {
       downloadURL = `${apiHost}/downloads/national/${barrierType}.zip`
     }
+
+    console.log('download url:', downloadURL)
 
     window.open(downloadURL)
     handleClose()
@@ -184,10 +188,10 @@ const Downloader = ({
 
   if (error) {
     content = (
-      <Box>
+      <Box sx={{ maxWidth: '600px' }}>
         <ExclamationTriangle size="1em" style={{ marginRight: '0.5rem' }} />
         We&apos;re sorry, there was an error creating your download. Please try
-        again. If this continues to happen, please
+        again. If this continues to happen, please{' '}
         <a
           href={`mailto:Kat@southeastaquatics.net?subject=Issue downloading ${barrierTypeLabels[barrierType]} from National Barrier Inventory & Prioritization Tool`}
         >
