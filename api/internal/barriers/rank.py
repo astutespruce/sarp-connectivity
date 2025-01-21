@@ -43,7 +43,7 @@ async def rank(
     barrier_type = barrier_type.value
 
     df = extract_records(
-        barrier_type, unit_ids=unit_ids, filters=filters, columns=["id", "lat", "lon"] + METRICS, ranked=True
+        barrier_type, unit_ids=unit_ids, filters=filters, columns=["id", "lat", "lon"] + METRICS, ranked_only=True
     )
     log.info(f"selected {len(df):,} {barrier_type.replace('_', ' ')} for ranking")
 

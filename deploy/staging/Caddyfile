@@ -19,6 +19,20 @@ staging.aquaticbarriers.org {
       reverse_proxy localhost:8000
   }
 
+  route /downloads/national/csv/* {
+    header Cache-Control "no-cache"
+    uri strip_prefix /downloads/national/csv
+    root * /home/app/sarp-connectivity/data/api/downloads
+    file_server
+  }
+
+  route /downloads/custom/* {
+    header Cache-Control "no-cache"
+    uri strip_prefix /downloads/custom
+    root * /tmp/sarp/downloads/custom
+    file_server
+  }
+
   route /api/v1* {
     uri strip_prefix /api/v1
     @encode_paths {

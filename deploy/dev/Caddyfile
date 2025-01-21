@@ -1,8 +1,8 @@
-# run this using a dockedr container:
-# docker run --rm -it -p 8002:8002 -v /Users/bcward/projects/sarp-connectivity/deploy/dev/Caddyfile:/etc/caddy/Caddyfile -v /Users/bcward/projects/sarp-connectivity/ui/public:/var/www caddy
+# run this using docker compose from this directory
+# > docker compose up -d caddy
 
 
-:8002 {
+:80 {
   log {
     level ERROR
   }
@@ -21,6 +21,12 @@
       reverse_proxy host.docker.internal:8001
   }
 
+  route /downloads/* {
+    header Cache-Control "no-cache"
+    uri strip_prefix /downloads
+    root * /downloads
+    file_server
+  }
 
   route /api/v1* {
     @encode_paths {

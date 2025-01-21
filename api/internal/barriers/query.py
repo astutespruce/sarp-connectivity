@@ -70,7 +70,7 @@ async def query(
         unit_ids=unit_ids,
         filters=filters,
         columns=["id", "lon", "lat"] + filter_fields,
-        ranked=barrier_type != "road_crossings",
+        ranked_only=barrier_type != "road_crossings",
     )
 
     # extract extent

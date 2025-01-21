@@ -1,14 +1,18 @@
-version: "3.6"
+version: '3.6'
 services:
   caddy:
-    image: caddy/caddy:2.4.6-alpine
+    image: caddy:2.9.1-alpine
+    platform: linux/arm64
     restart: always
     ports:
-      - "8080:80"
+      - '8080:80'
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_certs:/root/.caddy
       - ../../ui/public:/var/www
+      - ../../data/api/downloads:/downloads/national/csv
+      # must match api.settings.CUSTOM_DOWNLOAD_DIR
+      - /tmp/sarp/downloads/custom:/downloads/custom
 
 volumes:
   caddy_certs:

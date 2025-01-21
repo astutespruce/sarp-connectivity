@@ -327,5 +327,15 @@ export default {
       borderBottomColor: 'blue.8',
       my: '2rem',
     },
+    progress: {
+      color: 'primary',
+      bg: 'grey.1',
+      height: '1rem',
+      percent: {
+        color: 'primary',
+        bg: 'grey.2',
+        height: '0.75rem',
+      },
+    },
   },
 }

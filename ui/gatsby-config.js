@@ -25,6 +25,7 @@ module.exports = {
       formURL: process.env.GATSBY_MAILCHIMP_URL,
       userID: process.env.GATSBY_MAILCHIMP_USER_ID,
       formID: process.env.GATSBY_MAILCHIMP_FORM_ID,
+      formID2: process.env.GATSBY_MAILCHIMP_FORM_ID2,
     },
   },
   flags: {

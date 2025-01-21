@@ -8,7 +8,7 @@ from api.data import barrier_datasets
 def _construct_filter_expr(
     unit_ids: dict,
     filters: dict,
-    ranked: bool = False,
+    ranked_only: bool = False,
 ):
     """Construct pyarrow filter expression for unit ids and field-level filters
 
@@ -18,7 +18,7 @@ def _construct_filter_expr(
         dict of {<unit type>:[...unit ids...], ...}
     filters : dict
         dict of {<field>: (<filter type>, <filter values>), ...}
-    ranked : bool, optional (default: False)
+    ranked_only : bool, optional (default: False)
         If true, will limit results to ranked barriers (ones with networks that
         allow ranking, excludes invasive species barriers)
     """
@@ -33,7 +33,7 @@ def _construct_filter_expr(
         # filter only by other filters instead of units
         ix = pc.scalar(True)
 
-    if ranked:
+    if ranked_only:
         ix = ix & (pc.field("Ranked") == True)  # noqa
 
     # fields are evaluated using AND logic
@@ -54,11 +54,11 @@ def _construct_filter_expr(
     return ix
 
 
-def count_records(
+def get_record_count(
     barrier_type: FullySupportedBarrierTypes,
     unit_ids: dict,
     filters: dict,
-    ranked: bool = False,
+    ranked_only: bool = False,
 ):
     """Count number of rows in dataset that meet the filter
 
@@ -69,7 +69,7 @@ def count_records(
         dict of {<unit type>:[...unit ids...], ...}
     filters : dict
         dict of {<field>: (<filter type>, <filter values>), ...}
-    ranked : bool, optional (default: False)
+    ranked_only : bool, optional (default: False)
         If true, will limit results to ranked barriers (ones with networks that
         allow ranking, excludes invasive species barriers)
 
@@ -79,7 +79,7 @@ def count_records(
         _description_
     """
     dataset = barrier_datasets[barrier_type]
-    filter = _construct_filter_expr(unit_ids, filters, ranked=ranked)
+    filter = _construct_filter_expr(unit_ids, filters, ranked_only=ranked_only)
     scanner = dataset.scanner(columns=[], filter=filter)
 
     return scanner.count_rows()
@@ -90,7 +90,7 @@ def extract_records(
     unit_ids: dict,
     filters: dict,
     columns: list | None = None,
-    ranked: bool = False,
+    ranked_only: bool = False,
     as_table: bool = True,
 ):
     """Extract records from the pyarrow dataset corresponding to barrier_type,
@@ -105,7 +105,7 @@ def extract_records(
         dict of {<field>: (<filter type>, <filter values>), ...}
     columns : list, optional (default: None)
         list of column names to include in output; if None, will return all columns
-    ranked : bool, optional (default: False)
+    ranked_only : bool, optional (default: False)
         If true, will limit results to ranked barriers (ones with networks that
         allow ranking, excludes invasive species barriers)
     as_table : bool, optional (default: True)
@@ -118,7 +118,7 @@ def extract_records(
     """
 
     dataset = barrier_datasets[barrier_type]
-    filter = _construct_filter_expr(unit_ids, filters, ranked=ranked)
+    filter = _construct_filter_expr(unit_ids, filters, ranked_only=ranked_only)
     scanner = dataset.scanner(columns=columns, filter=filter)
 
     if as_table:

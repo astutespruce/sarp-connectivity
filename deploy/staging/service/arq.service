@@ -1,0 +1,22 @@
+;NoNewPrivileges=true
+
+[Unit]
+Description=SARP API background worker
+Documentation=https://github.com/astutespruce/sarp-connectivity
+After=network-online.target
+Wants=network-online.target systemd-networkd-wait-online.service
+
+[Service]
+Restart=on-failure
+RestartSec=60
+
+; User and group the process will run as.
+User=app
+Group=www-data
+
+WorkingDirectory=/home/app/sarp-connectivity
+ExecStart=/home/app/sarp-connectivity/.venv/bin/arq api.worker.WorkerSettings
+ExecReload=/bin/kill -USR1 $MAINPID
+
+[Install]
+WantedBy=multi-user.target

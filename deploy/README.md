@@ -73,9 +73,10 @@ GATSBY_SENTRY_DSN = <dsn>
 GATSBY_GOOGLE_ANALYTICS_ID = <ga id>
 GATSBY_API_HOST = <root URL of API host>
 GATSBY_TILE_HOST = <root URL of tile host>
-GATSBY_MAILCHIMP_URL=<url>
+GATSBY_MAILCHIMP_URL=https://mc.us19.list-manage.com/subscribe/landing-page
 GATSBY_MAILCHIMP_USER_ID=<user id>
 GATSBY_MAILCHIMP_FORM_ID=<form id>
+GATSBY_MAILCHIMP_FORM_ID2=<form id2>
 ```
 
 ## Grant ubuntu user write permissions to the root folder
@@ -198,6 +199,28 @@ Verify that it loaded as a service correctly:
 sudo service caddy status
 ```
 
+## Install Redis
+
+As `ubuntu` user:
+
+follow instructions for Ubuntu [here](https://redis.io/docs/latest/operate/oss_and_stack/install/install-redis/install-redis-on-linux/):
+
+```bash
+sudo apt-get install lsb-release curl gpg
+curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
+sudo chmod 644 /usr/share/keyrings/redis-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
+sudo apt-get update
+sudo apt-get install redis
+```
+
+This should enable the Redis server to be running automatically. Confirm that it
+started correctly:
+
+```bash
+sudo service redis-server status
+```
+
 ## Copy data and tiles to server
 
 - on local (dev) machine, copy contents of `tiles` directory to server:
@@ -241,7 +264,7 @@ Verify that API starts correctly with gunicorn:
 
 `CTRL-C` to exit
 
-Enable service:
+Enable API and background task (arq) services:
 
 As `ubuntu` user:
 
@@ -249,12 +272,17 @@ As `ubuntu` user:
 sudo cp /home/app/sarp-connectivity/deploy/<environment>/service/api.service /etc/systemd/system/
 sudo systemctl enable api
 sudo service api start
+
+sudo cp /home/app/sarp-connectivity/deploy/<environment>/service/arq.service /etc/systemd/system/
+sudo systemctl enable arq
+sudo service arq start
 ```
 
-Verify the service started correctly:
+Verify the services started correctly:
 
 ```bash
 sudo service api status
+sudo service arq status
 ```
 
 For more log messages:

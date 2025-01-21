@@ -1,3 +1,6 @@
+/* eslint-disable no-await-in-loop */
+// awaits in loops below are intentional
+
 import { tableFromIPC } from '@uwdata/flechette'
 import { fromArrow } from 'arquero'
 
@@ -7,6 +10,10 @@ import { siteMetadata, TIER_FIELDS, TIER_PACK_INFO } from 'config'
 import { extractYearRemovedStats } from 'components/Restoration/util'
 
 const { apiHost } = siteMetadata
+
+const pollInterval = 1000 // milliseconds; 1 second
+const jobTimeout = 600000 // milliseconds; 10 minutes
+const failedFetchLimit = 5
 
 /**
  * Converts units and filters into query parameters for API requests
@@ -130,35 +137,6 @@ export const fetchBarrierDetails = async (networkType, sarpid) => {
   return data
 }
 
-export const getDownloadURL = ({
-  barrierType,
-  summaryUnits,
-  filters,
-  includeUnranked = null,
-  sort = null,
-  customRank = false,
-}) => {
-  const params = {
-    summaryUnits,
-    filters,
-  }
-
-  if (includeUnranked !== null) {
-    params.includeUnranked = includeUnranked
-  }
-
-  if (sort !== null) {
-    params.sort = sort
-  }
-  if (customRank) {
-    params.customRank = customRank
-  }
-
-  return `${apiHost}/api/v1/internal/${barrierType}/csv?${apiQueryParams(
-    params
-  )}`
-}
-
 export const fetchUnitDetails = async (layer, id) => {
   const url = `${apiHost}/api/v1/internal/units/${layer}/details/${id}`
 
@@ -256,4 +234,163 @@ export const searchBarriers = async (query) => {
 
     throw err
   }
+}
+
+const pollJob = async (jobId, onProgress = null) => {
+  let time = 0
+  let failedRequests = 0
+
+  let response = null
+
+  while (time < jobTimeout && failedRequests < failedFetchLimit) {
+    try {
+      response = await fetch(
+        `${apiHost}/api/v1/internal/downloads/status/${jobId}`,
+        {
+          cache: 'no-cache',
+        }
+      )
+    } catch (ex) {
+      failedRequests += 1
+
+      // sleep and try again
+      await new Promise((r) => {
+        setTimeout(r, pollInterval)
+      })
+      time += pollInterval
+      /* eslint-disable-next-line no-continue */
+      continue
+    }
+
+    const json = await response.json()
+    const {
+      status = null,
+      progress = null,
+      queue_position: queuePosition = null,
+      elapsed_time: elapsedTime = null,
+      message = null,
+      detail: error = null, // error message
+      path = null,
+    } = json
+
+    if (response.status !== 200 || status === 'failed') {
+      captureException('Report job failed', json)
+      if (error) {
+        return { error }
+      }
+
+      throw Error(response.statusText)
+    }
+
+    if (status === 'success') {
+      return { url: `${apiHost}${path}`, inProgress: false }
+    }
+
+    if (
+      onProgress &&
+      (status === 'queued' || status === 'in_progress' || progress !== null)
+    ) {
+      onProgress({
+        status,
+        inProgress: true,
+        progress: progress || 0,
+        queuePosition: queuePosition || 0,
+        elapsedTime: elapsedTime || null,
+        message,
+      })
+    }
+
+    // sleep
+    await new Promise((r) => {
+      setTimeout(r, pollInterval)
+    })
+    time += pollInterval
+  }
+
+  // if we got here, it meant that we hit a timeout error or a fetch error
+  if (failedRequests) {
+    captureException(`Report job encountered ${failedRequests} fetch errors`)
+
+    return {
+      error:
+        'network errors were encountered while creating your download.  The server may be too busy or your network connection may be having problems.  Please try again in a few minutes.',
+    }
+  }
+
+  if (time >= jobTimeout) {
+    captureException('Report job timed out')
+    return {
+      error:
+        'timeout while creating your download.  Try selecting a smaller area or number of records to download.',
+    }
+  }
+
+  captureException('Download job had an unexpected error')
+  return {
+    error:
+      'unexpected errors prevented your download job from completing successfully.  Please try again.',
+  }
+}
+
+export const getDownloadURL = async (
+  {
+    barrierType,
+    summaryUnits,
+    filters,
+    includeUnranked = null,
+    sort = null,
+    customRank = false,
+  },
+  onProgress = null
+) => {
+  const params = {
+    summaryUnits,
+    filters,
+  }
+
+  if (includeUnranked !== null) {
+    params.includeUnranked = includeUnranked
+  }
+
+  if (sort !== null) {
+    params.sort = sort
+  }
+  if (customRank) {
+    params.customRank = customRank
+  }
+
+  const response = await fetch(
+    `${apiHost}/api/v1/internal/${barrierType}/csv?${apiQueryParams(params)}`,
+    {
+      method: 'POST',
+    }
+  )
+
+  const json = await response.json()
+  const { status, job, detail, path } = json
+
+  if (response.status === 400) {
+    // indicates error with user request, show error to user
+
+    // just for logging
+    console.error('Bad download request', json)
+    captureException('download request', json)
+
+    return { error: detail }
+  }
+
+  if (response.status !== 200) {
+    console.error('Bad response', json)
+    captureException('Bad upload response', json)
+
+    throw new Error(response.statusText)
+  }
+
+  // created download immediately, no need to poll job
+  if (status === 'success' && path) {
+    return { url: `${apiHost}${path}`, inProgress: false }
+  }
+
+  const result = await pollJob(job, onProgress)
+  return result
 }

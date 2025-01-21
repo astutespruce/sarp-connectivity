@@ -20,8 +20,6 @@ import { unitLayerConfig } from 'components/Workflow/config'
 
 import Map from './Map'
 
-const MAX_RECORDS = 250000
-
 const SurveyWorkflow = () => {
   const barrierType = useBarrierType()
 
@@ -355,7 +353,6 @@ const SurveyWorkflow = () => {
         case 'filter': {
           sidebarContent = (
             <Filters
-              maxAllowed={MAX_RECORDS}
               onBack={handleFilterBack}
               onStartOver={handleStartOver}
               SubmitButton={
@@ -363,9 +360,7 @@ const SurveyWorkflow = () => {
                   <Downloader
                     barrierType={barrierType}
                     label="Download selected crossings"
-                    disabled={
-                      filteredCount === 0 || filteredCount > MAX_RECORDS
-                    }
+                    disabled={filteredCount === 0}
                     config={{
                       summaryUnits: {
                         [layer]: summaryUnits.map(({ id }) => id),
