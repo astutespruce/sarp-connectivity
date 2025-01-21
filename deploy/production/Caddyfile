@@ -56,6 +56,7 @@ aquaticbarriers.org {
 
   route /downloads/* {
     header Cache-Control "no-cache"
+    header Content-Disposition attachment
     uri strip_prefix /downloads
     root * /downloads
     file_server

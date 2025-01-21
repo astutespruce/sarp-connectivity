@@ -188,7 +188,7 @@ const Downloader = ({
 
   if (error) {
     content = (
-      <Box sx={{ maxWidth: '600px' }}>
+      <Box sx={{ maxWidth: '400px' }}>
         <ExclamationTriangle size="1em" style={{ marginRight: '0.5rem' }} />
         We&apos;re sorry, there was an error creating your download. Please try
         again. If this continues to happen, please{' '}

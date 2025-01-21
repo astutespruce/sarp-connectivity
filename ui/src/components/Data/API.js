@@ -368,6 +368,14 @@ export const getDownloadURL = async (
     params.customRank = customRank
   }
 
+  if (onProgress) {
+    onProgress({
+      status: 'queued',
+      inProgress: true,
+      progress: 0,
+    })
+  }
+
   const response = await fetch(
     `${apiHost}/api/v1/internal/${barrierType}/csv?${apiQueryParams(params)}`,
     {
@@ -403,15 +411,15 @@ export const getDownloadURL = async (
 
   // created download immediately, no need to poll job
   if (status === 'success' && path) {
-    return { url: `${apiHost}${path}` }
-  }
+    if (onProgress) {
+      onProgress({
+        status,
+        inProgress: false,
+        progress: 100,
+      })
+    }
 
-  if (onProgress) {
-    onProgress({
-      status: 'queued',
-      inProgress: true,
-      progress: 0,
-    })
+    return { url: `${apiHost}${path}` }
   }
 
   const result = await pollJob(job, onProgress)
