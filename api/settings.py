@@ -23,7 +23,6 @@ MAX_DOWNLOAD_JOBS = int(os.getenv("MAX_JOBS", 1))
 # if in local development, API will provide download endpoints for national and
 # custom download; otherwise these are handled via Caddy
 PROVIDE_DOWNLOAD_ENDPOINTS = bool(os.getenv("PROVIDE_DOWNLOAD_ENDPOINTS"))
-print("Provide download endpoints?", PROVIDE_DOWNLOAD_ENDPOINTS)
 
 # number of records that can be downloaded directly from API endpoint without
 # requiring a background task
@@ -32,7 +31,7 @@ MAX_IMMEDIATE_DOWNLOAD_RECORDS = 10000
 REDIS = RedisSettings(host="localhost", port=6379, retry_on_timeout=True, conn_timeout=2)
 REDIS_QUEUE = "connectivity-tool"
 
-CUSTOM_DOWNLOAD_DIR = Path("/tmp/sarp/downloads/custom")
+CUSTOM_DOWNLOAD_DIR = Path(os.getenv("CUSTOM_DOWNLOAD_DIR", "/tmp/sarp/downloads/custom"))
 CUSTOM_DOWNLOAD_DIR.mkdir(exist_ok=True, parents=True)
 
 # time jobs out after 5 minutes

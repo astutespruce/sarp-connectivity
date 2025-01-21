@@ -70,7 +70,6 @@ async def download(
     ranked_only = not (include_unranked or barrier_type == "road_crossings")
     count = get_record_count(barrier_type, unit_ids=unit_ids, filters=filters, ranked_only=ranked_only)
 
-    # FIXME: use MAX_IMMEDIATE_DOWNLOAD_RECORDS instead
     if count > MAX_IMMEDIATE_DOWNLOAD_RECORDS:
         log.info(f"selected {count:,} {barrier_type.replace('_', ' ')} for download via background task")
 

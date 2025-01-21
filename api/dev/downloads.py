@@ -11,7 +11,7 @@ from api.settings import CUSTOM_DOWNLOAD_DIR
 router = APIRouter()
 
 
-@router.get("/downloads/national/csv/{filename}")
+@router.get("/downloads/national/{filename}")
 async def get_national_csv_zip(request: Request, filename: str):
     """Return pre-created zipped CSV downloads created in aggregate_networks.py
 

@@ -10,7 +10,7 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_certs:/root/.caddy
       - ../../ui/public:/var/www
-      - ../../data/api/downloads:/downloads/national/csv
+      - ../../data/api/downloads:/downloads/national
       # must match api.settings.CUSTOM_DOWNLOAD_DIR
       - /tmp/sarp/downloads/custom:/downloads/custom
 

@@ -45,6 +45,10 @@ sudo mkdir /var/www
 sudo chown app:app /var/www
 sudo chown app:ubuntu /tiles
 sudo chmod 774 /tiles
+sudo mkdir -p /downloads/custom
+sudo mkdir -p /downloads/national
+sudo chown -R app:app /downloads
+sudo chmod -R 774 /downloads
 ```
 
 ## Clone the repository and setup environment files
@@ -63,6 +67,7 @@ Create a `.env` in the root of the repository with the following:
 SENTRY_DSN=<sentry DSN>
 ALLOWED_ORIGINS=<domain of tool>
 API_ROOT_PATH=/api/v1
+CUSTOM_DOWNLOAD_DIR=/downloads/custom
 ```
 
 Create a `ui/.env.production` file with the following:
@@ -199,6 +204,8 @@ Verify that it loaded as a service correctly:
 sudo service caddy status
 ```
 
+Note: this is necessary for serving files from /home/app/sarp-connectivity/data/api/downloads.
+
 ## Install Redis
 
 As `ubuntu` user:
@@ -264,6 +271,14 @@ Verify that API starts correctly with gunicorn:
 
 `CTRL-C` to exit
 
+Verify the background task worker starts correctly:
+
+```bash
+/home/app/sarp-connectivity/.venv/bin/arq api.worker.WorkerSettings
+```
+
+`CTRL-C` to exit
+
 Enable API and background task (arq) services:
 
 As `ubuntu` user:
@@ -322,9 +337,17 @@ After that, test the first few steps of the prioritization workflow here: https:
 
 ## On update of data
 
+TODO: this needs much cleanup
+
 1. pull latest from git repository
 2. upload tiles
 3. upload feather files
 4. `npm run deploy`
 5. `sudo service mbtileserver restart`
 6. `sudo service api restart`
+7. `sudo service arq restart`
+
+### Other data release activities
+
+Run `analysis/export/export_barriers.py` on `combined_barriers` with state ranking
+and post the resulting FGDB file for Kat.

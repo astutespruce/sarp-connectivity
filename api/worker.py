@@ -48,9 +48,6 @@ ctx : arq ctx (unused)
 
 
 async def cleanup_files(ctx):
-    # FIXME: remove
-    print("Running cleanup task")
-
     # delete directories and their contents
     for path in CUSTOM_DOWNLOAD_DIR.rglob("*"):
         if path.stat().st_mtime < time() - FILE_RETENTION_TIME:

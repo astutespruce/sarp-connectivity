@@ -149,7 +149,7 @@ const Downloader = ({
 
       downloadURL = url
     } else {
-      downloadURL = `${apiHost}/downloads/national/csv/${barrierType}.zip`
+      downloadURL = `${apiHost}/downloads/national/${barrierType}.zip`
     }
 
     window.open(downloadURL)
