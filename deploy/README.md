@@ -185,13 +185,24 @@ As `ubuntu` user:
 follow instructions [here](https://caddyserver.com/docs/install#debian-ubuntu-raspbian) to install on Linux/Arm64:
 
 ```bash
-sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https
+sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
-sudo apt update && sudo apt install caddy
+sudo apt update
+sudo apt install caddy
 ```
 
 Note: this automatically enables the caddy service
+
+Add caddy to `www-data` group:
+
+```bash
+sudo usermod -aG www-data caddy
+```
+
+Note: this is necessary for serving files from /downloads/custom/\*_/_.zip because
+temporary directories are created by the background task worker for `app` user
+and `www-data` group.
 
 ```bash
 sudo cp /home/app/sarp-connectivity/deploy/<environment>/Caddyfile /etc/caddy/Caddyfile
@@ -203,8 +214,6 @@ Verify that it loaded as a service correctly:
 ```bash
 sudo service caddy status
 ```
-
-Note: this is necessary for serving files from /home/app/sarp-connectivity/data/api/downloads.
 
 ## Install Redis
 
@@ -335,19 +344,6 @@ After that, test the first few steps of the prioritization workflow here: https:
 2. Select a state
 3. If it shows the filters, everything is working as expected. Otherwise, if it is not showing state boundaries for selection, there is a problem with `mbtileserver`. If it is not showing filters, there is a problem with `api` service. If you can't even boot the application, it is a problem with the `caddy` service or the underlying built JS.
 
-## On update of data
+## Data updates
 
-TODO: this needs much cleanup
-
-1. pull latest from git repository
-2. upload tiles
-3. upload feather files
-4. `npm run deploy`
-5. `sudo service mbtileserver restart`
-6. `sudo service api restart`
-7. `sudo service arq restart`
-
-### Other data release activities
-
-Run `analysis/export/export_barriers.py` on `combined_barriers` with state ranking
-and post the resulting FGDB file for Kat.
+See [Data Release steps](./DataRelease.md).

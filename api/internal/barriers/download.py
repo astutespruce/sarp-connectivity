@@ -1,5 +1,6 @@
 from datetime import datetime
 from io import BytesIO
+import os
 from pathlib import Path
 from time import time
 import tempfile
@@ -128,8 +129,9 @@ async def download(
         sort=sort,
     )
 
-    # fp, zip_filename = tempfile.mkstemp(prefix=f"{barrier_type}__", suffix=".zip", dir=CUSTOM_DOWNLOAD_DIR)
     tmp_dir = Path(tempfile.mkdtemp(dir=CUSTOM_DOWNLOAD_DIR))
+    # grant permissions to Caddy to read from this directory; the default is too restrictive
+    os.chmod(tmp_dir, 755)
 
     filename = f"road_stream_crossings.{format}" if barrier_type == "road_crossings" else f"{barrier_type}.{format}"
 
@@ -202,8 +204,9 @@ async def custom_download_task(
 
     await set_progress(ctx["redis"], ctx["job_id"], "50", "Creating zip file")
 
-    # fp, zip_filename = tempfile.mkstemp(prefix=f"{barrier_type}__", suffix=".zip", dir=CUSTOM_DOWNLOAD_DIR)
     tmp_dir = Path(tempfile.mkdtemp(dir=CUSTOM_DOWNLOAD_DIR))
+    # grant permissions to Caddy to read from this directory; the default is too restrictive
+    os.chmod(tmp_dir, 755)
 
     filename = f"road_stream_crossings.{format}" if barrier_type == "road_crossings" else f"{barrier_type}.{format}"
 
