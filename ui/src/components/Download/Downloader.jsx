@@ -185,7 +185,8 @@ const Downloader = ({
       error: null,
     }))
 
-    window.open(url)
+    // update window.location.href to avoid getting blocked by popup blockers
+    window.location.href(url)
   }
 
   const showUserInfoForm = isOpen && !haveUserInfo
