@@ -158,7 +158,6 @@ const StateDownloadTable = ({
                   <td>
                     <Downloader
                       label="dams"
-                      asButton
                       barrierType="dams"
                       disabled={stateData[id].dams === 0}
                       showOptions={false}
@@ -172,7 +171,6 @@ const StateDownloadTable = ({
                   <td>
                     <Downloader
                       label="barriers"
-                      asButton
                       barrierType="small_barriers"
                       disabled={stateData[id].totalSmallBarriers === 0}
                       showOptions={false}
@@ -194,7 +192,6 @@ const StateDownloadTable = ({
               <td>
                 <Downloader
                   label="dams"
-                  asButton
                   barrierType="dams"
                   disabled={dams === 0}
                   config={{
@@ -206,7 +203,6 @@ const StateDownloadTable = ({
               <td>
                 <Downloader
                   label="barriers"
-                  asButton
                   barrierType="small_barriers"
                   disabled={totalSmallBarriers === 0}
                   config={{

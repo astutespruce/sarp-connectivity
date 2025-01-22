@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
-import {
-  Download as DownloadIcon,
-  ExclamationTriangle,
-} from '@emotion-icons/fa-solid'
-import { Box, Button, Flex, Progress, Text } from 'theme-ui'
+import { Download as DownloadIcon } from '@emotion-icons/fa-solid'
+import { Box, Button, Flex, Text } from 'theme-ui'
 
 import { getDownloadURL } from 'components/Data'
 import { OutboundLink } from 'components/Link'
@@ -13,8 +10,12 @@ import { barrierTypeLabels, siteMetadata } from 'config'
 import { getFromStorage } from 'util/dom'
 import { trackDownload } from 'util/analytics'
 
-import UserInfoForm, { FIELDS } from './UserInfoForm'
+import Error from './Error'
 import DownloadOptions from './Options'
+import Progress from './Progress'
+import Success from './Success'
+import Trigger from './Trigger'
+import UserInfoForm, { FIELDS } from './UserInfoForm'
 
 const { apiHost } = siteMetadata
 
@@ -22,7 +23,6 @@ const Downloader = ({
   barrierType,
   config,
   customRank,
-  asButton,
   label,
   disabled,
   showOptions,
@@ -37,6 +37,7 @@ const Downloader = ({
       progress,
       progressMessage,
       error,
+      downloadURL,
     },
     setState,
   ] = useState({
@@ -49,6 +50,7 @@ const Downloader = ({
     progress: 0,
     progressMessage: null,
     error: null,
+    downloadURL: null,
   })
 
   const barrierTypeLabel = barrierTypeLabels[barrierType]
@@ -73,6 +75,7 @@ const Downloader = ({
       progress: 0,
       progressMessage: null,
       error: null,
+      downloadURL: null,
     }))
   }
 
@@ -84,6 +87,7 @@ const Downloader = ({
       progress: 0,
       progressMessage: null,
       error: null,
+      downloadURL: null,
     }))
   }
 
@@ -119,47 +123,8 @@ const Downloader = ({
   const handleDownload = async () => {
     const { summaryUnits, filters, scenario } = config
 
-    let downloadURL = null
+    let url = null
 
-    if (summaryUnits) {
-      // NOTE: this doesn't complete until the background job is completed
-      const { url, error: requestError } = await getDownloadURL(
-        {
-          barrierType,
-          summaryUnits,
-          filters,
-          includeUnranked:
-            barrierType !== 'road_crossings'
-              ? downloadOptions.includeUnranked
-              : null,
-          sort: scenario ? scenario.toUpperCase() : null,
-          customRank,
-        },
-        handleProgress
-      )
-
-      if (requestError) {
-        setState((prevState) => ({
-          ...prevState,
-          error: requestError,
-          progress: 0,
-          progressMessage: null,
-          inProgress: false,
-        }))
-        return
-      }
-
-      downloadURL = url
-    } else {
-      downloadURL = `${apiHost}/downloads/national/${barrierType}.zip`
-    }
-
-    console.log('download url:', downloadURL)
-
-    window.open(downloadURL)
-    handleClose()
-
-    // track to Google analytics
     if (summaryUnits) {
       const formattedIds = Object.entries(summaryUnits)
         .map(([key, values]) => `${key}: ${values.join(',')}`)
@@ -174,9 +139,53 @@ const Downloader = ({
           downloadOptions.includeUnranked
         }`,
       })
+
+      // NOTE: this doesn't complete until the background job is completed
+      const { url: customDownloadURL, error: requestError } =
+        await getDownloadURL(
+          {
+            barrierType,
+            summaryUnits,
+            filters,
+            includeUnranked:
+              barrierType !== 'road_crossings'
+                ? downloadOptions.includeUnranked
+                : null,
+            sort: scenario ? scenario.toUpperCase() : null,
+            customRank,
+          },
+          handleProgress
+        )
+
+      if (requestError) {
+        setState((prevState) => ({
+          ...prevState,
+          error: requestError,
+          progress: 0,
+          progressMessage: null,
+          inProgress: false,
+        }))
+        return
+      }
+
+      url = customDownloadURL
     } else {
       trackDownload({ barrierType, unitType: 'national', details: {} })
+      url = `${apiHost}/downloads/national/${barrierType}.zip`
     }
+
+    console.log('download url:', url)
+
+    setState((prevState) => ({
+      ...prevState,
+      downloadURL: url,
+      inProgress: false,
+      progress: 100,
+      progressMessage: 'All done',
+      error: null,
+    }))
+
+    window.open(url)
   }
 
   const showUserInfoForm = isOpen && !haveUserInfo
@@ -187,32 +196,11 @@ const Downloader = ({
   let content = null
 
   if (error) {
-    content = (
-      <Box sx={{ maxWidth: '400px' }}>
-        <ExclamationTriangle size="1em" style={{ marginRight: '0.5rem' }} />
-        We&apos;re sorry, there was an error creating your download. Please try
-        again. If this continues to happen, please{' '}
-        <a
-          href={`mailto:Kat@southeastaquatics.net?subject=Issue downloading ${barrierTypeLabels[barrierType]} from National Barrier Inventory & Prioritization Tool`}
-        >
-          contact us
-        </a>{' '}
-        and let us know.
-      </Box>
-    )
+    content = <Error barrierType={barrierType} onClose={handleClose} />
   } else if (inProgress) {
-    content = (
-      <Box sx={{ py: '2rem', minWidth: 350 }}>
-        <Text>
-          {progressMessage ? `${progressMessage}...` : 'Extracting data...'}
-        </Text>
-
-        <Flex sx={{ alignItems: 'center' }}>
-          <Progress variant="styles.progress" max={100} value={progress} />
-          <Text sx={{ ml: '1rem' }}>{progress}%</Text>
-        </Flex>
-      </Box>
-    )
+    content = <Progress progress={progress} message={progressMessage} />
+  } else if (downloadURL) {
+    content = <Success url={downloadURL} />
   } else {
     content = (
       <>
@@ -255,63 +243,17 @@ const Downloader = ({
             Coordinates are in WGS 1984.
           </Text>
         </Box>
-
-        <Flex
-          sx={{
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            mt: '1rem',
-            pt: '1rem',
-            borderTop: '1px solid',
-            borderTopColor: 'grey.2',
-          }}
-        >
-          <Button variant="secondary" onClick={handleClose}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleDownload}>
-            <Flex sx={{ alignItems: 'center' }}>
-              <DownloadIcon size="1.2em" style={{ marginRight: '0.5rem' }} />
-              <Text>Download {barrierTypeLabel}</Text>
-            </Flex>
-          </Button>
-        </Flex>
       </>
     )
   }
 
   return (
     <>
-      {asButton ? (
-        <Button
-          onClick={!disabled ? handleShow : null}
-          variant={!disabled ? 'primary' : 'disabled'}
-          sx={{ fontSize: '1.1em', flex: '1 1 auto' }}
-        >
-          <Flex sx={{ justifyContent: 'center' }}>
-            <Box sx={{ mr: '0.5rem', flex: '0 0 auto' }}>
-              <DownloadIcon size="1.2em" />
-            </Box>
-            <Text sx={{ flex: '0 1 auto' }}>{labelText}</Text>
-          </Flex>
-        </Button>
-      ) : (
-        <Text
-          as="span"
-          onClick={!disabled ? handleShow : null}
-          sx={{
-            flex: '1 1 auto',
-            display: 'inline-block',
-            color: 'link',
-            cursor: 'pointer',
-            '&:hover': {
-              textDecoration: 'underline',
-            },
-          }}
-        >
-          {labelText}
-        </Text>
-      )}
+      <Trigger
+        label={labelText}
+        disabled={disabled}
+        onClick={!disabled ? handleShow : null}
+      />
 
       {showUserInfoForm && (
         <Modal title="Please tell us about yourself" onClose={handleClose}>
@@ -329,7 +271,41 @@ const Downloader = ({
           }`}
           onClose={handleClose}
         >
-          {content}
+          <Box sx={{ minWidth: '400px', maxWidth: '600px' }}>{content}</Box>
+
+          <Flex
+            sx={{
+              alignItems: 'center',
+              justifyContent: downloadURL ? 'flex-end' : 'space-between',
+              mt: '1rem',
+              pt: '1rem',
+              borderTop: '1px solid',
+              borderTopColor: 'grey.2',
+            }}
+          >
+            {downloadURL ? (
+              <Button variant="primary" onClick={handleClose}>
+                Close
+              </Button>
+            ) : (
+              <>
+                <Button variant="secondary" onClick={handleClose}>
+                  Cancel
+                </Button>
+                {!(error || inProgress) ? (
+                  <Button variant="primary" onClick={handleDownload}>
+                    <Flex sx={{ alignItems: 'center' }}>
+                      <DownloadIcon
+                        size="1.2em"
+                        style={{ marginRight: '0.5rem' }}
+                      />
+                      <Text>Download {barrierTypeLabel}</Text>
+                    </Flex>
+                  </Button>
+                ) : null}
+              </>
+            )}
+          </Flex>
         </Modal>
       ) : null}
     </>
@@ -345,7 +321,6 @@ Downloader.propTypes = {
     scenario: PropTypes.string,
   }),
   customRank: PropTypes.bool,
-  asButton: PropTypes.bool,
   label: PropTypes.string,
   disabled: PropTypes.bool,
   showOptions: PropTypes.bool,
@@ -356,7 +331,6 @@ Downloader.defaultProps = {
   config: {}, // empty config means national data
   customRank: false,
   label: null,
-  asButton: true,
   disabled: false,
   showOptions: true,
   includeUnranked: false,

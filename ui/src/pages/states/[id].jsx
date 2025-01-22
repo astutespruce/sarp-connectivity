@@ -140,7 +140,6 @@ const StateRoute = ({ params: { id } }) => {
             <Box sx={{ flex: '0 0 auto' }}>
               <Downloader
                 label="dams"
-                asButton
                 barrierType="dams"
                 disabled={dams === 0}
                 config={{
@@ -153,7 +152,6 @@ const StateRoute = ({ params: { id } }) => {
             <Box sx={{ flex: '0 0 auto' }}>
               <Downloader
                 label="barriers"
-                asButton
                 barrierType="small_barriers"
                 disabled={totalSmallBarriers === 0}
                 config={{
