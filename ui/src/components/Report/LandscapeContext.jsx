@@ -31,11 +31,11 @@ const LandscapeContext = ({
         <Entry>
           <Text>Within the following native territories:</Text>
           <Text style={{ marginTop: '6pt' }}>{nativeterritories}</Text>
-          <Text style={{ fontSize: '10pt', color: '#7f8a93' }}>
+          <Text style={{ fontSize: '10pt', color: '#7f8a93', lineHeight: 1.1 }}>
             Note: fonts for native territories may not render properly; our
             apologies, no disrespect is intended.
           </Text>
-          <Text style={{ fontSize: '10pt', color: '#7f8a93' }}>
+          <Text style={{ fontSize: '10pt', color: '#7f8a93', lineHeight: 1.1 }}>
             (based on data provided by{' '}
             <Link href="https://native-land.ca/">Native Land Digital</Link>)
           </Text>

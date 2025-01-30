@@ -132,7 +132,13 @@ const Ownership = ({
                 <Text>
                   Number of fatalities recorded: {formatNumber(fatality)}
                 </Text>
-                <Text style={{ fontSize: '10pt', color: '#7f8a93' }}>
+                <Text
+                  style={{
+                    fontSize: '10pt',
+                    color: '#7f8a93',
+                    lineHeight: 1.1,
+                  }}
+                >
                   (based on data provided by{' '}
                   <Link href="https://krcproject.groups.et.byu.net/browse.php">
                     Fatalities at Submerged Hydraulic Jumps
@@ -150,7 +156,13 @@ const Ownership = ({
                 <Text>
                   (${formatNumber(costlower)} - ${formatNumber(costupper)})
                 </Text>
-                <Text style={{ fontSize: '10pt', color: '#7f8a93' }}>
+                <Text
+                  style={{
+                    fontSize: '10pt',
+                    color: '#7f8a93',
+                    lineHeight: 1.1,
+                  }}
+                >
                   Note: costs are modeled based on dam characteristics and are a
                   very rough estimate only; please use with caution. Source:
                   Jumani et. al. (in prep).

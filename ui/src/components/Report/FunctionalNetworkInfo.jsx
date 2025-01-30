@@ -182,6 +182,7 @@ const FunctionalNetworkInfo = ({
         style={{
           color: '#7f8a93',
           fontSize: 10,
+          lineHeight: 1.2,
           marginBottom: '6pt',
         }}
       >
@@ -432,7 +433,14 @@ const FunctionalNetworkInfo = ({
         </View>
 
         {unranked && !invasive ? (
-          <Text style={{ color: '#7f8a93', marginTop: 28, fontSize: 10 }}>
+          <Text
+            style={{
+              color: '#7f8a93',
+              marginTop: 28,
+              fontSize: 10,
+              lineHeight: 1.2,
+            }}
+          >
             Note: this {barrierTypeLabel} excluded from ranking based on field
             reconnaissance, manual review of aerial imagery, or other
             information about this {barrierTypeLabel}.
@@ -440,7 +448,14 @@ const FunctionalNetworkInfo = ({
         ) : null}
 
         {alwaysUseUpstream ? (
-          <Text style={{ color: '#7f8a93', marginTop: 28, fontSize: 10 }}>
+          <Text
+            style={{
+              color: '#7f8a93',
+              marginTop: 28,
+              fontSize: 10,
+              lineHeight: 1.2,
+            }}
+          >
             Note: upstream miles are used because the downstream network flows
             into the {flowstogreatlakes === 1 ? 'Great Lakes' : 'ocean'} and
             there are no barriers downstream.
@@ -452,6 +467,7 @@ const FunctionalNetworkInfo = ({
             color: '#7f8a93',
             marginTop: alwaysUseUpstream ? 14 : 28,
             fontSize: 10,
+            lineHeight: 1.2,
           }}
         >
           Note: statistics are based on aquatic networks cut by{' '}
@@ -483,7 +499,14 @@ const FunctionalNetworkInfo = ({
           </Link>{' '}
           dataset (v0.44).
         </Text>
-        <Text style={{ marginTop: 14, color: '#7f8a93', fontSize: 10 }}>
+        <Text
+          style={{
+            marginTop: 14,
+            color: '#7f8a93',
+            fontSize: 10,
+            lineHeight: 1.2,
+          }}
+        >
           Unaltered lakes and ponds include any that intersect a stream reach in
           the upstream functional network, and exclude any specifically marked
           by their data provider as altered as well as any that are associated

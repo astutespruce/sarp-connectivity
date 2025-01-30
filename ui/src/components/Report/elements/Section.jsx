@@ -5,8 +5,8 @@ import { View } from '@react-pdf/renderer'
 
 import Bold from './Bold'
 
-const Section = ({ title, children, style, marginBottom }) => (
-  <View style={style} wrap={false}>
+const Section = ({ title, children, style, marginBottom, wrap }) => (
+  <View style={style} wrap={wrap}>
     <Bold
       style={{
         fontSize: 14,
@@ -27,11 +27,13 @@ Section.propTypes = {
   children: PropTypes.node.isRequired,
   style: PropTypes.object,
   marginBottom: PropTypes.number,
+  wrap: PropTypes.bool,
 }
 
 Section.defaultProps = {
   style: {},
   marginBottom: 14,
+  wrap: false,
 }
 
 export default Section

@@ -38,11 +38,7 @@ const Location = ({
     river.toLowerCase() !== 'unnamed'
 
   return (
-    <Section
-      title="Location within the aquatic network"
-      {...props}
-      wrap={false}
-    >
+    <Section title="Location within the aquatic network" {...props}>
       <Entries>
         <Entry>
           <Text>

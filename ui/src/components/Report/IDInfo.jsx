@@ -182,7 +182,7 @@ const IDInfo = ({
               <View
                 key={keyword}
                 style={{
-                  flex: '0 0 170',
+                  flex: '0 0 160',
                   marginLeft: i % 3 > 0 ? 6 : 0,
                   marginTop: i >= 3 ? 10 : 0,
                   maxHeight: 240,

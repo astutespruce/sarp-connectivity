@@ -52,7 +52,14 @@ const Scores = ({
       wrap={false}
       marginBottom={6}
     >
-      <Text style={{ color: '#7f8a93', fontSize: 10, textAlign: 'center' }}>
+      <Text
+        style={{
+          color: '#7f8a93',
+          fontSize: 10,
+          lineHeight: 1.1,
+          textAlign: 'center',
+        }}
+      >
         connectivity tiers range from 20 (lowest) to 1 (highest)
       </Text>
 

@@ -87,6 +87,7 @@ const MainstemNetworkInfo = ({
         style={{
           color: '#7f8a93',
           fontSize: 10,
+          lineHeight: 1.2,
           marginBottom: '6pt',
         }}
       >
@@ -310,6 +311,7 @@ const MainstemNetworkInfo = ({
             color: '#7f8a93',
             marginTop: alwaysUseUpstream ? 14 : 28,
             fontSize: 10,
+            lineHeight: 1.2,
           }}
         >
           Note: statistics are based on aquatic networks cut by{' '}

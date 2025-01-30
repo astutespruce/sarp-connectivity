@@ -108,7 +108,9 @@ const Report = ({
           barrierType={barrierType}
           {...data}
         />
+      </Page>
 
+      <Page style={styles.page} size="LETTER">
         <FunctionalNetworkInfo
           style={{ marginTop: 24 }}
           barrierType={barrierType}
