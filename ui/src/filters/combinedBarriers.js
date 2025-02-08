@@ -361,7 +361,7 @@ export const combinedBarriers = [
         title: 'Land ownership type',
         sort: false,
         hideMissingValues: true,
-        help: 'This information is derived from the BLM Surface Management Agency dataset for federal lands and CBI Protected Areas Database and TNC Secured Lands Database for non-federal lands, to highlight ownership types of particular importance to partners.  NOTE: this does not include most private land.',
+        help: 'This information is derived from the USFS ownership parcels dataset and Protected Areas Database (PAD-US v4) to highlight ownership types of particular importance to partners.  NOTE: this does not include most private land.',
         ...getEntries(OWNERTYPE),
       },
       {

@@ -235,6 +235,8 @@ DAM_FS_COLS = [
     "FEDERAL_ID",  # new NID federal ID
     "Fatality",
     "NRCS_Dam",
+    "Active150",
+    "KeepOnActiveList",
 ]
 
 
@@ -264,6 +266,8 @@ SMALL_BARRIER_COLS = [
     "Link",
     "Private",
     "Priority_Identified",
+    "ActiveList",
+    "KeepOnActiveList",
     # Not used:
     # "NumberOfStructures",
     # "CrossingComment",

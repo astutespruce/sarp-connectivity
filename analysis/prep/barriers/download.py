@@ -88,6 +88,7 @@ async def download_dams(token):
                 "Priority_Identified": "IsPriority",
                 "NORMSTOR": "StorageVolume",
                 "Last_Updated": "EditDate",
+                "Active150": "ActiveList",
             }
         )
 
