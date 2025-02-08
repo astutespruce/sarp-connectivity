@@ -194,9 +194,10 @@ sudo apt install caddy
 
 Note: this automatically enables the caddy service
 
-Add caddy to `www-data` group:
+Add caddy to `app` and `www-data` groups:
 
 ```bash
+sudo usermod -aG app caddy
 sudo usermod -aG www-data caddy
 ```
 

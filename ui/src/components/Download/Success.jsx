@@ -5,7 +5,6 @@ import { Box, Text } from 'theme-ui'
 const Success = ({ url }) => (
   <Box sx={{ mt: '1rem' }}>
     <Text>
-      All done! <br />
       Your browser should have automatically started downloading your file.
       <br />
       <br />
