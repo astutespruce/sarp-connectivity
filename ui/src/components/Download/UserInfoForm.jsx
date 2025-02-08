@@ -23,7 +23,7 @@ import { saveToStorage, encodeParams } from 'util/dom'
 import SARPLogoImage from 'images/sarp_logo.png'
 
 const {
-  mailchimpConfig: { userID, formID, formURL },
+  mailchimpConfig: { userID, formID, formID2, formURL },
 } = siteMetadata
 
 if (!(formURL && userID && formID)) {
@@ -80,11 +80,11 @@ const DownloadForm = ({ onCancel, onContinue }) => {
     // Mailchimp doesn't have CORS support, so we have to use JSONP to submit form data.
     // yuck!
 
-    // Note: we have to add -json to the end of the regular form URL, make sure it is formatted correctly in .env.*
     fetchJSONP(
-      `${formURL}-json?${encodeParams({
+      `${formURL}?${encodeParams({
         u: userID,
         id: formID,
+        f_id: formID2,
         ...data,
       })}`,
       {

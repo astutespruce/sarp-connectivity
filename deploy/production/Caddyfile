@@ -54,6 +54,14 @@ aquaticbarriers.org {
       reverse_proxy localhost:8000
   }
 
+  route /downloads/* {
+    header Cache-Control "no-cache"
+    header Content-Disposition attachment
+    uri strip_prefix /downloads
+    root * /downloads
+    file_server
+  }
+
   route /api/v1* {
     uri strip_prefix /api/v1
     @encode_paths {
@@ -74,10 +82,6 @@ aquaticbarriers.org {
   route /* {
     # redirect teams page
     redir /teams /regions/southeast 301
-
-    # redirect previous summary and download pages to explore page
-    redir /summary* /explore/ 301
-    redir /download* /explore/ 301
 
     # most files can be cached indefinitely, they are rebuilt with new names each time
     @cached_files {

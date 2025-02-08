@@ -7,21 +7,37 @@ LOGO_PATH = Path("ui/src/images/sarp_logo_highres.png").resolve()
 
 
 ### Enums for validating incoming request values
-class CoreBarrierTypes(str, Enum):
+class PublicAPIBarrierTypes(str, Enum):
+    dams = "dams"
+    # NOTE: small_barriers is referred to as barriers for public API
+    barriers = "barriers"
+
+
+# road crossings and waterfalls cannot be ranked
+class RankedBarrierTypes(str, Enum):
     dams = "dams"
     small_barriers = "small_barriers"
     combined_barriers = "combined_barriers"
-    road_crossings = "road_crossings"
+    largefish_barriers = "largefish_barriers"
+    smallfish_barriers = "smallfish_barriers"
 
 
-class BarrierTypes(str, Enum):
+# types that support query (filtering) and download; includes all ranked types
+# plus road crossings; waterfalls cannot be filtered or downloaded via API
+class FullySupportedBarrierTypes(str, Enum):
     dams = "dams"
     small_barriers = "small_barriers"
     combined_barriers = "combined_barriers"
     largefish_barriers = "largefish_barriers"
     smallfish_barriers = "smallfish_barriers"
     road_crossings = "road_crossings"
-    waterfalls = "waterfalls"
+
+
+class NationalDownloadBarrierTypes(str, Enum):
+    dams = "dams"
+    small_barriers = "small_barriers"
+    combined_barriers = "combined_barriers"
+    road_crossings = "road_crossings"
 
 
 # must match the subset of analysis/constants.py::NETWORK_TYPES keys

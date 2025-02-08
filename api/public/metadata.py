@@ -30,19 +30,15 @@ def get_core_metadata(url):
         "data_publish_date": INFO["date"],
         "contact_person": "Kat Hoenke (Spatial Ecologist, Southeast Aquatic Resources Partnership)",
         "contact_email": "kat@southeastaquatics.net",
-        "citation": f"Southeast Aquatic Resources Partnership (SARP). {date.today().year}. Comprehensive Aquatic Barrier Inventory. https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act. (dowloaded {date.today().strftime('%m/%d/%Y')} from {url}). SARP/USFWS.",
+        "citation": f"Southeast Aquatic Resources Partnership (SARP). {date.today().year}. Comprehensive Aquatic Barrier Inventory. https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act. (dowloaded {date.today().strftime('%m/%d/%Y')} from https://aquaticbarriers.org). SARP/USFWS.",
         "description": description,
         "terms_of_use": terms_of_use,
     }
 
 
 # Get list of states that have dams or barriers
-dam_states = sorted(
-    pc.unique(dams.scanner(columns=["State"]).to_table()["State"]).tolist()
-)
-barrier_states = sorted(
-    pc.unique(small_barriers.scanner(columns=["State"]).to_table()["State"]).tolist()
-)
+dam_states = sorted(pc.unique(dams.scanner(columns=["State"]).to_table()["State"]).tolist())
+barrier_states = sorted(pc.unique(small_barriers.scanner(columns=["State"]).to_table()["State"]).tolist())
 
 
 @router.get("/dams/metadata")
@@ -54,11 +50,7 @@ async def get_dams_metadata(
     metadata = {
         "count": dams.count_rows(),
         "available_states": dam_states,
-        "fields": {
-            k: v
-            for k, v in DAM_FIELD_DEFINITIONS.items()
-            if k in DAM_PUBLIC_EXPORT_FIELDS
-        },
+        "fields": {k: v for k, v in DAM_FIELD_DEFINITIONS.items() if k in DAM_PUBLIC_EXPORT_FIELDS},
     }
 
     metadata.update(get_core_metadata(request.base_url))
@@ -75,11 +67,7 @@ async def get_barriers_metadata(
     metadata = {
         "count": small_barriers.count_rows(),
         "available_states": barrier_states,
-        "fields": {
-            k: v
-            for k, v in SB_FIELD_DEFINITIONS.items()
-            if k in SB_PUBLIC_EXPORT_FIELDS
-        },
+        "fields": {k: v for k, v in SB_FIELD_DEFINITIONS.items() if k in SB_PUBLIC_EXPORT_FIELDS},
     }
 
     metadata.update(get_core_metadata(request.base_url))

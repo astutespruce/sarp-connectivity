@@ -538,7 +538,6 @@ with duckdb.connect(str(out_db)) as con:
 ################################################################################
 ### Pre-create zip files for national downloads
 ################################################################################
-url = "https://aquaticbarriers.org"
 filename = "aquatic_barrier_ranks.csv"
 unit_ids = {"State": np.array(sorted(STATES.keys()))}
 
@@ -572,11 +571,10 @@ for barrier_type in ["dams", "small_barriers", "combined_barriers", "road_crossi
         filename=filename,
         barrier_type=barrier_type,
         fields=df.column_names,
-        url=url,
         unit_ids=unit_ids,
         warnings=warnings,
     )
-    terms = get_terms(url=url)
+    terms = get_terms()
 
     with ZipFile(zip_dir / f"{barrier_type}.zip", "w", compression=ZIP_DEFLATED, compresslevel=9) as out:
         csv_stream = BytesIO()

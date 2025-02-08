@@ -45,6 +45,10 @@ sudo mkdir /var/www
 sudo chown app:app /var/www
 sudo chown app:ubuntu /tiles
 sudo chmod 774 /tiles
+sudo mkdir -p /downloads/custom
+sudo mkdir -p /downloads/national
+sudo chown -R app:app /downloads
+sudo chmod -R 774 /downloads
 ```
 
 ## Clone the repository and setup environment files
@@ -63,6 +67,7 @@ Create a `.env` in the root of the repository with the following:
 SENTRY_DSN=<sentry DSN>
 ALLOWED_ORIGINS=<domain of tool>
 API_ROOT_PATH=/api/v1
+CUSTOM_DOWNLOAD_DIR=/downloads/custom
 ```
 
 Create a `ui/.env.production` file with the following:
@@ -73,9 +78,10 @@ GATSBY_SENTRY_DSN = <dsn>
 GATSBY_GOOGLE_ANALYTICS_ID = <ga id>
 GATSBY_API_HOST = <root URL of API host>
 GATSBY_TILE_HOST = <root URL of tile host>
-GATSBY_MAILCHIMP_URL=<url>
+GATSBY_MAILCHIMP_URL=https://mc.us19.list-manage.com/subscribe/landing-page
 GATSBY_MAILCHIMP_USER_ID=<user id>
 GATSBY_MAILCHIMP_FORM_ID=<form id>
+GATSBY_MAILCHIMP_FORM_ID2=<form id2>
 ```
 
 ## Grant ubuntu user write permissions to the root folder
@@ -179,13 +185,24 @@ As `ubuntu` user:
 follow instructions [here](https://caddyserver.com/docs/install#debian-ubuntu-raspbian) to install on Linux/Arm64:
 
 ```bash
-sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https
+sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
-sudo apt update && sudo apt install caddy
+sudo apt update
+sudo apt install caddy
 ```
 
 Note: this automatically enables the caddy service
+
+Add caddy to `www-data` group:
+
+```bash
+sudo usermod -aG www-data caddy
+```
+
+Note: this is necessary for serving files from /downloads/custom/\*_/_.zip because
+temporary directories are created by the background task worker for `app` user
+and `www-data` group.
 
 ```bash
 sudo cp /home/app/sarp-connectivity/deploy/<environment>/Caddyfile /etc/caddy/Caddyfile
@@ -196,6 +213,28 @@ Verify that it loaded as a service correctly:
 
 ```bash
 sudo service caddy status
+```
+
+## Install Redis
+
+As `ubuntu` user:
+
+follow instructions for Ubuntu [here](https://redis.io/docs/latest/operate/oss_and_stack/install/install-redis/install-redis-on-linux/):
+
+```bash
+sudo apt-get install lsb-release curl gpg
+curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
+sudo chmod 644 /usr/share/keyrings/redis-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
+sudo apt-get update
+sudo apt-get install redis
+```
+
+This should enable the Redis server to be running automatically. Confirm that it
+started correctly:
+
+```bash
+sudo service redis-server status
 ```
 
 ## Copy data and tiles to server
@@ -241,7 +280,15 @@ Verify that API starts correctly with gunicorn:
 
 `CTRL-C` to exit
 
-Enable service:
+Verify the background task worker starts correctly:
+
+```bash
+/home/app/sarp-connectivity/.venv/bin/arq api.worker.WorkerSettings
+```
+
+`CTRL-C` to exit
+
+Enable API and background task (arq) services:
 
 As `ubuntu` user:
 
@@ -249,12 +296,17 @@ As `ubuntu` user:
 sudo cp /home/app/sarp-connectivity/deploy/<environment>/service/api.service /etc/systemd/system/
 sudo systemctl enable api
 sudo service api start
+
+sudo cp /home/app/sarp-connectivity/deploy/<environment>/service/arq.service /etc/systemd/system/
+sudo systemctl enable arq
+sudo service arq start
 ```
 
-Verify the service started correctly:
+Verify the services started correctly:
 
 ```bash
 sudo service api status
+sudo service arq status
 ```
 
 For more log messages:
@@ -292,11 +344,6 @@ After that, test the first few steps of the prioritization workflow here: https:
 2. Select a state
 3. If it shows the filters, everything is working as expected. Otherwise, if it is not showing state boundaries for selection, there is a problem with `mbtileserver`. If it is not showing filters, there is a problem with `api` service. If you can't even boot the application, it is a problem with the `caddy` service or the underlying built JS.
 
-## On update of data
+## Data updates
 
-1. pull latest from git repository
-2. upload tiles
-3. upload feather files
-4. `npm run deploy`
-5. `sudo service mbtileserver restart`
-6. `sudo service api restart`
+See [Data Release steps](./DataRelease.md).

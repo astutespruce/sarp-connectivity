@@ -16,6 +16,7 @@ classifiers = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "arq",
     "duckdb",
     "fastapi",
     "gunicorn",
@@ -23,6 +24,7 @@ dependencies = [
     "pyarrow",
     "python-dotenv",
     "rapidfuzz",
+    "redis[hiredis]<6",
     "sentry-sdk",
     "uvicorn",
 ]
@@ -36,6 +38,7 @@ dev = [
     "pandas",
     "pymgl",
     "pyogrio",
+    "pytest",
     "python-calamine",
     "ruff",
     "shapely",

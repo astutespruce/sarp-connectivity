@@ -19,6 +19,16 @@ try:
     road_crossings = dataset(data_dir / "road_crossings.feather", format="feather")
     waterfalls = dataset(data_dir / "waterfalls.feather", format="feather")
 
+    barrier_datasets = {
+        "dams": dams,
+        "small_barriers": small_barriers,
+        "combined_barriers": combined_barriers,
+        "largefish_barriers": largefish_barriers,
+        "smallfish_barriers": smallfish_barriers,
+        "road_crossings": road_crossings,
+        "waterfalls": waterfalls,
+    }
+
     search_barriers = dataset(data_dir / "search_barriers.feather", format="feather")
 
     units = dataset(data_dir / "map_units.feather", format="feather")

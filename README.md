@@ -7,18 +7,19 @@ https://aquaticbarriers.org/
 The [Southeast Aquatic Resources Partnership](https://southeastaquatics.net)(SARP) has created and maintained the most complete and value-added inventory of aquatic barriers in the U.S. This tool helps users prioritize aquatic barriers for removal and mitigation based on metrics that describe aquatic network connectivity.
 
 Four types of barriers are considered in these analyses:
+
 - waterfalls: these natural barriers break the aquatic network and thus constrain the networks that could be reconnected by removing artificial barriers.
 - dams: large artificial barriers that break the aquatic network and may be evaluated for network connectivity.
 - surveyed road-related barriers: road / stream crossings that have been evaluated for impact to aquatic organisms and may be evaluated for network connectivity.
 - unsurveyed modeled road / stream crossings: intersections between stream and road datasets that may indicate potential road-related barriers. These are not evaluated for network connectivity because they have not yet been surveyed to determine impact to aquatic organisms.
 
-These barriers are compiled by SARP from multiple data sources at the national, state, and local levels, and are supplemented with additional information from field reconnaissance where available.  Based on their degree of impact to aquatic organisms, these barriers may be used in different aquatic connectivity analyses.  The tool currently includes the following aquatic connectivity analyses that are used to help prioritize these barriers for removal or mitigation:
+These barriers are compiled by SARP from multiple data sources at the national, state, and local levels, and are supplemented with additional information from field reconnaissance where available. Based on their degree of impact to aquatic organisms, these barriers may be used in different aquatic connectivity analyses. The tool currently includes the following aquatic connectivity analyses that are used to help prioritize these barriers for removal or mitigation:
+
 - dams: aquatic networks are cut by waterfalls and dams in order to prioritize dams for removal or mitigation.
 - road-related barriers: aquatic networks are cut by waterfalls, dams, and surveyed road-related barriers with at least moderate barrier severity in order to prioritize road-related barriers for removal or mitigation.
 - dam & road-related barriers: aquatic networks are cut by waterfalls, dams, and surveyed road-related barriers with at least moderate barrier severity in order to prioritize dams and road-related barriers for removal or mitigation.
 - large-bodied fish barriers: aquatic networks are cut by waterfalls and dams that do not have partial or seasonal passibility for salmonids and non-salmonids, and surveyed road-related barriers with severe or significant barrier severity in order to prioritize dams and road-related barriers for removal or mitigation.
 - small-bodied fish barriers: aquatic networks are cut by waterfalls, dams, and surveyed road-related barriers with at least minor severity in order to prioritize dams and road-related barriers for removal or mitigation.
- 
 
 ## Data processing
 
@@ -48,12 +49,14 @@ Then from appropriate directory (or if installed via `go get` and `~/go/bin` is 
 You should now be able to open `http://localhost:8001/services` to see a listing of available tile services.
 
 ### UI Initial setup:
+
 The NodeJS version is managed
 using [nvm](https://github.com/nvm-sh/nvm) and dependencies are installed using `npm`.
 
 See `ui/package.json` for NodeJS dependencies used by the UI tier.
 
-The user interface is contained in the `ui` folder. 
+The user interface is contained in the `ui` folder.
+
 ```bash
 cd ui
 
@@ -62,7 +65,6 @@ nvm use
 npm ci --legacy-peer-deps
 ```
 
-
 The following environment variables must be sent in `/ui/.env.development`:
 
 ```
@@ -70,7 +72,6 @@ GATSBY_MAPBOX_API_TOKEN = <token>
 GATSBY_API_HOST = <root URL of API host, likely http://localhost/:5000 for local fastapi server >
 GATSBY_TILE_HOST = <root URL of tile host, likely http://localhost:8001 for local mbtileserver >
 ```
-
 
 The user interface is built using GatsbyJS.
 
@@ -82,13 +83,14 @@ gatsby develop
 ```
 
 #### Updating Javascript dependencies
+
 ```bash
 # list outdated dependencies
 npm outdated
 
 # install updated packages
 npm install --legacy-peer-deps <package>@latest ...
-``` 
+```
 
 ### API initial setup:
 
@@ -118,15 +120,28 @@ uv lock --upgrade <package>
 
 #### Run API:
 
-Within an active Python environment (`source `).
+Within an active Python environment.
 
 To start the API server (on port 5000, by default), with reloading:
 
-```
+```bash
 uvicorn api.server:app --reload --reload-dir api --port 5000
 ```
 
 The API loads environment variables from `.env` in the root of this project.
+
+#### Run background task worker
+
+In another terminal window, within the active Python environment.
+
+To start the background task worker used for larger downloads:
+
+```bash
+arq api.worker.WorkerSettings --watch ./api
+```
+
+This needs to be manually killed and restarted on changes to the implementation
+of the background task functions.
 
 ## Deployment
 

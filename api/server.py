@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 import logging
 
 from fastapi import FastAPI
@@ -9,9 +10,10 @@ import sentry_sdk
 from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 
 from api.logger import log
-from api.settings import ALLOWED_ORIGINS, SENTRY_DSN, API_ROOT_PATH
+from api.settings import ALLOWED_ORIGINS, SENTRY_DSN, API_ROOT_PATH, PROVIDE_DOWNLOAD_ENDPOINTS
 from api.internal import router as internal_router
 from api.public import router as public_router
+from api.dev.downloads import router as dev_downloads_router
 
 
 ### Setup Sentry
@@ -21,17 +23,21 @@ if SENTRY_DSN:
 
 
 ### Create the main API app
-app = FastAPI(version="1.0", root_path=API_ROOT_PATH, docs_url=False, redoc_url=False)
-path_prefix = "/api/v1" if API_ROOT_PATH is None else ""
 
 
-### Add logger
-@app.on_event("startup")
-async def startup_event():
+# setup logger
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     logger = log
     handler = logging.StreamHandler()
     handler.setFormatter(logging.Formatter("[%(asctime)s] %(levelname)s:\t%(message)s"))
     logger.addHandler(handler)
+
+    yield
+
+
+app = FastAPI(version="1.0", root_path=API_ROOT_PATH, docs_url=False, redoc_url=False, lifespan=lifespan)
+path_prefix = "/api/v1" if API_ROOT_PATH is None else ""
 
 
 ### Setup middleware
@@ -73,3 +79,9 @@ app.add_middleware(
 ### Add the routes to the main app
 app.include_router(internal_router, prefix=f"{path_prefix}/internal", include_in_schema=False)
 app.include_router(public_router, prefix=f"{path_prefix}/public")
+
+
+# Add endpoints for downloading zip files in local development
+# NOTE: these do not have url path prefixes
+if PROVIDE_DOWNLOAD_ENDPOINTS:
+    app.include_router(dev_downloads_router, include_in_schema=False)
