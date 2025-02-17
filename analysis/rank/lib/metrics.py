@@ -45,6 +45,12 @@ def classify_percent_resilient(series):
     return np.asarray(pd.cut(series, bins, right=False, labels=np.arange(0, len(bins) - 1))).astype("uint8")
 
 
+def classify_percent_cold(series):
+    """classify percent cold into bins 1...6: 0 is reserved for missing values"""
+    bins = [-1, 0, 10, 50, 90] + [series.max() + 1]
+    return np.asarray(pd.cut(series, bins, right=False, labels=np.arange(0, len(bins) - 1))).astype("uint8")
+
+
 def classify_downstream_miles(series):
     """classify downstream miles to ocean / Great Lakesinto bins 1...7; 0 is reserved for missing values"""
     bins = [-1, 0, 1, 5, 10, 25, 100, 250, 500, 1000] + [series.max() + 1]

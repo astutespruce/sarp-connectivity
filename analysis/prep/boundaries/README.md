@@ -61,36 +61,6 @@ These are extracted using `analysis/prep/boundaries/extract_watersheds.py`.
 Additional boundaries are joined to the barrier inventory during the analysis.
 These are processed using `analysis/prep/boundaries/prep_boundaries.py`.
 
-### Fish Habitat Partnership boundaries
-
-Fish Habitat Partnership boundaries were downloaded on 4/26/2024 from
-https://www.sciencebase.gov/catalog/item/53710d71e4b07ccdd78b368e
-and are used to spatially join to barriers.
-
-### Native territories
-
-Native Territories were downloaded 4/10/2024 from https://native-land.ca/
-
-### Priority areas
-
-These include:
-
-- SARP Conservation Opportunity Areas at HUC8 level (provided by SARP).
-- Hawaii FHP geographic focus areas (provided by Kat via email on 9/3/2024).
-
-Priority areas are only used for overlay in the maps, not filtering.
-
-### Wild & Scenic rivers
-
-Wild & scenic rivers were provided by Kat Hoenke via email from USFS on 9/12/2024.
-
-These were prepared using `analysis/prep/boundaries/prep_wild_scenic_rivers.py`.
-
-These are used to create buffers that are used for spatial joins because the
-wild and scenic rivers may be based on different linework than NHD HR.
-
-These are included alongside the priority areas above for overlay in the map as well.
-
 ### Counties
 
 County boundaries (2023 version) were downloaded from CENSUS Tiger website.
@@ -112,11 +82,64 @@ force MultiSurface geometries to MultiPolygon:
 ogr2ogr source_data/ownership/pad_us4.0.gpkg source_data/ownership/PADUS4_0_Geodatabase.gdb PADUS4_0Combined_Proclamation_Marine_Fee_Designation_Easement -progress -skipfailures -nlt MultiPolygon
 ```
 
+Additional areas for Hawaii were downloaded from: https://prod-histategis.opendata.arcgis.com/datasets/HiStateGIS::reserves/about
+on 9/4/2024.
+
+#### USFS ownership and administrative boundaries
+
 USFS-specific surface ownership parcels were downloaded from https://data-usfs.hub.arcgis.com/datasets/24db18ef747945c49b02252ae39ec4aa_0/explore
 on 4/10/2024.
 
-Additional areas for Hawaii were downloaded from: https://prod-histategis.opendata.arcgis.com/datasets/HiStateGIS::reserves/about
-on 9/4/2024.
+USFS-specific administrative boundaries were downloaded from https://data-usfs.hub.arcgis.com/datasets/09e4c1162a4d4af3a84163cbc76108c4_1/explore
+on 2/14/2025.
+
+NOTE: all USFS lands were excluded from PAD-US and superseded with the USFS specific ones above.
+
+#### Combined protected areas
+
+Protected areas were processed into dissolved polygons by ownership category.
+These may include overlapping ownership categories. These are sorted in the
+following precedence order: USFS ownership, USFS administrative boundary,
+remaining ownership categories.
+
+Wilderness areas are extracted separately for filtering.
+
+### Fish Habitat Partnership boundaries
+
+Fish Habitat Partnership boundaries were downloaded on 4/26/2024 from
+https://www.sciencebase.gov/catalog/item/53710d71e4b07ccdd78b368e
+and are used to spatially join to barriers.
+
+### Native territories
+
+Native Territories were downloaded 4/10/2024 from https://native-land.ca/
+
+### Wild & Scenic rivers
+
+Designated wild & scenic corridors were extracted from PAD-US above.
+
+Wild & scenic rivers lines were provided by Kat Hoenke via email from USFS on 9/12/2024.
+These are buffered by 250 meters (arbitrary) and used outside of the designated
+corridors.
+
+Eligible and suitable wild & scenic river lines were downloaded from
+https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_WildScenicRiverEligibleSuitable_01/MapServer/1
+on 2/15/2025 using `analysis/prep/boundaries/download_wsr_eligible_suitable.py`.
+
+This download step was necessary in order to extract data from the FeatureLayer
+in the above map service, because no downloadable data could be found.
+
+These are buffered by 250 meters and used outside of the corridors and buffers
+above.
+
+### Priority areas
+
+These include:
+
+- SARP Conservation Opportunity Areas at HUC8 level (provided by SARP).
+- Hawaii FHP geographic focus areas (provided by Kat via email on 9/3/2024).
+
+Priority areas are only used for overlay in the maps, not filtering.
 
 ### Environmental Justice Disadvantaged Communities
 

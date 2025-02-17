@@ -24,11 +24,13 @@ const FunctionalNetworkInfo = ({
   alteredupstreammiles,
   unalteredupstreammiles,
   resilientupstreammiles,
+  coldupstreammiles,
   freedownstreammiles,
   freeperennialdownstreammiles,
   freealtereddownstreammiles,
   freeunaltereddownstreammiles,
   freeresilientdownstreammiles,
+  freecolddownstreammiles,
   sizeclasses,
   landcover,
   excluded,
@@ -422,6 +424,24 @@ const FunctionalNetworkInfo = ({
           </View>
         </Flex>
 
+        <Flex
+          style={{
+            borderTop: '1px solid #dee1e3',
+            marginTop: 6,
+            paddingTop: 6,
+          }}
+        >
+          <View style={{ flex: '1 1 auto' }}>
+            <Text>Coldwater habitat miles</Text>
+          </View>
+          <View style={{ flex: '0 0 140pt' }}>
+            <Text>{formatNumber(coldupstreammiles, 2, true)}</Text>
+          </View>
+          <View style={{ flex: '0 0 140pt' }}>
+            <Text>{formatNumber(freecolddownstreammiles, 2, true)}</Text>
+          </View>
+        </Flex>
+
         <View style={{ marginTop: 28 }}>
           <Text>
             This network intersects{' '}
@@ -497,7 +517,9 @@ const FunctionalNetworkInfo = ({
           <Link href="https://www.maps.tnc.org/resilientrivers/#/explore">
             The Nature Conservancy&apos;s Freshwater Resilience
           </Link>{' '}
-          dataset (v0.44).
+          dataset (v0.44). Coldwater habitat miles are the total length of
+          stream reaches that are within watersheds with slighly above average
+          or greater cold temperature scores (TNC, March 2024).
         </Text>
         <Text
           style={{
@@ -534,11 +556,13 @@ FunctionalNetworkInfo.propTypes = {
   alteredupstreammiles: PropTypes.number,
   unalteredupstreammiles: PropTypes.number,
   resilientupstreammiles: PropTypes.number,
+  coldupstreammiles: PropTypes.number,
   freedownstreammiles: PropTypes.number,
   freeperennialdownstreammiles: PropTypes.number,
   freealtereddownstreammiles: PropTypes.number,
   freeunaltereddownstreammiles: PropTypes.number,
   freeresilientdownstreammiles: PropTypes.number,
+  freecolddownstreammiles: PropTypes.number,
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
   invasive: PropTypes.bool,
@@ -563,11 +587,13 @@ FunctionalNetworkInfo.defaultProps = {
   alteredupstreammiles: 0,
   unalteredupstreammiles: 0,
   resilientupstreammiles: 0,
+  coldupstreammiles: 0,
   freedownstreammiles: 0,
   freeperennialdownstreammiles: 0,
   freealtereddownstreammiles: 0,
   freeunaltereddownstreammiles: 0,
   freeresilientdownstreammiles: 0,
+  freecolddownstreammiles: 0,
   landcover: 0,
   sizeclasses: 0,
   invasive: false,

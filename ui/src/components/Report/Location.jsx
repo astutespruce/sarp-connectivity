@@ -7,6 +7,7 @@ import {
   STREAM_SIZECLASS,
   STREAM_SIZECLASS_DRAINAGE_AREA,
   WATERBODY_SIZECLASS,
+  WILDSCENIC_RIVER_LONG_LABELS,
 } from 'config'
 import { formatNumber } from 'util/format'
 
@@ -25,6 +26,7 @@ const Location = ({
   streamsizeclass,
   waterbodyacres,
   waterbodysizeclass,
+  wilderness,
   wildscenicriver,
   ...props
 }) => {
@@ -50,14 +52,13 @@ const Location = ({
 
         {wildscenicriver ? (
           <Entry>
-            <Text>
-              Near{' '}
-              {wildscenicriver
-                .split(', ')
-                .map((name) => `${name} Wild & Scenic River`)
-                .join(', ')}{' '}
-              (within 250 meters)
-            </Text>
+            <Text>{WILDSCENIC_RIVER_LONG_LABELS[wildscenicriver]}</Text>
+          </Entry>
+        ) : null}
+
+        {wilderness ? (
+          <Entry>
+            <Text>Within a designated wilderness area</Text>
           </Entry>
         ) : null}
 
@@ -85,7 +86,7 @@ const Location = ({
               {WATERBODY_SIZECLASS[waterbodysizeclass]
                 .split(' (')[0]
                 .toLowerCase()}{' '}
-              {formatNumber(waterbodyacres)} acres.
+              {formatNumber(waterbodyacres)} acres
             </Text>
           </Entry>
         ) : null}
@@ -130,7 +131,8 @@ Location.propTypes = {
   streamsizeclass: PropTypes.string,
   waterbodyacres: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
-  wildscenicriver: PropTypes.string,
+  wilderness: PropTypes.number,
+  wildscenicriver: PropTypes.number,
 }
 
 Location.defaultProps = {
@@ -145,6 +147,7 @@ Location.defaultProps = {
   streamsizeclass: null,
   waterbodyacres: -1,
   waterbodysizeclass: null,
+  wilderness: null,
   wildscenicriver: null,
 }
 

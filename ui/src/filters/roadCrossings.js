@@ -15,9 +15,10 @@ import {
   SURVEYED,
   FISH_HABITAT_PARTNERSHIPS,
   DIADROMOUS_HABITAT,
+  WILDSCENIC_RIVER,
 } from 'config'
 
-import { getEntries, hasDiadromousData } from './common'
+import { getEntries } from './common'
 
 export const roadCrossings = [
   {
@@ -68,10 +69,17 @@ export const roadCrossings = [
     title: 'Conservation benefits',
     filters: [
       {
-        field: 'nearwildscenicriver',
-        title: 'Near a designated Wild & Scenic River',
+        field: 'wildscenicriver',
+        title: 'Near a Wild & Scenic River',
         sort: false,
-        help: 'Note: identifies barriers within 250 meters of a designated Wild & Scenic River.',
+        help: 'Note: Wild & Scenic river corridors are extracted from the Protected Areas Database of the U.S. (v4).  Barriers are considered near a Wild & Scenic River if they are within 250 meters but outside a corridor.',
+        ...getEntries(WILDSCENIC_RIVER),
+      },
+      {
+        field: 'wilderness',
+        title: 'Within a designated wilderness area',
+        sort: false,
+        help: 'Note: wilderness areas are extracted from the Protected Areas Database of the U.S. (v4).',
         ...getEntries(BOOLEAN_FIELD),
       },
     ],

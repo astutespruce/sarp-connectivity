@@ -168,21 +168,16 @@ def add_spatial_joins(df):
 
     ### Wild & Scenic rivers
     print("Joining to wild & scenic rivers")
-    # NOTE: these are buffers
-    wsr = gp.read_feather(boundaries_dir / "wild_scenic_rivers.feather")
+    wsr = gp.read_feather(boundaries_dir / "wild_scenic_rivers.feather", columns=["geometry", "wsr"])
     left, right = STRtree(df.geometry.values).query(wsr.geometry.values, predicate="intersects")
-    wsr = (
-        pd.DataFrame({"name": wsr.name.values.take(left)}, index=df.index.values.take(right))
-        .groupby(level=0)
-        .name.unique()
-        .apply(sorted)
-        .apply(", ".join)
-        .rename("WildScenicRiver")
-    )
+    wsr = pd.DataFrame({"WildScenicRiver": wsr.wsr.values.take(left)}, index=df.index.values.take(right))
     df = df.join(wsr)
-    df["WildScenicRiver"] = df.WildScenicRiver.fillna("")
-    # add bool for filtering
-    df["NearWildScenicRiver"] = df.WildScenicRiver != ""
+    df["WildScenicRiver"] = df.WildScenicRiver.fillna(0).astype("uint8")
+
+    ### Wilderness
+    wilderness = gp.read_feather(boundaries_dir / "wilderness.feather")
+    left, right = STRtree(df.geometry.values).query(wilderness.geometry.values, predicate="intersects")
+    df["Wilderness"] = df.index.isin(np.unique(df.index.values.take(right)))
 
     ### Join in species stats
     spp_df = (

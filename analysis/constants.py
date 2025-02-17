@@ -586,6 +586,8 @@ FERCREGULATED_TO_DOMAIN = {
     2: 5,  # not a FERC dam
 }
 
+STATEREGULATED_TO_DOMAIN = {"": 0, "0": 0, "Yes": 1, "Y": 1, "1": 1, "No": 2, "N": 2, "2": 2}
+
 
 # uses BarrierSeverity domain
 # barriers with severity == 0 are excluded from analysis
@@ -641,15 +643,16 @@ SEVERITY_TO_PASSABILITY = {
 BARRIEROWNERTYPE_TO_DOMAIN = {
     0: 0,  # <missing>
     1: 1,  # "Federal",
-    2: 2,  # "State",
-    3: 3,  # "Local Government",
-    4: 4,  # "Public Utility",
-    5: 7,  # "Private",
+    2: 3,  # "State",
+    3: 4,  # "Local Government",
+    4: 5,  # "Public Utility",
+    5: 8,  # "Private",
     6: 0,  # "Not Listed",
     7: 0,  # "Unknown",
     8: 0,  # "Other",
-    9: 6,  # "Tribe",
-    10: 5,  # "Irrigation district",
+    9: 7,  # "Tribe",
+    10: 6,  # "Irrigation district",
+    11: 2,  # USFS  TODO: implement everywhere
 }
 
 OWNERTYPE_TO_DOMAIN = {

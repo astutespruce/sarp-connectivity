@@ -2,8 +2,8 @@
 
 ## Server
 
-- Create an EC2 T4g.small server based on Ubuntu 22.04 LTS (Arm64)
-- Set root volume to have 24 GB (GP3) of space
+- Create an EC2 T4g.medium server based on Ubuntu 24.04 LTS (Arm64)
+- Set root volume to have 30 GB (GP3) of space
 - Add a second volume with 50 GB (GP3) of space for tiles
 - Create an elastic IP and assign to that instance
 
@@ -61,6 +61,13 @@ cd sarp-connectivity
 mkdir -p data/api
 ```
 
+Edit `~/.bashrc` to always login to `/home/app/sarp-connectivity` folder by adding
+this line toward the top:
+
+```
+cd ~/sarp-connectivity
+```
+
 Create a `.env` in the root of the repository with the following:
 
 ```
@@ -113,9 +120,9 @@ curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
 Exit and log back in as app user.
 
 ```bash
+cd ~/sarp-connectivity/ui
 nvm install
 npm install -g npm@latest
-cd ~/sarp-connectivity/ui
 npm run install-deps
 ```
 
@@ -140,6 +147,7 @@ As `app` user:
 ```bash
 cd ~/sarp-connectivity
 curl -LsSf https://astral.sh/uv/install.sh | sh
+source $HOME/.local/bin/env
 uv venv --python 3.12
 uv sync --frozen
 ```
@@ -148,13 +156,12 @@ uv sync --frozen
 
 - as `ubuntu` user, in `/tmp` directory
 - install `unzip`: `sudo apt-get update && sudo apt-get install -y unzip`
-- Find the latest release on https://github.com/consbio/mbtileserver/releases and download the zip file for the correct architecture (`wget https://github.com/consbio/mbtileserver/releases/download/v0.9.0/mbtileserver_v0.9.0_linux_arm64.zip`).
+- Find the latest release on https://github.com/consbio/mbtileserver/releases and download the zip file for the correct architecture (`curl -L -o /tmp/mbtileserver_v0.11.0_linux_arm64.zip https://github.com/consbio/mbtileserver/releases/download/v0.11.0/mbtileserver_v0.11.0_linux_arm64.zip`).
 
 ```bash
-unzip <filename>
-mv <filename> mbtileserver
-sudo chmod 777 mbtileserver
-sudo mv mbtileserver /usr/bin
+unzip mbtileserver_v0.11.0_linux_arm64.zip
+sudo chmod 777 mbtileserver_v0.11.0_linux_arm64
+sudo mv mbtileserver_v0.11.0_linux_arm64 /usr/bin/mbtileserver
 ```
 
 Verify it starts up properly (error about no tiles is OK):
@@ -210,6 +217,27 @@ sudo cp /home/app/sarp-connectivity/deploy/<environment>/Caddyfile /etc/caddy/Ca
 sudo service caddy restart
 ```
 
+Note: this will only work properly if the instance is being routed to for the domain
+name specified in the Caddyfile.
+
+If the domain was previously used on a different server, you can transfer the
+TLS certificates from that server to avoid re-fetching those from LetsEncrypt
+(not a problem unless it hits a rate limit).
+
+These assets are stored in `/var/lib/caddy/.local/share/caddy`.
+
+Package them on the previous server:
+
+```bash
+sudo su root
+mkdir /tmp/caddy
+sudo cp -aR /var/lib/caddy/.local/share/caddy/* /tmp/caddy
+exit
+sudo chown -R ubuntu:ubuntu /tmp/caddy
+```
+
+Then transfer that to the new server.
+
 Verify that it loaded as a service correctly:
 
 ```bash
@@ -228,7 +256,7 @@ curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyr
 sudo chmod 644 /usr/share/keyrings/redis-archive-keyring.gpg
 echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
 sudo apt-get update
-sudo apt-get install redis
+sudo apt-get install -y redis
 ```
 
 This should enable the Redis server to be running automatically. Confirm that it
@@ -240,28 +268,7 @@ sudo service redis-server status
 
 ## Copy data and tiles to server
 
-- on local (dev) machine, copy contents of `tiles` directory to server:
-
-```bash
-rsync -azvhpP --partial --inplace *.mbtiles sarp:/tiles
-```
-
-(or appropriate extra volume online just for copying data up)
-
-Restart mbtileserver: `sudo service mbtileserver restart`
-
-On local (dev) machine copy `feather` files in `sarp/data/api/` to server:
-
-```bash
-rsync -azvhP --append *.feather sarp:/tmp
-```
-
-On remote:
-
-```bash
-sudo chown app:app /tmp/*.feather
-sudo mv /tmp/*.feather /home/app/sarp-connectivity/data/api
-```
+Upload data according to the [data release workflow](./DataRelease.md).
 
 ## Bring up API
 

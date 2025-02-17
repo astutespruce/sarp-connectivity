@@ -26,6 +26,7 @@ const WaterfallDetails = ({
   alteredupstreammainstemmiles,
   annualflow,
   basin,
+  coldupstreammiles,
   congressionaldistrict,
   diadromoushabitat,
   excluded,
@@ -35,6 +36,7 @@ const WaterfallDetails = ({
   flowstogreatlakes,
   freealtereddownstreammiles,
   freealteredlineardownstreammiles,
+  freecolddownstreammiles,
   freedownstreammiles,
   freelineardownstreammiles,
   freeperennialdownstreammiles,
@@ -54,6 +56,7 @@ const WaterfallDetails = ({
   onloop,
   partnerid,
   passability,
+  percentcold,
   percentresilient,
   perennialupstreammiles,
   perennialupstreammainstemmiles,
@@ -80,6 +83,7 @@ const WaterfallDetails = ({
   unalteredupstreammainstemmiles,
   upstreamunalteredwaterbodyacres,
   upstreamunalteredwetlandacres,
+  wilderness,
   wildscenicriver,
   invasive,
   invasivenetwork,
@@ -111,6 +115,7 @@ const WaterfallDetails = ({
           canal={canal}
           streamorder={streamorder}
           streamsizeclass={streamsizeclass}
+          wilderness={wilderness}
           wildscenicriver={wildscenicriver}
         />
 
@@ -139,12 +144,15 @@ const WaterfallDetails = ({
             alteredupstreammiles={alteredupstreammiles}
             unalteredupstreammiles={unalteredupstreammiles}
             resilientupstreammiles={resilientupstreammiles}
+            coldupstreammiles={coldupstreammiles}
             freedownstreammiles={freedownstreammiles}
             freeperennialdownstreammiles={freeperennialdownstreammiles}
             freealtereddownstreammiles={freealtereddownstreammiles}
             freeunaltereddownstreammiles={freeunaltereddownstreammiles}
             freeresilientdownstreammiles={freeresilientdownstreammiles}
+            freecolddownstreammiles={freecolddownstreammiles}
             percentresilient={percentresilient}
+            percentcold={percentcold}
             sizeclasses={sizeclasses}
             landcover={landcover}
             intermittent={intermittent}
@@ -273,6 +281,7 @@ WaterfallDetails.propTypes = {
   alteredupstreammainstemmiles: PropTypes.number,
   annualflow: PropTypes.number,
   basin: PropTypes.string,
+  coldupstreammiles: PropTypes.number,
   congressionaldistrict: PropTypes.string,
   diadromoushabitat: PropTypes.number,
   excluded: PropTypes.bool,
@@ -289,6 +298,7 @@ WaterfallDetails.propTypes = {
   freeunaltereddownstreammiles: PropTypes.number,
   freeunalteredlineardownstreammiles: PropTypes.number,
   freeresilientdownstreammiles: PropTypes.number,
+  freecolddownstreammiles: PropTypes.number,
   huc12: PropTypes.string,
   nativeterritories: PropTypes.string,
   in_network_type: PropTypes.bool,
@@ -300,6 +310,7 @@ WaterfallDetails.propTypes = {
   onloop: PropTypes.bool,
   partnerid: PropTypes.string,
   passability: PropTypes.number,
+  percentcold: PropTypes.number,
   percentresilient: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
   perennialupstreammainstemmiles: PropTypes.number,
@@ -326,7 +337,8 @@ WaterfallDetails.propTypes = {
   unalteredupstreammainstemmiles: PropTypes.number,
   upstreamunalteredwaterbodyacres: PropTypes.number,
   upstreamunalteredwetlandacres: PropTypes.number,
-  wildscenicriver: PropTypes.string,
+  wilderness: PropTypes.number,
+  wildscenicriver: PropTypes.number,
   invasive: PropTypes.bool,
   invasivenetwork: PropTypes.number,
   alewifehabitatupstreammiles: PropTypes.number,
@@ -396,6 +408,7 @@ WaterfallDetails.defaultProps = {
   alteredupstreammainstemmiles: 0,
   annualflow: null,
   basin: null,
+  coldupstreammiles: 0,
   congressionaldistrict: null,
   diadromoushabitat: 0,
   excluded: false,
@@ -405,6 +418,7 @@ WaterfallDetails.defaultProps = {
   flowstogreatlakes: 0,
   freealtereddownstreammiles: 0,
   freealteredlineardownstreammiles: 0,
+  freecolddownstreammiles: 0,
   freedownstreammiles: 0,
   freelineardownstreammiles: 0,
   freeperennialdownstreammiles: 0,
@@ -423,6 +437,7 @@ WaterfallDetails.defaultProps = {
   onloop: false,
   partnerid: null,
   passability: null,
+  percentcold: 0,
   percentresilient: 0,
   perennialupstreammiles: 0,
   perennialupstreammainstemmiles: 0,
@@ -449,6 +464,7 @@ WaterfallDetails.defaultProps = {
   unalteredupstreammainstemmiles: 0,
   upstreamunalteredwaterbodyacres: 0,
   upstreamunalteredwetlandacres: 0,
+  wilderness: null,
   wildscenicriver: null,
   invasive: false,
   invasivenetwork: 0,

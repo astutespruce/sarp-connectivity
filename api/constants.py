@@ -131,7 +131,9 @@ METRIC_FIELDS = [
     "PerennialUnalteredUpstreamMiles",
     "PercentPerennialUnaltered",
     "ResilientUpstreamMiles",
+    "ColdUpstreamMiles",
     "PercentResilient",
+    "PercentCold",
     "UpstreamDrainageAcres",
     "UpstreamUnalteredWaterbodyAcres",
     "UpstreamUnalteredWetlandAcres",
@@ -143,6 +145,7 @@ METRIC_FIELDS = [
     "FreeAlteredDownstreamMiles",
     "FreeUnalteredDownstreamMiles",
     "FreeResilientDownstreamMiles",
+    "FreeColdDownstreamMiles",
     # upstream / downstream functional network
     "GainMiles",
     "PerennialGainMiles",
@@ -291,6 +294,7 @@ FILTER_FIELDS = [
     "AnnualFlowClass",
     "PercentAlteredClass",
     "PercentResilientClass",
+    "PercentColdClass",
     "OwnerType",
     "BarrierOwnerType",
     "Intermittent",
@@ -305,7 +309,8 @@ FILTER_FIELDS = [
     "CoastalHUC8",
     "PassageFacilityClass",
     "DisadvantagedCommunity",
-    "NearWildScenicRiver",
+    "WildScenicRiver",
+    "Wilderness",
     "FishHabitatPartnership",
     "UpstreamUnalteredWaterbodyClass",
     "UpstreamUnalteredWetlandClass",
@@ -362,7 +367,8 @@ ROAD_CROSSING_FILTER_FIELDS = [
     "FishHabitatPartnership",
     "Surveyed",
     "OnNetwork",
-    "NearWildScenicRiver",
+    "WildScenicRiver",
+    "Wilderness",
     "CoastalHUC8",
     "DiadromousHabitat",
     "FlowsToOcean",
@@ -408,6 +414,7 @@ GENERAL_API_FIELDS2 = (
         "EJTribal",
         "NativeTerritories",
         "WildScenicRiver",
+        "Wilderness",
         "FishHabitatPartnership",
         # Watershed names
         "Basin",
@@ -606,6 +613,7 @@ ROAD_CROSSING_CORE_FIELDS = (
         "EJTribal",
         "NativeTerritories",
         "WildScenicRiver",
+        "Wilderness",
         "SalmonidESU",
         "FishHabitatPartnership",
         # Watershed names
@@ -1080,17 +1088,24 @@ OWNERTYPE_DOMAIN = {
 BARRIEROWNERTYPE_DOMAIN = {
     0: "Unknown",
     1: "Federal",
-    2: "State",
-    3: "Local government",
-    4: "Public utility",
-    5: "Irrigation district",
-    6: "Tribal",
-    7: "Private",
+    2: "USDA Forest Service",
+    3: "State",
+    4: "Local government",
+    5: "Public utility",
+    6: "Irrigation district",
+    7: "Tribal",
+    8: "Private",
 }
 
+WILD_SCENIC_RIVER_DOMAIN = {
+    0: "",  # indicates not a wild & scenic river
+    1: "Designated corridor",  # "within a designated Wild & Scenic River corridor",
+    2: "Eligible / suitable corridor",  # "within an eligible / suitable Wild & Scenic River corridor",
+    3: "Near designated river",  # "within a 250 meter buffer around designated Wild & Scenic Rivers outside a designated or eligible / suitable corridor",
+    4: "Near eligible / suitable river",  # "within a 250 meter buffer around eligible / suitable Wild & Scenic Rivers outside a designated or eligible / suitable corridor",
+}
 
 BOOLEAN_DOMAIN = {False: "no", True: "yes"}
-
 
 PASSAGEFACILITY_CLASS_DOMAIN = {
     0: "No known fish passage structure",
@@ -1323,6 +1338,8 @@ DOMAINS = {
     "EJTract": BOOLEAN_DOMAIN,
     "EJTribal": BOOLEAN_DOMAIN,
     "DiadromousHabitat": DIADROMOUS_HABITAT_DOMAIN,
+    "WildScenicRiver": WILD_SCENIC_RIVER_DOMAIN,
+    "Wilderness": BOOLEAN_DOMAIN,
     # dam fields
     "FERCRegulated": FERCREGULATED_DOMAIN,
     "StateRegulated": STATE_REGULATED_DOMAIN,
@@ -1449,7 +1466,8 @@ FIELD_DEFINITIONS = {
     "OwnerType": "Land ownership type. This information is derived from the USFS ownership parcels dataset and Protected Areas Database (PAD-US v4) to highlight ownership types of particular importance to partners.  NOTE: this does not include most private land.",
     "BarrierOwnerType": "Barrier ownership type, if available.  For unsurveyed road / stream crossings, this information is derived from the National Bridge Inventory, US Census TIGER Roads route type, and USFS National Forest road / stream crossings database ownership information, and may not be fully accurate.",
     "ProtectedLand": "Indicates if the {type} occurs on public land as represented within the USFS ownership parcels dataset and Protected Areas Database (PAD-US v4).",
-    "WildScenicRiver": "Name of the designated Wild & Scenic River(s) if within 250 meters of this {type}.",
+    "WildScenicRiver": "Indicates if the {type} occurs within a designated or eligible / suitable Wild & Scenic River corridor in the Protected Areas Database of the United States (v4), or within 250 meters of a designated or eligible / suitable Wild & Scenic River.",
+    "Wilderness": "Within a designated wilderness area in the Protected Areas Database of the United States (v4).",
     "EJTract": "Within an overburdened and underserved Census tracts a defined by the Climate and Environmental Justice Screening tool.",
     "EJTribal": "Within a disadvantaged tribal community as defined by the Climate and Environmental Justice Screening tool based on American Indian and Alaska Native areas as defined by the US Census Bureau.  Note: all tribal communities considered disadvantaged by the Climate and Environmental Justice Screening tool.",
     "NativeTerritories": "Native / indigenous people's territories as mapped by Native Land Digital (https://native-land.ca/",
@@ -1486,8 +1504,10 @@ FIELD_DEFINITIONS = {
     "PerennialUnalteredUpstreamMiles": "number of unaltered perennial miles in the upstream functional river network from this {type}, including miles in waterbodies.  Unaltered miles exclude reaches specifically identified in NHD or the National Wetlands Inventory as altered (canal / ditch, within a reservoir, or other channel alteration). -1 = not available.",
     "PercentUnaltered": "percent of the total upstream functional river network length from this {type} that is not specifically identified in NHD or the National Wetlands Inventory as altered (canal / ditch, within a reservoir, or other channel alteration).  -1 = not available.",
     "PercentPerennialUnaltered": "percent of the perennial upstream functional river network length from this {type} that is not specifically identified in NHD or the National Wetlands Inventory as altered (canal / ditch, within a reservoir, or other channel alteration).  See PerennialUpstreamMiles.  -1 = not available.",
-    "UpstreamResilientMiles": "number of miles in the upstream functional river network from this {type} that are within watersheds identified by The Nature Conservancy with above average or greater freshwater resilience (v0.44), including miles in waterbodies.  -1 = not available.  See https://www.maps.tnc.org/resilientrivers/#/explore for more information.",
-    "PercentResilient": "percent of the the upstream functional river network length from this {type} that is within watersheds identified by The Nature Conservancy with above average or greater freshwater resilience (v0.44), including miles in waterbodies.  -1 = not available.  See https://www.maps.tnc.org/resilientrivers/#/explore for more information.",
+    "ResilientUpstreamMiles": "number of miles in the upstream functional river network from this {type} that are within watersheds identified by The Nature Conservancy with above average or greater freshwater resilience (v0.44), including miles in waterbodies.  -1 = not available.  See https://www.maps.tnc.org/resilientrivers/#/explore for more information.",
+    "ColdUpstreamMiles": "number of miles in the upstream functional river network from this {type} that are within watersheds identified by The Nature Conservancy with above average or greater freshwater resilience (v0.44), including miles in waterbodies.  -1 = not available.  See https://www.maps.tnc.org/resilientrivers/#/explore for more information.",
+    "PercentResilient": "percent of the the upstream functional river network length from this {type} that is within watersheds identified by The Nature Conservancy with slightly above average or greater cold water temperature scores (March 2024), including miles in waterbodies.  -1 = not available.  See https://www.maps.tnc.org/resilientrivers/#/explore for more information.",
+    "PercentCold": "percent of the the upstream functional river network length from this {type} that is within watersheds identified by The Nature Conservancy with slightly above average or greater cold water temperature scores (March 2024), including miles in waterbodies.  -1 = not available.  See https://www.maps.tnc.org/resilientrivers/#/explore for more information.",
     "UpstreamDrainageAcres": "approximate drainage area in acres of all NHD High Resolution catchments within upstream functional network of {type}.  Includes the total catchment area of any NHD High Resolution flowlines that are cut by barriers in the analysis, which may overrepresent total drainage area of the network. -1 = not available.",
     "TotalDownstreamMiles": "number of miles in the complete downstream functional river network from this {type}, including miles in waterbodies.  Note: this measures the length of the complete downstream network including all tributaries, and is not limited to the shortest downstream path.  -1 = not available.",
     "FreeDownstreamMiles": "number of free-flowing miles in the downstream functional river network.  Excludes miles in altered reaches in waterbodies.  -1 = not available.",
@@ -1495,7 +1515,8 @@ FIELD_DEFINITIONS = {
     "FreeIntermittentDownstreamMiles": "number of free-flowing ephemeral and intermittent miles in the downstream functional river network.  Excludes miles altered reaches in waterbodies.  See IntermittentUpstreamMiles for definition of intermittent reaches. -1 = not available.",
     "FreeAlteredDownstreamMiles": "number of free-flowing altered miles in the downstream functional river network from this {type}.  Excludes miles in altered reaches in waterbodies.  See AlteredUpstreaMiles for definition of altered reaches.  -1 = not available.",
     "FreeUnalteredDownstreamMiles": "number of free-flowing altered miles in the downstream functional river network from this {type}.  Excludes miles in altered reaches in waterbodies.  See UnalteredUpstreamMiles for definition of unaltered reaches.  -1 = not available.",
-    "DownstreamResilientMiles": "number of free-flowing miles in the downstream functional river network length from this {type} that is within watersheds identified by The Nature Conservancy with above average or greater freshwater resilience (v0.44).  Excludes miles in altered reaches in waterbodies.  -1 = not available.  See https://www.maps.tnc.org/resilientrivers/#/explore for more information.",
+    "FreeResilientDownstreamMiles": "number of free-flowing miles in the downstream functional river network length from this {type} that is within watersheds identified by The Nature Conservancy with slightly above average or greater cold water temperature scores (March 2024).  Excludes miles in altered reaches in waterbodies.  -1 = not available.  See https://www.maps.tnc.org/resilientrivers/#/explore for more information.",
+    "FreeColdDownstreamMiles": "number of free-flowing miles in the downstream functional river network length from this {type} that is within watersheds identified by The Nature Conservancy with above average or greater freshwater resilience (v0.44).  Excludes miles in altered reaches in waterbodies.  -1 = not available.  See https://www.maps.tnc.org/resilientrivers/#/explore for more information.",
     "UpstreamUnalteredWaterbodyAcres": "area in acres of all unaltered lakes and ponds that intersect any reach in upstream functional network; these waterbodies are not specifically marked by data sources as altered and are not associated with dams in this inventory.  Use with caution because waterbodies may not be correctly subdivided by dams in the data sources, and altered waterbodies may not be marked as such. -1 = not available.",
     "UpstreamUnalteredWetlandAcres": "area in acres of all unaltered freshwater wetlands that intersect any reach in the upstream functional network. Wetlands are derived from specific wetland types in the National Wetlands Inventory (freshwater scrub-shrub, freshwater forested, freshwater emergent) and NHD (swamp/marsh) and exclude any specifically marked by the data provider as altered.  Use with caution because wetlands may not be correctly subdivided by dams or dikes in the data sources, and altered wetlands may not be marked as such. -1 = not available.",
     # functional network gain / total

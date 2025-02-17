@@ -24,12 +24,15 @@ const FunctionalNetworkInfo = ({
   alteredupstreammiles,
   unalteredupstreammiles,
   resilientupstreammiles,
+  coldupstreammiles,
   freedownstreammiles,
   freeperennialdownstreammiles,
   freealtereddownstreammiles,
   freeunaltereddownstreammiles,
   freeresilientdownstreammiles,
+  freecolddownstreammiles,
   percentresilient,
+  percentcold,
   sizeclasses,
   landcover,
   fontSize,
@@ -268,6 +271,30 @@ const FunctionalNetworkInfo = ({
             <Box>{formatNumber(resilientupstreammiles, 2, true)}</Box>
             <Box>{formatNumber(freeresilientdownstreammiles, 2, true)}</Box>
           </Row>
+
+          <Row sx={{ px: '0.5rem' }}>
+            <Box>
+              <Text sx={{ display: 'inline' }}>Coldwater habitat miles</Text>
+
+              <Box sx={{ display: 'inline-block' }}>
+                <InfoTooltip>
+                  Total coldwater habitat miles upstream is the sum of all reach
+                  lengths that are within watersheds with slighly above average
+                  or greater cold temperature scores within The Nature
+                  Conservancy&apos;s Freshwater Resilience dataset (March 2024).
+                  <br />
+                  <br />
+                  Total coldwater habitat miles downstream is the sum of all
+                  reach lengths in the functional network immediately downstream
+                  of this network that are within watersheds with slighly above
+                  average or greater cold temperature scores, excluding all
+                  lengths within altered waterbodies.
+                </InfoTooltip>
+              </Box>
+            </Box>
+            <Box>{formatNumber(coldupstreammiles, 2, true)}</Box>
+            <Box>{formatNumber(freecolddownstreammiles, 2, true)}</Box>
+          </Row>
         </Table>
 
         {barrierType !== 'waterfalls' ? (
@@ -406,6 +433,18 @@ const FunctionalNetworkInfo = ({
               </Text>
             </Field>
           </Entry>
+          <Entry>
+            <Field label="Percent of the upstream network in coldwater habitat watersheds">
+              <Text
+                sx={{
+                  fontSize: 1,
+                  fontWeight: 'bold',
+                }}
+              >
+                {formatPercent(percentcold)}%
+              </Text>
+            </Field>
+          </Entry>
         </>
       ) : null}
 
@@ -515,12 +554,15 @@ FunctionalNetworkInfo.propTypes = {
   alteredupstreammiles: PropTypes.number,
   unalteredupstreammiles: PropTypes.number,
   resilientupstreammiles: PropTypes.number,
+  coldupstreammiles: PropTypes.number,
   freedownstreammiles: PropTypes.number,
   freeperennialdownstreammiles: PropTypes.number,
   freealtereddownstreammiles: PropTypes.number,
   freeunaltereddownstreammiles: PropTypes.number,
   freeresilientdownstreammiles: PropTypes.number,
+  freecolddownstreammiles: PropTypes.number,
   percentresilient: PropTypes.number,
+  percentcold: PropTypes.number,
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
   invasive: PropTypes.bool,
@@ -543,12 +585,15 @@ FunctionalNetworkInfo.defaultProps = {
   alteredupstreammiles: 0,
   unalteredupstreammiles: 0,
   resilientupstreammiles: 0,
+  coldupstreammiles: 0,
   freedownstreammiles: 0,
   freeperennialdownstreammiles: 0,
   freealtereddownstreammiles: 0,
   freeunaltereddownstreammiles: 0,
   freeresilientdownstreammiles: 0,
+  freecolddownstreammiles: 0,
   percentresilient: 0,
+  percentcold: 0,
   landcover: 0,
   sizeclasses: 0,
   invasive: false,

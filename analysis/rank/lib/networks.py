@@ -12,6 +12,7 @@ from analysis.rank.lib.metrics import (
     classify_downstream_miles,
     classify_percent_altered,
     classify_percent_resilient,
+    classify_percent_cold,
     classify_downstream_barriers,
     classify_unaltered_waterbody_area,
     classify_unaltered_wetland_area,
@@ -33,6 +34,7 @@ NETWORK_COLUMNS = [
     "UnalteredUpstreamMiles",
     "PerennialUnalteredUpstreamMiles",
     "ResilientUpstreamMiles",
+    "ColdUpstreamMiles",
     "TotalDownstreamMiles",
     "FreeDownstreamMiles",
     "FreePerennialDownstreamMiles",
@@ -40,11 +42,13 @@ NETWORK_COLUMNS = [
     "FreeUnalteredDownstreamMiles",
     # "FreePerennialUnalteredDownstreamMiles",  # not used
     "FreeResilientDownstreamMiles",
+    "FreeColdDownstreamMiles",
     "PercentAltered",
     "PercentPerennialAltered",
     "PercentUnaltered",
     "PercentPerennialUnaltered",
     "PercentResilient",
+    "PercentCold",
     "IntermittentUpstreamMiles",
     "FreeIntermittentDownstreamMiles",
     "UpstreamUnalteredWaterbodyAcres",
@@ -244,6 +248,7 @@ def get_network_results(df, network_type, state_ranks=False):
 
     networks["PercentAlteredClass"] = classify_percent_altered(networks.PercentAltered)
     networks["PercentResilientClass"] = classify_percent_resilient(networks.PercentResilient)
+    networks["PercentColdClass"] = classify_percent_cold(networks.PercentCold)
 
     networks["UpstreamUnalteredWaterbodyClass"] = classify_unaltered_waterbody_area(
         networks.UpstreamUnalteredWaterbodyAcres

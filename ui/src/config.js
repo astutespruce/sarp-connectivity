@@ -1008,12 +1008,13 @@ export const OWNERTYPE = {
 export const BARRIEROWNERTYPE = {
   0: 'Unknown',
   1: 'Federal',
-  2: 'State',
-  3: 'Local government',
-  4: 'Public utility',
-  5: 'Irrigation district',
-  6: 'Tribal',
-  7: 'Private',
+  2: 'USDA Forest Service',
+  3: 'State',
+  4: 'Local government',
+  5: 'Public utility',
+  6: 'Irrigation district',
+  7: 'Tribal',
+  8: 'Private',
 }
 
 export const FERC_REGULATED = {
@@ -1165,6 +1166,14 @@ export const PERCENT_RESILIENT = {
   4: '90 - 100%',
 }
 
+export const PERCENT_COLD = {
+  // 0: no network // filtered out
+  1: '0 - 9%',
+  2: '10 - 49%',
+  3: '50 - 89%',
+  4: '90 - 100%',
+}
+
 export const STREAM_SIZECLASS = {
   '1a': 'headwaters',
   '1b': 'creek',
@@ -1293,6 +1302,22 @@ export const COST_CLASS = {
   6: '$750,000 - $1M',
   7: '$1M - $2M',
   8: '>=$2M',
+}
+
+export const WILDSCENIC_RIVER = {
+  0: 'Not near a Wild & Scenic River', // not a wild and scenic river; exclude from filter
+  1: 'Within a designated Wild & Scenic River corridor',
+  2: 'Within an eligible / suitable Wild & Scenic River corridor',
+  3: 'Near a designated Wild & Scenic River',
+  4: 'Near an eligible / suitable Wild & Scenic River ',
+}
+
+export const WILDSCENIC_RIVER_LONG_LABELS = {
+  // 0: 'Not near a Wild & Scenic River', // not a wild and scenic river; exclude from filter
+  1: 'Within a designated Wild & Scenic River corridor',
+  2: 'Within an eligible / suitable Wild & Scenic River corridor',
+  3: 'Within 250 meters of a designated Wild & Scenic River but outside a designated or eligible / suitable corridor',
+  4: 'Within 250 meters of an eligible / suitable Wild & Scenic River but outside a designated or eligible / suitable corridor',
 }
 
 // NOTE: these are encoded into a comma-delimited field

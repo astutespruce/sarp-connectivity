@@ -538,6 +538,7 @@ def create_barrier_networks(
                 "pct_unaltered": "PercentUnaltered",
                 "pct_perennial_unaltered": "PercentPerennialUnaltered",
                 "pct_resilient": "PercentResilient",
+                "pct_cold": "PercentCold",
                 "pct_mainstem_unaltered": "PercentMainstemUnaltered",
                 "unaltered_waterbody_acres": "UpstreamUnalteredWaterbodyAcres",
                 "unaltered_wetland_acres": "UpstreamUnalteredWetlandAcres",
@@ -734,6 +735,7 @@ def create_barrier_networks(
         barrier_networks[f"Percent{subset}Altered"] = 100 - barrier_networks[f"Percent{subset}Unaltered"]
 
     barrier_networks["PercentResilient"] = barrier_networks.PercentResilient.round().astype("int8")
+    barrier_networks["PercentCold"] = barrier_networks.PercentCold.round().astype("int8")
 
     # assign downstream linear networks to barrier IDs
     if len(focal_barrier_joins) > 0:

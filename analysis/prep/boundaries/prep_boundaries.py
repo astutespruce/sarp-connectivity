@@ -31,6 +31,8 @@ from api.constants import FISH_HABITAT_PARTNERSHIPS
 
 warnings.filterwarnings("ignore", message=".*more than 100 parts.*")
 
+WSR_BUFFER_SIZE = 250  # meters, abitrary
+
 
 def encode_bbox(geometries):
     return np.apply_along_axis(
@@ -349,9 +351,11 @@ out.reset_index(drop=True).to_feather(out_dir / "unit_bounds.feather")
 print("Extracting land ownership & protection information (will take a while)...")
 
 # Extract USFS parcel ownership boundaries (highest priority)
-gdb = src_dir / "Surface_Ownership_Parcels/Surface_Ownership_Parcels%2C_detailed_(Feature_Layer).shp"
 usfs_ownership = read_dataframe(
-    gdb, columns=["OWNERCLASS"], where=""" "OWNERCLASS" = 'USDA FOREST SERVICE' """, use_arrow=True
+    src_dir / "USFS_Ownership_Parcels/Surface_Ownership_Parcels%2C_detailed_(Feature_Layer).shp",
+    columns=["OWNERCLASS"],
+    where=""" "OWNERCLASS" = 'USDA FOREST SERVICE' """,
+    use_arrow=True,
 ).to_crs(CRS)
 usfs_ownership["geometry"] = make_valid(usfs_ownership.geometry.values)
 usfs_ownership = (
@@ -363,6 +367,16 @@ usfs_ownership["otype"] = "USDA Forest Service (ownership boundary)"
 usfs_ownership["owner"] = usfs_ownership.otype.values
 # assign highest priorioty
 usfs_ownership["sort"] = 1
+
+# Extract USFS admin boundaries (next highest priority)
+usfs_admin = read_dataframe(
+    src_dir / "USFS_Admin_Boundaries/Forest_Administrative_Boundaries_(Feature_Layer).shp", columns=[], use_arrow=True
+).to_crs(CRS)
+usfs_admin["otype"] = "USDA Forest Service (admin boundary)"
+usfs_admin["geometry"] = make_valid(usfs_admin.geometry.values)
+usfs_admin = dissolve(usfs_admin.explode(ignore_index=True), by="otype", grid_size=1e-3).explode(ignore_index=True)
+usfs_admin["owner"] = usfs_admin.otype.values
+usfs_admin["sort"] = 2
 
 
 # Extract protected areas
@@ -379,12 +393,22 @@ df = read_dataframe(
     where="Category != 'Marine' AND Own_Type NOT IN ('PVT', 'UNK') AND Own_Name NOT IN ('UNK')",
     use_arrow=True,
 ).to_crs(CRS)
-
-# NOTE: sometimes areas marked as designation are stacked within a protected area (e.g., wilderness area within NPS)
-# but other times they are not, so we have to keep them all
+df["sort"] = 3
 
 # select those that are within the boundary
 df = df.take(shapely.STRtree(df.geometry.values).query(bnd, predicate="intersects"))
+
+# extract wilderness to a separate layer for filtering
+# NOTE: these are dropped from protected areas because they are Own_Type == 'DESG'
+wilderness = df.loc[df.Des_Tp == "WA"].copy()
+wilderness["geometry"] = make_valid(wilderness.geometry.values)
+wilderness = (
+    dissolve(wilderness.explode(ignore_index=True), by="Des_Tp").explode(ignore_index=True).drop(columns=["Des_Tp"])
+)
+wilderness.to_feather(out_dir / "wilderness.feather")
+
+# remove all USFS areas; they are handled above via specific USFS layers
+df = df.loc[df.Own_Name != "USFS"].copy()
 
 df["otype"] = df.Own_Name.map(
     {
@@ -419,17 +443,18 @@ df["otype"] = df.Own_Name.map(
     }
 )
 
-# drop proclamation boundaries but retain military lands that only
-# show up as proclamation
+# drop proclamation boundaries but retain military lands that only show up as
+# proclamation
+# NOTE: this specifically drops designation types (Own_Type=="DESG") that are used
+# for things like wilderness and wild & scenic river corridors, because they are
+# either contained in other boundaries (e.g., wilderness) or not necessarily indicative
+# of ownership (e.g., wild & scenic river corridors)
 # drop duplicates (there are some)
 df = (
-    df.loc[(df.Category != "Proclamation") | (df.Des_Tp == "MIL")]
+    df.loc[(df.Category != "Proclamation") | (df.Des_Tp == "MIL") & (df.Own_Type != "DESG")]
     .drop(columns=["Category", "Own_Type", "Own_Name", "Des_Tp"])
     .drop_duplicates()
 )
-
-df["sort"] = 2
-
 
 # this takes a while...
 print("Making geometries valid, this might take a while")
@@ -437,11 +462,7 @@ df["geometry"] = make_valid(df.geometry.values)
 
 
 # Extract Hawaii reserves
-hifr = read_dataframe(
-    src_dir / "HI_Reserves",
-    #   columns=["managedby"],
-    use_arrow=True,
-).to_crs(CRS)
+hifr = read_dataframe(src_dir / "HI_Reserves", use_arrow=True).to_crs(CRS)
 hifr = hifr.take(shapely.STRtree(hifr.geometry.values).query(bnd, predicate="intersects")).reset_index(drop=True)
 
 # drop any already completely contained by others
@@ -480,11 +501,13 @@ hifr["otype"] = hifr.managedby.map(
 )
 hifr = hifr.dropna(subset="otype")
 
-hifr["sort"] = 3
+hifr["sort"] = 4
 
 
 # Merge all types
-df = pd.concat([usfs_ownership, df, hifr[["geometry", "otype"]]], ignore_index=True).explode(ignore_index=True)
+df = pd.concat([usfs_ownership, usfs_admin, df, hifr[["geometry", "otype"]]], ignore_index=True).explode(
+    ignore_index=True
+)
 
 t = shapely.get_type_id(df.geometry.values)
 df = df.loc[(t == 3) | (t == 6)].reset_index(drop=True)
@@ -509,7 +532,91 @@ df = df[["geometry", "OwnerType", "ProtectedLand"]].explode(ignore_index=True)
 df.to_feather(out_dir / "protected_areas.feather")
 
 ################################################################################
-### Priority layers
+### Wild & scenic rivers - combine corridors and buffers
+################################################################################
+
+# Extract wild & scenic river corridors (designated and eligible / suitable)
+# from PAD-US
+wsr_corridors = read_dataframe(
+    src_dir / "pad_us4.0.gpkg",
+    layer="PADUS4_0Combined_Proclamation_Marine_Fee_Designation_Easement",
+    columns=["Des_Tp", "Loc_Ds"],
+    where="Des_Tp = 'WSR'",
+    use_arrow=True,
+).to_crs(CRS)
+
+wsr_corridors["geometry"] = make_valid(wsr_corridors.geometry.values)
+# keep only the polygons (making valid makes some other things)
+wsr_corridors = wsr_corridors.explode(ignore_index=True)
+wsr_corridors = wsr_corridors.loc[wsr_corridors.type == "Polygon"].reset_index(drop=True)
+
+# split out designated from eligible / suitable
+ix = wsr_corridors.Loc_Ds.str.contains("Eligible") | wsr_corridors.Loc_Ds.str.contains("Suitable")
+
+# designated corridors
+wsr_des_cor = shapely.union_all(wsr_corridors.loc[~ix].geometry.values)
+# eligible / suitable corridors
+wsr_es_cor = shapely.union_all(wsr_corridors.loc[ix].geometry.values)
+
+# buffer the designated and eligible / suitable Wild & Scenic River lines by 250m (arbitrary)
+wsr_des_lines = read_dataframe(
+    src_dir / "S_USA.WildScenicRiver_LN/S_USA.WildScenicRiver_LN.shp", columns=[], use_arrow=True
+).to_crs(CRS)
+wsr_des_buffers = shapely.union_all(shapely.buffer(wsr_des_lines.geometry.values, WSR_BUFFER_SIZE))
+
+wsr_es_lines = gp.read_feather(src_dir / "wsr_eligible_suitable.feather").explode(ignore_index=True)
+wsr_es_lines = wsr_es_lines.loc[
+    (wsr_es_lines.eligible == "Yes")
+    | (wsr_es_lines.suitable == "Yes")
+    # status seems to be set even if individual fields are not
+    | (wsr_es_lines.status.isin(["Eligible", "Suitable"]))
+]
+wsr_es_buffers = shapely.union_all(shapely.buffer(wsr_es_lines.geometry.values, WSR_BUFFER_SIZE))
+
+# only keep eligible / suitable corridors outside designated corridors
+# NOTE: BLM has several eligible / suitable that overlap with and extend beyond
+# USFS designated corridors
+wsr_es_cor = shapely.get_parts(shapely.difference(wsr_es_cor, wsr_des_cor))
+# this yields several fragments, drop those
+wsr_es_cor = shapely.multipolygons(wsr_es_cor[shapely.area(wsr_es_cor) > 100000])
+
+# only keep the parts of the designated buffers outside all types of corridors
+tmp = shapely.union(wsr_des_cor, wsr_es_cor)
+wsr_des_buffers = shapely.difference(wsr_des_buffers, tmp)
+
+# only keep the parts of the eligible / suitable buffers outside of all the above
+tmp = shapely.union(tmp, wsr_des_buffers)
+wsr_es_buffers = shapely.difference(wsr_es_buffers, tmp)
+
+# combine corridors and buffers
+wsr = gp.GeoDataFrame(
+    {
+        "geometry": [wsr_des_cor, wsr_es_cor, wsr_des_buffers, wsr_es_buffers],
+        "wsr": np.array([1, 2, 3, 4], dtype="uint8"),
+        "name": [
+            "Designated Wild & Scenic River corridor",
+            "Eligible / suitable Wild & Scenic River corridor",
+            "Near designated Wild & Scenic River",
+            "Near eligible / suitable Wild & Scenic River",
+        ],
+        "type": [
+            "wsr_designated_corridor",
+            "wsr_eligible_suitable_corridor",
+            "wsr_designated_buffer",
+            "wsr_eligible_suitable_buffer",
+        ],
+    },
+    crs=CRS,
+).explode(ignore_index=True)
+
+
+# export for spatial joins
+wsr.to_feather(out_dir / "wild_scenic_rivers.feather")
+
+
+################################################################################
+### Priority layers (OVERLAYS)
+### NOTE: these are used only for overlay in the map and not for spatial joins
 ################################################################################
 
 # Conservation opportunity areas (for now the only priority type) joined to HUC8
@@ -554,23 +661,9 @@ hi_gfa = merged.reset_index(drop=True)
 hi_gfa["type"] = "hifhp_gfa"
 
 
-wsr = (
-    read_dataframe(
-        src_dir / "S_USA.WildScenicRiver_LN/S_USA.WildScenicRiver_LN.shp", columns=["WSR_RIVER1"], use_arrow=True
-    )
-    .to_crs(CRS)
-    .rename(columns={"WSR_RIVER1": "name"})
-)
-# Buffer the Wild & Scenic Rivers by 250m (arbitrary)
-wsr["geometry"] = shapely.buffer(wsr.geometry.values, 250)
-# export for spatial joins
-wsr.to_feather(out_dir / "wild_scenic_rivers.feather")
-
-wsr["type"] = "wsr"
-
-# combine all 3 priority area types for overla
-df = pd.concat([sarp_coa, hi_gfa, wsr], ignore_index=True).explode(ignore_index=True)
-df = dissolve(df.explode(ignore_index=True), by=["type", "name"])
+# combine all 3 priority area types for display in maps
+df = pd.concat([sarp_coa, hi_gfa, wsr[["geometry", "name", "type"]]], ignore_index=True).explode(ignore_index=True)
+df = dissolve(df.explode(ignore_index=True), by=["type", "name"]).explode(ignore_index=True)
 df.to_feather(out_dir / "priority_areas.feather")
 
 

@@ -14,6 +14,7 @@ import {
   WATERBODY_SIZECLASS,
   FISH_HABITAT_PARTNERSHIPS,
   STATES,
+  WILDSCENIC_RIVER_LONG_LABELS,
 } from 'config'
 import { OutboundLink } from 'components/Link'
 import { Entry, Field } from 'components/Sidebar'
@@ -49,6 +50,7 @@ const LocationInfo = ({
   streamsizeclass,
   waterbodysizeclass,
   waterbodyacres,
+  wilderness,
   wildscenicriver,
   fatality,
 }) => {
@@ -70,21 +72,15 @@ const LocationInfo = ({
       {wildscenicriver ? (
         <>
           <Entry>
-            <Text>
-              Near{' '}
-              {wildscenicriver
-                .split(', ')
-                .map((name) => `${name} Wild & Scenic River`)
-                .join(', ')}
-            </Text>
-            <Text
-              sx={{
-                fontSize: 0,
-                color: 'grey.7',
-              }}
-            >
-              (within 250 meters)
-            </Text>
+            <Text>{WILDSCENIC_RIVER_LONG_LABELS[wildscenicriver]}</Text>
+          </Entry>
+        </>
+      ) : null}
+
+      {wilderness ? (
+        <>
+          <Entry>
+            <Text>Within a designated wilderness area</Text>
           </Entry>
         </>
       ) : null}
@@ -320,7 +316,8 @@ LocationInfo.propTypes = {
   streamsizeclass: PropTypes.string,
   waterbodysizeclass: PropTypes.number,
   waterbodyacres: PropTypes.number,
-  wildscenicriver: PropTypes.string,
+  wilderness: PropTypes.number,
+  wildscenicriver: PropTypes.number,
   fatality: PropTypes.number,
 }
 
@@ -349,6 +346,7 @@ LocationInfo.defaultProps = {
   streamsizeclass: null,
   waterbodysizeclass: null,
   waterbodyacres: null,
+  wilderness: null,
   wildscenicriver: null,
   fatality: 0,
 }

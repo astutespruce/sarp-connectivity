@@ -271,16 +271,18 @@ def calculate_geometry_stats(df):
             data_dir / "tnc_resilience/derived/tnc_resilient_flowlines.feather",
             format="feather",
         )
-        .to_table(filter=pc.field("HUC2").isin(df.HUC2.unique()), columns=["NHDPlusID", "resilient"])
+        .to_table(filter=pc.field("HUC2").isin(df.HUC2.unique()), columns=["NHDPlusID", "resilient", "cold"])
         .to_pandas()
         .groupby("NHDPlusID")
         .first()
     )
     if len(resilient) == 0:
         df["resilient"] = False
+        df["cold"] = False
     else:
         df = df.join(resilient, on="NHDPlusID")
         df["resilient"] = df.resilient.fillna(0).astype("bool")
+        df["cold"] = df.cold.fillna(0).astype("bool")
 
     # total lengths used for upstream network
     total_miles = (df["length"].groupby(level=0).sum() * METERS_TO_MILES).rename("total_miles")
@@ -298,6 +300,7 @@ def calculate_geometry_stats(df):
     resilient_miles = (df.loc[df.resilient, "length"].groupby(level=0).sum() * METERS_TO_MILES).rename(
         "resilient_miles"
     )
+    cold_miles = (df.loc[df.cold, "length"].groupby(level=0).sum() * METERS_TO_MILES).rename("cold_miles")
 
     # free lengths used for downstream network; these deduct lengths in altered waterbodies
     free_miles = (df.loc[df.free_flowing, "length"].groupby(level=0).sum() * METERS_TO_MILES).rename("free_miles")
@@ -319,6 +322,9 @@ def calculate_geometry_stats(df):
     free_resilient_miles = (
         df.loc[df.free_flowing & df.resilient, "length"].groupby(level=0).sum() * METERS_TO_MILES
     ).rename("free_resilient_miles")
+    free_cold_miles = (df.loc[df.free_flowing & df.cold, "length"].groupby(level=0).sum() * METERS_TO_MILES).rename(
+        "free_cold_miles"
+    )
 
     lengths = (
         pd.DataFrame(total_miles)
@@ -328,6 +334,7 @@ def calculate_geometry_stats(df):
         .join(unaltered_miles)
         .join(perennial_unaltered_miles)
         .join(resilient_miles)
+        .join(cold_miles)
         .join(free_miles)
         .join(free_perennial_miles)
         .join(free_intermittent_miles)
@@ -335,6 +342,7 @@ def calculate_geometry_stats(df):
         .join(free_unaltered_miles)
         .join(free_perennial_unaltered_miles)
         .join(free_resilient_miles)
+        .join(free_cold_miles)
         .fillna(0)
     ).astype("float32")
 
@@ -351,6 +359,7 @@ def calculate_geometry_stats(df):
     lengths["pct_perennial_unaltered"] = lengths.pct_perennial_unaltered.clip(0, 100).astype("float32")
 
     lengths["pct_resilient"] = (100 * lengths.resilient_miles / lengths.total_miles).clip(0, 100).astype("float32")
+    lengths["pct_cold"] = (100 * lengths.cold_miles / lengths.total_miles).clip(0, 100).astype("float32")
 
     return lengths
 

@@ -42,6 +42,7 @@ const DamDetails = ({
   barrierownertype,
   basin,
   canal,
+  coldupstreammiles,
   condition,
   construction,
   congressionaldistrict,
@@ -63,6 +64,7 @@ const DamDetails = ({
   flowstogreatlakes,
   freealtereddownstreammiles,
   freealteredlineardownstreammiles,
+  freecolddownstreammiles,
   freedownstreammiles,
   freelineardownstreammiles,
   freeperennialdownstreammiles,
@@ -91,6 +93,7 @@ const DamDetails = ({
   partnerid,
   passability,
   passagefacility,
+  percentcold,
   percentresilient,
   perennialupstreammiles,
   perennialupstreammainstemmiles,
@@ -126,6 +129,7 @@ const DamDetails = ({
   waterbodyacres,
   waterbodysizeclass,
   waterright,
+  wilderness,
   wildscenicriver,
   yearcompleted,
   yearremoved,
@@ -218,6 +222,7 @@ const DamDetails = ({
           streamsizeclass={streamsizeclass}
           waterbodysizeclass={waterbodysizeclass}
           waterbodyacres={waterbodyacres}
+          wilderness={wilderness}
           wildscenicriver={wildscenicriver}
           fatality={fatality}
         />
@@ -307,12 +312,15 @@ const DamDetails = ({
             alteredupstreammiles={alteredupstreammiles}
             unalteredupstreammiles={unalteredupstreammiles}
             resilientupstreammiles={resilientupstreammiles}
+            coldupstreammiles={coldupstreammiles}
             freedownstreammiles={freedownstreammiles}
             freeperennialdownstreammiles={freeperennialdownstreammiles}
             freealtereddownstreammiles={freealtereddownstreammiles}
             freeunaltereddownstreammiles={freeunaltereddownstreammiles}
             freeresilientdownstreammiles={freeresilientdownstreammiles}
+            freecolddownstreammiles={freecolddownstreammiles}
             percentresilient={percentresilient}
+            percentcold={percentcold}
             sizeclasses={sizeclasses}
             landcover={landcover}
             waterbodysizeclass={waterbodysizeclass}
@@ -488,6 +496,7 @@ DamDetails.propTypes = {
   barrierownertype: PropTypes.number,
   basin: PropTypes.string,
   canal: PropTypes.number,
+  coldupstreammiles: PropTypes.number,
   condition: PropTypes.number,
   congressionaldistrict: PropTypes.string,
   construction: PropTypes.number,
@@ -509,6 +518,7 @@ DamDetails.propTypes = {
   flowstogreatlakes: PropTypes.number,
   freealtereddownstreammiles: PropTypes.number,
   freealteredlineardownstreammiles: PropTypes.number,
+  freecolddownstreammiles: PropTypes.number,
   freedownstreammiles: PropTypes.number,
   freelineardownstreammiles: PropTypes.number,
   freeperennialdownstreammiles: PropTypes.number,
@@ -537,6 +547,7 @@ DamDetails.propTypes = {
   partnerid: PropTypes.string,
   passability: PropTypes.number,
   passagefacility: PropTypes.number,
+  percentcold: PropTypes.number,
   percentresilient: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
   perennialupstreammainstemmiles: PropTypes.number,
@@ -572,7 +583,8 @@ DamDetails.propTypes = {
   waterbodyacres: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
   waterright: PropTypes.number,
-  wildscenicriver: PropTypes.string,
+  wilderness: PropTypes.number,
+  wildscenicriver: PropTypes.number,
   yearcompleted: PropTypes.number,
   yearremoved: PropTypes.number,
   invasivenetwork: PropTypes.number,
@@ -645,6 +657,7 @@ DamDetails.defaultProps = {
   barrierownertype: null,
   basin: null,
   canal: 0,
+  coldupstreammiles: 0,
   condition: null,
   congressionaldistrict: null,
   construction: null,
@@ -666,6 +679,7 @@ DamDetails.defaultProps = {
   flowstogreatlakes: 0,
   freealtereddownstreammiles: 0,
   freealteredlineardownstreammiles: 0,
+  freecolddownstreammiles: 0,
   freedownstreammiles: 0,
   freelineardownstreammiles: 0,
   freeperennialdownstreammiles: 0,
@@ -693,6 +707,7 @@ DamDetails.defaultProps = {
   partnerid: null,
   passability: null,
   passagefacility: null,
+  percentcold: 0,
   percentresilient: 0,
   perennialupstreammiles: 0,
   perennialupstreammainstemmiles: 0,
@@ -728,6 +743,7 @@ DamDetails.defaultProps = {
   waterbodyacres: -1,
   waterbodysizeclass: null,
   waterright: null,
+  wilderness: null,
   wildscenicriver: null,
   yearcompleted: 0,
   yearremoved: 0,

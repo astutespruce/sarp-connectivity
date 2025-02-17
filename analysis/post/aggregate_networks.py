@@ -133,7 +133,7 @@ for col in nonremoved_dam_networks.columns:
 
 # Convert bool fields to uint8; none of the fields used for filtering can be
 # bool because fails on frontend
-for col in ["CoastalHUC8", "NearWildScenicRiver"]:
+for col in ["CoastalHUC8", "Wilderness"]:
     dams[col] = dams[col].astype("uint8")
 
 
@@ -208,7 +208,7 @@ for col in nonremoved_small_barrier_networks.columns:
     else:
         small_barriers[col] = small_barriers[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
 
-for col in ["CoastalHUC8", "NearWildScenicRiver"]:
+for col in ["CoastalHUC8", "Wilderness"]:
     small_barriers[col] = small_barriers[col].astype("uint8")
 
 print("Saving small barriers for tiles and API")
@@ -314,7 +314,7 @@ for col in fill_columns:
     else:
         combined[col] = combined[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
 
-for col in ["CoastalHUC8", "NearWildScenicRiver"]:
+for col in ["CoastalHUC8", "Wilderness"]:
     combined[col] = combined[col].astype("uint8")
 
 
@@ -469,7 +469,7 @@ for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
 
 crossings["AnnualFlowClass"] = classify_annual_flow(crossings.AnnualFlow)
 
-for col in ["NearWildScenicRiver"]:
+for col in ["Wilderness"]:
     crossings[col] = crossings[col].astype("uint8")
 
 

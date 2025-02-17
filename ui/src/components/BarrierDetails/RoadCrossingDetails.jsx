@@ -47,6 +47,7 @@ const RoadCrossingDetails = ({
   subwatershed,
   tespp,
   trout,
+  wilderness,
   wildscenicriver,
 }) => (
   <Box
@@ -84,6 +85,7 @@ const RoadCrossingDetails = ({
         canal={canal}
         streamorder={streamorder}
         streamsizeclass={streamsizeclass}
+        wilderness={wilderness}
         wildscenicriver={wildscenicriver}
       />
     </Section>
@@ -189,7 +191,8 @@ RoadCrossingDetails.propTypes = {
   subwatershed: PropTypes.string,
   tespp: PropTypes.number,
   trout: PropTypes.string,
-  wildscenicriver: PropTypes.string,
+  wilderness: PropTypes.number,
+  wildscenicriver: PropTypes.number,
 }
 
 RoadCrossingDetails.defaultProps = {
@@ -222,6 +225,7 @@ RoadCrossingDetails.defaultProps = {
   subwatershed: null,
   tespp: 0,
   trout: null,
+  wilderness: null,
   wildscenicriver: null,
 }
 

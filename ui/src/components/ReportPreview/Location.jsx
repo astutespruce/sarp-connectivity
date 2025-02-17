@@ -7,6 +7,7 @@ import {
   STREAM_SIZECLASS,
   STREAM_SIZECLASS_DRAINAGE_AREA,
   WATERBODY_SIZECLASS,
+  WILDSCENIC_RIVER_LONG_LABELS,
 } from 'config'
 import { formatNumber } from 'util/format'
 import { Entry } from './elements'
@@ -24,6 +25,7 @@ const Location = ({
   streamsizeclass,
   waterbodyacres,
   waterbodysizeclass,
+  wilderness,
   wildscenicriver,
   sx,
 }) => {
@@ -48,15 +50,10 @@ const Location = ({
       </Entry>
 
       {wildscenicriver ? (
-        <Entry>
-          Near{' '}
-          {wildscenicriver
-            .split(', ')
-            .map((name) => `${name} Wild & Scenic River`)
-            .join(', ')}{' '}
-          (within 250 meters)
-        </Entry>
+        <Entry>{WILDSCENIC_RIVER_LONG_LABELS[wildscenicriver]}</Entry>
       ) : null}
+
+      {wilderness ? <Entry>Within a designated wilderness area</Entry> : null}
 
       {intermittent === 1 ? (
         <Entry>
@@ -92,7 +89,7 @@ const Location = ({
         <Entry>
           This {barrierTypeLabel} is associated with a{' '}
           {WATERBODY_SIZECLASS[waterbodysizeclass].split(' (')[0].toLowerCase()}{' '}
-          ({formatNumber(waterbodyacres)} acres).
+          ({formatNumber(waterbodyacres)} acres)
         </Entry>
       ) : null}
     </Box>
@@ -112,7 +109,8 @@ Location.propTypes = {
   streamsizeclass: PropTypes.string,
   waterbodyacres: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
-  wildscenicriver: PropTypes.string,
+  wilderness: PropTypes.number,
+  wildscenicriver: PropTypes.number,
   sx: PropTypes.object,
 }
 
@@ -128,6 +126,7 @@ Location.defaultProps = {
   streamsizeclass: null,
   waterbodyacres: -1,
   waterbodysizeclass: null,
+  wilderness: null,
   wildscenicriver: null,
   sx: null,
 }

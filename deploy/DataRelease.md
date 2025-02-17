@@ -96,7 +96,7 @@ Test the staging server and get Kat's approval for recent changes.
    - `sudo rm -rf /downloads/national/*`
    - `sudo rm -rf /downloads/custom/*`
 10. copy latest data to the tiles directory: `sudo cp -aR /tiles2/* /tiles/`
-11. copy the API data to the home directory: `sudo cp -a /tiles2/api/* /home/app/sarp-connectivity/data/api`
+11. copy the API data to the home directory: `sudo cp -a /tiles2/api/*.feather /home/app/sarp-connectivity/data/api`, `sudo cp -a /tiles2/api/*.db /home/app/sarp-connectivity/data/api`
 12. copy the national download zip files to the downlods directory: `sudo cp -a /tiles2/api/downloads/* /downloads/national/`
 13. as the `app` user: `sudo su app`
 14. pull the latest code `git pull origin`

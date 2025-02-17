@@ -73,12 +73,21 @@ from analysis.constants import (
     FEASIBILITY_TO_FEASIBILITYCLASS_DOMAIN,
     HAZARD_TO_DOMAIN,
     FERCREGULATED_TO_DOMAIN,
+    STATEREGULATED_TO_DOMAIN,
 )
 from analysis.lib.io import read_arrow_tables
 
 
 ### Custom tolerance values for dams
-SNAP_TOLERANCE = {"default": 150, "likely off network": 50, "estimated from network": 25}
+SNAP_TOLERANCE = {
+    "default": 150,
+    # use smaller distance to prevent these from snapping to network
+    "likely off network": 50,
+    # estimated dams should be very close to current network positions
+    "estimated from network": 25,
+    # dams manually moved during snapping should be very close to correct location
+    "manually snapped": 25,
+}
 DUPLICATE_TOLERANCE = {"default": 10, "likely duplicate": 50}
 
 
@@ -479,10 +488,7 @@ df.BarrierOwnerType = df.BarrierOwnerType.fillna(0).map(BARRIEROWNERTYPE_TO_DOMA
 df["FERCRegulated"] = df.FERCRegulated.fillna(0).astype("uint8").map(FERCREGULATED_TO_DOMAIN).astype("uint8")
 
 df["StateRegulated"] = df.StateRegulated.fillna("0")
-# FIXME: temporary: handle Yes / No values; these should instead be coded using their domain values
-ix = df.StateRegulated.isin(["Yes", "No"])
-df.loc[ix, "StateRegulated"] = df.loc[ix].StateRegulated.map({"Yes": "1", "No": "2"})
-df["StateRegulated"] = df.StateRegulated.astype("uint8")
+df["StateRegulated"] = df.StateRegulated.map(STATEREGULATED_TO_DOMAIN).astype("uint8")
 
 # per direction from Kat (11/7/2024) fill all nulls with "No"
 df["NRCSDam"] = df.NRCSDam.fillna(2).astype("uint8")
@@ -759,6 +765,12 @@ ix = df.Source.str.count("Amber Ignatius") > 0
 df.loc[ix, "snap_group"] = 2
 df.loc[ix, "snap_tolerance"] = SNAP_TOLERANCE["likely off network"]
 print(f"Setting snap tolerance to {SNAP_TOLERANCE['likely off network']}m for {ix.sum():,} dams likely off network")
+
+
+# use tight tolerance for dams manually moved in snapping dataset
+ix = df.ManualReview == 15
+df.loc[ix, "snap_group"] = 0
+df.loc[ix, "snap_tolerance"] = SNAP_TOLERANCE["manually snapped"]
 
 
 # IMPORTANT: do not snap manually reviewed off-network dams, duplicates, or dropped dams

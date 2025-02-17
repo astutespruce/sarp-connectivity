@@ -22,6 +22,7 @@ import {
   UNALTERED_WETLAND_CLASS,
   PERCENT_ALTERED,
   PERCENT_RESILIENT,
+  PERCENT_COLD,
   PASSAGEFACILITY_CLASS,
   OWNERTYPE,
   BARRIEROWNERTYPE,
@@ -37,6 +38,7 @@ import {
   FISH_HABITAT_PARTNERSHIPS,
   COST_CLASS,
   DIADROMOUS_HABITAT,
+  WILDSCENIC_RIVER,
 } from 'config'
 
 import { getEntries, hasDiadromousData } from './common'
@@ -110,10 +112,17 @@ export const dams = [
         ...getEntries(PERCENT_ALTERED),
       },
       {
-        field: 'nearwildscenicriver',
-        title: 'Near a designated Wild & Scenic River',
+        field: 'wildscenicriver',
+        title: 'Near a Wild & Scenic River',
         sort: false,
-        help: 'Note: identifies barriers within 250 meters of a designated Wild & Scenic River.',
+        help: 'Note: Wild & Scenic river corridors are extracted from the Protected Areas Database of the U.S. (v4).  Barriers are considered near a Wild & Scenic River if they are within 250 meters but outside a corridor.',
+        ...getEntries(WILDSCENIC_RIVER),
+      },
+      {
+        field: 'wilderness',
+        title: 'Within a designated wilderness area',
+        sort: false,
+        help: 'Note: wilderness areas are extracted from the Protected Areas Database of the U.S. (v4).',
         ...getEntries(BOOLEAN_FIELD),
       },
       {
@@ -136,6 +145,13 @@ export const dams = [
         help: "Resilient watersheds are those with above average or greater freshwater resilience within The Nature Conservancy's Freshwater Resilience dataset (v0.44).  Note: not available for Alaska, far southern Florida, Puerto Rico, or the U.S. Virgin Islands.",
         url: 'https://www.maps.tnc.org/resilientrivers/#/explore',
         ...getEntries(PERCENT_RESILIENT),
+      },
+      {
+        field: 'percentcoldclass',
+        title: 'Percent of upstream network classified as coldwater habitat',
+        sort: false,
+        help: "Watersheds with coldwater habitat are those with slighly above average or greater cold temperature scores within The Nature Conservancy's Freshwater Resilience dataset (March 2024).",
+        ...getEntries(PERCENT_COLD),
       },
     ],
   },

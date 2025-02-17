@@ -22,7 +22,7 @@ warnings.filterwarnings("ignore", message=".*invalid value encountered in line_l
 
 
 # distance from edge of an NHD dam poly to be considered associated
-NHD_DAM_TOLERANCE = 150
+NHD_DAM_MAX_TOLERANCE = 150
 # max distance (lesser of this or snap tolerance of dam) from NHD dam point to be considered related
 # NHD_DAM_PT_TOLERANCE = 250
 # dams will initially snap by SNAP_TOLERANCE, but any that are within waterbodies and don't snap elsewhere
@@ -299,18 +299,22 @@ def snap_to_nhd_dams(df, to_snap):
     near_nhd = near(
         pd.Series(to_snap.geometry.values, index=to_snap.index),
         pd.Series(nhd_dams_poly.geometry.values, index=nhd_dams_poly.index),
-        distance=NHD_DAM_TOLERANCE,
+        distance=NHD_DAM_MAX_TOLERANCE,
     )[["damID"]]
 
     # snap to nearest dam point for that dam (some are > 1 km away)
     # NOTE: this will create multiple entries for some dams; the closest is used
-    near_nhd = near_nhd.join(to_snap.geometry.rename("source_pt")).join(nhd_dams, on="damID")
-    near_nhd.reset_index().drop_duplicates(subset=["id", "damID", "lineID", "geometry"]).set_index("id")
+    near_nhd = near_nhd.join(to_snap[["snap_tolerance", "geometry"]].rename(columns={"geometry": "source_pt"})).join(
+        nhd_dams, on="damID"
+    )
+    near_nhd = near_nhd.reset_index().drop_duplicates(subset=["id", "damID", "lineID", "geometry"]).set_index("id")
     near_nhd["snap_dist"] = shapely.distance(near_nhd.geometry.values, near_nhd.source_pt.values)
-    # Sort to prioritize larger size classes and non-loops, then distance
-    # this also drops duplicates
+
+    # discard any that are beyond tolerance, then sort to prioritize larger size
+    # classes and non-loops, then distance this also drops duplicates
     near_nhd = (
-        near_nhd.reset_index()
+        near_nhd.loc[near_nhd.snap_dist < near_nhd.snap_tolerance]
+        .reset_index()
         .sort_values(
             by=["id", "sizeclass", "loop", "snap_dist"],
             ascending=[True, False, True, True],
@@ -328,7 +332,7 @@ def snap_to_nhd_dams(df, to_snap):
     df.loc[ix, "snap_ref_id"] = near_nhd.damID
     df.loc[ix, "lineID"] = near_nhd.lineID
     df.loc[ix, "wbID"] = near_nhd.wbID
-    df.loc[ix, "snap_log"] = ndarray_append_strings("snapped: within ", NHD_DAM_TOLERANCE, "m of NHD dam polygon")
+    df.loc[ix, "snap_log"] = ndarray_append_strings("snapped: within ", NHD_DAM_MAX_TOLERANCE, "m of NHD dam polygon")
     to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
     print("Snapped {:,} dams to NHD dam polygons in {:.2f}s".format(len(ix), time() - snap_start))
 
@@ -504,9 +508,9 @@ def snap_to_waterbodies(df, to_snap):
         df.loc[ix, "lineID"] = nearest_drains.lineID
         df.loc[ix, "wbID"] = nearest_drains.wbID
 
-        df.loc[
-            ix, "snap_log"
-        ] = f"snapped: within {WB_DRAIN_MAX_TOLERANCE}m or less of drain point of waterbody (dam not in waterbody)"
+        df.loc[ix, "snap_log"] = (
+            f"snapped: within {WB_DRAIN_MAX_TOLERANCE}m or less of drain point of waterbody (dam not in waterbody)"
+        )
 
         to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
 

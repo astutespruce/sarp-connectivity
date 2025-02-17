@@ -74,6 +74,8 @@ SNAP_TOLERANCE = {
     "pnw": 75,
     # some data sources have coordinates that are less precise; use a larger snapping tolerance
     "bat survey": 100,
+    # barriers manually moved during snapping should be very close to correct location
+    "manually snapped": 25,
 }
 
 DUPLICATE_TOLERANCE = 10  # meters
@@ -483,6 +485,9 @@ df.loc[ix, "snap_tolerance"] = SNAP_TOLERANCE["pnw"]
 ix = df.Source.str.contains("Bat Surveys") | df.Source.isin(["Coarse Surveys 2020-2021 "])
 df.loc[ix, "snap_tolerance"] = SNAP_TOLERANCE["bat survey"]
 
+# use tight tolerance for barriers manually moved in snapping dataset
+ix = df.ManualReview == 15
+df.loc[ix, "snap_tolerance"] = SNAP_TOLERANCE["manually snapped"]
 
 # Save original locations so we can map the snap line between original and new locations
 original_locations = df.copy()

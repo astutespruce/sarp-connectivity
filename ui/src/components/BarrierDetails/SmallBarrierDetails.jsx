@@ -62,6 +62,7 @@ const BarrierDetails = ({
   barrierseverity,
   basin,
   canal,
+  coldupstreammiles,
   condition,
   congressionaldistrict,
   constriction,
@@ -75,6 +76,7 @@ const BarrierDetails = ({
   flowstogreatlakes,
   freealtereddownstreammiles,
   freealteredlineardownstreammiles,
+  freecolddownstreammiles,
   freedownstreammiles,
   freelineardownstreammiles,
   freeperennialdownstreammiles,
@@ -97,6 +99,7 @@ const BarrierDetails = ({
   ownertype,
   partnerid,
   passagefacility,
+  percentcold,
   percentresilient,
   perennialupstreammiles,
   perennialupstreammainstemmiles,
@@ -131,6 +134,7 @@ const BarrierDetails = ({
   upstreamunalteredwaterbodyacres,
   upstreamunalteredwetlandacres,
   nearestusgscrossingid,
+  wilderness,
   wildscenicriver,
   yearremoved,
   ...props // includes species habitat fields selected dynamically
@@ -183,6 +187,7 @@ const BarrierDetails = ({
           canal={canal}
           streamorder={streamorder}
           streamsizeclass={streamsizeclass}
+          wilderness={wilderness}
           wildscenicriver={wildscenicriver}
         />
       </Section>
@@ -270,12 +275,15 @@ const BarrierDetails = ({
             alteredupstreammiles={alteredupstreammiles}
             unalteredupstreammiles={unalteredupstreammiles}
             resilientupstreammiles={resilientupstreammiles}
+            coldupstreammiles={coldupstreammiles}
             freedownstreammiles={freedownstreammiles}
             freeperennialdownstreammiles={freeperennialdownstreammiles}
             freealtereddownstreammiles={freealtereddownstreammiles}
             freeunaltereddownstreammiles={freeunaltereddownstreammiles}
             freeresilientdownstreammiles={freeresilientdownstreammiles}
+            freecolddownstreammiles={freecolddownstreammiles}
             percentresilient={percentresilient}
+            percentcold={percentcold}
             sizeclasses={sizeclasses}
             landcover={landcover}
             intermittent={intermittent}
@@ -481,7 +489,8 @@ BarrierDetails.propTypes = {
   upstreamunalteredwaterbodyacres: PropTypes.number,
   upstreamunalteredwetlandacres: PropTypes.number,
   nearestusgscrossingid: PropTypes.string,
-  wildscenicriver: PropTypes.string,
+  wilderness: PropTypes.number,
+  wildscenicriver: PropTypes.number,
   yearremoved: PropTypes.number,
   invasivenetwork: PropTypes.number,
   alewifehabitatupstreammiles: PropTypes.number,
@@ -621,6 +630,7 @@ BarrierDetails.defaultProps = {
   upstreamunalteredwaterbodyacres: 0,
   upstreamunalteredwetlandacres: 0,
   nearestusgscrossingid: null,
+  wilderness: null,
   wildscenicriver: null,
   yearremoved: 0,
   invasivenetwork: 0,
