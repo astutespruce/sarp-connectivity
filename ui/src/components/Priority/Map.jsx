@@ -195,14 +195,16 @@ const PriorityMap = ({
             })
           }
 
-          const { label: priorityLabel, tooltipLabel: priorityTooltipLabel } =
+          const { label: priorityLabel, showName } =
             priorityAreasLegend.entries.filter(({ id }) => id === type)[0]
+          const prefix = `${priorityLabel}`
+          const suffix = showName ? `: ${name}` : ''
 
           /* eslint-disable-next-line no-param-reassign */
           map.getCanvas().style.cursor = 'pointer'
           tooltip
             .setLngLat(lngLat)
-            .setHTML(`<b>${priorityTooltipLabel || priorityLabel}: ${name}</b>`)
+            .setHTML(`<b>${prefix}${suffix}</b>`)
             .addTo(map)
 
           map.setFeatureState(

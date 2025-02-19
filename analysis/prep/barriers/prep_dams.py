@@ -500,6 +500,11 @@ df["WaterRight"] = df.WaterRight.fillna(0).astype("uint8")
 df["Hazard"] = df.Hazard.fillna(4).astype("uint8").map(HAZARD_TO_DOMAIN).astype("uint8")
 
 
+# recode ActiveList and KeepOnActiveList
+df["ActiveList"] = df.ActiveList.fillna(0).astype("uint8")
+df["KeepOnActiveList"] = df.KeepOnActiveList.map({1: 1, 2: 0}).fillna(0).astype("bool")
+
+
 ### Add tracking fields
 # master log field for status
 df["log"] = ""
