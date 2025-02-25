@@ -1,10 +1,11 @@
 import React from 'react'
-import { Box, Heading, Grid, Image, Paragraph, Text } from 'theme-ui'
+import { Box, Flex, Heading, Grid, Image, Paragraph, Text } from 'theme-ui'
 
 import { Link, OutboundLink } from 'components/Link'
 import { HighlightBox } from 'components/Layout'
 import SARPLogo from 'images/sarp_logo.png'
 import NFHPLogo from 'images/nfhp_logo.svg'
+import AmericanRiversLogo from 'images/american_rivers_logo.svg'
 
 const Top = () => (
   <>
@@ -31,7 +32,7 @@ const Top = () => (
       restoration efforts.
     </Paragraph>
 
-    <Grid columns="4fr 1fr" gap={5} sx={{ mt: '2rem' }}>
+    <Grid columns="2fr 1fr" gap={5} sx={{ mt: '2rem' }}>
       <Paragraph>
         This tool and inventory were made possible by funding from the{' '}
         <OutboundLink to="https://www.fws.gov/program/national-fish-passage">
@@ -57,17 +58,24 @@ const Top = () => (
         </OutboundLink>
         .
       </Paragraph>
-      <Box sx={{ maxWidth: '240px' }}>
-        <Box>
+      <Box>
+        <Flex sx={{ flex: '0 0 auto', justifyContent: 'center' }}>
           <OutboundLink to="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act">
-            <Image src={SARPLogo} />
+            <Image src={SARPLogo} sx={{ width: '210px' }} />
           </OutboundLink>
-        </Box>
-        <Box sx={{ mt: '1rem' }}>
-          <OutboundLink to="">
-            <Image src={NFHPLogo} />
-          </OutboundLink>
-        </Box>
+        </Flex>
+        <Flex sx={{ gap: '1rem' }}>
+          <Box sx={{ flex: '0 0 auto', mt: '1rem' }}>
+            <OutboundLink to="https://fishhabitat.org/">
+              <Image src={NFHPLogo} sx={{ width: '180px' }} />
+            </OutboundLink>
+          </Box>
+          <Box sx={{ flex: '0 0 auto', mt: '1rem' }}>
+            <OutboundLink to="https://www.americanrivers.org/">
+              <Image src={AmericanRiversLogo} sx={{ width: '124px' }} />
+            </OutboundLink>
+          </Box>
+        </Flex>
       </Box>
     </Grid>
     <Paragraph sx={{ mt: '2rem' }}>
