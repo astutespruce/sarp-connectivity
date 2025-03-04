@@ -189,7 +189,7 @@ Resilient NHD flowlines were extracted where flowlines mostly overlap with areas
 above average in the TNC resilience dataset.
 
 Coldwater habitat flowlines were extracted where flowlines mostly overlap with areas at
-least slightly above average in the TNC cold water scores dataset.
+least above average in the TNC cold water scores dataset.
 
 Run `special/prepare_tnc_resilience.py` to extract TNC resilience and cold water
 areas to NHD flowlines.

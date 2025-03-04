@@ -58,7 +58,8 @@ temp_df = read_dataframe(
     columns=["cTempZCl"],
     use_arrow=True,
     # extract above average watersheds based on guidance from Kat on 2/4/2025
-    where=""" "cTempZCl" in ('Slightly Above Average', 'Above Average', 'Far Above Average') """,
+    # limit these to above above average based on guidance from Kat on 2/26/2025
+    where=""" "cTempZCl" in ('Above Average', 'Far Above Average') """,
 ).to_crs(CRS)
 
 temp_df["geometry"] = make_valid(temp_df.geometry.values)
