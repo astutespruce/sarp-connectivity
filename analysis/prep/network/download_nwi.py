@@ -3,16 +3,12 @@ from concurrent.futures import ThreadPoolExecutor
 import os
 from pathlib import Path
 from time import time
-import warnings
 
 import geopandas as gp
 import pandas as pd
 import shapely
 import numpy as np
 import httpx
-
-
-from analysis.constants import NWI_HUC8_ALIAS
 
 
 # Data are available within the NWI Viewer: https://www.fws.gov/wetlands/Data/Mapper.html
@@ -36,20 +32,19 @@ async def download_huc8s(huc8s):
 
 
 async def download_huc8(huc8, client, out_dir):
-    nwi_id = NWI_HUC8_ALIAS.get(huc8, huc8)
-    r = await client.get(URL.format(huc8=nwi_id), timeout=CONNECTION_TIMEOUT)
+    r = await client.get(URL.format(huc8=huc8), timeout=CONNECTION_TIMEOUT)
 
-    if r.status_code == 404:
-        warnings.warn(f"WARNING: {huc8} not found for download")
+    if r.status_code == 404 or r.status_code == 403:
+        print(f"WARNING: {huc8} not found for download")
         return
 
     r.raise_for_status()
 
-    outzipname = out_dir / f"{nwi_id}.zip"
+    outzipname = out_dir / f"{huc8}.zip"
     with open(outzipname, "wb") as out:
         out.write(r.content)
 
-    print(f"Downloaded {huc8} ({outzipname.stat().st_size >> 20} MB)")
+    print(f"Downloaded {huc8} ({outzipname.stat().st_size / 1e6} MB)")
 
 
 data_dir = Path("data")
@@ -78,16 +73,16 @@ huc2s = sorted(pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["H
 
 # manually subset keys from above for processing
 # huc2s = [
-#     "01",  # 01100007, 01090006 both => 01090005
+#     "01",
 #     "02",
 #     "03",
 #     "04",
 #     "05",
 #     "06",
 #     "07",
-#     "08",  # fix: 08010300 => 08020201
+#     "08",
 #     "09",
-#     "10",  # fix: 10170104 => 10150001
+#     "10",
 #     "11",
 #     "12",
 #     "13",
@@ -98,7 +93,7 @@ huc2s = sorted(pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["H
 #     "18",
 #     "19",
 #     "20",
-#     "21",  # Missing: 21010007, 21010008 (islands)
+#     "21",
 # ]
 
 start = time()

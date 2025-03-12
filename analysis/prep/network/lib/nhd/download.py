@@ -4,7 +4,7 @@ from xml.etree import ElementTree
 
 from tqdm import tqdm
 
-
+MAX_WORKERS = 2  # max number of concurrent downloads
 CONNECTION_TIMEOUT = 120  # seconds
 
 
@@ -19,11 +19,9 @@ BETA_DATA_URL = (
 
 # Current is for anything delivered starting in 2022, with different naming schemes
 # Listing URL https://prd-tnm.s3.amazonaws.com/index.html?prefix=StagedProducts/Hydrography/NHDPlusHR/VPU/Current/GDB/
-CURRENT_DATA_LIST_URL = (
+DATA_LIST_URL = (
     "https://prd-tnm.s3.amazonaws.com/?delimiter=/&prefix=StagedProducts/Hydrography/NHDPlusHR/VPU/Current/GDB/"
 )
-
-CURRENT_HUC2 = ["01", "02", "06", "14", "15", "16", "19", "20"]
 
 HUC_URL_CACHE = None
 
@@ -40,7 +38,7 @@ async def get_gdb_urls(client):
     dict
         {<huc4>: <url>, ...}
     """
-    r = await client.get(CURRENT_DATA_LIST_URL, timeout=CONNECTION_TIMEOUT)
+    r = await client.get(DATA_LIST_URL, timeout=CONNECTION_TIMEOUT)
     r.raise_for_status()
 
     xml = ElementTree.fromstring(r.text)
@@ -52,12 +50,14 @@ async def get_gdb_urls(client):
     return urls
 
 
-async def download_gdb(id, client, filename):
+async def download_gdb(urls, id, client, filename):
     """Download HUC4 or HUC8 geodatabase (flowlines and boundaries) from NHD
     Plus HR data distribution site
 
     Parameters
     ----------
+    urls: dict
+        lookup table of HUC4 or HUC8 code to data URL
     id : str
         HUC4 or HUC8 code
     client : httpx client
@@ -65,23 +65,11 @@ async def download_gdb(id, client, filename):
         output filename.  Will always overwrite this filename.
     """
 
-    huc_type = "HU8" if len(id) == 8 else "HU4"
+    if id not in urls:
+        raise ValueError(f"{id} not available in listing of data URLs")
 
-    huc2 = id[:2]
-    if huc2 in CURRENT_HUC2:
-        global HUC_URL_CACHE
-        if HUC_URL_CACHE is None:
-            HUC_URL_CACHE = await get_gdb_urls(client)
-
-        if id in HUC_URL_CACHE:
-            url = HUC_URL_CACHE[id]
-        else:
-            url = BETA_DATA_URL.format(HUC=id, HUC_type=huc_type)
-
-    else:
-        url = BETA_DATA_URL.format(HUC=id, HUC_type=huc_type)
-
-    print(f"Requesting data from: {url}")
+    url = urls[id]
+    # print(f"Requesting data from: {url}")
 
     async with client.stream("GET", url, timeout=CONNECTION_TIMEOUT) as r:
         if r.status_code == 404:
@@ -92,14 +80,18 @@ async def download_gdb(id, client, filename):
 
         total_bytes = int(r.headers["Content-Length"])
 
-        print(f"Downloading {id} ({total_bytes / 1024**2:.2f} MB)")
+        # print(f"Downloading {id} ({total_bytes / 1e6:.2f} MB)")
 
         with open(filename, "wb") as out:
-            with tqdm(total=total_bytes) as bar:
+            with tqdm(
+                total=total_bytes / 1e6,
+                desc=f"HUC {id} ({total_bytes / 1e6:.2f} MB)",
+                bar_format="{desc}{bar}| {percentage:3.0f}%",
+            ) as bar:
                 prev_bytes_downloaded = 0
 
                 async for chunk in r.aiter_bytes():
                     out.write(chunk)
 
-                    bar.update(r.num_bytes_downloaded - prev_bytes_downloaded)
+                    bar.update(r.num_bytes_downloaded / 1e6 - prev_bytes_downloaded / 1e6)
                     prev_bytes_downloaded = r.num_bytes_downloaded

@@ -5,11 +5,12 @@ Download NHD Plus HR flowline data for every HUC4 in the analysis region.
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+import warnings
 
 import httpx
 import pandas as pd
 
-from analysis.prep.network.lib.nhd.download import download_gdb
+from analysis.prep.network.lib.nhd.download import download_gdb, get_gdb_urls
 
 MAX_WORKERS = 2
 
@@ -50,15 +51,27 @@ AK_HUC8 = set(
 
 
 async def download_gdbs(ids, out_dir):
-    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        loop = asyncio.get_event_loop()
+    async with httpx.AsyncClient() as client:
+        urls = await get_gdb_urls(client)
 
-        async with httpx.AsyncClient() as client:
-            futures = [
-                await loop.run_in_executor(executor, download_gdb, id, client, out_dir / f"{id}.zip") for id in ids
-            ]
+        # find any missing ids
+        available = [id for id in ids if id in urls]
+        missing = sorted(set(ids) - set(available))
+        if len(missing):
+            warnings.warn(f"units missing from download URLs: {', '.join(missing)}")
 
-            await asyncio.gather(*futures)
+        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+            loop = asyncio.get_event_loop()
+
+            for i in range(0, len(available), MAX_WORKERS):
+                chunk = available[i : i + MAX_WORKERS]
+
+                futures = [
+                    await loop.run_in_executor(executor, download_gdb, urls, id, client, out_dir / f"{id}.zip")
+                    for id in chunk
+                ]
+
+                await asyncio.gather(*futures)
 
 
 data_dir = Path("data")

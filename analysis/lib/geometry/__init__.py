@@ -14,4 +14,4 @@ from analysis.lib.geometry.lines import (
     cut_lines_at_multipoints,
 )
 from analysis.lib.geometry.near import near, nearest, neighborhoods
-from analysis.lib.geometry.polygons import get_interior_rings, unwrap_antimeridian
+from analysis.lib.geometry.polygons import get_interior_rings, unwrap_antimeridian, drop_small_holes

@@ -7,7 +7,6 @@ from pyogrio import write_dataframe
 
 
 data_dir = Path("data")
-barriers_dir = data_dir / "barriers/snapped"
 nhd_dir = data_dir / "nhd/raw"
 out_dir = Path("/tmp/sarp")
 out_dir.mkdir(exist_ok=True)

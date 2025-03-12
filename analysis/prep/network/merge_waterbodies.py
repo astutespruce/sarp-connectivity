@@ -8,7 +8,7 @@ import shapely
 import numpy as np
 from pyogrio import write_dataframe
 
-from analysis.lib.geometry import explode, dissolve, write_geoms
+from analysis.lib.geometry import explode, dissolve, write_geoms, drop_small_holes
 from analysis.prep.network.lib.nhd import find_nhd_waterbody_breaks
 
 
@@ -25,27 +25,27 @@ huc2s = sorted(pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["H
 
 # manually subset keys from above for processing
 # huc2s = [
-# "01",
-# "02",
-# "03",
-# "04",
-# "05",
-# "06",
-# "07",
-# "08",
-# "09",
-# "10",
-# "11",
-# "12",
-# "13",
-# "14",
-# "15",
-# "16",
-# "17",
-# "18",
-# "19",
-# "20",
-# "21",
+#     "01",
+#     "02",
+#     "03",
+#     "04",
+#     "05",
+#     "06",
+#     "07",
+#     "08",
+#     "09",
+#     "10",
+#     "11",
+#     "12",
+#     "13",
+#     "14",
+#     "15",
+#     "16",
+#     "17",
+#     "18",
+#     "19",
+#     "20",
+#     "21",
 # ]
 
 start = time()
@@ -202,6 +202,9 @@ for huc2 in huc2s:
         df.loc[ix, "geometry"] = shapely.make_valid(df.loc[ix].geometry.values)
         df = explode(explode(df))
         df = df.loc[shapely.get_type_id(df.geometry.values) == 3].reset_index()
+
+    # drop tiny holes
+    df["geometry"] = drop_small_holes(df.geometry.values)
 
     # assign a new unique wbID
     df["wbID"] = df.index.values.astype("uint32") + 1 + int(huc2) * 1000000

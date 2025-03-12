@@ -280,35 +280,34 @@ data_dir = Path("data")
 huc4_dir = data_dir / "nhd/source/huc4"
 huc8_dir = data_dir / "nhd/source/huc8"
 out_dir = data_dir / "nhd/raw"
+out_dir.mkdir(exist_ok=True)
 
-if not out_dir.exists():
-    os.makedirs(out_dir)
 
 start = time()
 
-# huc2s = [
-# "01",
-# "02",
-# "03",
-# "04",
-# "05",
-# "06",
-# "07",
-# "08",
-# "09",
-# "10",
-# "11",
-# "12",
-# "13",
-# "14",
-# "15",
-# "16",
-# "17",
-# "18",
-# "19",  # uses huc8 data
-# "20",
-# "21",
-# ]
+huc2s = [
+    # "01",
+    # "02",
+    # "03",
+    # "04",
+    # "05",
+    # "06",
+    # "07",
+    # "08",
+    # "09",
+    # "10",
+    # "11",
+    # "12",
+    # "13",
+    # "14",
+    # "15",
+    # "16",
+    # "17",
+    # "18",
+    # "19",  # uses huc8 data
+    # "20",
+    # "21",
+]
 
 
 for huc2 in huc2s:
@@ -316,8 +315,7 @@ for huc2 in huc2s:
     print(f"----- {huc2} ------")
 
     huc2_dir = out_dir / huc2
-    if not huc2_dir.exists():
-        os.makedirs(huc2_dir)
+    huc2_dir.mkdir(exist_ok=True)
 
     src_dir = huc8_dir if huc2 == "19" else huc4_dir
     process_gdbs(huc2, src_dir, huc2_dir)

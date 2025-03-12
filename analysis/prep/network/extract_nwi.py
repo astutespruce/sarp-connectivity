@@ -1,5 +1,4 @@
 from pathlib import Path
-import os
 from time import time
 
 import geopandas as gp
@@ -8,7 +7,7 @@ import numpy as np
 from pyogrio import read_dataframe, write_dataframe
 from pyogrio.errors import DataSourceError
 
-from analysis.constants import CRS, NWI_HUC8_ALIAS
+from analysis.constants import CRS
 from analysis.lib.geometry import dissolve
 from analysis.lib.util import append
 
@@ -44,9 +43,7 @@ data_dir = Path("data")
 src_dir = data_dir / "nwi/source/huc8"
 nhd_dir = data_dir / "nhd/raw"  # intentionally use raw flowlines
 out_dir = data_dir / "nwi/raw"
-
-if not out_dir.exists():
-    os.makedirs(out_dir)
+out_dir.mkdir(exist_ok=True)
 
 start = time()
 
@@ -77,7 +74,7 @@ huc2s = units.keys()
 # "06",
 # "07",
 # "08",
-# "09",  # several HUC8s do not have wetlands data
+# "09",
 # "10",
 # "11",
 # "12",
@@ -87,8 +84,9 @@ huc2s = units.keys()
 # "16",
 # "17",
 # "18",
-# "19",  # several HUC8s do not have wetlands data
-# "21",  # Missing: 21010007, 21010008 (islands)
+# "19",
+# "20",
+# "21",
 # ]
 
 
@@ -97,8 +95,7 @@ for huc2 in huc2s:
     print(f"----- {huc2} ------")
 
     huc2_dir = out_dir / huc2
-    if not huc2_dir.exists():
-        os.makedirs(huc2_dir)
+    huc2_dir.mkdir(exist_ok=True)
 
     print("Reading flowlines")
     flowlines = gp.read_feather(nhd_dir / huc2 / "flowlines.feather", columns=[])
@@ -109,8 +106,6 @@ for huc2 in huc2s:
     wetlands = None
     for huc8 in units[huc2]:
         print(f"Reading NWI data for {huc8}")
-
-        huc8 = NWI_HUC8_ALIAS.get(huc8, huc8)
 
         filename = src_dir.resolve() / f"{huc8}.zip"
         if not filename.exists():

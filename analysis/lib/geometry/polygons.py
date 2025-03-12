@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import shapely
 
 
@@ -52,3 +53,42 @@ def unwrap_antimeridian(geometries, ref_long=0):
         out_geometries[ix] = shapely.transform(geometries[ix], lambda g: g - [360, 0])
 
     return out_geometries
+
+
+def drop_small_holes(geometries, threshold=1e-6):
+    """Drop any interior rings that are smaller in area than threshold.
+
+    NOTE: area is calculated using geodesic methods
+
+    Parameters
+    ----------
+    geometries : ndarray of shapely Polygons or Multipolygons
+    threshold : int, optional (default: 1e-6)
+        any interior rings < this area in square meters are dropped
+
+    Returns
+    -------
+    ndarray of input geometries minus holes that are too small
+    """
+
+    parts, index = shapely.get_parts(geometries, return_index=True)
+
+    ix = shapely.get_num_interior_rings(parts) > 0
+    ix = np.arange(len(parts))[ix]
+
+    # for each part, keep all rings above area threshold
+    for i in ix:
+        rings = shapely.get_interior_ring(parts[i], range(shapely.get_num_interior_rings(parts[i])))
+
+        parts[i] = shapely.polygons(
+            shapely.get_exterior_ring(parts[i]), rings[shapely.area(shapely.polygons(rings)) >= threshold]
+        )
+
+    # aggregate parts back together
+    return (
+        pd.DataFrame({"geometry": parts}, index=index)
+        .groupby(level=0)
+        .geometry.apply(np.array)
+        .apply(lambda g: shapely.multipolygons(g) if len(g) > 1 else g[0])
+        .values
+    )
