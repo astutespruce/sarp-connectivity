@@ -6,6 +6,7 @@ import { HighlightBox } from 'components/Layout'
 import SARPLogo from 'images/sarp_logo.png'
 import NFHPLogo from 'images/nfhp_logo.svg'
 import AmericanRiversLogo from 'images/american_rivers_logo.svg'
+import TULogo from 'images/trout_unlimited_logo.svg'
 import USFSLogo from 'images/usfs_logo.svg'
 import USFWSLogo from 'images/usfws_logo.svg'
 
@@ -51,7 +52,12 @@ const Top = () => (
       </OutboundLink>
       , and state wildlife grant funding from Florida and Texas. This effort
       would not be possible without the collaboration of our partners from
-      numerous state, federal, and non profit organizations as well as the{' '}
+      numerous state, federal, and non profit organizations such as{' '}
+      <OutboundLink to="https://www.tu.org/">Trout Unlimited</OutboundLink> and{' '}
+      <OutboundLink to="https://www.nature.org/">
+        The Nature Conservancy
+      </OutboundLink>
+      , as well as the{' '}
       <OutboundLink to="https://www.fishhabitat.org/">
         National Fish Habitat Partnership
       </OutboundLink>
@@ -67,26 +73,32 @@ const Top = () => (
       }}
     >
       <OutboundLink to="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act">
-        <Image src={SARPLogo} sx={{ width: '240px' }} />
+        <Image src={SARPLogo} sx={{ width: '200px' }} />
       </OutboundLink>
       <Box sx={{ flex: '0 0 auto', mt: '1rem' }}>
         <OutboundLink to="https://www.fws.gov/program/national-fish-passage">
-          <Image src={USFWSLogo} sx={{ height: '100px' }} />
-        </OutboundLink>
-      </Box>
-      <Box sx={{ flex: '0 0 auto', mt: '1rem' }}>
-        <OutboundLink to="https://fishhabitat.org/">
-          <Image src={NFHPLogo} sx={{ width: '210px' }} />
-        </OutboundLink>
-      </Box>
-      <Box sx={{ flex: '0 0 auto', mt: '1rem' }}>
-        <OutboundLink to="https://www.americanrivers.org/">
-          <Image src={AmericanRiversLogo} sx={{ width: '154px' }} />
+          <Image src={USFWSLogo} sx={{ height: '96px' }} />
         </OutboundLink>
       </Box>
       <Box sx={{ flex: '0 0 auto', mt: '1rem' }}>
         <OutboundLink to="https://www.fs.usda.gov/">
-          <Image src={USFSLogo} sx={{ height: '100px' }} />
+          <Image src={USFSLogo} sx={{ height: '96px' }} />
+        </OutboundLink>
+      </Box>
+      <Box sx={{ flex: '0 0 auto', mt: '1rem' }}>
+        <OutboundLink to="https://fishhabitat.org/">
+          <Image src={NFHPLogo} sx={{ width: '200px' }} />
+        </OutboundLink>
+      </Box>
+      <Box sx={{ flex: '0 0 auto', mt: '1rem' }}>
+        <OutboundLink to="https://www.americanrivers.org/">
+          <Image src={AmericanRiversLogo} sx={{ width: '140px' }} />
+        </OutboundLink>
+      </Box>
+
+      <Box sx={{ flex: '0 0 auto', mt: '1rem' }}>
+        <OutboundLink to="https://www.tu.org/">
+          <Image src={TULogo} sx={{ height: '80px' }} />
         </OutboundLink>
       </Box>
     </Flex>
