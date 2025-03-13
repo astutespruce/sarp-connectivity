@@ -50,14 +50,14 @@ const Top = () => (
       <OutboundLink to="https://www.fs.usda.gov/">
         U.S. Department of Agriculture, Forest Service
       </OutboundLink>
-      , and state wildlife grant funding from Florida and Texas. This effort
-      would not be possible without the collaboration of our partners from
-      numerous state, federal, and non profit organizations such as{' '}
-      <OutboundLink to="https://www.tu.org/">Trout Unlimited</OutboundLink> and{' '}
+      ,{' '}
       <OutboundLink to="https://www.nature.org/">
         The Nature Conservancy
       </OutboundLink>
-      , as well as the{' '}
+      , <OutboundLink to="https://www.tu.org/">Trout Unlimited</OutboundLink>,{' '}
+      and state wildlife grant funding from Florida and Texas. This effort would
+      not be possible without the collaboration of our partners from numerous
+      state, federal, and non profit organizations as well as the{' '}
       <OutboundLink to="https://www.fishhabitat.org/">
         National Fish Habitat Partnership
       </OutboundLink>
