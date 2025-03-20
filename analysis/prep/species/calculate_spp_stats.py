@@ -23,14 +23,62 @@ from analysis.constants import SARP_STATES, TROUT_SPECIES_TO_CODE, TROUT_CODE_TO
 from analysis.lib.util import append
 
 
+def read_spp_data(gdb, layer):
+    print(f"Reading species occurrence data: {layer}")
+
+    df = read_dataframe(gdb, layer=layer, use_arrow=True, read_geometry=False).rename(
+        columns={
+            "HUC12_Code": "HUC12",
+            "Species_Name": "SNAME",
+            "Common_Name": "CNAME",
+            "Federal_Status": "federal",
+            "SGCN_Listing": "sgcn",
+            "Regional_SGCN": "regional",
+            "Historical": "historical",
+            "Trout": "is_trout",
+        }
+    )
+
+    # FIXME: PR_Spp_HUC12_March2025 is missing Species_Name
+    if "CNAME" not in df.columns:
+        df["CNAME"] = ""
+
+    # fix data issues (have to do before merge or it has issues with blank columns)
+    for col in df.columns:
+        df[col] = df[col].fillna("").str.strip().str.replace("<Null>", "").str.replace("Unknown", "")
+
+    # TEMPORARY: prefx huc12 codes that are not 0 prefixed to 12 chars
+    ix = df.HUC12.apply(len) < 12
+    df.loc[ix, "HUC12"] = "0" + df.loc[ix].HUC12
+
+    df = df.loc[(df.HUC12 != "") & (df.SNAME != "")].copy()
+
+    if "Aquatic" in df.columns:
+        df = df.loc[df.Aquatic != "No"].copy()
+
+    # Convert status cols to bool
+    df["historical"] = df.historical == "Yes"
+    for col in status_cols:
+        df[col] = ~df[col].isin(["No", ""])
+
+    df["is_trout"] = ~df.is_trout.isin(["No", ""])
+    # fix trout-perch (not a trout)
+    df.loc[(df.SNAME == "Percopsis omiscomaycus") | (df.CNAME == "Trout-perch"), "is_trout"] = False
+
+    df = df[["HUC12", "SNAME", "CNAME", "historical", "federal", "sgcn", "regional", "is_trout"]]
+
+    return df
+
+
 start = time()
 data_dir = Path("data")
 bnd_dir = data_dir / "boundaries"
 src_dir = data_dir / "species/source"
 out_dir = data_dir / "species/derived"
 
-gdb = src_dir / "Results_Tables_2024.gdb"
+cur_gdb = src_dir / "Results_Tables_2024.gdb"
 prev_gdb = src_dir / "Species_Results_Tables_2023.gdb"
+caribbean_hi_gdb = src_dir / "Caribbean_HI_Spp_Tables_2025.gdb"
 trout_layer = "Trout_Filter_2022"
 
 
@@ -58,6 +106,7 @@ print("Reading T&E species list")
 listed_df = pd.read_csv(
     src_dir / "ECOS_listed_species_05_03_2024.csv",
     usecols=["Scientific Name", "Federal Listing Status", "Where Listed"],
+    engine="pyarrow",
 ).rename(columns={"Scientific Name": "SNAME", "Federal Listing Status": "status", "Where Listed": "location"})
 
 # only keep T&E species that are listed across their entire range
@@ -140,7 +189,7 @@ prev_trout_df = read_dataframe(
 ).rename(columns={"HUC12_Code": "HUC12", "Species_Name": "SNAME", "Common_Name": "CNAME"})
 
 ### TEMPORARY: use eastern brook trout habitat to backfill missing HUC12s in great lakes
-ebt_habitat = read_dataframe(out_dir / "eastern_brook_trout_habitat.fgb", columns=["geometry"])
+ebt_habitat = read_dataframe(out_dir / "eastern_brook_trout_habitat.fgb", columns=["geometry"], use_arrow=True)
 left, right = shapely.STRtree(ebt_habitat.geometry.values).query(huc12.geometry.values, predicate="intersects")
 pairs = pd.DataFrame(
     {
@@ -186,46 +235,12 @@ trout_df = pd.concat([prev_trout_df[["HUC12", "SNAME"]], ebt_df], ignore_index=T
 status_cols = ["federal", "sgcn", "regional"]
 
 merged = None
-for layer in list_layers(gdb)[:, 0]:
-    print(f"Reading species occurrence data: {layer}")
+for layer in list_layers(cur_gdb)[:, 0]:
+    df = read_spp_data(cur_gdb, layer)
+    merged = append(merged, df)
 
-    df = read_dataframe(gdb, layer=layer, use_arrow=True, read_geometry=False).rename(
-        columns={
-            "HUC12_Code": "HUC12",
-            "Species_Name": "SNAME",
-            "Common_Name": "CNAME",
-            "Federal_Status": "federal",
-            "SGCN_Listing": "sgcn",
-            "Regional_SGCN": "regional",
-            "Historical": "historical",
-            "Trout": "is_trout",
-        }
-    )
-
-    # fix data issues (have to do before merge or it has issues with blank columns)
-    for col in df.columns:
-        df[col] = df[col].fillna("").str.strip().str.replace("<Null>", "").str.replace("Unknown", "")
-
-    # TEMPORARY: prefx huc12 codes that are not 0 prefixed to 12 chars
-    ix = df.HUC12.apply(len) < 12
-    df.loc[ix, "HUC12"] = "0" + df.loc[ix].HUC12
-
-    df = df.loc[(df.HUC12 != "") & (df.SNAME != "")].copy()
-
-    if "Aquatic" in df.columns:
-        df = df.loc[df.Aquatic != "No"].copy()
-
-    # Convert status cols to bool
-    df["historical"] = df.historical == "Yes"
-    for col in status_cols:
-        df[col] = ~df[col].isin(["No", ""])
-
-    df["is_trout"] = ~df.is_trout.isin(["No", ""])
-    # fix trout-perch (not a trout)
-    df.loc[(df.SNAME == "Percopsis omiscomaycus") | (df.CNAME == "Trout-perch"), "is_trout"] = False
-
-    df = df[["HUC12", "SNAME", "CNAME", "historical", "federal", "sgcn", "regional", "is_trout"]]
-
+for layer in list_layers(caribbean_hi_gdb)[:, 0]:
+    df = read_spp_data(caribbean_hi_gdb, layer)
     merged = append(merged, df)
 
 df = merged
@@ -255,7 +270,9 @@ spp_presence = df.loc[df.federal | df.sgcn | df.regional].copy()
 
 cols = ["historical", "federal", "sgcn", "regional"]
 spp_presence[cols] = spp_presence[cols].astype("uint8")
-write_dataframe(spp_presence, out_dir / "spp_HUC12_stats.gdb", layer="presence", driver="OpenFileGDB")
+write_dataframe(
+    spp_presence, out_dir / "spp_HUC12_presence.gdb", layer="presence", driver="OpenFileGDB", use_arrow=True
+)
 
 
 ### Extract counts for SECAS: exclude any entries that are historical
@@ -304,7 +321,8 @@ df["salmonid_esu"] = df.salmonid_esu.fillna("")
 df = df.loc[df[status_cols + ["trout_spp_count", "salmonid_esu_count"]].max(axis=1) > 0].reset_index()
 
 df.to_feather(out_dir / "spp_HUC12.feather")
-write_dataframe(df, out_dir / "spp_HUC12_stats.gdb", layer="count", append=True, driver="OpenFileGDB")
+
+write_dataframe(df, out_dir / "spp_HUC12_count.gdb", layer="count", use_arrow=True, driver="OpenFileGDB")
 
 
 print("All done in {:.2f}s".format(time() - start))
