@@ -10,21 +10,23 @@ Note: some catchments have no floodplain, and some have floodplains but no NHDPl
 
 from pathlib import Path
 from time import time
+import re
 
 import pandas as pd
 from pyogrio import read_dataframe, list_layers
 
 from analysis.lib.util import append
 
-# NLCD natural landcover classes
-# descriptions here: https://www.mrlc.gov/data/legends/national-land-cover-database-2016-nlcd2016-legend
-NATURAL_TYPES = {11, 12, 31, 41, 42, 43, 51, 52, 71, 72, 73, 74, 90, 95}
+# per instructions from Kat 3/28/2025, exclude the following for NLCD and assume the rest are natural
+# types listed here https://www.mrlc.gov/data/legends/national-land-cover-database-class-legend-and-description
+NON_NATURAL_TYPES = {21, 22, 23, 24, 81, 82}
 
+# NOTE: other regions (AK, HI, PR, USVI) use LANDFIRE and only use VALUE_1 to indicate natural types
+LANDFIRE_HUC2s = {"19", "20", "21"}
 
 data_dir = Path("data")
 src_dir = data_dir / "floodplains"
-gdb_filename = src_dir / "NLCD2021_Floodplain_Stats_FINAL_2024.gdb"
-gdb2023_filename = src_dir / "HR_NLCD_Floodplain_Stats_Tables_2023.gdb"
+gdb_filename = src_dir / "Floodplain_Statistics_2025.gdb"
 
 start = time()
 
@@ -35,7 +37,8 @@ layers = sorted(list_layers(gdb_filename)[:, 0])
 
 merged = None
 for layer in layers:
-    huc2 = layer[-2:]
+    huc2 = re.search(r"(?<=Floodplain_stats_\d)\d\d", layer).group()
+
     print(f"Processing floodplain stats for {huc2}...")
 
     df = read_dataframe(gdb_filename, layer=layer)
@@ -44,29 +47,22 @@ for layer in layers:
     df = df.loc[df.NHDIDSTR != "None"].reset_index(drop=True)
 
     df["NHDPlusID"] = df.NHDIDSTR.astype("uint64")
-    cols = [c for c in df.columns if c.startswith("VALUE_")]
-    natural_cols = [c for c in cols if int(c.split("_")[1]) in NATURAL_TYPES]
+
+    if huc2 in LANDFIRE_HUC2s:
+        cols = [c for c in df.columns if c.startswith("VALUE_")]
+        natural_cols = ["VALUE_1"]
+
+    else:
+        # exclude VALUE_0 (NODATA)
+        cols = [c for c in df.columns if c.startswith("VALUE_") and c != "VALUE_0"]
+        natural_cols = [c for c in cols if int(c.split("_")[1]) not in NON_NATURAL_TYPES]
 
     df["floodplain_km2"] = df[cols].sum(axis=1) * 1e-6
     df["nat_floodplain_km2"] = df[natural_cols].sum(axis=1) * 1e-6
 
-    merged = append(merged, df[["HUC2", "NHDPlusID", "nat_floodplain_km2", "floodplain_km2"]])
-
-
-### read region 21 from old GDB
-print("Processing floodplain stats for 21...")
-df = read_dataframe(gdb2023_filename, layer="statsHR_region21_catchments_021")
-df["HUC2"] = "21"
-df["NHDPlusID"] = df.NHDIDSTR.astype("uint64")
-cols = [c for c in df.columns if c.startswith("VALUE_")]
-
-# NOTE: region 21 is from a different landcover dataset; VALUE_1 is natural
-natural_cols = ["VALUE_1"]
-
-df["floodplain_km2"] = df[cols].sum(axis=1) * 1e-6
-df["nat_floodplain_km2"] = df[natural_cols].sum(axis=1) * 1e-6
-
-merged = append(merged, df[["HUC2", "NHDPlusID", "nat_floodplain_km2", "floodplain_km2"]])
+    merged = append(
+        merged, df.loc[df.floodplain_km2 > 0, ["HUC2", "NHDPlusID", "nat_floodplain_km2", "floodplain_km2"]]
+    )
 
 
 merged.reset_index(drop=True).to_feather(src_dir / "floodplain_stats.feather")
