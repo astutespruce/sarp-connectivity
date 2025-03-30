@@ -33,8 +33,8 @@ def classify_streamorder(series):
     return np.asarray(pd.cut(series, bins, right=False, labels=np.arange(0, len(bins) - 1))).astype("uint8")
 
 
-def classify_percent_altered(series):
-    """classify percent altered into bins 1...6: 0 is reserved for missing values"""
+def classify_percent_unaltered(series):
+    """classify percent unaltered into bins 1...6: 0 is reserved for missing values"""
     bins = [-1, 0, 10, 50, 90] + [series.max() + 1]
     return np.asarray(pd.cut(series, bins, right=False, labels=np.arange(0, len(bins) - 1))).astype("uint8")
 

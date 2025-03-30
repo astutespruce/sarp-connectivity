@@ -74,8 +74,8 @@ const MainstemNetworkInfo = ({
   const freeintermittentlineardownstreammiles =
     freelineardownstreammiles - freeperenniallineardownstreammiles
 
-  const percentAltered = totalupstreammainstemmiles
-    ? (100 * alteredupstreammainstemmiles) / totalupstreammainstemmiles
+  const percentUnaltered = totalupstreammainstemmiles
+    ? (100 * unalteredupstreammainstemmiles) / totalupstreammainstemmiles
     : 0
 
   return (
@@ -375,14 +375,14 @@ const MainstemNetworkInfo = ({
       {totalupstreammainstemmiles > 0 ? (
         <>
           <Entry>
-            <Field label="Percent of the upstream network in altered stream channels">
+            <Field label="Percent of the upstream network in unaltered stream channels">
               <Text
                 sx={{
                   fontSize: 1,
                   fontWeight: 'bold',
                 }}
               >
-                {formatPercent(percentAltered)}%
+                {formatPercent(percentUnaltered)}%
               </Text>
             </Field>
           </Entry>

@@ -21,7 +21,7 @@ import {
   ROAD_TYPE,
   CONSTRICTION,
   WATERBODY_SIZECLASS,
-  PERCENT_ALTERED,
+  PERCENT_UNALTERED,
   PERCENT_RESILIENT,
   PERCENT_COLD,
   PASSAGEFACILITY_CLASS,
@@ -108,11 +108,11 @@ export const combinedBarriers = [
         ...getEntries(MAINSTEM_GAINMILES),
       },
       {
-        field: 'percentalteredclass',
-        title: 'Percent of upstream network in altered stream channels',
+        field: 'percentunalteredclass',
+        title: 'Percent of upstream network in unaltered stream channels',
         sort: false,
         help: 'Note: altered reaches are those specifically identified in NHD or the National Wetlands Inventory as altered (canal / ditch, within a reservoir, or other channel alteration); this status is not consistently available for all stream reaches.',
-        ...getEntries(PERCENT_ALTERED),
+        ...getEntries(PERCENT_UNALTERED),
       },
       {
         field: 'wildscenicriver',

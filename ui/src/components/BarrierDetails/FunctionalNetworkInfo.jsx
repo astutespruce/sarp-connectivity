@@ -81,8 +81,8 @@ const FunctionalNetworkInfo = ({
   const freeintermittentdownstreammiles =
     freedownstreammiles - freeperennialdownstreammiles
 
-  const percentAltered = totalupstreammiles
-    ? (100 * alteredupstreammiles) / totalupstreammiles
+  const percentUnaltered = totalupstreammiles
+    ? (100 * unalteredupstreammiles) / totalupstreammiles
     : 0
 
   return (
@@ -410,14 +410,14 @@ const FunctionalNetworkInfo = ({
       {totalupstreammiles > 0 ? (
         <>
           <Entry>
-            <Field label="Percent of the upstream network in altered stream channels">
+            <Field label="Percent of the upstream network in unaltered stream channels">
               <Text
                 sx={{
                   fontSize: 1,
                   fontWeight: 'bold',
                 }}
               >
-                {formatPercent(percentAltered)}%
+                {formatPercent(percentUnaltered)}%
               </Text>
             </Field>
           </Entry>

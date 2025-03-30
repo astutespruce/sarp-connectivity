@@ -10,7 +10,7 @@ from analysis.rank.lib.metrics import (
     classify_gain_miles,
     classify_mainstem_gain_miles,
     classify_downstream_miles,
-    classify_percent_altered,
+    classify_percent_unaltered,
     classify_percent_resilient,
     classify_percent_cold,
     classify_downstream_barriers,
@@ -246,7 +246,7 @@ def get_network_results(df, network_type, state_ranks=False):
     else:
         networks["MainstemGainMilesClass"] = np.int8(-1)
 
-    networks["PercentAlteredClass"] = classify_percent_altered(networks.PercentAltered)
+    networks["PercentUnalteredClass"] = classify_percent_unaltered(networks.PercentUnaltered)
     networks["PercentResilientClass"] = classify_percent_resilient(networks.PercentResilient)
     networks["PercentColdClass"] = classify_percent_cold(networks.PercentCold)
 

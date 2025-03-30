@@ -70,8 +70,8 @@ const MainstemNetworkInfo = ({
   const freeintermittentlineardownstreammiles =
     freelineardownstreammiles - freeperenniallineardownstreammiles
 
-  const percentAltered = totalupstreammainstemmiles
-    ? (100 * alteredupstreammainstemmiles) / totalupstreammainstemmiles
+  const percentUnaltered = totalupstreammainstemmiles
+    ? (100 * unalteredupstreammainstemmiles) / totalupstreammainstemmiles
     : 0
 
   const colWidth = totalupstreammainstemmiles > 0 ? 1 / 4 : 1 / 3
@@ -126,10 +126,10 @@ const MainstemNetworkInfo = ({
           >
             <Text>
               <Bold>
-                {formatPercent(percentAltered, 0)}% of the upstream mainstem
+                {formatPercent(percentUnaltered, 0)}% of the upstream mainstem
                 network
               </Bold>{' '}
-              is in altered stream reaches.
+              is in unaltered stream reaches.
             </Text>
           </View>
         ) : null}

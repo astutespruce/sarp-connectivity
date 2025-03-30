@@ -1150,7 +1150,7 @@ export const LOWHEAD_DAM = {
   3: 'not a lowhead dam',
 }
 
-export const PERCENT_ALTERED = {
+export const PERCENT_UNALTERED = {
   // 0: no network // filtered out
   1: '0 - 9%',
   2: '10 - 49%',

@@ -292,7 +292,7 @@ FILTER_FIELDS = [
     "SalmonidESUCount",
     "StreamOrderClass",
     "AnnualFlowClass",
-    "PercentAlteredClass",
+    "PercentUnalteredClass",
     "PercentResilientClass",
     "PercentColdClass",
     "OwnerType",
@@ -674,6 +674,8 @@ WF_CORE_FIELDS = (
         "FishHabitatPartnership",
         "OwnerType",
         "ProtectedLand",
+        "WildScenicRiver",
+        "Wilderness",
         # Watershed names
         "Basin",
         "Subbasin",
