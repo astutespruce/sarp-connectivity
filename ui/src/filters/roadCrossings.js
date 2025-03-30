@@ -16,6 +16,7 @@ import {
   FISH_HABITAT_PARTNERSHIPS,
   DIADROMOUS_HABITAT,
   WILDSCENIC_RIVER,
+  YEAR_SURVEYED_BINS,
 } from 'config'
 
 import { getEntries } from './common'
@@ -32,6 +33,20 @@ export const roadCrossings = [
         sort: false,
         hideIfEmpty: false,
         ...getEntries(SURVEYED),
+      },
+      {
+        field: 'yearsurveyedclass',
+        title: 'Year surveyed',
+        sort: false,
+        hideMissingValues: false,
+        ...getEntries(YEAR_SURVEYED_BINS),
+      },
+      {
+        field: 'resurveyed',
+        title: 'Has the crossing been resurveyed?',
+        sort: false,
+        hideMissingValues: false,
+        ...getEntries(BOOLEAN_FIELD),
       },
     ],
   },

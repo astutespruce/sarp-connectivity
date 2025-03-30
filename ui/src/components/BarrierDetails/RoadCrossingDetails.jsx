@@ -34,6 +34,7 @@ const RoadCrossingDetails = ({
   onloop,
   ownertype,
   regionalsgcnspp,
+  resurveyed,
   road,
   roadtype,
   salmonidesu,
@@ -49,6 +50,7 @@ const RoadCrossingDetails = ({
   trout,
   wilderness,
   wildscenicriver,
+  yearsurveyed,
 }) => (
   <Box
     sx={{
@@ -87,6 +89,8 @@ const RoadCrossingDetails = ({
         streamsizeclass={streamsizeclass}
         wilderness={wilderness}
         wildscenicriver={wildscenicriver}
+        yearsurveyed={yearsurveyed}
+        resurveyed={resurveyed}
       />
     </Section>
 
@@ -178,6 +182,7 @@ RoadCrossingDetails.propTypes = {
   onloop: PropTypes.bool,
   ownertype: PropTypes.number,
   regionalsgcnspp: PropTypes.number,
+  resurveyed: PropTypes.number,
   road: PropTypes.string,
   roadtype: PropTypes.number,
   salmonidesu: PropTypes.string,
@@ -193,6 +198,7 @@ RoadCrossingDetails.propTypes = {
   trout: PropTypes.string,
   wilderness: PropTypes.number,
   wildscenicriver: PropTypes.number,
+  yearsurveyed: PropTypes.number,
 }
 
 RoadCrossingDetails.defaultProps = {
@@ -212,6 +218,7 @@ RoadCrossingDetails.defaultProps = {
   barrierownertype: null,
   ownertype: null,
   regionalsgcnspp: 0,
+  resurveyed: 0,
   road: null,
   roadtype: null,
   salmonidesu: null,
@@ -227,6 +234,7 @@ RoadCrossingDetails.defaultProps = {
   trout: null,
   wilderness: null,
   wildscenicriver: null,
+  yearsurveyed: 0,
 }
 
 export default RoadCrossingDetails

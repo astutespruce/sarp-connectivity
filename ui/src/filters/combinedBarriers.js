@@ -42,6 +42,7 @@ import {
   UNALTERED_WETLAND_CLASS,
   DIADROMOUS_HABITAT,
   WILDSCENIC_RIVER,
+  YEAR_SURVEYED_BINS,
 } from 'config'
 
 import { getEntries, hasDiadromousData } from './common'
@@ -269,6 +270,20 @@ export const combinedBarriers = [
         field: 'constriction',
         title: 'Type of constriction',
         ...getEntries(CONSTRICTION),
+      },
+      {
+        field: 'yearsurveyedclass',
+        title: 'Year surveyed',
+        sort: false,
+        hideMissingValues: false,
+        ...getEntries(YEAR_SURVEYED_BINS),
+      },
+      {
+        field: 'resurveyed',
+        title: 'Has the barrier been resurveyed?',
+        sort: false,
+        hideMissingValues: false,
+        ...getEntries(BOOLEAN_FIELD),
       },
     ],
   },

@@ -1,5 +1,7 @@
 """Constants used in other scripts."""
 
+from datetime import datetime
+
 # Mapping of network type to barrier kinds that break the network based
 # on the value in the boolean column
 NETWORK_TYPES = {
@@ -161,12 +163,10 @@ METERS_TO_MILES = 0.000621371
 KM2_TO_ACRES = 247.105
 
 
-# Bin year removed in to smaller groups
-# 0 = unknown
-# 1 = <= 1999
-# NOTE: need to include 1 year beyond current
-YEAR_REMOVED_BINS = [0, 1, 2000, 2010, 2020, 2021, 2022, 2023, 2024, 2025, 2026]
-
+# classify year removed and surveyed into 0, <2000, 2000-2009, 2010-2019, 2020, 2021, 2022, 2023, 2024
+# NOTE: include 1 year beyond current year
+YEAR_REMOVED_BINS = [0, 1, 2000, 2010, 2020] + list(range(2021, datetime.today().year + 2))
+YEAR_SURVEYED_BINS = [0, 1, 2000, 2010, 2020] + list(range(2021, datetime.today().year + 2))
 
 # distance within which points snapping to a line will snap to endpoint of the line
 SNAP_ENDPOINT_TOLERANCE = 1  # meters
@@ -243,6 +243,7 @@ DAM_FS_COLS = [
     "NRCS_Dam",
     "Active150",
     "KeepOnActiveList",
+    # "Year_Recon" # TODO: not yet available
 ]
 
 
@@ -274,6 +275,8 @@ SMALL_BARRIER_COLS = [
     "Priority_Identified",
     "ActiveList",
     "KeepOnActiveList",
+    "Year_Surveyed",
+    "Resurveyed",
     # Not used:
     # "NumberOfStructures",
     # "CrossingComment",

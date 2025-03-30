@@ -89,6 +89,7 @@ async def download_dams(token):
                 "NORMSTOR": "StorageVolume",
                 "Last_Updated": "EditDate",
                 "Active150": "ActiveList",
+                "Year_Recon": "YearSurveyed",
             }
         )
 
@@ -162,6 +163,7 @@ async def download_small_barriers(token, private_token):
                 "OwnerType": "BarrierOwnerType",
                 "Protocol_Used": "ProtocolUsed",
                 "Priority_Identified": "IsPriority",
+                "Year_Surveyed": "YearSurveyed",
             }
         )
 

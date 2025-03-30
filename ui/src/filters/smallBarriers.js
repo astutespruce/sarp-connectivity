@@ -30,6 +30,7 @@ import {
   UNALTERED_WETLAND_CLASS,
   DIADROMOUS_HABITAT,
   WILDSCENIC_RIVER,
+  YEAR_SURVEYED_BINS,
 } from 'config'
 
 import { getEntries, hasDiadromousData } from './common'
@@ -164,6 +165,20 @@ export const smallBarriers = [
         hideMissingValues: false,
         help: 'Note: fish passage facility information is only available for a small number of road-related barriers.  Not all data sources recorded this information.',
         ...getEntries(PASSAGEFACILITY_CLASS, (v) => v > 0),
+      },
+      {
+        field: 'yearsurveyedclass',
+        title: 'Year surveyed',
+        sort: false,
+        hideMissingValues: false,
+        ...getEntries(YEAR_SURVEYED_BINS),
+      },
+      {
+        field: 'resurveyed',
+        title: 'Has the barrier been resurveyed?',
+        sort: false,
+        hideMissingValues: false,
+        ...getEntries(BOOLEAN_FIELD),
       },
     ],
   },

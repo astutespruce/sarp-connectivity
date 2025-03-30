@@ -14,7 +14,9 @@ const Header = ({
   lat,
   lon,
   removed,
+  resurveyed,
   yearremoved,
+  yearsurveyed,
   ispriority,
   lowheaddam,
   diversion,
@@ -90,24 +92,32 @@ const Header = ({
         </Flex>
       ) : null}
 
-      <Text style={{ color: '#5f6e78' }}>
-        Barrier type:{' '}
-        {isLowheadDam ? (
-          <>
-            {lowheaddam === 2 ? 'likely ' : null}
-            lowhead dam
-          </>
+      <Flex style={{ color: '#5f6e78', justifyContent: 'space-between' }}>
+        <Text style={{ flex: '1 1 auto' }}>
+          Barrier type:{' '}
+          {isLowheadDam ? (
+            <>
+              {lowheaddam === 2 ? 'likely ' : null}
+              lowhead dam
+            </>
+          ) : null}
+          {isDiversion ? (
+            <>
+              {isLowheadDam ? ',' : null} {diversion === 2 ? 'likely ' : null}{' '}
+              water diversion
+            </>
+          ) : null}
+          {estimated ? 'estimated ' : ''}
+          {!(isLowheadDam || isDiversion) ? barrierTypeLabel : null}
+          {invasive ? <>, invasive species barrier</> : null}
+        </Text>
+        {yearsurveyed !== 0 ? (
+          <Text style={{ flex: '0 0 auto' }}>
+            surveyed in {yearsurveyed}
+            {resurveyed !== 0 ? ' (resurveyed)' : null}
+          </Text>
         ) : null}
-        {isDiversion ? (
-          <>
-            {isLowheadDam ? ',' : null} {diversion === 2 ? 'likely ' : null}{' '}
-            water diversion
-          </>
-        ) : null}
-        {estimated ? 'estimated ' : ''}
-        {!(isLowheadDam || isDiversion) ? barrierTypeLabel : null}
-        {invasive ? <>, invasive species barrier</> : null}
-      </Text>
+      </Flex>
 
       <Flex
         style={{
@@ -143,7 +153,9 @@ Header.propTypes = {
   lat: PropTypes.number.isRequired,
   lon: PropTypes.number.isRequired,
   removed: PropTypes.bool,
+  resurveyed: PropTypes.number,
   yearremoved: PropTypes.number,
+  yearsurveyed: PropTypes.number,
   ispriority: PropTypes.number,
   lowheaddam: PropTypes.number,
   diversion: PropTypes.number,
@@ -153,7 +165,9 @@ Header.propTypes = {
 
 Header.defaultProps = {
   removed: false,
+  resurveyed: 0,
   yearremoved: null,
+  yearsurveyed: 0,
   ispriority: 0,
   lowheaddam: 0,
   diversion: 0,

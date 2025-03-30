@@ -1626,7 +1626,21 @@ export const TIER_PACK_INFO = { bits: 5, value_shift: 1 }
 //   { field: 'mncwc', bits: 5, value_shift: 1 },
 // ]
 
+// TODO: this needs to be updated each year!
 export const YEAR_REMOVED_BINS = {
+  0: 'unknown',
+  1: 'before 2000',
+  2: '2000-2009',
+  3: '2010-2019',
+  4: '2020',
+  5: '2021',
+  6: '2022',
+  7: '2023',
+  8: '2024',
+  9: '2025',
+}
+
+export const YEAR_SURVEYED_BINS = {
   0: 'unknown',
   1: 'before 2000',
   2: '2000-2009',

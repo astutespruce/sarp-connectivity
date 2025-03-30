@@ -133,6 +133,7 @@ const DamDetails = ({
   wildscenicriver,
   yearcompleted,
   yearremoved,
+  yearsurveyed,
   invasivenetwork,
   ...props // includes species habitat fields selected dynamically
 }) => {
@@ -225,6 +226,7 @@ const DamDetails = ({
           wilderness={wilderness}
           wildscenicriver={wildscenicriver}
           fatality={fatality}
+          yearsurveyed={yearsurveyed}
         />
       </Section>
 
@@ -587,6 +589,7 @@ DamDetails.propTypes = {
   wildscenicriver: PropTypes.number,
   yearcompleted: PropTypes.number,
   yearremoved: PropTypes.number,
+  yearsurveyed: PropTypes.number,
   invasivenetwork: PropTypes.number,
   alewifehabitatupstreammiles: PropTypes.number,
   freealewifehabitatdownstreammiles: PropTypes.number,
@@ -747,6 +750,7 @@ DamDetails.defaultProps = {
   wildscenicriver: null,
   yearcompleted: 0,
   yearremoved: 0,
+  yearsurveyed: 0,
   invasivenetwork: 0,
   alewifehabitatupstreammiles: 0,
   freealewifehabitatdownstreammiles: 0,

@@ -117,6 +117,7 @@ const BarrierDetails = ({
   attachments,
   statesgcnspp,
   resilientupstreammiles,
+  resurveyed,
   river,
   streamorder,
   streamsizeclass,
@@ -137,6 +138,7 @@ const BarrierDetails = ({
   wilderness,
   wildscenicriver,
   yearremoved,
+  yearsurveyed,
   ...props // includes species habitat fields selected dynamically
 }) => {
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
@@ -189,6 +191,8 @@ const BarrierDetails = ({
           streamsizeclass={streamsizeclass}
           wilderness={wilderness}
           wildscenicriver={wildscenicriver}
+          yearsurveyed={yearsurveyed}
+          resurveyed={resurveyed}
         />
       </Section>
 
@@ -421,6 +425,7 @@ BarrierDetails.propTypes = {
   barrierseverity: PropTypes.number,
   basin: PropTypes.string,
   canal: PropTypes.number,
+  coldupstreammiles: PropTypes.number,
   condition: PropTypes.number,
   congressionaldistrict: PropTypes.string,
   constriction: PropTypes.number,
@@ -434,6 +439,7 @@ BarrierDetails.propTypes = {
   flowstogreatlakes: PropTypes.number,
   freealtereddownstreammiles: PropTypes.number,
   freealteredlineardownstreammiles: PropTypes.number,
+  freecolddownstreammiles: PropTypes.number,
   freedownstreammiles: PropTypes.number,
   freelineardownstreammiles: PropTypes.number,
   freeperennialdownstreammiles: PropTypes.number,
@@ -455,6 +461,7 @@ BarrierDetails.propTypes = {
   ownertype: PropTypes.number,
   partnerid: PropTypes.string,
   passagefacility: PropTypes.number,
+  percentcold: PropTypes.number,
   percentresilient: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
   perennialupstreammainstemmiles: PropTypes.number,
@@ -472,6 +479,7 @@ BarrierDetails.propTypes = {
   attachments: PropTypes.string,
   statesgcnspp: PropTypes.number,
   resilientupstreammiles: PropTypes.number,
+  resurveyed: PropTypes.number,
   river: PropTypes.string,
   streamorder: PropTypes.number,
   streamsizeclass: PropTypes.string,
@@ -492,6 +500,7 @@ BarrierDetails.propTypes = {
   wilderness: PropTypes.number,
   wildscenicriver: PropTypes.number,
   yearremoved: PropTypes.number,
+  yearsurveyed: PropTypes.number,
   invasivenetwork: PropTypes.number,
   alewifehabitatupstreammiles: PropTypes.number,
   freealewifehabitatdownstreammiles: PropTypes.number,
@@ -563,6 +572,7 @@ BarrierDetails.defaultProps = {
   barrierseverity: null,
   basin: null,
   canal: 0,
+  coldupstreammiles: 0,
   condition: null,
   congressionaldistrict: null,
   constriction: null,
@@ -576,6 +586,7 @@ BarrierDetails.defaultProps = {
   flowstogreatlakes: 0,
   freealtereddownstreammiles: 0,
   freealteredlineardownstreammiles: 0,
+  freecolddownstreammiles: 0,
   freedownstreammiles: 0,
   freelineardownstreammiles: 0,
   freeperennialdownstreammiles: 0,
@@ -596,11 +607,13 @@ BarrierDetails.defaultProps = {
   ownertype: null,
   partnerid: null,
   passagefacility: null,
+  percentcold: 0,
   percentresilient: 0,
   perennialupstreammiles: 0,
   perennialupstreammainstemmiles: 0,
   protocolused: null,
   regionalsgcnspp: 0,
+  resurveyed: 0,
   removed: false,
   road: null,
   roadtype: null,
@@ -633,6 +646,7 @@ BarrierDetails.defaultProps = {
   wilderness: null,
   wildscenicriver: null,
   yearremoved: 0,
+  yearsurveyed: 0,
   invasivenetwork: 0,
   alewifehabitatupstreammiles: 0,
   freealewifehabitatdownstreammiles: 0,

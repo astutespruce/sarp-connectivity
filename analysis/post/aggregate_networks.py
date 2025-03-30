@@ -296,6 +296,7 @@ fill_columns = [
     "RoadType",
     "SARP_Score",
     "BarrierSeverity",
+    "Resurveyed",
 ]
 
 dtypes = (
@@ -308,7 +309,7 @@ dtypes = (
 )
 for col in fill_columns:
     orig_dtype = dtypes[col]
-    if col.endswith("Class"):
+    if col.endswith("Class") or col in {"Resurveyed"}:
         combined[col] = combined[col].fillna(0).astype(orig_dtype)
 
     else:

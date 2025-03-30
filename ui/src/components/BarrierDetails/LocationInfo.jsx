@@ -52,6 +52,8 @@ const LocationInfo = ({
   waterbodyacres,
   wilderness,
   wildscenicriver,
+  yearsurveyed,
+  resurveyed,
   fatality,
 }) => {
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
@@ -62,6 +64,15 @@ const LocationInfo = ({
 
   return (
     <>
+      {yearsurveyed !== 0 ? (
+        <Entry>
+          <Field label="Year surveyed">
+            {yearsurveyed}
+            {resurveyed !== 0 ? ' (resurveyed)' : null}
+          </Field>
+        </Entry>
+      ) : null}
+
       <Entry>
         <Text sx={{ fontSize: 1 }}>
           {hasReachName ? `On ${reachName} in` : 'Within'} {subwatershed}{' '}
@@ -69,6 +80,7 @@ const LocationInfo = ({
         </Text>
         <Text sx={{ fontSize: 0, color: 'grey.8' }}>(HUC12: {huc12})</Text>
       </Entry>
+
       {wildscenicriver ? (
         <>
           <Entry>
@@ -318,6 +330,8 @@ LocationInfo.propTypes = {
   waterbodyacres: PropTypes.number,
   wilderness: PropTypes.number,
   wildscenicriver: PropTypes.number,
+  yearsurveyed: PropTypes.number,
+  resurveyed: PropTypes.number,
   fatality: PropTypes.number,
 }
 
@@ -348,6 +362,8 @@ LocationInfo.defaultProps = {
   waterbodyacres: null,
   wilderness: null,
   wildscenicriver: null,
+  yearsurveyed: 0,
+  resurveyed: 0,
   fatality: 0,
 }
 

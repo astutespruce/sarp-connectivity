@@ -315,6 +315,7 @@ FILTER_FIELDS = [
     "UpstreamUnalteredWaterbodyClass",
     "UpstreamUnalteredWetlandClass",
     "DiadromousHabitat",
+    "YearSurveyedClass",
 ]
 
 DAM_FILTER_FIELDS = FILTER_FIELDS + [
@@ -343,6 +344,7 @@ SB_FILTER_FIELDS = FILTER_FIELDS + [
     "CrossingType",
     "Removed",
     "IsPriority",
+    "Resurveyed",
 ]
 SB_FILTER_FIELD_MAP = {f.lower(): f for f in SB_FILTER_FIELDS}
 
@@ -366,6 +368,8 @@ ROAD_CROSSING_FILTER_FIELDS = [
     "DisadvantagedCommunity",
     "FishHabitatPartnership",
     "Surveyed",
+    "YearSurveyedClass",
+    "Resurveyed",
     "OnNetwork",
     "WildScenicRiver",
     "Wilderness",
@@ -399,6 +403,7 @@ GENERAL_API_FIELDS2 = (
     [
         "Removed",
         "YearRemoved",
+        "YearSurveyed",
         "Condition",
         "PassageFacility",
         "TESpp",
@@ -533,6 +538,7 @@ SB_CORE_FIELDS = (
         "ProtocolUsed",
         "Recon",
         "IsPriority",
+        "Resurveyed",
     ]
     + GENERAL_API_FIELDS2
 )
@@ -589,6 +595,8 @@ ROAD_CROSSING_CORE_FIELDS = (
         # for parity with small barriers
         "Removed",
         "YearRemoved",
+        "YearSurveyed",
+        "Resurveyed",
         "Constriction",
         "PotentialProject",
         "BarrierSeverity",
@@ -1114,6 +1122,8 @@ PASSAGEFACILITY_CLASS_DOMAIN = {
     1: "Fish passage structure present",
 }
 
+RESURVEYED_DOMAIN = {0: "Unknown or not resurveyed", 1: "Resurveyed"}
+
 PASSAGEFACILITY_DOMAIN = {
     0: "Unknown or none",
     1: "Trap & truck",
@@ -1368,6 +1378,7 @@ DOMAINS = {
     "Constriction": CONSTRICTION_DOMAIN,
     "CrossingType": CROSSING_TYPE_DOMAIN,
     "RoadType": ROAD_TYPE_DOMAIN,
+    "Resurveyed": RESURVEYED_DOMAIN,
     # crossing fields
     "Surveyed": SURVEYED_CROSSING_DOMAIN,
     "OnNetwork": BOOLEAN_DOMAIN,
@@ -1425,6 +1436,7 @@ FIELD_DEFINITIONS = {
     "YearCompleted": "year that construction was completed, if available.  0 = data not available.",
     "Removed": "Identifies if the {type} has been removed for conservation, if known.  Removed barriers will not have values present for all fields.",
     "YearRemoved": "year that barrier was removed or mitigated, if available.  All barriers removed prior to 2000 or where YearRemoved is unknown were lumped together for the network analysis.  0 = data not available or not removed / mitigated.",
+    "YearSurveyed": "year that barrier was surveyed, if available.  0 = data not available.",
     "Height": "{type} height in feet, if available.  0 = data not available.",
     "Length": "{type} length in feet, if available.  0 = data not available.",
     "Width": "{type} width in feet, if available.  0 = data not available.",
@@ -1452,6 +1464,7 @@ FIELD_DEFINITIONS = {
     "BarrierSeverity": "barrier severity of the {type}, if known.   Note: assessment dates are not known.",
     "SARP_Score": "The best way to consider the aquatic passability scores is that they represent the degree to which crossings deviate from an ideal crossing. We assume that those crossings that are very close to the ideal (scores > 0.6) will present only a minor or insignificant barrier to aquatic organisms. Those structures that are farthest from the ideal (scores < 0.4) are likely to be either significant or severe barriers. These are, however, arbitrary distinctions imposed on a continuous scoring system and should be used with that in mind. -1 = not available.",
     "ProtocolUsed": "Name of survey protocol used",
+    "Resurveyed": "indicates if barrier was known to have been resurveyed",
     # crossing-specific fields
     "Surveyed": "Indicates if the crossing has likely been surveyed according to assessed road/stream crossing data.  'yes': inventoried barrier was linked to crossing at time of survey, 'likely': inventoried barrier within 50m, 'not likely': no inventoried barrier within 50m.",
     "OnNetwork": "if yes, this {type} was snapped to the aquatic network and does not occur on a loop within the NHD High Resolution aquatic network and is not snapped to an off-network canal or ditch; if no, this {type} is either on a loop or an off-network canal or ditch considered off-network for purposes of network analysis and ranking",

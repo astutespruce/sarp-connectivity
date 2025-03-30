@@ -64,6 +64,7 @@ from analysis.constants import (
     FCODE_TO_STREAMTYPE,
     CONSTRICTION_TO_DOMAIN,
     BARRIEROWNERTYPE_TO_DOMAIN,
+    YEAR_SURVEYED_BINS,
 )
 
 ### Custom tolerance values for dams
@@ -126,6 +127,9 @@ crossings = (
 # save original USGS ID because SourceID gets overwritten on match with road barrier
 crossings["USGSCrossingID"] = crossings.SourceID.values
 crossings["Surveyed"] = np.uint8(0)
+crossings["YearSurveyed"] = np.uint16(0)
+crossings["YearSurveyedClass"] = np.uint8(0)
+crossings["Resurveyed"] = np.uint8(0)
 crossings["excluded"] = False
 crossings["removed"] = False
 crossings["invasive"] = False
@@ -245,12 +249,19 @@ df.loc[ix, "Name"] = "Road barrier - " + df.loc[ix].River
 df.loc[df.RoadType.str.lower().isin(("no data", "nodata")), "RoadType"] = "Unknown"
 df["RoadType"] = df.RoadType.fillna("").apply(lambda x: f"{x[0].upper()}{x[1:]}" if x else x)
 
-for column in ("YearRemoved", "YearFishPass"):
+for column in ("YearRemoved", "YearFishPass", "YearSurveyed"):
     df[column] = df[column].fillna(0).astype("uint16")
 
 # Fix bad values for YearRemoved
 df.loc[(df.YearRemoved > 0) & (df.YearRemoved < 1900), "YearRemoved"] = np.uint16(0)
 df.loc[(df.YearFishPass > 0) & (df.YearFishPass < 1900), "YearFishPass"] = np.uint16(0)
+
+# Fix bad values for YearSurveyed
+df.loc[(df.YearSurveyed < 1899) | (df.YearSurveyed > datetime.today().year), "YearSurveyed"] = np.uint16(0)
+
+df["YearSurveyedClass"] = np.asarray(
+    pd.cut(df.YearSurveyed, YEAR_SURVEYED_BINS, right=False, labels=np.arange(0, len(YEAR_SURVEYED_BINS) - 1))
+).astype("uint8")
 
 
 #########  Fill NaN fields and set data types
@@ -264,8 +275,9 @@ df.loc[df.SourceID.str.startswith("-"), "SourceID"] = ""
 for column in ["Editor", "EditDate"]:
     df[column] = df[column].fillna("")
 
-for column in ["PassageFacility"]:
+for column in ["PassageFacility", "Resurveyed"]:
     df[column] = df[column].fillna(0).astype("uint8")
+
 
 ### Convert to domain values
 # Recode BarrierOwnerType
@@ -750,6 +762,9 @@ copy_cols = [
     "Constriction",
     "SARP_Score",
     "ProtocolUsed",
+    "YearSurveyed",
+    "YearSurveyedClass",
+    "Resurveyed",
     "PartnerID",
 ]
 crossings = crossings.join(
@@ -779,6 +794,9 @@ for col in [
     "Constriction",
     "SARP_Score",
     "ProtocolUsed",
+    "YearSurveyed",
+    "YearSurveyedClass",
+    "Resurveyed",
     "PartnerID",
 ]:
     crossings.loc[surveyed, col] = crossings.loc[surveyed, f"{col}_barrier"].astype(crossings[col].dtype)

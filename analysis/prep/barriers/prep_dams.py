@@ -74,6 +74,7 @@ from analysis.constants import (
     HAZARD_TO_DOMAIN,
     FERCREGULATED_TO_DOMAIN,
     STATEREGULATED_TO_DOMAIN,
+    YEAR_SURVEYED_BINS,
 )
 from analysis.lib.io import read_arrow_tables
 
@@ -109,6 +110,11 @@ print("Reading dams in analysis region states")
 
 df = gp.read_feather(src_dir / "sarp_dams.feather")
 print(f"Read {len(df):,} dams in region states")
+
+# FIXME: remove once Year_Recon is added to dams service
+if "YearSurveyed" not in df.columns:
+    df["YearSurveyed"] = np.uint16(0)
+
 
 # join in cost columns, but only where height is within tolerance because height
 # may have been updated for a given dam after it was run through the analysis
@@ -292,8 +298,14 @@ for column in (
     df[column] = df[column].fillna(0).astype("uint8")
 
 
-for column in ("YearCompleted", "YearRemoved", "YearFishPass", "StructureClass"):
+for column in ("YearCompleted", "YearRemoved", "YearSurveyed", "YearFishPass", "StructureClass"):
     df[column] = df[column].fillna(0).astype("uint16")
+
+
+df["YearSurveyedClass"] = np.asarray(
+    pd.cut(df.YearSurveyed, YEAR_SURVEYED_BINS, right=False, labels=np.arange(0, len(YEAR_SURVEYED_BINS) - 1))
+).astype("uint8")
+
 
 # Fix bad values for YearRemoved & YearFishPass
 df.loc[(df.YearRemoved > 0) & (df.YearRemoved < 1900), "YearRemoved"] = np.uint16(0)
