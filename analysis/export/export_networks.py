@@ -13,12 +13,12 @@ out_dir.mkdir(exist_ok=True, parents=True)
 
 
 # full network scenarios are: "dams", "combined_barriers", "largefish_barriers", "smallfish_barriers"
-scenario = "dams"
-mainstem = False
-ext = "fgb"
-driver = "FlatGeobuf"
-# ext = "gdb"
-# driver = "OpenFileGDB"
+scenario = "combined_barriers"
+mainstem = True
+# ext = "fgb"
+# driver = "FlatGeobuf"
+ext = "gdb"
+driver = "OpenFileGDB"
 
 
 # Doesn't appear to work in QGIS
@@ -30,23 +30,30 @@ scenario_suffix = "_mainstem" if mainstem else ""
 groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
 
 export_hucs = {
-    # "01",
-    # "02",
-    # "03"
+    "01",
+    "02",
+    # "03",
     # "04",
     # "05",
     # "06",
     # "07",
     # "08",
     # "09",
+    # "10",
+    # "11",
+    # "12",
+    # "13",
     # "14",
     # "15",
     # "16",
     # "17",
-    "18",
+    # "18",
     # "21"
 }
 # export_hucs = {"08", "11"}
+
+# FIXME: remove
+groups_df = groups_df.loc[groups_df.HUC2.isin(export_hucs)]
 
 
 floodplains = (
@@ -59,9 +66,7 @@ floodplains = (
 )
 floodplains["natfldpln"] = (100 * floodplains.natfldkm2 / floodplains.fldkm2).astype("float32")
 
-# FIXME:
-# for group in groups_df.groupby("group").HUC2.apply(set).values:
-for group in [{"18"}]:
+for group in groups_df.groupby("group").HUC2.apply(set).values:
     group = sorted(group)
 
     networkID_col = f"{scenario}{scenario_suffix}"
@@ -97,6 +102,7 @@ for group in [{"18"}]:
             "pct_perennial_unaltered",
             "resilient_miles",
             "pct_resilient",
+            "pct_cold",
             "natfldpln",
             "sizeclasses",
             "barrier",

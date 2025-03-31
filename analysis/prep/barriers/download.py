@@ -259,7 +259,7 @@ df.SARPID = df.SARPID.fillna("").astype("str")
 s = df.groupby("SARPID").size()
 if s.max() > 1:
     print("WARNING: multiple dams with same SARPID")
-    print(s[s > 1])
+    print(", ".join(sorted(s[s > 1].index.tolist())))
 
 
 df.to_feather(out_dir / "sarp_dams.feather")
@@ -274,7 +274,7 @@ print(f"Downloaded {len(df):,} snapped dams in {time() - download_start:.2f}s")
 s = df.groupby("SARPID").size()
 if s.max() > 1:
     print("WARNING: multiple dams with same SARPID in snapped dataset")
-    print(s[s > 1])
+    print(", ".join(sorted(s[s > 1].index.tolist())))
 
 df.to_feather(out_dir / "manually_snapped_dams.feather")
 
@@ -297,7 +297,7 @@ df.SARPID = df.SARPID.fillna("").astype("str")
 s = df.groupby("SARPID").size()
 if s.max() > 1:
     print("WARNING: multiple small barriers with same SARPID")
-    print(s[s > 1])
+    print(", ".join(sorted(s[s > 1].index.tolist())))
 
 df.to_feather(out_dir / "sarp_small_barriers.feather")
 
@@ -326,7 +326,8 @@ df.SARPID = df.SARPID.fillna("").astype("str")
 
 s = df.groupby("SARPID").size()
 if s.max() > 1:
-    print(f"WARNING: {len(s[s > 1])} waterfalls with same SARPID")
+    print("WARNING: multiple waterfalls with same SARPID")
+    print(", ".join(sorted(s[s > 1].index.tolist())))
 
 
 df.to_feather(out_dir / "waterfalls.feather")

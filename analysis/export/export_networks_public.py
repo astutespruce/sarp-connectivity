@@ -12,21 +12,17 @@ src_dir = Path("data/networks")
 out_dir = Path("/tmp/sarp")
 out_dir.mkdir(exist_ok=True)
 
-scenario = "combined_barriers"  # "dams", "combined_barriers", "largefish_barriers", "smallfish_barriers"
+scenario = "artificial_barriers"  # "dams", "combined_barriers", "largefish_barriers", "smallfish_barriers", "artificial_barriers"
 suffix = ""
 ext = "gdb"
 driver = "OpenFileGDB"
 
-huc2_groups = [
-    {"16"},
-    {"17"},
-    {"18"},
-]
+groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
 
-huc2s = set()
-for group in huc2_groups:
-    huc2s = huc2s.union(group)
-huc2s = sorted(huc2s)
+# to filter for groups that contain particular HUC2s:
+# groups_df = groups_df.loc[groups_df.group.isin(groups_df.loc[groups_df.HUC2.isin(["01", "02", "04", "05"])].group)]
+
+huc2_groups = groups_df.groupby("group").HUC2.unique().apply(sorted).to_dict().values()
 
 
 floodplains = (
@@ -59,19 +55,27 @@ for group in huc2_groups:
             "altered_miles",
             "unaltered_miles",
             "perennial_unaltered_miles",
+            "resilient_miles",
+            "cold_miles",
             "free_miles",
             "free_perennial_miles",
             "free_intermittent_miles",
             "free_altered_miles",
             "free_unaltered_miles",
             "free_perennial_unaltered_miles",
+            "free_resilient_miles",
+            "free_cold_miles",
             "pct_unaltered",
             "pct_perennial_unaltered",
             "pct_mainstem_unaltered",
+            "pct_resilient",
+            "pct_cold",
             "natfldpln",
             "sizeclasses",
             "barrier",
             "flows_to_ocean",
+            "flows_to_great_lakes",
+            "miles_to_outlet",
         ],
     ).set_index("networkID")
 
@@ -99,13 +103,13 @@ for group in huc2_groups:
                 "length",
                 "intermittent",
                 "altered",
+                "waterbody",
                 "sizeclass",
                 "StreamOrder",
                 "NHDPlusID",
                 "FCode",
                 "FType",
                 "TotDASqKm",
-                "HUC4",
             ],
         ).set_index("lineID")
 
@@ -116,7 +120,7 @@ for group in huc2_groups:
         flowlines = (
             flowlines.join(segments)
             .join(floodplains, on="NHDPlusID")
-            .join(stats[["sizeclasses", "flows_to_ocean"]], on="networkID")
+            .join(stats[["sizeclasses", "flows_to_ocean", "flows_to_great_lakes"]], on="networkID")
         )
         flowlines["km"] = flowlines["length"] / 1000.0
         flowlines["miles"] = flowlines["length"] * 0.000621371

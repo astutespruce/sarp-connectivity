@@ -257,7 +257,7 @@ df.loc[(df.YearRemoved > 0) & (df.YearRemoved < 1900), "YearRemoved"] = np.uint1
 df.loc[(df.YearFishPass > 0) & (df.YearFishPass < 1900), "YearFishPass"] = np.uint16(0)
 
 # Fix bad values for YearSurveyed
-df.loc[(df.YearSurveyed < 1899) | (df.YearSurveyed > datetime.today().year), "YearSurveyed"] = np.uint16(0)
+df.loc[(df.YearSurveyed < 1900) | (df.YearSurveyed > datetime.today().year), "YearSurveyed"] = np.uint16(0)
 
 df["YearSurveyedClass"] = np.asarray(
     pd.cut(df.YearSurveyed, YEAR_SURVEYED_BINS, right=False, labels=np.arange(0, len(YEAR_SURVEYED_BINS) - 1))

@@ -243,7 +243,7 @@ DAM_FS_COLS = [
     "NRCS_Dam",
     "Active150",
     "KeepOnActiveList",
-    # "Year_Recon" # TODO: not yet available
+    "Year_Recon",
 ]
 
 

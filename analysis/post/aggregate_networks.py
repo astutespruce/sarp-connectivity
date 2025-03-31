@@ -36,7 +36,7 @@ from api.lib.domains import unpack_domains
 from analysis.constants import NETWORK_TYPES
 
 # NOTE: no need to aggregate stats for full / dams-only networks
-network_types = [t for t in NETWORK_TYPES.keys() if t not in {"full", "dams_only"}]
+network_types = [t for t in NETWORK_TYPES.keys() if t not in {"full", "dams_only", "artificial_barriers"}]
 
 start = time()
 

@@ -25,6 +25,7 @@ nhd_dir = data_dir / "nhd/clean"
 waterbodies_dir = data_dir / "waterbodies"
 wetlands_dir = data_dir / "wetlands"
 out_dir = data_dir / "networks/raw"
+out_dir.mkdir(exist_ok=True, parents=True)
 
 huc2_df = pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"])
 huc2s = huc2_df.HUC2.sort_values().values
