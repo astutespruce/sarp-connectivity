@@ -6,6 +6,7 @@ import { HighlightBox } from 'components/Layout'
 import SARPLogo from 'images/sarp_logo.png'
 import NFHPLogo from 'images/nfhp_logo.svg'
 import AmericanRiversLogo from 'images/american_rivers_logo.svg'
+import TNCLogo from 'images/tnc_logo.svg'
 import TULogo from 'images/trout_unlimited_logo.svg'
 import USFSLogo from 'images/usfs_logo.svg'
 import USFWSLogo from 'images/usfws_logo.svg'
@@ -22,17 +23,26 @@ const Top = () => (
       species from dispersing and accessing habitats required for their
       persistence through changing conditions.
     </Text>
-    <Paragraph variant="paragraph.large" sx={{ mt: '2rem' }}>
-      Recently improved inventories, brought to you by the{' '}
-      <OutboundLink to="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act">
-        Southeast Aquatic Resources Partnership
-      </OutboundLink>{' '}
-      (SARP) and partners, enable us to describe, understand, and prioritize
-      aquatic barriers for removal, restoration, and mitigation. Through this
-      tool and others, we empower you with information on documented barriers
-      and standardized methods to prioritize barriers of interest for
-      restoration efforts.
-    </Paragraph>
+
+    <Grid columns="1fr 200px" gap={4} sx={{ mt: '2rem', alignItems: 'center' }}>
+      <Paragraph variant="paragraph.large">
+        Recently improved inventories, brought to you by the{' '}
+        <OutboundLink to="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act">
+          Southeast Aquatic Resources Partnership
+        </OutboundLink>{' '}
+        (SARP) and partners, enable us to describe, understand, and prioritize
+        aquatic barriers for removal, restoration, and mitigation. Through this
+        tool and others, we empower you with information on documented barriers
+        and standardized methods to prioritize barriers of interest for
+        restoration efforts.
+      </Paragraph>
+      <Box>
+        <OutboundLink to="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act">
+          <Image src={SARPLogo} />
+        </OutboundLink>
+      </Box>
+    </Grid>
+
     <Paragraph sx={{ mt: '2rem' }}>
       This tool and inventory were made possible by funding from the{' '}
       <OutboundLink to="https://www.fws.gov/program/national-fish-passage">
@@ -72,9 +82,6 @@ const Top = () => (
         justifyContent: 'space-between',
       }}
     >
-      <OutboundLink to="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act">
-        <Image src={SARPLogo} sx={{ width: '200px' }} />
-      </OutboundLink>
       <Box sx={{ flex: '0 0 auto', mt: '1rem' }}>
         <OutboundLink to="https://www.fws.gov/program/national-fish-passage">
           <Image src={USFWSLogo} sx={{ height: '96px' }} />
@@ -83,6 +90,11 @@ const Top = () => (
       <Box sx={{ flex: '0 0 auto', mt: '1rem' }}>
         <OutboundLink to="https://www.fs.usda.gov/">
           <Image src={USFSLogo} sx={{ height: '96px' }} />
+        </OutboundLink>
+      </Box>
+      <Box sx={{ flex: '0 0 auto', mt: '1rem' }}>
+        <OutboundLink to="https://www.nature.org/">
+          <Image src={TNCLogo} sx={{ width: '150px' }} />
         </OutboundLink>
       </Box>
       <Box sx={{ flex: '0 0 auto', mt: '1rem' }}>
