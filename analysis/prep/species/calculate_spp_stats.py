@@ -17,57 +17,11 @@ import geopandas as gp
 import numpy as np
 import pandas as pd
 from pyogrio import read_dataframe, list_layers, write_dataframe
+from pyarrow.csv import read_csv, ConvertOptions
 import shapely
 
 from analysis.constants import SARP_STATES, TROUT_SPECIES_TO_CODE, TROUT_CODE_TO_NAME
 from analysis.lib.util import append
-
-
-def read_spp_data(gdb, layer):
-    print(f"Reading species occurrence data: {layer}")
-
-    df = read_dataframe(gdb, layer=layer, use_arrow=True, read_geometry=False).rename(
-        columns={
-            "HUC12_Code": "HUC12",
-            "Species_Name": "SNAME",
-            "Common_Name": "CNAME",
-            "Federal_Status": "federal",
-            "SGCN_Listing": "sgcn",
-            "Regional_SGCN": "regional",
-            "Historical": "historical",
-            "Trout": "is_trout",
-        }
-    )
-
-    # FIXME: PR_Spp_HUC12_March2025 is missing Species_Name
-    if "CNAME" not in df.columns:
-        df["CNAME"] = ""
-
-    # fix data issues (have to do before merge or it has issues with blank columns)
-    for col in df.columns:
-        df[col] = df[col].fillna("").str.strip().str.replace("<Null>", "").str.replace("Unknown", "")
-
-    # TEMPORARY: prefx huc12 codes that are not 0 prefixed to 12 chars
-    ix = df.HUC12.apply(len) < 12
-    df.loc[ix, "HUC12"] = "0" + df.loc[ix].HUC12
-
-    df = df.loc[(df.HUC12 != "") & (df.SNAME != "")].copy()
-
-    if "Aquatic" in df.columns:
-        df = df.loc[df.Aquatic != "No"].copy()
-
-    # Convert status cols to bool
-    df["historical"] = df.historical == "Yes"
-    for col in status_cols:
-        df[col] = ~df[col].isin(["No", ""])
-
-    df["is_trout"] = ~df.is_trout.isin(["No", ""])
-    # fix trout-perch (not a trout)
-    df.loc[(df.SNAME == "Percopsis omiscomaycus") | (df.CNAME == "Trout-perch"), "is_trout"] = False
-
-    df = df[["HUC12", "SNAME", "CNAME", "historical", "federal", "sgcn", "regional", "is_trout"]]
-
-    return df
 
 
 start = time()
@@ -75,11 +29,6 @@ data_dir = Path("data")
 bnd_dir = data_dir / "boundaries"
 src_dir = data_dir / "species/source"
 out_dir = data_dir / "species/derived"
-
-cur_gdb = src_dir / "Results_Tables_2024.gdb"
-prev_gdb = src_dir / "Species_Results_Tables_2023.gdb"
-caribbean_hi_gdb = src_dir / "Caribbean_HI_Spp_Tables_2025.gdb"
-trout_layer = "Trout_Filter_2022"
 
 
 states = gp.read_feather(bnd_dir / "states.feather")
@@ -133,7 +82,7 @@ missing_spps = pd.DataFrame(
         ### Endangered species
         # Acipenser oxyrinchus is listed as endangered or threatened across multiple populations / subspecies but all are listed in some way
         ["Acipenser oxyrinchus", "E"],
-        ["Acipenser oxyrinchus oxyrinchus", "e"],
+        ["Acipenser oxyrinchus oxyrinchus", "E"],
         ["Arcidens wheeleri", "E"],
         ["Arcidens wheeleri", "E"],
         ["Epioblasma curtisii", "E"],
@@ -177,16 +126,6 @@ federal_spp = listed_df.loc[listed_df.official_status.isin(["E", "T"])].SNAME.un
 ### Process trout data at species level for filtering
 # NOTE: these are not necessarily T/E/SGCN
 ################################################################################
-# NOTE: this is from an older version for the East and is joined in with HUC12s
-# already set as trout below
-prev_trout_df = read_dataframe(
-    prev_gdb,
-    layer=trout_layer,
-    columns=["HUC12_Code", "Common_Name", "Species_Name"],
-    where=""" "Common_Name" != 'Trout-perch'""",
-    use_arrow=True,
-    read_geometry=False,
-).rename(columns={"HUC12_Code": "HUC12", "Species_Name": "SNAME", "Common_Name": "CNAME"})
 
 ### TEMPORARY: use eastern brook trout habitat to backfill missing HUC12s in great lakes
 ebt_habitat = read_dataframe(out_dir / "eastern_brook_trout_habitat.fgb", columns=["geometry"], use_arrow=True)
@@ -225,8 +164,6 @@ ebt_huc12 = pairs.HUC12.unique()
 ebt_df = pd.DataFrame({"HUC12": ebt_huc12})
 ebt_df["SNAME"] = "Salvelinus fontinalis"
 
-trout_df = pd.concat([prev_trout_df[["HUC12", "SNAME"]], ebt_df], ignore_index=True)
-
 
 ################################################################################
 ### Extract occurrence table from SARP
@@ -235,17 +172,58 @@ trout_df = pd.concat([prev_trout_df[["HUC12", "SNAME"]], ebt_df], ignore_index=T
 status_cols = ["federal", "sgcn", "regional"]
 
 merged = None
-for layer in list_layers(cur_gdb)[:, 0]:
-    df = read_spp_data(cur_gdb, layer)
-    merged = append(merged, df)
+for filename in (src_dir / "Species HUC12 csvs").glob("*.csv"):
+    print(f"Reading {filename}")
+    df = (
+        read_csv(filename, convert_options=ConvertOptions(column_types={"HUC12_Code": "str"}))
+        .to_pandas()
+        .rename(
+            columns={
+                "HUC12_Code": "HUC12",
+                "Species_Name": "SNAME",
+                "Common_Name": "CNAME",
+                "Federal_Status": "federal",
+                "SGCN_Listing": "sgcn",
+                "Regional_SGCN": "regional",
+                "Historical": "historical",
+                "Trout": "is_trout",
+            }
+        )
+    )
 
-for layer in list_layers(caribbean_hi_gdb)[:, 0]:
-    df = read_spp_data(caribbean_hi_gdb, layer)
+    if "CNAME" not in df.columns:
+        df["CNAME"] = ""
+
+    df = df[["HUC12", "SNAME", "CNAME", "historical", "federal", "sgcn", "regional", "is_trout"]]
+
+    # fix data issues (have to do before merge or it has issues with blank columns)
+    for col in df.columns:
+        df[col] = df[col].fillna("").str.strip().str.replace("<Null>", "").str.replace("Unknown", "")
+
+    # TEMPORARY: prefx huc12 codes that are not 0 prefixed to 12 chars
+    ix = df.HUC12.apply(len) < 12
+    df.loc[ix, "HUC12"] = df.loc[ix].HUC12.str.pad(12, side="left", fillchar="0")
+
+    df = df.loc[(df.HUC12 != "") & (df.SNAME != "")].copy()
+
+    if "Aquatic" in df.columns:
+        df = df.loc[df.Aquatic != "No"].copy()
+
+    # Convert status cols to bool
+    df["historical"] = df.historical == "Yes"
+    for col in status_cols:
+        df[col] = ~df[col].isin(["No", ""])
+
+    df["is_trout"] = ~df.is_trout.isin(["No", ""])
+    # fix trout-perch (not a trout)
+    df.loc[(df.SNAME == "Percopsis omiscomaycus") | (df.CNAME == "Trout-perch"), "is_trout"] = False
+
     merged = append(merged, df)
 
 df = merged
 
-trout_df = pd.concat([trout_df, df.loc[df.is_trout, ["HUC12", "SNAME"]]], ignore_index=True)
+
+trout_df = pd.concat([ebt_df, df.loc[df.is_trout]]).groupby(["HUC12", "SNAME"])[[]].first().reset_index()
 
 # drop duplicates, keeping the highest status per species per HUC12
 df = (
@@ -292,7 +270,7 @@ df = huc12[[]].join(df.groupby("HUC12")[status_cols].sum()).fillna(0).astype("ui
 
 # aggregate trout to species level and then assign codes
 trout_df["trout"] = (
-    trout_df.SNAME.apply(lambda x: " ".join(x.split(" ")[:2])).map(TROUT_SPECIES_TO_CODE).astype("uint8")
+    trout_df.SNAME.apply(lambda x: " ".join(x.split(" ")[:2])).str.strip(",").map(TROUT_SPECIES_TO_CODE).astype("uint8")
 )
 trout_df = pd.DataFrame(trout_df.groupby("HUC12").trout.unique())
 trout_df["trout_spp_count"] = trout_df.trout.apply(len)
