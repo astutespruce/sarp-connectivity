@@ -25,6 +25,7 @@ MIN_LINE_LENGTH = 10  # meters
 MIN_OVERLAP_RATIO = 0.65  # proportion
 MAX_LINE_DIFF = 1000  # meters
 MAX_ENDPOINT_DIFF = 1000  # meters
+MAX_FILL_TO_OCEAN = 10000  # meters
 
 data_dir = Path("data")
 src_dir = data_dir / "species/source"
@@ -100,7 +101,7 @@ canal_ids = flowlines.loc[flowlines.canal].index.values
 
 joins = read_arrow_tables(
     [nhd_dir / huc2 / "flowline_joins.feather" for huc2 in huc2s],
-    columns=["upstream", "downstream", "loop"],
+    columns=["upstream", "downstream", "loop", "marine"],
 ).to_pandas()
 joins = joins.loc[
     joins.upstream.isin(flowlines.index.values) | joins.downstream.isin(flowlines.index.values)
@@ -426,12 +427,44 @@ keep_ids = paths.loc[paths.path.isin(keep_paths)].NHDPlusID.unique()
 print(f"adding {len(keep_ids):,} filler lines between disconnected upstream and downstream habitat")
 
 # DEBUG:
-write_dataframe(
-    flowlines.loc[flowlines.index.isin(keep_ids)].reset_index(),
-    "/tmp/ca_baseline_filler.fgb",
-)
+# write_dataframe(
+#     flowlines.loc[flowlines.index.isin(keep_ids)].reset_index(),
+#     "/tmp/ca_baseline_filler.fgb",
+# )
 
 keep_line_ids = np.unique(np.concatenate([keep_line_ids, keep_ids]))
+
+
+### Trace downstream to ocean to fill gaps
+# find line IDs that are at the downstream ends of their subnetworks
+bottom_joins = joins.loc[
+    ~joins.downstream.isin(keep_line_ids) & joins.upstream.isin(keep_line_ids) & (joins.downstream != 0)
+]
+start_ids = np.unique(bottom_joins.upstream.values).astype("int64")
+marine_ids = joins.loc[joins.marine].upstream.unique()
+
+paths = downstream_graph.extract_paths(
+    start_ids,
+    marine_ids,
+    max_depth=100,
+)
+paths = pd.DataFrame({"path": range(len(paths)), "NHDPlusID": paths})
+paths = paths.loc[paths.NHDPlusID.apply(len) > 0].explode(column="NHDPlusID")
+paths = paths.join(flowlines[["length"]], on="NHDPlusID")
+tmp = paths.groupby("path").length.sum()
+path_ids = tmp[tmp <= MAX_FILL_TO_OCEAN].index.values
+paths = paths.loc[paths.path.isin(path_ids)]
+keep_ids = paths.NHDPlusID.values
+
+# DEBUG:
+# write_dataframe(
+#     flowlines.loc[flowlines.index.isin(keep_ids)].reset_index(),
+#     "/tmp/ca_baseline_ocean_filler.fgb",
+# )
+
+
+keep_line_ids = np.unique(np.concatenate([keep_line_ids, keep_ids]))
+
 
 #########################################
 flowlines["ca_baseline_fish_habitat"] = flowlines.index.isin(keep_line_ids)
