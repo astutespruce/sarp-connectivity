@@ -16,7 +16,7 @@ from time import time
 import geopandas as gp
 import numpy as np
 import pandas as pd
-from pyogrio import read_dataframe, list_layers, write_dataframe
+from pyogrio import read_dataframe, write_dataframe
 from pyarrow.csv import read_csv, ConvertOptions
 import shapely
 
@@ -127,14 +127,54 @@ federal_spp = listed_df.loc[listed_df.official_status.isin(["E", "T"])].SNAME.un
 # NOTE: these are not necessarily T/E/SGCN
 ################################################################################
 
-### TEMPORARY: use eastern brook trout habitat to backfill missing HUC12s in great lakes
-ebt_habitat = read_dataframe(out_dir / "eastern_brook_trout_habitat.fgb", columns=["geometry"], use_arrow=True)
-left, right = shapely.STRtree(ebt_habitat.geometry.values).query(huc12.geometry.values, predicate="intersects")
+### TEMPORARY: use trout habitat lines to backfill missing HUC12s
+trout_cols = [
+    "apache_trout_habitat",
+    "bonneville_cutthroat_trout_habitat",
+    "bull_trout_habitat",
+    "coastal_cutthroat_trout_habitat",
+    "colorado_river_cutthroat_trout_habitat",
+    "eastern_brook_trout_habitat",
+    "gila_trout_habitat",
+    "lahontan_cutthroat_trout_habitat",
+    # leave rainbow out for now
+    # "rainbow_trout_habitat",
+    "redband_trout_habitat",
+    "westslope_cutthroat_trout_habitat",
+    "yellowstone_cutthroat_trout_habitat",
+]
+trout_habitat = read_dataframe(
+    out_dir / "combined_species_habitat.fgb", columns=["NHDPlusID"] + trout_cols, use_arrow=True
+)
+trout_habitat = trout_habitat.loc[trout_habitat[trout_cols].any(axis=1)].reset_index(drop=True)
+
+# pivot to one record per species
+tmp = trout_habitat.melt(id_vars=["NHDPlusID"], value_vars=trout_cols, var_name="SNAME", value_name="present")
+trout_habitat = tmp.loc[tmp.present].join(trout_habitat.set_index("NHDPlusID").geometry, on="NHDPlusID")
+trout_habitat["SNAME"] = trout_habitat.SNAME.map(
+    {
+        "apache_trout_habitat": "Oncorhynchus apache",
+        "bonneville_cutthroat_trout_habitat": "Oncorhynchus clarkii Utah",
+        "bull_trout_habitat": "Salvelinus confluentus",
+        "coastal_cutthroat_trout_habitat": "Oncorhynchus clarkii clarkii",
+        "colorado_river_cutthroat_trout_habitat": "Oncorhynchus virginalis pleuriticus",
+        "eastern_brook_trout_habitat": "Salvelinus fontinalis",
+        "gila_trout_habitat": "Oncorhynchus gilae",
+        "lahontan_cutthroat_trout_habitat": "Oncorhynchus henshawi henshawi",
+        # "rainbow_trout_habitat": "Oncorhynchus mykiss",
+        "redband_trout_habitat": "Oncorhynchus mykiss ssp.",
+        "westslope_cutthroat_trout_habitat": "Oncorhynchus lewisi",
+        "yellowstone_cutthroat_trout_habitat": "Oncorhynchus virginalis bouvieri",
+    }
+)
+
+left, right = shapely.STRtree(trout_habitat.geometry.values).query(huc12.geometry.values, predicate="intersects")
 pairs = pd.DataFrame(
     {
         "HUC12": huc12.index.values.take(left),
         "HUC12_geom": huc12.geometry.values.take(left),
-        "geometry": ebt_habitat.geometry.values.take(right),
+        "geometry": trout_habitat.geometry.values.take(right),
+        "SNAME": trout_habitat.SNAME.values.take(right),
     }
 )
 
@@ -156,13 +196,17 @@ pairs = pairs.loc[
 ].copy()
 
 # only keep HUC12s with at least 250m (arbitrary) of overlap
-pairs = pairs.groupby("HUC12").agg({"HUC12_geom": "first", "geometry": shapely.multilinestrings}).reset_index()
-pairs["geometry"] = shapely.intersection(pairs.HUC12_geom.values, pairs.geometry.values)
-pairs = pairs.loc[shapely.length(pairs.geometry.values) >= 250].copy()
-ebt_huc12 = pairs.HUC12.unique()
+shapely.prepare(pairs.HUC12_geom.values)
+contains = shapely.contains_properly(pairs.HUC12_geom.values, pairs.geometry.values)
+pairs.loc[~contains, "geometry"] = shapely.intersection(
+    pairs.loc[~contains].HUC12_geom.values, pairs.loc[~contains].geometry.values
+)
+pairs["length"] = shapely.length(pairs.geometry.values)
 
-ebt_df = pd.DataFrame({"HUC12": ebt_huc12})
-ebt_df["SNAME"] = "Salvelinus fontinalis"
+pairs = pairs.groupby(["HUC12", "SNAME"])["length"].sum().reset_index()
+pairs = pairs.loc[pairs["length"] >= 250].copy()
+
+trout_df = pairs[["HUC12", "SNAME"]]
 
 
 ################################################################################
@@ -223,7 +267,7 @@ for filename in (src_dir / "Species HUC12 csvs").glob("*.csv"):
 df = merged
 
 
-trout_df = pd.concat([ebt_df, df.loc[df.is_trout]]).groupby(["HUC12", "SNAME"])[[]].first().reset_index()
+trout_df = pd.concat([trout_df, df.loc[df.is_trout]]).groupby(["HUC12", "SNAME"])[[]].first().reset_index()
 
 # drop duplicates, keeping the highest status per species per HUC12
 df = (

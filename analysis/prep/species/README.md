@@ -67,13 +67,6 @@ Metadata available at: https://psmfc.maps.arcgis.com/home/item.html?id=a8117ce44
 These data are prepared and associated with NHD flowlines using
 `analysis/prep/species/prep_ca_baseline_habitat.py`.
 
-### South Atlantic Anadromous Species Habitat
-
-Data were provided by Kat Hoenke from the SEACAP project.
-
-These data were prepared and associated with NHD flowlines using
-`analysis/prep/species/prep_south_atlantic_anadromous.py`.
-
 ### Chesapeake Bay Diadromous Species Habitat
 
 Data were provided by Erik Martin (TNC) on 11/15/2022. We extracted current
@@ -81,6 +74,49 @@ and potential habitat, but not historic habitat.
 
 These data were prepared and associated with NHD flowlines using
 `analysis/prep/species/prep_chesapeake_species_habitat.py`.
+
+### Apache trout
+
+Habitat lines for Apache trout were provided by Kat Hoenke on 4/29/2025 via email.
+These data came from Dan Dauwalter, Trout Unlimited and Zachary Jackson, USFWS.
+
+These data were prepared and associated with NHD flowlines using
+`analysis/prep/species/prep_apache_trout.py`.
+
+### Gila trout
+
+Habitat lines for Gila trout were provided by Kat Hoenke on 4/29/2025 via email.
+These data came from Dan Dauwalter, Trout Unlimited.
+
+These data were prepared and associated with NHD flowlines using
+`analysis/prep/species/prep_gila_trout.py`.
+
+### Coastal cutthroat trout
+
+Habitat lines for coastal cutthroat trout were by Kat Hoenke on 4/29/2025 via email.
+These data came from the Pacific States Marine Fisheries Commission.
+
+Because these largely duplicate coastal cutthroat data from StreamNet, these
+were only integrated in NHD region 18 where StreamNet data were unavailable.
+
+These data were prepared and associated with NHD flowlines using
+`analysis/prep/species/prep_ca_coastal_cutthroat_trout.py`.
+
+### Lahontan cutthroat trout
+
+Habitat lines for coastal cutthroat trout were by Kat Hoenke on 4/29/2025 via email.
+These data came from Trout Unlimited.
+
+These data were prepared and associated with NHD flowlines using
+`analysis/prep/speces/prep_lahontan_cutthroat_trout.py`.
+
+### Colorado River cutthroat trout
+
+Habitat lines for Colorado River cutthroat trout were by Kat Hoenke on 5/19/2025 via email.
+These data came from the Colorado River Cutthroat Trout Working Group.
+
+These data were prepared and associated with NHD flowlines using
+`analysis/prep/speces/prep_lahontan_cutthroat_trout.py`.
 
 ### Combined Species Habitat
 

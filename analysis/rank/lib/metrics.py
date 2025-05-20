@@ -53,7 +53,11 @@ def classify_percent_cold(series):
 
 def classify_downstream_miles(series):
     """classify downstream miles to ocean / Great Lakesinto bins 1...7; 0 is reserved for missing values"""
-    bins = [-1, 0, 1, 5, 10, 25, 100, 250, 500, 1000] + [series.max() + 1]
+    bins = [-1, 0, 1, 5, 10, 25, 100, 250, 500, 1000]
+    max_value = series.max()
+    if max_value > bins[-1]:
+        bins.append(max_value + 1)
+
     return np.asarray(pd.cut(series, bins, right=False, labels=np.arange(0, len(bins) - 1))).astype("uint8")
 
 

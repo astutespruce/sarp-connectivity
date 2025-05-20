@@ -5,6 +5,7 @@ import pandas as pd
 import pyarrow.compute as pc
 import numpy as np
 
+from api.constants import SPECIES_HABITAT_FIELDS
 from analysis.lib.io import read_arrow_tables
 from analysis.rank.lib.metrics import (
     classify_gain_miles,
@@ -91,68 +92,8 @@ NETWORK_COLUMNS = [
     "totd_road_crossings",
     "miles_to_outlet",
     "invasive_network",
-    # species upstream / downstream habitat
-    "AlewifeHabitatUpstreamMiles",
-    "FreeAlewifeHabitatDownstreamMiles",
-    "AmericanEelHabitatUpstreamMiles",
-    "FreeAmericanEelHabitatDownstreamMiles",
-    "AmericanShadHabitatUpstreamMiles",
-    "FreeAmericanShadHabitatDownstreamMiles",
-    "AtlanticSturgeonHabitatUpstreamMiles",
-    "FreeAtlanticSturgeonHabitatDownstreamMiles",
-    "BluebackHerringHabitatUpstreamMiles",
-    "FreeBluebackHerringHabitatDownstreamMiles",
-    "BonnevilleCutthroatTroutHabitatUpstreamMiles",
-    "FreeBonnevilleCutthroatTroutHabitatDownstreamMiles",
-    "BullTroutHabitatUpstreamMiles",
-    "FreeBullTroutHabitatDownstreamMiles",
-    "CaBaselineFishHabitatUpstreamMiles",
-    "FreeCaBaselineFishHabitatDownstreamMiles",
-    "ChesapeakeDiadromousHabitatUpstreamMiles",
-    "FreeChesapeakeDiadromousHabitatDownstreamMiles",
-    "ChinookSalmonHabitatUpstreamMiles",
-    "FreeChinookSalmonHabitatDownstreamMiles",
-    "ChumSalmonHabitatUpstreamMiles",
-    "FreeChumSalmonHabitatDownstreamMiles",
-    "CoastalCutthroatTroutHabitatUpstreamMiles",
-    "FreeCoastalCutthroatTroutHabitatDownstreamMiles",
-    "CohoSalmonHabitatUpstreamMiles",
-    "FreeCohoSalmonHabitatDownstreamMiles",
-    "EasternBrookTroutHabitatUpstreamMiles",
-    "FreeEasternBrookTroutHabitatDownstreamMiles",
-    "GreenSturgeonHabitatUpstreamMiles",
-    "FreeGreenSturgeonHabitatDownstreamMiles",
-    "HickoryShadHabitatUpstreamMiles",
-    "FreeHickoryShadHabitatDownstreamMiles",
-    "KokaneeHabitatUpstreamMiles",
-    "FreeKokaneeHabitatDownstreamMiles",
-    "PacificLampreyHabitatUpstreamMiles",
-    "FreePacificLampreyHabitatDownstreamMiles",
-    "PinkSalmonHabitatUpstreamMiles",
-    "FreePinkSalmonHabitatDownstreamMiles",
-    "RainbowTroutHabitatUpstreamMiles",
-    "FreeRainbowTroutHabitatDownstreamMiles",
-    "RedbandTroutHabitatUpstreamMiles",
-    "FreeRedbandTroutHabitatDownstreamMiles",
-    "ShortnoseSturgeonHabitatUpstreamMiles",
-    "FreeShortnoseSturgeonHabitatDownstreamMiles",
-    "SockeyeSalmonHabitatUpstreamMiles",
-    "FreeSockeyeSalmonHabitatDownstreamMiles",
-    "SouthAtlanticAnadromousHabitatUpstreamMiles",
-    "FreeSouthAtlanticAnadromousHabitatDownstreamMiles",
-    "SteelheadHabitatUpstreamMiles",
-    "FreeSteelheadHabitatDownstreamMiles",
-    "StreamnetAnadromousHabitatUpstreamMiles",
-    "FreeStreamnetAnadromousHabitatDownstreamMiles",
-    "StripedBassHabitatUpstreamMiles",
-    "FreeStripedBassHabitatDownstreamMiles",
-    "WestslopeCutthroatTroutHabitatUpstreamMiles",
-    "FreeWestslopeCutthroatTroutHabitatDownstreamMiles",
-    "WhiteSturgeonHabitatUpstreamMiles",
-    "FreeWhiteSturgeonHabitatDownstreamMiles",
-    "YellowstoneCutthroatTroutHabitatUpstreamMiles",
-    "FreeYellowstoneCutthroatTroutHabitatDownstreamMiles",
 ]
++SPECIES_HABITAT_FIELDS
 
 
 NETWORK_COLUMN_NAMES = {
@@ -201,14 +142,11 @@ def get_network_results(df, network_type, state_ranks=False):
         Contains network metrics and tiers
     """
 
+    networks = read_arrow_tables(
+        [Path("data/networks/clean") / huc2 / f"{network_type}_network.feather" for huc2 in sorted(df.HUC2.unique())],
+    ).to_pandas()
     networks = (
-        read_arrow_tables(
-            [
-                Path("data/networks/clean") / huc2 / f"{network_type}_network.feather"
-                for huc2 in sorted(df.HUC2.unique())
-            ],
-        )
-        .to_pandas()[NETWORK_COLUMNS]
+        networks[[c for c in NETWORK_COLUMNS if c in networks.columns]]
         .rename(columns=NETWORK_COLUMN_NAMES)
         .set_index("id")
     )

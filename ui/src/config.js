@@ -1664,7 +1664,7 @@ export const SPECIES_HABITAT_FIELDS = {
   chumsalmonhabitat: { label: 'chum salmon', source: 'StreamNet' },
   coastalcutthroattrouthabitat: {
     label: 'coastal cutthroat trout',
-    source: 'StreamNet',
+    source: 'StreamNet, Pacific States Marine Fisheries Commission',
   },
   cohosalmonhabitat: { label: 'coho salmon', source: 'StreamNet' },
   greensturgeonhabitat: {
@@ -1687,6 +1687,15 @@ export const SPECIES_HABITAT_FIELDS = {
     label: 'StreamNet anadromous species (combined)',
     source: 'StreamNet',
   },
+  westslopecutthroattrouthabitat: {
+    label: 'westslope cutthroat trout',
+    source: 'StreamNet',
+  },
+  whitesturgeonhabitat: { label: 'white sturgeon', source: 'StreamNet' },
+  yellowstonecutthroathabitat: {
+    label: 'Yellowstone cutthroat trout',
+    source: 'StreamNet',
+  },
 
   // CA Baseline
   cabaselinefishhabitat: {
@@ -1700,48 +1709,68 @@ export const SPECIES_HABITAT_FIELDS = {
     source: 'Trout Unlimited / Chesapeake Fish Passage Workgroup',
   },
 
-  // South Atlantic / Gulf
-  southatlanticanadromoushabitat: {
-    label: 'South Atlantic and Gulf anadromous fish habitat (combined)',
-    source: 'SEACAP',
-  },
-
-  // Chesapeake
+  // Chesapeake (plus SARP where overlap)
   alewifehabitat: {
     label: 'alewife',
-    source: 'Chesapeake Fish Passage Workgroup',
+    source: 'Chesapeake Fish Passage Workgroup, SARP',
   },
   americaneelhabitat: {
     label: 'American eel',
-    source: 'Chesapeake Fish Passage Workgroup',
+    source: 'Chesapeake Fish Passage Workgroup, SARP',
   },
   americanshadhabitat: {
     label: 'American shad',
-    source: 'Chesapeake Fish Passage Workgroup',
+    source: 'Chesapeake Fish Passage Workgroup, SARP',
   },
   atlanticsturgeonhabitat: {
     label: 'Atlantic sturgeon',
-    source: 'Chesapeake Fish Passage Workgroup',
+    source: 'Chesapeake Fish Passage Workgroup, SARP',
   },
   bluebackherringhabitat: {
     label: 'BluebackHerring',
-    source: 'Chesapeake Fish Passage Workgroup',
+    source: 'Chesapeake Fish Passage Workgroup, SARP',
   },
   hickoryshadhabitat: {
     label: 'hickory shad',
-    source: 'Chesapeake Fish Passage Workgroup',
+    source: 'Chesapeake Fish Passage Workgroup, SARP',
   },
   shortnosesturgeonhabitat: {
     label: 'shortnose sturgeon',
-    source: 'Chesapeake Fish Passage Workgroup',
+    source: 'Chesapeake Fish Passage Workgroup, SARP',
   },
   stripedbasshabitat: {
     label: 'striped bass',
-    source: 'Chesapeake Fish Passage Workgroup',
+    source: 'Chesapeake Fish Passage Workgroup, SARP',
   },
   chesapeakediadromoushabitat: {
     label: 'Chesapeake diadromous fish habitat (combined)',
     source: 'Chesapeake Fish Passage Workgroup',
+  },
+
+  // Southeast (SARP)
+  gulfsturgeonhabitat: { label: 'Gulf sturgeon', source: 'SARP' },
+  alabamashadhabitat: { label: 'Alabama shad', source: 'SARP' },
+  skipjackherringhabitat: { label: 'Skipjack herring', source: 'SARP' },
+  southeastdiadromoushabitat: {
+    label: 'Southeast diadromous fish habitat (combined)',
+    source: 'SARP',
+  },
+
+  apachetrouthabitat: {
+    label: 'Apache trout',
+    source: 'Dan Dauwalter (Trout Unlimited), Zachary Jackson (USFWS)',
+  },
+  gilatrouthabitat: {
+    label: 'Gila trout',
+    source: 'Dan Dauwalter (Trout Unlimited)',
+  },
+  lahontancutthroattrouthabitat: {
+    label: 'Lahontan cutthroat trout',
+    source: 'Trout Unlimited',
+  },
+  coloradorivercutthroattrouthabitat: {
+    label: 'Colorado River cutthroat trout',
+    source: 'Colorado River Cutthroat Trout Working Group',
   },
 }
 
