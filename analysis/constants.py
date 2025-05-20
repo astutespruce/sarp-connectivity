@@ -5,9 +5,6 @@ from datetime import datetime
 # Mapping of network type to barrier kinds that break the network based
 # on the value in the boolean column
 NETWORK_TYPES = {
-    # TODO: re-enable
-    # "full": {"kinds": [], "column": "primary_network"},
-    # "dams_only": {"kinds": ["dam"], "column": "primary_network"},
     "dams": {"kinds": ["waterfall", "dam"], "column": "primary_network"},
     "combined_barriers": {
         "kinds": ["waterfall", "dam", "small_barrier"],
@@ -21,12 +18,20 @@ NETWORK_TYPES = {
         "kinds": ["waterfall", "dam", "small_barrier"],
         "column": "smallfish_network",
     },
-    # extract only artificial barriers for all dams and road barriers >= minor barrier
+    ## other one-off network analyses
+    # "full": {"kinds": [], "column": "primary_network"},
+    # "dams_only": {"kinds": ["dam"], "column": "primary_network"},
+    ## extract only artificial barriers for all dams and road barriers >= minor barrier
     # per direction from Kat on 3/7/2025
     # "artificial_barriers": {
     #     "kinds": ["dam", "small_barrier"],
     #     "column": "smallfish_network",
     # },
+    # extract networks cutting at unsurveyed barriers too
+    # "road_crossings": {
+    #     "kinds": ["waterfall", "dam", "small_barrier", "road_crossing"],
+    #     "column": "road_crossing_network",
+    # }
 }
 
 
@@ -243,7 +248,7 @@ DAM_FS_COLS = [
     "NRCS_Dam",
     "Active150",
     "KeepOnActiveList",
-    "Year_Recon",
+    "Year_Reconned",
 ]
 
 
@@ -271,7 +276,7 @@ SMALL_BARRIER_COLS = [
     "Constriction",
     "PassageFacility",
     "Link",
-    "Private",
+    # "Private", # set by service downloaded from
     "Priority_Identified",
     "ActiveList",
     "KeepOnActiveList",
@@ -743,6 +748,12 @@ TROUT_SPECIES_TO_CODE = {
     "Salvelinus fontinalis": 6,
     # Lake trout
     "Salvelinus namaycush": 7,
+    # Lahontan cutthroat; lump with cutthroat
+    "Oncorhynchus henshawi": 2,
+    # Westslope cutthroat; lump with cutthroat
+    "Oncorhynchus lewisi": 2,
+    # Colorado River and Yellowstone cutthroat subspecies; lump with cutthroat
+    "Oncorhynchus virginalis": 2,
 }
 
 TROUT_CODE_TO_NAME = {

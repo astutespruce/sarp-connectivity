@@ -111,10 +111,6 @@ print("Reading dams in analysis region states")
 df = gp.read_feather(src_dir / "sarp_dams.feather")
 print(f"Read {len(df):,} dams in region states")
 
-# FIXME: remove once Year_Recon is added to dams service
-if "YearSurveyed" not in df.columns:
-    df["YearSurveyed"] = np.uint16(0)
-
 
 # join in cost columns, but only where height is within tolerance because height
 # may have been updated for a given dam after it was run through the analysis
@@ -250,8 +246,10 @@ df = df.drop(columns=["InvasiveSpecies"])
 # convert IsPriority to 0 vs 1  (1 = Yes, Null/0/2 = No / not set)
 df["IsPriority"] = df.IsPriority.map({1: 1, 0: 0, np.nan: 0, 2: 0}).fillna(0).astype("uint8")
 
-# TEMP: (private dams will eventually come from another service, backfill with False)
-df["Private"] = False
+# convert Private to bool
+df["Private"] = (
+    df.Private.fillna("").map({"Public": False, "0": False, "Private": True, "1": True, "": False}).astype("bool")
+)
 
 
 ### Set data types
@@ -794,7 +792,14 @@ df.loc[ix, "snap_tolerance"] = SNAP_TOLERANCE["manually snapped"]
 # duplicates are excluded here because they may snap to different locations due
 # to different snap tolerances, so don't snap them at all
 # dropped dams don't need to be snapped (includes no-structure diversions)
-exclude_snap_ix = False
+exclude_snap_ix = np.zeros(
+    (
+        len(
+            df,
+        )
+    ),
+    dtype="bool",
+)
 exclude_snap_fields = {
     "duplicate": [True],
     "dropped": [True],
@@ -804,6 +809,20 @@ for field, values in exclude_snap_fields.items():
     ix = df[field].isin(values)
     exclude_snap_ix = exclude_snap_ix | ix
     df.loc[ix, "snap_log"] = format_log("not snapped", field, sorted(df.loc[ix][field].unique().tolist()))
+
+# IMPORTANT: do not snap wastewater treatment plans; these are often near flowlines
+# but should not be snapped or break networks unless indicated via ManualReview
+treatment_keywords = ["sewage", "treatment", " mine ", " wwt ", "waste"]
+treatment_ix = (
+    (~exclude_snap_ix)
+    & (~df.ManualReview.isin([4, 13, 15]))
+    & df.Name.str.lower().apply(
+        lambda x: (("pond" in x or "lagoon" in x) and any(keyword in x for keyword in treatment_keywords))
+    )
+)
+df.loc[treatment_ix, "snap_log"] = "not snapped: name indicates off-network wastewater treatment lagoon/pond"
+exclude_snap_ix = exclude_snap_ix | treatment_ix
+
 
 to_snap = df.loc[~exclude_snap_ix].copy()
 

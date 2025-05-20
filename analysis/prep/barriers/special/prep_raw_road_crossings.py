@@ -68,7 +68,7 @@ def dedup_crossings(df):
 
     keep_ids = groups.groupby("group").first().id.values.astype("uint64")
 
-    print(f"Dropping {len(df)-len(keep_ids):,} very close road crossings")
+    print(f"Dropping {len(df) - len(keep_ids):,} very close road crossings")
     return df.loc[df.id.isin(keep_ids)].copy()
 
 
@@ -175,6 +175,7 @@ tmp = (
     .first()
 )
 
+# IMPORTANT: this must match api/constants.py::BARRIEROWNERTYPE_DOMAIN
 tmp["BarrierOwnerType"] = (
     tmp.crossing_structure_owner.map(
         {
@@ -189,27 +190,27 @@ tmp["BarrierOwnerType"] = (
             "Bureau of Indian Affairs": 1,
             "Bureau of Land Management": 1,
             "Bureau of Reclamation": 1,
-            "City or Municipal Highway Agency": 3,
+            "City or Municipal Highway Agency": 4,
             "Civil Corps of Engineers": 1,
-            "County Highway Agency": 3,
-            "Indian Tribal Government": 6,
-            "Local Park Forest or Reservation Agency": 3,
-            "Local Toll Authority": 3,
-            "Metropolitan Washington Airports Service": 3,
+            "County Highway Agency": 4,
+            "Indian Tribal Government": 7,
+            "Local Park Forest or Reservation Agency": 4,
+            "Local Toll Authority": 4,
+            "Metropolitan Washington Airports Service": 4,
             "NASA": 1,
             "National Park Service": 1,
             "Navy or Marines": 1,
             "Other Federal Agencies": 1,
-            "Other Local Agencies": 3,
-            "Other State Agencies": 2,
-            "Private other than railroad": 7,
-            "Railroad": 7,
-            "State Highway Agency": 2,
-            "State Park Forest or Reservation Agency": 2,
-            "State Toll Authority": 2,
-            "Tennessee Valley Authority": 4,
-            "Town or Township Highway Agency": 3,
-            "U.S. Forest Service": 1,
+            "Other Local Agencies": 4,
+            "Other State Agencies": 3,
+            "Private other than railroad": 8,
+            "Railroad": 8,
+            "State Highway Agency": 3,
+            "State Park Forest or Reservation Agency": 3,
+            "State Toll Authority": 3,
+            "Tennessee Valley Authority": 5,
+            "Town or Township Highway Agency": 4,
+            "U.S. Forest Service": 2,
             "Unknown": 0,
         }
     )
@@ -226,7 +227,8 @@ print("Extracting attributes from TIGER roads")
 tiger = pd.read_feather(src_dir / "tiger_roads_2020.feather", columns=["LINEARID", "RTTYP"]).set_index("LINEARID")
 # assume that states are responsible party for interstate / US routes
 # other types are unknown re: ownership, so don't bother to map them to codes
-tiger["BarrierOwnerType"] = tiger.RTTYP.map({"C": 3, "I": 2, "S": 2, "U": 2}).fillna(0).astype("uint8")
+# IMPORTANT: this must match api/constants.py::BARRIEROWNERTYPE_DOMAIN
+tiger["BarrierOwnerType"] = tiger.RTTYP.map({"C": 4, "I": 3, "S": 3, "U": 3}).fillna(0).astype("uint8")
 tiger = tiger.loc[tiger.BarrierOwnerType > 0].copy()
 
 tmp = df[["stream_crossing_id", "tiger2020_linearids"]].copy()
@@ -308,59 +310,60 @@ df["Source"] = "USFS National Road / Stream Crossings (2024)"
 df["SourceID"] = ""
 
 df["maintainer"] = df.maintainer.fillna("").str.strip()
+# IMPORTANT: this must match api/constants.py::BARRIEROWNERTYPE_DOMAIN
 df["BarrierOwnerType"] = df.maintainer.map(
     {
         "": 0,
         "BIA - BUREAU OF INDIAN AFFAIRS": 1,
         "BLM - BUREAU OF LAND MANAGEMENT": 1,
         "BOR - BUREAU OF RECLAMATION": 1,
-        "BPA - BONNEVILLE POWER ADMIN": 4,
+        "BPA - BONNEVILLE POWER ADMIN": 5,
         "BR - BUREAU OF RECLAMATION": 1,
-        "C - COUNTY, PARISH, BOROUGH": 3,
-        "C - FLATHEAD COUNTY": 3,
-        "CO - COOPERATOR": 7,
-        "CO - COOPERATOR (INDSTRL CST SHARE)": 7,
-        "CO - COOPERATOR INDSTRL CST SHARE": 7,
-        "CO - PLUM CREEK": 7,
+        "C - COUNTY, PARISH, BOROUGH": 4,
+        "C - FLATHEAD COUNTY": 4,
+        "CO - COOPERATOR": 8,
+        "CO - COOPERATOR (INDSTRL CST SHARE)": 8,
+        "CO - COOPERATOR INDSTRL CST SHARE": 8,
+        "CO - PLUM CREEK": 8,
         "COE - CORPS OF ENGINEERS": 1,
-        "CU - AMERADA HESS OIL CO": 7,
-        "CU - BASIC EARTH SCI.": 7,
-        "CU - BTA OIL": 7,
-        "CU - CITATION OIL CO": 7,
-        "CU - COMMERCIAL USER": 7,
-        "CU - CONTINENTAL": 7,
-        "CU - CROWN OIL CO": 7,
-        "CU - HEADINGTON": 7,
-        "CU - MERIT ENERGY COMPANY": 7,
-        "CU - MISSOURI BASIN": 7,
-        "CU - NANCE PETROLEUM": 7,
-        "CU - PETRO HUNT": 7,
-        "CU - PRIDE ENERGY": 7,
-        "CU - RITTER, LABOR, & ASSOCIATES": 7,
-        "CU - SINCLAIR OIL": 7,
-        "CU - SLAWSON OIL CO": 7,
-        "CU - SUMMIT RESOURCES": 7,
-        "CU - TRUE OIL CO": 7,
-        "CU - UPTON": 7,
-        "CU - WHITING": 7,
-        "CU - WINSTON/MARSHALL OIL CO": 7,
+        "CU - AMERADA HESS OIL CO": 8,
+        "CU - BASIC EARTH SCI.": 8,
+        "CU - BTA OIL": 8,
+        "CU - CITATION OIL CO": 8,
+        "CU - COMMERCIAL USER": 8,
+        "CU - CONTINENTAL": 8,
+        "CU - CROWN OIL CO": 8,
+        "CU - HEADINGTON": 8,
+        "CU - MERIT ENERGY COMPANY": 8,
+        "CU - MISSOURI BASIN": 8,
+        "CU - NANCE PETROLEUM": 8,
+        "CU - PETRO HUNT": 8,
+        "CU - PRIDE ENERGY": 8,
+        "CU - RITTER, LABOR, & ASSOCIATES": 8,
+        "CU - SINCLAIR OIL": 8,
+        "CU - SLAWSON OIL CO": 8,
+        "CU - SUMMIT RESOURCES": 8,
+        "CU - TRUE OIL CO": 8,
+        "CU - UPTON": 8,
+        "CU - WHITING": 8,
+        "CU - WINSTON/MARSHALL OIL CO": 8,
         "DOD - DEFENSE DEPARTMENT": 1,
         "DOE - DEPARTMENT OF ENERGY": 1,
         "FAA - FEDERAL AVIATION ADMINISTRATION": 1,
-        "FS - FOREST SERVICE": 1,
-        "L - LOCAL": 3,
+        "FS - FOREST SERVICE": 2,
+        "L - LOCAL": 4,
         "NPS - NATIONAL PARK SERVICE": 1,
         "OF - OTHER FEDERAL AGENCIES": 1,
         "OGM - OIL, GAS, MINERAL": 0,
-        "P - NORTHERN LIGHTS": 7,
-        "P - PRIVATE": 7,
-        "P - STIMSON": 7,
-        "P - WEYERHAEUSER": 7,
-        "PGE - PACIFIC GAS AND ELECTRIC": 4,
-        "S - STATE": 2,
-        "SCE - SOUTHERN CALIFORNIA EDISON": 4,
-        "SH - STATE HIGHWAY": 2,
-        "SLR - STATE LANDS ROAD": 2,
+        "P - NORTHERN LIGHTS": 8,
+        "P - PRIVATE": 8,
+        "P - STIMSON": 8,
+        "P - WEYERHAEUSER": 8,
+        "PGE - PACIFIC GAS AND ELECTRIC": 5,
+        "S - STATE": 3,
+        "SCE - SOUTHERN CALIFORNIA EDISON": 5,
+        "SH - STATE HIGHWAY": 3,
+        "SLR - STATE LANDS ROAD": 3,
         "UNK - UNKNOWN": 0,
     }
 ).astype("uint8")

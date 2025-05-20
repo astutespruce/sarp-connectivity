@@ -440,9 +440,11 @@ print("Saving waterfalls networks for tiles and API")
 
 waterfalls.to_feather(results_dir / "waterfalls.feather")
 
-tmp = waterfalls[["id"] + WF_API_FIELDS].copy()
+# save for API (no private barriers)
+tmp = waterfalls.loc[~waterfalls.Private, ["id"] + WF_API_FIELDS].reset_index()
 verify_domains(tmp)
 tmp["id"] = tmp.id.astype("uint32")
+
 
 tmp.sort_values(by=["SARPID", "network_type"]).reset_index(drop=True).to_feather(api_dir / "waterfalls.feather")
 

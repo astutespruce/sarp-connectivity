@@ -104,6 +104,12 @@ df["Recon"] = df.Recon.fillna(0).astype("uint8")
 df["ManualReview"] = df.ManualReview.fillna(0).astype("uint8")
 
 
+# convert Private to bool
+df["Private"] = (
+    df.Private.fillna("").map({"Public": False, "0": False, "Private": True, "1": True, "": False}).astype("bool")
+)
+
+
 ### Add tracking fields
 # dropped: records that should not be included in any later analysis
 df["dropped"] = False
