@@ -94,7 +94,14 @@ all_barrier_joins = (
     .to_pandas()
     .set_index("id")
     .join(
-        all_barriers.set_index("id")[["primary_network", "largefish_network", "smallfish_network", "invasive"]],
+        all_barriers.set_index("id")[
+            [
+                "primary_network",
+                "largefish_network",
+                "smallfish_network",
+                "invasive",
+            ]
+        ],
         # only keep barrier joins that are in the set of barriers above
         how="inner",
     )

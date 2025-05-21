@@ -92,8 +92,7 @@ NETWORK_COLUMNS = [
     "totd_road_crossings",
     "miles_to_outlet",
     "invasive_network",
-]
-+SPECIES_HABITAT_FIELDS
+] + SPECIES_HABITAT_FIELDS
 
 
 NETWORK_COLUMN_NAMES = {

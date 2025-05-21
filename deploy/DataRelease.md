@@ -61,7 +61,7 @@ an updated batch of barrier data.
 15. copy the API data to the home directory: `sudo cp -a /tiles2/api/*.feather /home/app/sarp-connectivity/data/api`, `sudo cp -a /tiles2/api/*.db /home/app/sarp-connectivity/data/api`
 16. copy the national download zip files to the downlods directory: `sudo cp -a /tiles2/api/downloads/* /downloads/national/`
 17. as the `app` user: `sudo su app`
-18. pull the latest code `git pull origin`
+18. pull the latest code `git pull origin` (update any dependencies at this point, if needed)
 19. rebuild the UI: `cd ui && npm run deploy`
 20. exit the `app` user
 21. bring th services back up:
@@ -99,7 +99,7 @@ Test the staging server and get Kat's approval for recent changes.
 11. copy the API data to the home directory: `sudo cp -a /tiles2/api/*.feather /home/app/sarp-connectivity/data/api`, `sudo cp -a /tiles2/api/*.db /home/app/sarp-connectivity/data/api`
 12. copy the national download zip files to the downlods directory: `sudo cp -a /tiles2/api/downloads/* /downloads/national/`
 13. as the `app` user: `sudo su app`
-14. pull the latest code `git pull origin`
+14. pull the latest code `git pull origin` (update any dependencies at this point, if needed)
 15. rebuild the UI: `cd ui && npm run deploy`
 16. exit the `app` user
 17. bring th services back up:

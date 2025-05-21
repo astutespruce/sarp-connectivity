@@ -2,8 +2,6 @@ from pathlib import Path
 from time import time
 import warnings
 
-import pyarrow as pa
-import pyarrow.compute as pc
 import pandas as pd
 import numpy as np
 
@@ -272,7 +270,7 @@ def create_networks(joins, barrier_joins, flowlines):
     if len(s):
         s.rename("count").reset_index().to_feather("/tmp/dup_networks.feather")
         raise ValueError(
-            f"lineIDs are found in multiple networks: {', '.join([str(v)  for v in s.index.values.tolist()[:10]])}..."
+            f"lineIDs are found in multiple networks: {', '.join([str(v) for v in s.index.values.tolist()[:10]])}..."
         )
 
     ### Extract mainstem networks facing upstream
@@ -343,7 +341,7 @@ def create_networks(joins, barrier_joins, flowlines):
     if len(s):
         s.rename("count").reset_index().to_feather("/tmp/dup_mainstem_networks.feather")
         raise ValueError(
-            f"lineIDs are found in multiple mainstem networks: {', '.join([str(v)  for v in s.index.values.tolist()[:10]])}..."
+            f"lineIDs are found in multiple mainstem networks: {', '.join([str(v) for v in s.index.values.tolist()[:10]])}..."
         )
 
     ### Extract linear networks facing downstream
@@ -687,7 +685,7 @@ def create_barrier_networks(
     # ]
     for upstream_col in cols:
         out_col = upstream_col.replace("Total", "").replace("Upstream", "Gain")
-        downstream_col = f"Free{upstream_col.replace('Total', '').replace('Upstream','Downstream')}"
+        downstream_col = f"Free{upstream_col.replace('Total', '').replace('Upstream', 'Downstream')}"
         barrier_networks[out_col] = barrier_networks[[upstream_col, downstream_col]].min(axis=1)
         # if it terminates downstream only use upstream value
         barrier_networks.loc[terminates_downstream_ix, out_col] = barrier_networks.loc[
@@ -704,7 +702,7 @@ def create_barrier_networks(
     cols = ["TotalUpstreamMainstemMiles", "PerennialUpstreamMainstemMiles"]
     for upstream_col in cols:
         out_col = upstream_col.replace("Total", "").replace("UpstreamMainstem", "MainstemGain")
-        downstream_col = f"Free{upstream_col.replace('Total', '').replace('UpstreamMainstem','LinearDownstream')}"
+        downstream_col = f"Free{upstream_col.replace('Total', '').replace('UpstreamMainstem', 'LinearDownstream')}"
         barrier_networks[out_col] = barrier_networks[[upstream_col, downstream_col]].min(axis=1)
         barrier_networks.loc[terminates_downstream_ix, out_col] = barrier_networks.loc[
             terminates_downstream_ix, upstream_col
