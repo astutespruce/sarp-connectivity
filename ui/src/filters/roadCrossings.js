@@ -221,8 +221,11 @@ export const roadCrossings = [
         title: 'Native trout present',
         help: 'Note: This information is based on occurrences of Apache, brook, bull, cutthroat, Gila, lake, and redband trout species within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
         sort: false,
-        hideMissingValues: false,
-        ...getEntries(TROUT),
+        hideMissingValues: true,
+        hideIfEmpty: true,
+        isArray: true,
+        labels: Object.values(TROUT),
+        values: Object.keys(TROUT),
       },
       {
         field: 'salmonidesucount',
