@@ -510,9 +510,10 @@ df["WaterRight"] = df.WaterRight.fillna(0).astype("uint8")
 df["Hazard"] = df.Hazard.fillna(4).astype("uint8").map(HAZARD_TO_DOMAIN).astype("uint8")
 
 
-# recode ActiveList and KeepOnActiveList
+# backfill ActiveList and KeepOnActiveList
 df["ActiveList"] = df.ActiveList.fillna(0).astype("uint8")
-df["KeepOnActiveList"] = df.KeepOnActiveList.map({1: 1, 2: 0}).fillna(0).astype("bool")
+# keep as 3 values per direction from Kat 5/22/2025
+df["KeepOnActiveList"] = df.KeepOnActiveList.fillna(0).astype("uint8")
 
 
 ### Add tracking fields

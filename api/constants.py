@@ -1245,8 +1245,9 @@ IS_PRIORITY_DOMAIN = {
     1: "identified as a priority by resource managers",
 }
 
-# NOTE: this is not available in the public download
+# NOTE: these fields DO NOT go into the API / public download
 ACTIVE_LIST_DOMAIN = {0: "Not reviewed", 1: "Yes", 2: "No - dropped", 3: "In queue", 5: "Unsure"}
+KEEP_ON_ACTIVE_LIST_DOMAIN = {0: "Not reviewed", 1: "Yes", 2: "No"}
 
 
 # symbol domain - not used but included here as a reference for the codes used
@@ -1398,7 +1399,7 @@ DOMAINS = {
     "OnNetwork": BOOLEAN_DOMAIN,
     # extra fields added for export for Kat
     "ActiveList": ACTIVE_LIST_DOMAIN,
-    "KeepOnActiveList": BOOLEAN_DOMAIN,
+    "KeepOnActiveList": KEEP_ON_ACTIVE_LIST_DOMAIN,
 }
 
 # domain values are stored as comma-delimited values in a string field

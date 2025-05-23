@@ -33,12 +33,12 @@ def get_diadromous_ids():
         filter=pc.field("chesapeake_diadromous_habitat") == True,  # noqa: E712
     )["NHDPlusID"]
 
-    south_atlantic_anadromous = dataset(
-        src_dir / "south_atlantic_anadromous_habitat.feather", format="feather"
-    ).to_table(columns=["NHDPlusID"])["NHDPlusID"]
+    southeast_diadromous = dataset(src_dir / "southeast_diadromous_habitat.feather", format="feather").to_table(
+        columns=["NHDPlusID"]
+    )["NHDPlusID"]
 
     anadromous_ids = np.unique(
-        np.concat([streamnet_anadromous, ca_anadromous, chesapeake_diadromous, south_atlantic_anadromous])
+        np.concat([streamnet_anadromous, ca_anadromous, chesapeake_diadromous, southeast_diadromous])
     )
 
     return anadromous_ids
