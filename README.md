@@ -21,127 +21,31 @@ These barriers are compiled by SARP from multiple data sources at the national, 
 - large-bodied fish barriers: aquatic networks are cut by waterfalls and dams that do not have partial or seasonal passibility for salmonids and non-salmonids, and surveyed road-related barriers with severe or significant barrier severity in order to prioritize dams and road-related barriers for removal or mitigation.
 - small-bodied fish barriers: aquatic networks are cut by waterfalls, dams, and surveyed road-related barriers with at least minor severity in order to prioritize dams and road-related barriers for removal or mitigation.
 
+## Architecture
+
+There are 3 main parts to this tool, located in separate folders:
+
+- `analysis`: data processing pipeline, which is run in advance of publishing results via the tool
+- `api`: backend API, which serves data to the frontend and provides things like data downloads
+- `ui`: frontend user interface
+
+The user interface tier is stored in `/ui` and consists of a GatsbyJS and React (Javascript) application.
+The user interface is "built" in advance to create static web assets (HTML, Javascript, CSS, etc).
+These files are served via a development server locally or via a reverse proxy on the server.
+
+The backend is composed of several parts:
+
+- `/api`: FastAPI (Python) for requesting subsets and downloads
+- map tiles are served from `/tiles` using `mbtileserver` (tiles are not stored in the code repository)
+- reverse proxy: `caddy` is used to route to backend services and serve static assets of the user interface
+
 ## Data processing
 
 Data processing steps are detailed in [/analysis/README.md](analysis). Data are processed heavily before integrating into the tool.
 
-## Architecture
-
-The user interface tier is stored in `/ui` and consists of a GatsbyJS and React-based application.
-
-The backend is composed of several parts:
-
-- `/analysis`: data processing scripts
-- `/api`: FastAPI for requesting subsets and downloads
-- map tiles are served from `/tiles` using `mbtileserver` (tiles are not stored in the code repository)
-
 ## Development
 
-To develop this application, you need Python 3.12+ and NodeJS 20+.
-
-`pipenv` and `npm` are used as the package managers for those languages.
-
-### mbtileserver
-
-Install `mbtileserver` according to https://github.com/consbio/mbtileserver.
-Then from appropriate directory (or if installed via `go get` and `~/go/bin` is on your `PATH`): `mbtilserver -p 8001 -d /<PATH TO REPO>/tiles`.
-
-You should now be able to open `http://localhost:8001/services` to see a listing of available tile services.
-
-### UI Initial setup:
-
-The NodeJS version is managed
-using [nvm](https://github.com/nvm-sh/nvm) and dependencies are installed using `npm`.
-
-See `ui/package.json` for NodeJS dependencies used by the UI tier.
-
-The user interface is contained in the `ui` folder.
-
-```bash
-cd ui
-
-# activate NodeJS version specified in .nvmrc
-nvm use
-npm ci --legacy-peer-deps
-```
-
-The following environment variables must be sent in `/ui/.env.development`:
-
-```
-GATSBY_MAPBOX_API_TOKEN = <token>
-GATSBY_API_HOST = <root URL of API host, likely http://localhost/:5000 for local fastapi server >
-GATSBY_TILE_HOST = <root URL of tile host, likely http://localhost:8001 for local mbtileserver >
-```
-
-The user interface is built using GatsbyJS.
-
-To start the development server (on port 8000, by default):
-
-```bash
-gatsby clean
-gatsby develop
-```
-
-#### Updating Javascript dependencies
-
-```bash
-# list outdated dependencies
-npm outdated
-
-# install updated packages
-npm install --legacy-peer-deps <package>@latest ...
-```
-
-### API initial setup:
-
-See `pyproject.toml` for Python dependencies. The development dependencies are required for the data processing scripts.
-
-Python dependencies are managed using [uv](https://github.com/astral-sh/uv).
-
-```bash
-uv venv .venv --python=3.12
-# activate for your particular shell type
-source .venv/bin/activate.fish
-uv pip install -e .[dev]
-```
-
-#### Updating Python dependencies
-
-```bash
-# list outdated dependencies
-uv lock --upgrade --dry-run
-
-# upgrade them all
-uv lock --upgrade
-
-# or updgrade specific package(s)
-uv lock --upgrade <package>
-```
-
-#### Run API:
-
-Within an active Python environment.
-
-To start the API server (on port 5000, by default), with reloading:
-
-```bash
-uvicorn api.server:app --reload --reload-dir api --port 5000
-```
-
-The API loads environment variables from `.env` in the root of this project.
-
-#### Run background task worker
-
-In another terminal window, within the active Python environment.
-
-To start the background task worker used for larger downloads:
-
-```bash
-arq api.worker.WorkerSettings --watch ./api
-```
-
-This needs to be manually killed and restarted on changes to the implementation
-of the background task functions.
+Local development environment setup is described in [Developing.md](./Developing.md).
 
 ## Deployment
 

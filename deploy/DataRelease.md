@@ -59,7 +59,7 @@ an updated batch of barrier data.
     - `sudo rm -rf /downloads/custom/*`
 14. copy latest data to the tiles directory: `sudo cp -aR /tiles2/* /tiles/`
 15. copy the API data to the home directory: `sudo cp -a /tiles2/api/*.feather /home/app/sarp-connectivity/data/api`, `sudo cp -a /tiles2/api/*.db /home/app/sarp-connectivity/data/api`
-16. copy the national download zip files to the downlods directory: `sudo cp -a /tiles2/api/downloads/* /downloads/national/`
+16. copy the national download zip files to the downloads directory: `sudo cp -a /tiles2/api/downloads/* /downloads/national/`
 17. as the `app` user: `sudo su app`
 18. pull the latest code `git pull origin` (update any dependencies at this point, if needed)
 19. rebuild the UI: `cd ui && npm run deploy`
