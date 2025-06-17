@@ -23,3 +23,13 @@ Note: data come from a variety of sources and available descriptive information
 is not comprehensive.
 
 Also note: information on rare species is highly limited.
+
+The data made available through this tool represent substantial effort
+and investment from the Southeast Aquatic Resources Partnership
+(SARP) and SARP's funders, partners, and data contributors.
+
+This project was supported in part by grants from the U.S. Fish and Wildlife
+Service Fish Passage Program, American Rivers, the U.S. Department of
+Agriculture, Forest Service, the National Fish and Wildlife Foundation, The
+Nature Conservancy, Trout Unlimited the Gulf Coastal Plains and Ozarks Landscape
+Conservation Cooperative, and the Florida State Wildlife Grants Program.

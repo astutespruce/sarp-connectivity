@@ -19,16 +19,26 @@ const Credits = ({ sx }) => (
         .
         <br />
         <br />
-        This project was supported in part by grants from the&nbsp;
+        This project was supported in part by grants from the{' '}
         <a href="https://www.fws.gov/fisheries/fish-passage.html">
+          {' '}
           U.S. Fish and Wildlife Service Fish Passage Program
         </a>
-        , the&nbsp;
+        , <a href="https://www.americanrivers.org/">American Rivers</a>, the{' '}
+        <a href="https://www.fs.usda.gov/">
+          U.S. Department of Agriculture, Forest Service
+        </a>
+        , the{' '}
+        <a href="https://www.nfwf.org/">
+          National Fish and Wildlife Foundation
+        </a>
+        , <a href="https://www.nature.org/">The Nature Conservancy</a>,{' '}
+        <a href="https://www.tu.org/">Trout Unlimited</a>, the{' '}
         <a href="https://gcpolcc.org/">
           Gulf Coastal Plains and Ozarks Landscape Conservation Cooperative
         </a>
-        , and the&nbsp;
-        <a href="https://myfwc.com/conservation/special-initiatives/fwli/grant/">
+        , and the{' '}
+        <a href="https://myfwc.com/conservation/special-initiatives/swap/grant/">
           Florida State Wildlife Grants Program
         </a>
         .

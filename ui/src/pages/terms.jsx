@@ -32,24 +32,39 @@ const TermsPage = ({ data: { headerImage } }) => (
         (SARP) and SARP&apos;s funders, partners, and data contributors.
         <br />
         <br />
-        This project was supported in part by grants from the&nbsp;
+        This project was supported in part by grants from the{' '}
         <OutboundLink to="https://www.fws.gov/fisheries/fish-passage.html">
           U.S. Fish and Wildlife Service Fish Passage Program
         </OutboundLink>
-        , the&nbsp;
+        ,{' '}
+        <OutboundLink to="https://www.americanrivers.org/">
+          American Rivers
+        </OutboundLink>
+        , the{' '}
+        <OutboundLink to="https://www.fs.usda.gov/">
+          U.S. Department of Agriculture, Forest Service
+        </OutboundLink>
+        , the{' '}
+        <OutboundLink to="https://www.nfwf.org/">
+          National Fish and Wildlife Foundation
+        </OutboundLink>
+        ,{' '}
+        <OutboundLink to="https://www.nature.org/">
+          The Nature Conservancy
+        </OutboundLink>
+        , <OutboundLink to="https://www.tu.org/">Trout Unlimited</OutboundLink>,{' '}
+        the{' '}
         <OutboundLink to="https://gcpolcc.org/">
           Gulf Coastal Plains and Ozarks Landscape Conservation Cooperative
         </OutboundLink>
-        , and the&nbsp;
-        <OutboundLink to="https://myfwc.com/conservation/special-initiatives/fwli/grant/">
+        , and the{' '}
+        <OutboundLink to="https://myfwc.com/conservation/special-initiatives/swap/grant/">
           Florida State Wildlife Grants Program
         </OutboundLink>
         .
-        <br />
-        <br />
       </Paragraph>
 
-      <Paragraph variant="paragraph.large">
+      <Paragraph variant="paragraph.large" sx={{ mt: '2rem' }}>
         By using this tool, you agree to the following:
       </Paragraph>
 
