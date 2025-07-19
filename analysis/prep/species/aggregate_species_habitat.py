@@ -17,13 +17,16 @@ working_dir = data_dir / "species/derived"
 datasets = {
     # single-species datasets
     "apache_trout": pd.read_feather(working_dir / "apache_trout_habitat.feather"),
+    "eastern_brook_trout": pd.read_feather(working_dir / "eastern_brook_trout_habitat.feather"),
+    "gila_trout": pd.read_feather(working_dir / "gila_trout_habitat.feather"),
+    # cutthroat subspecies
     "ca_coastal_cutthroat_trout": pd.read_feather(working_dir / "ca_coastal_cutthroat_trout_habitat.feather").rename(
         columns={"ca_coastal_cutthroat_trout_habitat": "coastal_cutthroat_trout_habitat"}
     ),
     "colorado_river_cutthroat_trout": pd.read_feather(working_dir / "colorado_river_cutthroat_trout_habitat.feather"),
-    "eastern_brook_trout": pd.read_feather(working_dir / "eastern_brook_trout_habitat.feather"),
-    "gila_trout": pd.read_feather(working_dir / "gila_trout_habitat.feather"),
+    "greenback_cutthroat_trout": pd.read_feather(working_dir / "greenback_cutthroat_trout_habitat.feather"),
     "lahontan_cutthroat_trout": pd.read_feather(working_dir / "lahontan_cutthroat_trout_habitat.feather"),
+    "rio_grande_cutthroat_trout_habitat": pd.read_feather(working_dir / "rio_grande_cutthroat_trout_habitat.feather"),
     # multi-species datasets
     "chesapeake": pd.read_feather(working_dir / "chesapeake_diadromous_species_habitat.feather").rename(
         columns={"brook_trout_habitat": "eastern_brook_trout_habitat"}
@@ -83,6 +86,7 @@ spp_cols = [
     "coastal_cutthroat_trout_habitat",
     "coho_salmon_habitat",
     "eastern_brook_trout_habitat",
+    "greenback_cutthroat_trout_habitat",
     "gila_trout_habitat",
     "green_sturgeon_habitat",
     "gulf_sturgeon_habitat",
@@ -93,6 +97,7 @@ spp_cols = [
     "pink_salmon_habitat",
     "rainbow_trout_habitat",
     "redband_trout_habitat",
+    "rio_grande_cutthroat_trout_habitat",
     "shortnose_sturgeon_habitat",
     "skipjack_herring_habitat",
     "sockeye_salmon_habitat",

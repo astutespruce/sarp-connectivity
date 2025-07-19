@@ -904,13 +904,29 @@ export const RARESPP = { 0: '0', 1: '1', 2: '2 - 4', 3: '5 - 9', 4: '>= 10' }
 
 // blank means that trout were not recorded
 export const TROUT = {
-  1: 'Apache trout',
-  2: 'cutthroat trout',
-  3: 'Gila trout',
-  4: 'redband trout',
-  5: 'bull trout',
-  6: 'brook trout',
-  7: 'lake trout',
+  0: 'Apache trout',
+  1: 'cutthroat trout',
+  2: 'coastal cutthroat trout',
+  3: 'greenback cutthroat trout',
+  4: 'Bonneville cutthroat trout',
+  5: 'Rio Grande cutthroat trout',
+  6: 'Gila trout',
+  7: 'Lahontan cutthroat trout',
+  8: 'Paiue cutthroat trout',
+  9: 'westslope cutthroat trout',
+  10: 'California golden trout',
+  11: 'Eagle lake rainbow trout',
+  12: 'Columbia River redband trout',
+  13: 'Kern River golden trout',
+  14: 'Great Basin redband trout',
+  15: 'McCloud redband trout',
+  16: 'Little Kern golden trout',
+  17: 'Snake River finespotted cutthroat trout',
+  18: 'Yellowstone cutthroat trout',
+  19: 'Colorado River cutthroat trout',
+  20: 'bull trout',
+  21: 'eastern brook trout',
+  22: 'lake trout',
 }
 
 export const STREAMORDER = {
@@ -1760,17 +1776,25 @@ export const SPECIES_HABITAT_FIELDS = {
     label: 'Apache trout',
     source: 'Dan Dauwalter (Trout Unlimited), Zachary Jackson (USFWS)',
   },
+  coloradorivercutthroattrouthabitat: {
+    label: 'Colorado River cutthroat trout',
+    source: 'Colorado River Cutthroat Trout Working Group',
+  },
   gilatrouthabitat: {
     label: 'Gila trout',
     source: 'Dan Dauwalter (Trout Unlimited)',
+  },
+  greenbackcutthroattrouthabitat: {
+    label: 'Greenback cutthroat trout',
+    source: 'Greenback Cutthroat Trout Recovery Team',
   },
   lahontancutthroattrouthabitat: {
     label: 'Lahontan cutthroat trout',
     source: 'Trout Unlimited',
   },
-  coloradorivercutthroattrouthabitat: {
-    label: 'Colorado River cutthroat trout',
-    source: 'Colorado River Cutthroat Trout Working Group',
+  riograndecutthroattrouthabitat: {
+    label: 'Rio Grande cutthroat trout',
+    source: 'Rio Grande Cutthroat Trout Working Group',
   },
 }
 

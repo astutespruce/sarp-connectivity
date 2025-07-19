@@ -104,19 +104,35 @@ These data were prepared and associated with NHD flowlines using
 
 ### Lahontan cutthroat trout
 
-Habitat lines for coastal cutthroat trout were by Kat Hoenke on 4/29/2025 via email.
+Habitat lines for coastal cutthroat trout were by provided by Kat Hoenke on 4/29/2025 via email.
 These data came from Trout Unlimited.
 
 These data were prepared and associated with NHD flowlines using
-`analysis/prep/speces/prep_lahontan_cutthroat_trout.py`.
+`analysis/prep/species/prep_lahontan_cutthroat_trout.py`.
 
 ### Colorado River cutthroat trout
 
-Habitat lines for Colorado River cutthroat trout were by Kat Hoenke on 5/19/2025 via email.
+Habitat lines for Colorado River cutthroat trout were provided by Kat Hoenke on 5/19/2025 via email.
 These data came from the Colorado River Cutthroat Trout Working Group.
 
 These data were prepared and associated with NHD flowlines using
-`analysis/prep/speces/prep_lahontan_cutthroat_trout.py`.
+`analysis/prep/species/prep_colorado_river_cutthroat_trout.py`.
+
+### Greenback cutthroat trout
+
+Habitat lines for Greenback cutthroat trout were provided by Kat Hoenke on 5/21/2025 via email.
+These data came from the Greenback Recovery Team.
+
+These data were prepared and associated with NHD flowlines using
+`analysis/prep/species/prep_greenback_cutthroat_trout.py`.
+
+### Rio Grande cutthroat trout
+
+Habitat lines for Rio Grand cutthroat trout were provided by Kat Hoenke on 6/26/2025 bia email.
+These data came from the Rio Grande cutthroat trout working group.
+
+These data were prepared and associated with nHD flowlines using
+`analysis/prep/species/prep_rio_grande_cutthroat_trout.py`.
 
 ### Combined Species Habitat
 

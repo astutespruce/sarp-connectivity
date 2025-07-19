@@ -510,7 +510,7 @@ df["WaterRight"] = df.WaterRight.fillna(0).astype("uint8")
 df["Hazard"] = df.Hazard.fillna(4).astype("uint8").map(HAZARD_TO_DOMAIN).astype("uint8")
 
 
-# backfill ActiveList and KeepOnActiveList
+# backfill ActiveList and KeepOnActiveList missing values
 df["ActiveList"] = df.ActiveList.fillna(0).astype("uint8")
 # keep as 3 values per direction from Kat 5/22/2025
 df["KeepOnActiveList"] = df.KeepOnActiveList.fillna(0).astype("uint8")

@@ -40,9 +40,6 @@ const HabitatMethodsPage = ({
     coastalCutthroatTroutImage: {
       childImageSharp: { gatsbyImageData: coastalCutthroatTroutImage },
     },
-    coloradoRiverCutthroatTroutImage: {
-      childImageSharp: { gatsbyImageData: coloradoRiverCutthroatTroutImage },
-    },
     lahontanCutthroatTroutImage: {
       childImageSharp: { gatsbyImageData: lahontanCutthroatTroutImage },
     },
@@ -131,16 +128,14 @@ const HabitatMethodsPage = ({
             <a href="#ApacheTrout">Apache & Gila Trout</a>
           </li>
           <li>
-            <a href="#LahontanCutthroatTrout">Lahontan cutthroat trout</a>
+            <a href="#InteriorCutthroatTrout">
+              Colorado River, Greenback, Lahontan, and Rio Grande cutthroat
+              trout
+            </a>
           </li>
           <li>
             <a href="#CoastalCutthroatTrout">
               Coastal Cutthroat Trout (California)
-            </a>
-          </li>
-          <li>
-            <a href="#ColoradoRiverCutthroatTrout">
-              Colorado River Cutthroat Trout (California)
             </a>
           </li>
         </Box>
@@ -814,18 +809,31 @@ const HabitatMethodsPage = ({
 
       <Divider />
 
-      <Box id="LahontanCutthroatTrout" sx={{ mt: '3rem' }}>
+      <Box id="InteriorCutthroatTrout" sx={{ mt: '3rem' }}>
         <Heading as="h2" variant="heading.section">
-          Lahontan Cutthroat Trout Habitat
+          Colorado River, Greenback, Lahontan, and Rio Grande Cutthroat Trout
+          Habitat
         </Heading>
 
         <Grid columns="2fr 1fr" gap={4}>
           <Box>
             <Paragraph>
+              Colorado River cutthroat trout habitat data were derived from data
+              provided by the Colorado Cutthroat Trout Working Group.
+              <br />
+              <br />
+              Greenback cutthroat habitat data were derived from data provided
+              by the Greenback Cutthroat Recovery Team.
+              <br />
+              <br />
               Lahontan cutthroat trout habitat data were derived from data
               provided by Trout Unlimited. Data appear to have been developed
               based on an older version of NHDPlus High Resolution and were very
               close to the latest available NHDPlus High Resolution flowlines.
+              <br />
+              <br />
+              Rio Grande cutthroat habitat data were derived from data provided
+              by the Rio Grande Cutthroat Working Group.
             </Paragraph>
           </Box>
 
@@ -844,8 +852,8 @@ const HabitatMethodsPage = ({
         </Grid>
 
         <Paragraph sx={{ mt: '2rem', fontWeight: 'bold' }}>
-          We used the following steps to attribute the Lahontan cutthroat trout
-          habitat data to NHDPlusHR flowlines:
+          We used the following steps to attribute the cutthroat trout habitat
+          data to NHDPlusHR flowlines:
         </Paragraph>
         <Box
           as="ol"
@@ -884,6 +892,16 @@ const HabitatMethodsPage = ({
             canals / ditches that closely parallel waterways with habitat.
           </li>
           <li>
+            We extracted any flowlines that had significant overlap with
+            Colorado River cutthroat trout waterbodies identified as current
+            populations (excluded waterbodies specifically marked as
+            recreational populations or populations no longer present).
+          </li>
+          <li>
+            We extracted any flowlines that had significant overlap with
+            Greenback cutthroat trout waterbodies.
+          </li>
+          <li>
             We visually and quantitatively compared the extracted NHDPlusHR
             flowlines tagged as habitat to the original data to ensure
             reasonable spatial correspondence; the overall linework was similar
@@ -892,8 +910,8 @@ const HabitatMethodsPage = ({
         </Box>
         <Paragraph variant="help" sx={{ mt: '2rem' }}>
           Note: the habitat data included used within this tool is a best first
-          approximation of the Lahontan cutthroat trout habitat data, attributed
-          at the entire NHDPlusHR flowline level; it does not include elevation
+          approximation of these cutthroat trout habitat data, attributed at the
+          entire NHDPlusHR flowline level; it does not include elevation
           gradients or other natural barriers that may have been included within
           the original data.
         </Paragraph>
@@ -991,85 +1009,6 @@ const HabitatMethodsPage = ({
       </Box>
 
       <Divider />
-
-      <Box id="ColoradoRiverCutthroatTrout" sx={{ mt: '3rem' }}>
-        <Heading as="h2" variant="heading.section">
-          Colorado River Cutthroat Trout Habitat
-        </Heading>
-
-        <Grid columns="2fr 1fr" gap={4}>
-          <Box>
-            Colorado River cutthroat trout habitat data were derived from data
-            provided by the Colorado Cutthroat Trout Working Group.
-          </Box>
-
-          <Box>
-            <GatsbyImage
-              image={coloradoRiverCutthroatTroutImage}
-              alt="Colorado River Cutthroat Trout"
-            />
-            <Text variant="help" sx={{ fontSize: 0 }}>
-              Photo: Colorado River |{' '}
-              <OutboundLink to="https://en.wikipedia.org/wiki/Colorado_River_cutthroat_trout#/media/File:Colo_river_cutthroat_BLM.jpg">
-                Bureau of Land Management
-              </OutboundLink>
-            </Text>
-          </Box>
-        </Grid>
-
-        <Paragraph sx={{ mt: '2rem', fontWeight: 'bold' }}>
-          We used the following steps to attribute the Colorado River cutthroat
-          trout habitat data to NHDPlusHR flowlines:
-        </Paragraph>
-        <Box
-          as="ol"
-          sx={{
-            mt: '0.5rem',
-          }}
-        >
-          <li>Reprojected to the USGS CONUS Albers projection.</li>
-          <li>
-            Selected NHDPlusHR flowlines that intersected a 50 meter buffer
-            around the habitat linework for further processing below.
-          </li>
-          <li>
-            Selected any flowlines where both the upstream and downstream
-            endpoints fall within 1 meter of habitat linework and marked them as
-            habitat if they were not canals / ditches or network loops. The
-            remaining flowlines are retained for further processing below.
-          </li>
-          <li>
-            Calculated the amount of overlap with the 50 meter buffer around
-            habitat linework, and marked a flowline as habitat if at least 50%
-            of its length is within the buffer and the total amount of overlap
-            is less than 1 kilometer different from its total length, or if its
-            upstream endpoint is within 1 meter of the habitat linework and has
-            at least 25% overlap. Any Any fragments that have high overlap with
-            the buffer but are less than 150 meters in length were dropped
-            unless they are headwaters or connect to upstream segments already
-            marked as habitat.
-          </li>
-          <li>
-            We also extracted any flowlines that had significant overlap with
-            Colorado River cutthroat trout waterbodies identified as current
-            populations (excluded waterbodies specifically marked as
-            recreational populations or populations no longer present).
-          </li>
-          <li>
-            We visually and quantitatively compared the extracted NHDPlusHR
-            flowlines tagged as habitat to the original data to ensure
-            reasonable spatial correspondence; the overall linework was similar
-            and had roughly similar lengths.
-          </li>
-        </Box>
-        <Paragraph variant="help" sx={{ mt: '2rem' }}>
-          Note: the habitat data included used within this tool is a best first
-          approximation of the Colorado River cutthroat trout habitat data,
-          attributed at the entire NHDPlusHR flowline level; it does not include
-          elevation gradients or other natural barriers that may have been
-          included within the original data.
-        </Paragraph>
-      </Box>
     </Container>
   </Layout>
 )
@@ -1084,7 +1023,6 @@ HabitatMethodsPage.propTypes = {
     sturgeonImage: PropTypes.object.isRequired,
     apacheTroutImage: PropTypes.object.isRequired,
     coastalCutthroatTroutImage: PropTypes.object.isRequired,
-    coloradoRiverCutthroatTroutImage: PropTypes.object.isRequired,
     lahontanCutthroatTroutImage: PropTypes.object.isRequired,
   }).isRequired,
 }
@@ -1166,18 +1104,6 @@ export const pageQuery = graphql`
     }
     coastalCutthroatTroutImage: file(
       relativePath: { eq: "usfws-releasing-cutthroat.jpg" }
-    ) {
-      childImageSharp {
-        gatsbyImageData(
-          layout: CONSTRAINED
-          width: 400
-          formats: [AUTO, WEBP]
-          placeholder: BLURRED
-        )
-      }
-    }
-    coloradoRiverCutthroatTroutImage: file(
-      relativePath: { eq: "Colo_river_cutthroat_BLM.jpg" }
     ) {
       childImageSharp {
         gatsbyImageData(

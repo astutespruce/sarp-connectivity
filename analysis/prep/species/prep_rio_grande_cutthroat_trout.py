@@ -15,7 +15,8 @@ from analysis.lib.io import read_arrow_tables
 
 warnings.filterwarnings("ignore", category=UserWarning, message=".*Measured.*")
 
-SELECTION_TOLERANCE = 50  # meters; used to select flowlines that are near habitat
+
+SELECTION_TOLERANCE = 10  # meters; used to select flowlines that are near habitat
 # outer overlap used to check overlap of flowlines filled in gaps
 OUTER_OVERLAP_TOLERANCE = 300  # meters;
 ENDPOINT_TOLERANCE = 1  # meters; used to determine if endpoints are on habitat
@@ -26,27 +27,38 @@ MIN_DOWNSTREAM_OVERLAP_RATIO = 0.25  # proportion
 MAX_LENGTH_DIFF = 2000  # meters
 MAX_ENDPOINT_DIFF = 1000  # meters
 
-
 data_dir = Path("data")
 src_dir = data_dir / "species/source"
 # must use raw data to be able to join on NHDPlusID later
 nhd_dir = data_dir / "nhd/raw"
 out_dir = data_dir / "species/derived"
 
-infilename = src_dir / "CRCT_SEAquaticsDataRequest.gpkg"
-line_layer = "CRCT_CurrentStreams2015"
-poly_layer = "CRCT_CurrentLakes2015"
+infilename = src_dir / "RGCTcurrentdistribution/RGCTcurrentdistribution.shp"
 
-# manually-identified keep lines (NHDPlusIDs):
-# NOTE: these are not necessarily perfect fits but represent reasonable compromise
-# of selecting a flowline with enough overlap with habitat
-keep_line_ids = np.array([])
+keep_line_ids = np.array(
+    [
+        35000900073853,
+        35000900041896,
+        35000900010440,
+        35000600216808,
+        35000600198876,
+        35000600181040,
+        35000600234633,
+        35000600252783,
+        35000600288561,
+        35000600270035,
+        35000600180568,
+        35000600288030,
+        35000600181284,
+    ]
+)
+
+# manually identified lines that are not habitat
+disallowed_line_ids = np.array([35000600287243])
 
 
-df = read_dataframe(infilename, layer=line_layer, force_2d=True, columns=[]).to_crs(CRS)
-wb = read_dataframe(
-    infilename, layer=poly_layer, where="Status='Current Population'", force_2d=True, columns=[]
-).to_crs(CRS)
+df = read_dataframe(infilename, columns=["NHDPlusID"], use_arrow=True).to_crs(CRS)
+df = df.loc[df.geometry.notnull()].reset_index(drop=True)
 
 
 ################################################################################
@@ -59,6 +71,7 @@ ix = shapely.STRtree(df.geometry.values).query(huc4_df.geometry.values, predicat
 huc4s = sorted(huc4_df.HUC4.take(ix).unique())
 huc2s = sorted(huc4_df.HUC2.take(ix).unique())
 huc4_df = huc4_df.loc[huc4_df.HUC4.isin(huc4s)].copy()
+
 
 flowlines = read_arrow_tables(
     [nhd_dir / huc2 / "flowlines.feather" for huc2 in huc2s],
@@ -75,13 +88,16 @@ flowlines = read_arrow_tables(
     ],
     filter=pc.is_in(pc.field("HUC4"), pa.array(huc4s)),
     new_fields={"HUC2": huc2s},
-).filter(pc.field("offnetwork") == False)
+).filter(pc.field("offnetwork") == False)  # noqa: E712
 
 flowlines = gp.GeoDataFrame(
     flowlines.select([c for c in flowlines.column_names if c not in {"geometry", "offnetwork"}]).to_pandas(),
     geometry=shapely.from_wkb(flowlines.column("geometry")),
     crs=CRS,
 ).set_index("NHDPlusID")
+
+
+flowlines = flowlines.loc[~flowlines.index.isin(disallowed_line_ids)].copy()
 
 # mark canals; these require higher confidence of overlap since they may spatially
 # interact with habitat but not functionally
@@ -103,10 +119,10 @@ joins = joins.loc[
 ################################################################################
 df["buf"] = shapely.buffer(df.geometry.values, SELECTION_TOLERANCE, cap_style="flat")
 
-# DEBUG:
+# # DEBUG:
 # write_dataframe(
 #     gp.GeoDataFrame(geometry=df.buf, crs=CRS),
-#     "/tmp/colorado_river_cutthroat_trout_habitat_source_buffer.fgb",
+#     "/tmp/rio_grande_cutthroat_trout_habitat_source_buffer.fgb",
 # )
 
 # add upstream / downstream points
@@ -234,70 +250,22 @@ pairs = pairs.loc[~(pairs.NHDPlusID.isin(np.unique(np.concatenate([keep_line_ids
 print(f"keeping {len(keep_ids):,} NHD lines that mostly overlap habitat")
 
 
-# # DEBUG:
+# DEBUG:
 # write_dataframe(
 #     flowlines.loc[flowlines.index.isin(keep_line_ids)].join(total_overlap[["overlap", "overlap_ratio"]]).reset_index(),
-#     "/tmp/colorado_river_cutthroat_trout_high_overlap_keep_lines.fgb",
+#     "/tmp/rio_grande_cutthroat_trout_high_overlap_keep_lines.fgb",
 # )
 
 
-################################################################################
-### Associate lake habitat polygons
-################################################################################
-
-left, right = shapely.STRtree(flowlines.geometry.values).query(wb.geometry.values, predicate="intersects")
-pairs = pd.DataFrame(
-    {
-        "NHDPlusID": flowlines.index.values.take(right),
-        "spp_poly": wb.geometry.values.take(left),
-    }
-).join(
-    flowlines[
-        [
-            "geometry",
-            "length",
-            "loop",
-        ]
-    ],
-    on="NHDPlusID",
-)
-
-shapely.prepare(pairs.spp_poly.values)
-contains = shapely.contains_properly(pairs.spp_poly.values, pairs.geometry.values)
-
-pairs["overlap"] = np.float64(0)
-pairs.loc[contains, "overlap"] = pairs.length
-pairs.loc[~contains, "geometry"] = shapely.intersection(
-    pairs.loc[~contains].spp_poly.values, pairs.loc[~contains].geometry.values
-)
-pairs.loc[~contains, "overlap"] = shapely.length(pairs.loc[~contains].geometry.values)
-
-tmp = pairs.groupby("NHDPlusID").agg({"length": "first", "overlap": "sum"}).reset_index()
-tmp["overlap"] = tmp.overlap / tmp.length
-keep_ids = tmp.loc[tmp.overlap >= 0.8].NHDPlusID
-
-# # DEBUG:
-# write_dataframe(
-#     flowlines.loc[flowlines.index.isin(keep_ids)].join(tmp.set_index("NHDPlusID").overlap).reset_index(),
-#     "/tmp/colorado_river_cutthroat_trout_high_poly_overlap_keep_lines.fgb",
-# )
-
-keep_line_ids = np.unique(np.concatenate([keep_line_ids, keep_ids]))
-
-
-################################################################################
-### Output final linework
-################################################################################
-
-flowlines["colorado_river_cutthroat_trout_habitat"] = flowlines.index.isin(keep_line_ids)
+flowlines["rio_grande_cutthroat_trout_habitat"] = flowlines.index.isin(keep_line_ids)
 
 print(
     f"species habitat: {shapely.length(df.geometry.values).sum() / 1000:,.1f} km; "
-    f"extracted {flowlines.loc[flowlines.colorado_river_cutthroat_trout_habitat, ['length']].values.sum() / 1000:,.1f} km from NHD"
+    f"extracted {flowlines.loc[flowlines.rio_grande_cutthroat_trout_habitat, ['length']].values.sum() / 1000:,.1f} km from NHD"
 )
 
-out = flowlines.loc[flowlines.colorado_river_cutthroat_trout_habitat].reset_index()
-write_dataframe(out, out_dir / "colorado_river_cutthroat_trout_habitat.fgb")
-out[["NHDPlusID", "HUC2", "colorado_river_cutthroat_trout_habitat"]].to_feather(
-    out_dir / "colorado_river_cutthroat_trout_habitat.feather"
+out = flowlines.loc[flowlines.rio_grande_cutthroat_trout_habitat].reset_index()
+write_dataframe(out, out_dir / "rio_grande_cutthroat_trout_habitat.fgb")
+out[["NHDPlusID", "HUC2", "rio_grande_cutthroat_trout_habitat"]].to_feather(
+    out_dir / "rio_grande_cutthroat_trout_habitat.feather"
 )

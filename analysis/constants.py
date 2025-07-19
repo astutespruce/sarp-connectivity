@@ -732,40 +732,6 @@ FCODE_TO_STREAMTYPE = {
     42816: 5,  # pipeline
 }
 
-# map trout species to 1-digit integer codes
-TROUT_SPECIES_TO_CODE = {
-    # Apache trout
-    "Oncorhynchus apache": 1,
-    # Cutthroat trout
-    "Oncorhynchus clarkii": 2,
-    # Gila trout
-    "Oncorhynchus gilae": 3,
-    # Redband trout
-    "Oncorhynchus mykiss": 4,
-    # Bull trout
-    "Salvelinus confluentus": 5,
-    # Brook trout
-    "Salvelinus fontinalis": 6,
-    # Lake trout
-    "Salvelinus namaycush": 7,
-    # Lahontan cutthroat; lump with cutthroat
-    "Oncorhynchus henshawi": 2,
-    # Westslope cutthroat; lump with cutthroat
-    "Oncorhynchus lewisi": 2,
-    # Colorado River and Yellowstone cutthroat subspecies; lump with cutthroat
-    "Oncorhynchus virginalis": 2,
-}
-
-TROUT_CODE_TO_NAME = {
-    1: "Apache trout",
-    2: "cutthroat trout",
-    3: "Gila trout",
-    4: "redband trout",
-    5: "bull trout",
-    6: "brook trout",
-    7: "lake trout",
-}
-
 
 # map ESU layer names to 2-digit integer indexes
 # these are based on data/species/source/ESU_DPS_CA_WA_OR_ID.gdb

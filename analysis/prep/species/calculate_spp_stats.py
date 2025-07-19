@@ -20,7 +20,7 @@ from pyogrio import read_dataframe, write_dataframe
 from pyarrow.csv import read_csv, ConvertOptions
 import shapely
 
-from analysis.constants import SARP_STATES, TROUT_SPECIES_TO_CODE, TROUT_CODE_TO_NAME
+from analysis.constants import SARP_STATES
 from analysis.lib.util import append
 
 
@@ -136,10 +136,12 @@ trout_cols = [
     "colorado_river_cutthroat_trout_habitat",
     "eastern_brook_trout_habitat",
     "gila_trout_habitat",
+    "greenback_cutthroat_trout_habitat",
     "lahontan_cutthroat_trout_habitat",
     # leave rainbow out for now
     # "rainbow_trout_habitat",
     "redband_trout_habitat",
+    "rio_grande_cutthroat_trout_habitat",
     "westslope_cutthroat_trout_habitat",
     "yellowstone_cutthroat_trout_habitat",
 ]
@@ -151,22 +153,25 @@ trout_habitat = trout_habitat.loc[trout_habitat[trout_cols].any(axis=1)].reset_i
 # pivot to one record per species
 tmp = trout_habitat.melt(id_vars=["NHDPlusID"], value_vars=trout_cols, var_name="SNAME", value_name="present")
 trout_habitat = tmp.loc[tmp.present].join(trout_habitat.set_index("NHDPlusID").geometry, on="NHDPlusID")
-trout_habitat["SNAME"] = trout_habitat.SNAME.map(
-    {
-        "apache_trout_habitat": "Oncorhynchus apache",
-        "bonneville_cutthroat_trout_habitat": "Oncorhynchus clarkii Utah",
-        "bull_trout_habitat": "Salvelinus confluentus",
-        "coastal_cutthroat_trout_habitat": "Oncorhynchus clarkii clarkii",
-        "colorado_river_cutthroat_trout_habitat": "Oncorhynchus virginalis pleuriticus",
-        "eastern_brook_trout_habitat": "Salvelinus fontinalis",
-        "gila_trout_habitat": "Oncorhynchus gilae",
-        "lahontan_cutthroat_trout_habitat": "Oncorhynchus henshawi henshawi",
-        # "rainbow_trout_habitat": "Oncorhynchus mykiss",
-        "redband_trout_habitat": "Oncorhynchus mykiss ssp.",
-        "westslope_cutthroat_trout_habitat": "Oncorhynchus lewisi",
-        "yellowstone_cutthroat_trout_habitat": "Oncorhynchus virginalis bouvieri",
-    }
-)
+habitat_species = {
+    "apache_trout_habitat": "Oncorhynchus apache",
+    "bonneville_cutthroat_trout_habitat": "Oncorhynchus clarkii utah",
+    "bull_trout_habitat": "Salvelinus confluentus",
+    "coastal_cutthroat_trout_habitat": "Oncorhynchus clarkii clarkii",
+    "colorado_river_cutthroat_trout_habitat": "Oncorhynchus virginalis pleuriticus",
+    "eastern_brook_trout_habitat": "Salvelinus fontinalis",
+    "gila_trout_habitat": "Oncorhynchus gilae",
+    "greenback_cutthroat_trout_habitat": "Oncorhynchus clarkii stomias",
+    "lahontan_cutthroat_trout_habitat": "Oncorhynchus henshawi henshawi",
+    # "rainbow_trout_habitat": "Oncorhynchus mykiss",
+    # the majority of redband trout in Streamnet are Columbia River redband (gairdneri)
+    # with some along the CA border that are probably McCloud River redband (stonei)
+    "redband_trout_habitat": "Oncorhynchus mykiss gairdneri",
+    "rio_grande_cutthroat_trout_habitat": "Oncorhynchus clarkii virginalis",
+    "westslope_cutthroat_trout_habitat": "Oncorhynchus lewisi",
+    "yellowstone_cutthroat_trout_habitat": "Oncorhynchus virginalis bouvieri",
+}
+trout_habitat["SNAME"] = trout_habitat.SNAME.map(habitat_species)
 
 left, right = shapely.STRtree(trout_habitat.geometry.values).query(huc12.geometry.values, predicate="intersects")
 pairs = pd.DataFrame(
@@ -312,13 +317,136 @@ write_dataframe(huc12_counts_secas, out_dir / "SECAS_spp_HUC12_count_no_historic
 df = huc12[[]].join(df.groupby("HUC12")[status_cols].sum()).fillna(0).astype("uint8")
 
 
-# aggregate trout to species level and then assign codes
-trout_df["trout"] = (
-    trout_df.SNAME.apply(lambda x: " ".join(x.split(" ")[:2])).str.strip(",").map(TROUT_SPECIES_TO_CODE).astype("uint8")
+### assign trout species codes
+# cleanup names to latest taxonomy
+trout_df["SNAME"] = (
+    trout_df.SNAME
+    # westslope cutthroat
+    .replace("Oncorhynchus clarkii lewisi", "Oncorhynchus lewisi")
+    # Yellowstone cutthroat
+    .replace("Oncorhynchus clarkii bouvieri", "Oncorhynchus virginalis bouvieri")
+    # Colorado River cutthroat
+    .replace("Oncorhynchus clarkii pleuriticus", "Oncorhynchus virginalis pleuriticus")
+    # Lahontan cutthroat
+    .replace("Oncorhynchus clarkii henshawi", "Oncorhynchus henshawi henshawi")
+    # Paiute cutthroat trout
+    .replace("Oncorhynchus clarkii seleniris", "Oncorhynchus henshawi seleniris")
+    # Snake River Finespotted cutthroat trout
+    .replace("Oncorhynchus clarkii behnkei", "Oncorhynchus virginalis behnkei")
 )
+
+# standardize bull trout
+ix = trout_df.SNAME.str.startswith("Salvelinus confluentus")
+trout_df.loc[ix, "SNAME"] = "Salvelinus confluentus"
+
+# standardize populations / unidentified subspecies
+trout_df["SNAME"] = (
+    trout_df.SNAME
+    # location in Sacramento basin suggests McCloud redband
+    .replace("Oncorhynchus mykiss, ssp.", "Oncorhynchus mykiss stonei")
+    # Great Basin redband (https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.105406/Oncorhynchus_mykiss_pop_18)
+    .replace("Oncorhynchus mykiss pop. 18", "Oncorhynchus mykiss newberrii")
+    # coastal cutthroat (https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.104543/Oncorhynchus_clarkii_pop_2)
+    .replace("Oncorhynchus clarkii pop. 2", "Oncorhynchus clarkii clarkii")
+    # Malheur Lakes redband trout (lump with Great Basin redband) (https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.885796/Oncorhynchus_mykiss_pop_43)
+    .replace("Oncorhynchus mykiss pop. 43", "Oncorhynchus mykiss newberrii")
+    # Fort Rock redband trout (lump with Great Basin) (https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.885795/Oncorhynchus_mykiss_pop_42)
+    .replace("Oncorhynchus mykiss pop. 42", "Oncorhynchus mykiss newberrii")
+    # Redband trout (lump with Great Basin) (https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.885799/Oncorhynchus_mykiss_pop_44)
+    .replace("Oncorhynchus mykiss pop. 44", "Oncorhynchus mykiss newberrii")
+    # Redband trout (lump with Great Basin) (https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.103374/Oncorhynchus_mykiss_pop_4)
+    .replace("Oncorhynchus mykiss pop. 4", "Oncorhynchus mykiss newberrii")
+    # Redband trout (lump with Great Basin) (https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.102507/Oncorhynchus_mykiss_pop_3)
+    .replace("Oncorhynchus mykiss pop. 3", "Oncorhynchus mykiss newberrii")
+    # Redband trout (lump with Great Basin) (https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.105764/Oncorhynchus_mykiss_pop_19)
+    .replace("Oncorhynchus mykiss pop. 19", "Oncorhynchus mykiss newberrii")
+    # Redband trout (lump with Great Basin) (https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.104279/Oncorhynchus_mykiss_pop_6)
+    .replace("Oncorhynchus mykiss pop. 6", "Oncorhynchus mykiss newberrii")
+    # McCloud redband trout (https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.101071/Oncorhynchus_mykiss_pop_7)
+    .replace("Oncorhynchus mykiss pop. 7", "Oncorhynchus mykiss stonei")
+    # Eagle Lake rainbow trout
+    .replace("Oncorhynchus mykiss pop. 5", "Oncorhynchus mykiss aquilarum")
+)
+
+
+known = set(habitat_species.values()).union(
+    {
+        # lake trout
+        "Salvelinus namaycush",
+        # cutthroat trout (unspecified)
+        "Oncorhynchus clarkii",
+        # McCloud River redband trout
+        "Oncorhynchus mykiss stonei",
+        # Great Basin redband trout
+        "Oncorhynchus mykiss newberrii",
+        # Kern River rainbow trout / Kern golden trout
+        "Oncorhynchus mykiss gilberti",
+        # California golden trout
+        "Oncorhynchus mykiss aguabonita",
+        # Little Kern golden trout
+        "Oncorhynchus mykiss whitei",
+        # Eagle Lake rainbow trout
+        "Oncorhynchus mykiss aquilarum",
+        # Westslope cutthroat trout
+        "Oncorhynchus lewisi",
+        # Yellowstone cutthroat trout
+        "Oncorhynchus virginalis bouvieri",
+        # Colorado River cutthroat
+        "Oncorhynchus virginalis pleuriticus",
+        # Lahontan cutthroat
+        "Oncorhynchus henshawi henshawi",
+        # Paiute cutthroat trout
+        "Oncorhynchus henshawi seleniris",
+        # Snake River Finespotted cutthroat trout
+        "Oncorhynchus virginalis behnkei",
+    }
+)
+
+unknown = [spp for spp in trout_df.SNAME.unique() if spp not in known]
+if unknown:
+    raise ValueError(f"Unhandled trout species: {', '.join(unknown)}")
+
+sname_to_cname = {
+    "Oncorhynchus apache": "Apache trout",
+    "Oncorhynchus clarkii": "cutthroat trout",
+    "Oncorhynchus clarkii clarkii": "coastal cutthroat trout",
+    "Oncorhynchus clarkii stomias": "greenback cutthroat trout",
+    "Oncorhynchus clarkii utah": "Bonneville cutthroat trout",
+    "Oncorhynchus clarkii virginalis": "Rio Grande cutthroat trout",
+    "Oncorhynchus gilae": "Gila trout",
+    "Oncorhynchus henshawi henshawi": "Lahontan cutthroat trout",
+    "Oncorhynchus henshawi seleniris": "Paiue cutthroat trout",
+    "Oncorhynchus lewisi": "westslope cutthroat trout",
+    "Oncorhynchus mykiss aguabonita": "California golden trout",
+    "Oncorhynchus mykiss aquilarum": "Eagle lake rainbow trout",
+    "Oncorhynchus mykiss gairdneri": "Columbia River redband trout",
+    "Oncorhynchus mykiss gilberti": "Kern River golden trout",
+    "Oncorhynchus mykiss newberrii": "Great Basin redband trout",
+    "Oncorhynchus mykiss stonei": "McCloud redband trout",
+    "Oncorhynchus mykiss whitei": "Little Kern golden trout",
+    "Oncorhynchus virginalis behnkei": "Snake River finespotted cutthroat trout",
+    "Oncorhynchus virginalis bouvieri": "Yellowstone cutthroat trout",
+    "Oncorhynchus virginalis pleuriticus": "Colorado River cutthroat trout",
+    "Salvelinus confluentus": "bull trout",
+    "Salvelinus fontinalis": "eastern brook trout",
+    "Salvelinus namaycush": "lake trout",
+}
+
+
+# assign 8-bit uint codes
+name_to_code = {spp: i for i, spp in enumerate(sorted(trout_df.SNAME.unique()))}
+code_to_name = {v: k for k, v in name_to_code.items()}
+code_to_common_name = {v: sname_to_cname[k] for k, v in name_to_code.items()}
+print("------------------------------------------------------------------------")
+print("update ui/src/config.js::TROUT variable with the following entries:")
+print(code_to_common_name)
+print("------------------------------------------------------------------------")
+
+
+trout_df["trout"] = trout_df.SNAME.map(name_to_code).astype("uint8")
 trout_df = pd.DataFrame(trout_df.groupby("HUC12").trout.unique())
 trout_df["trout_spp_count"] = trout_df.trout.apply(len)
-trout_df["trout_spp"] = trout_df.trout.apply(lambda x: ", ".join(sorted(TROUT_CODE_TO_NAME[v] for v in x)))
+trout_df["trout_spp"] = trout_df.trout.apply(lambda x: ", ".join(sorted(code_to_name[v] for v in x)))
 trout_df["trout"] = trout_df.trout.apply(lambda x: ",".join([str(v) for v in sorted(x)]))
 
 # emit a message to manually update the hard-coded domain used for download
@@ -326,7 +454,7 @@ tmp = trout_df.groupby("trout").trout_spp.first().to_dict()
 tmp.update({"": "not recorded"})
 
 print("------------------------------------------------------------------------")
-print("update TROUT_DOMAIN with the following entries:")
+print("update api/constants.py::TROUT_DOMAIN with the following entries:")
 print(tmp)
 print("------------------------------------------------------------------------")
 

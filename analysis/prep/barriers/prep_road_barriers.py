@@ -403,9 +403,10 @@ df.loc[ix, "BarrierSeverity"] = np.uint8(0)  # unknown
 df.loc[ix, "SARP_Score"] = np.float32(-1)  # unknown
 
 
-# recode ActiveList and KeepOnActiveList
+# backfill ActiveList and KeepOnActiveList missing values
 df["ActiveList"] = df.ActiveList.fillna(0).astype("uint8")
-df["KeepOnActiveList"] = df.KeepOnActiveList.map({1: 1, 2: 0}).fillna(0).astype("bool")
+# keep as 3 values per direction from Kat 5/22/2025
+df["KeepOnActiveList"] = df.KeepOnActiveList.fillna(0).astype("uint8")
 
 
 ### Drop any small barriers that should be completely dropped from analysis
