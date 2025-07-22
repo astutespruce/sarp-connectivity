@@ -114,6 +114,62 @@ def remove_pipelines(flowlines, joins, max_pipeline_length=100, keep_ids=None):
     return flowlines, joins
 
 
+def repair_stream_order(flowlines, joins):
+    """Fix stream orders that go down after divergences.
+
+    According to the NHDPlus HR guide (https://pubs.usgs.gov/of/2019/1096/ofr20191096.pdf),
+    stream order should not go down after divergences.  However, we found that
+    the first flowline after a divergence retains the same stream order as before
+    the divergence (correct), the flowline immediately downstream of that where
+    there is an incoming tributary is assigned the stream order of that tributary
+    instead, which can be substantially lower than the stream order prior to
+    divergence (incorrect).
+
+    This traces the network from each instance where it happens and attempts to
+    preserve the pre-divergence stream order.
+
+    Parameters
+    ----------
+    flowlines : GeoDataFrame
+    joins : DataFrame
+        joins between flowlines
+    """
+    stream_order = flowlines[["NHDPlusID", "StreamOrder"]].set_index("NHDPlusID").StreamOrder
+    tmp = (
+        joins.loc[(joins.upstream != 0) & (joins.downstream != 0)]
+        .join(stream_order.rename("upstream_streamorder"), on="upstream")
+        .join(stream_order.rename("downstream_streamorder"), on="downstream")
+    )
+    start_ids = tmp.loc[tmp.downstream_streamorder < tmp.upstream_streamorder].upstream.unique()
+
+    if len(start_ids):
+        print(f"Repairing {len(start_ids):,} flowlines that have lower stream order than their upstream flowline")
+        print("------------------")
+
+        # build a graph facing in the downstream direction
+        graph = DirectedGraph(tmp.upstream.values.astype("int64"), tmp.downstream.values.astype("int64"))
+        network_df = pd.DataFrame(
+            graph.network_pairs_global(start_ids.astype("int64")), columns=["networkID", "NHDPlusID"]
+        )
+
+        # Note: upstream here means at the starting_id, downstream means any below that
+        network_df = network_df.join(stream_order.rename("upstream_streamorder"), on="networkID").join(
+            stream_order.rename("downstream_streamorder"), on="NHDPlusID"
+        )
+
+        # drop any where downstream > upstream
+        network_df = network_df.loc[network_df.downstream_streamorder < network_df.upstream_streamorder]
+
+        reassign = network_df.set_index("NHDPlusID").upstream_streamorder
+        ix = flowlines.NHDPlusID.isin(reassign.index.values)
+        if ix.any():
+            flowlines = flowlines.copy()
+
+        flowlines.loc[ix, "StreamOrder"] = flowlines.loc[ix].NHDPlusID.map(reassign)
+
+    return flowlines
+
+
 def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
     """Cut flowlines by barriers.
 

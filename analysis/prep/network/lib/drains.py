@@ -6,6 +6,8 @@ import geopandas as gp
 import shapely
 
 from analysis.lib.joins import find_joins
+
+# TODO: update to speedups graph
 from analysis.lib.graph import DirectedGraph
 from analysis.lib.geometry import sjoin_geometry
 

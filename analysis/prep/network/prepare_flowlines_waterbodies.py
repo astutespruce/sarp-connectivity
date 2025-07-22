@@ -52,6 +52,7 @@ from analysis.lib.flowlines import (
     remove_pipelines,
     remove_great_lakes_flowlines,
     remove_marine_flowlines,
+    repair_stream_order,
     cut_lines_by_waterbodies,
     mark_altered_flowlines,
     repair_disconnected_subnetworks,
@@ -222,7 +223,7 @@ for huc2 in huc2s:
         joins.loc[joins.upstream.isin(great_lakes_ids), "great_lakes"] = True
         print("------------------")
 
-    if "great_lakes" not in joins:
+    if "great_lakes" not in joins.columns:
         joins["great_lakes"] = False
 
     joins["great_lakes"] = joins.great_lakes.fillna(0).astype("bool")
@@ -233,6 +234,14 @@ for huc2 in huc2s:
     flowlines, joins = remove_pipelines(flowlines, joins, MAX_PIPELINE_LENGTH, keep_ids)
     print(f"{len(flowlines):,} flowlines after dropping pipelines & underground connectors")
     print("------------------")
+
+    ### Fix stream order issues
+    # Columbia River gets incorrectly bumped to stream order 11 below Bonneville Dam
+    # at re-convergence of multiple diverging paths at stream order 10
+    if huc2 == "17":
+        flowlines.loc[(flowlines.StreamOrder == 11) & (flowlines.GNIS_Name == "Columbia River"), "StreamOrder"] = 10
+
+    flowlines = repair_stream_order(flowlines, joins)
 
     ### Repair disconnected subnetworks
     if huc2 == "18":
