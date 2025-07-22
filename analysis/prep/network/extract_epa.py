@@ -364,158 +364,153 @@ keep_line_ids = np.array(
 ### NOTE: some of these areas are HUC12s or older versions of HUC12s / NHD Med
 ### Resolution catchments and can't be joined directly to waterbodies
 ################################################################################
-# print("Reading EPA lines and areas")
-# lines = (
-#     read_dataframe(
-#         infilename,
-#         layer="attains_au_lines",
-#         use_arrow=True,
-#         where=where,
-#         columns=["geometry", "state", "waterbodyreportlink", "reportingcycle", "on303dlist"] + cols,
-#     )
-#     .rename(columns={"waterbodyreportlink": "url", "reportingcycle": "year"})
-#     .to_crs(CRS)
-#     .explode(ignore_index=True)
-#     .drop_duplicates()
-#     .reset_index(drop=True)
-# )
+print("Reading EPA lines and areas")
+lines = (
+    read_dataframe(
+        infilename,
+        layer="attains_au_lines",
+        use_arrow=True,
+        where=where,
+        columns=["geometry", "state", "waterbodyreportlink", "reportingcycle", "on303dlist"] + cols,
+    )
+    .rename(columns={"waterbodyreportlink": "url", "reportingcycle": "year"})
+    .to_crs(CRS)
+    .explode(ignore_index=True)
+    .drop_duplicates()
+    .reset_index(drop=True)
+)
 
-# areas = (
-#     read_dataframe(
-#         infilename,
-#         layer="attains_au_areas",
-#         use_arrow=True,
-#         where=where,
-#         columns=["geometry", "state", "waterbodyreportlink", "reportingcycle", "on303dlist"] + cols,
-#     )
-#     .rename(columns={"waterbodyreportlink": "url", "reportingcycle": "year"})
-#     .to_crs(CRS)
-#     .explode(ignore_index=True)
-#     .drop_duplicates()
-#     .reset_index(drop=True)
-# )
+areas = (
+    read_dataframe(
+        infilename,
+        layer="attains_au_areas",
+        use_arrow=True,
+        where=where,
+        columns=["geometry", "state", "waterbodyreportlink", "reportingcycle", "on303dlist"] + cols,
+    )
+    .rename(columns={"waterbodyreportlink": "url", "reportingcycle": "year"})
+    .to_crs(CRS)
+    .explode(ignore_index=True)
+    .drop_duplicates()
+    .reset_index(drop=True)
+)
 
-# for df in [lines, areas]:
-#     for col in cols:
-#         df[col] = df[col] == "Cause"
+for df in [lines, areas]:
+    for col in cols:
+        df[col] = df[col] == "Cause"
 
-#     df["year"] = df.year.astype("str")
-#     df["on303dlist"] = df.on303dlist == "Y"
-#     df["geometry"] = make_valid(df.geometry.values)
+    df["year"] = df.year.astype("str")
+    df["on303dlist"] = df.on303dlist == "Y"
+    df["geometry"] = make_valid(df.geometry.values)
 
-# ### Remove any lines within areas, including those that are at the boundary of the line
-# # Note: some polygons are represented as both polygons and lines along their outer edge;
-# # we have to buffer the polygons slightly because they don't exactly match
-# left, right = shapely.STRtree(lines.geometry.values).query(areas.geometry.values, predicate="intersects")
-# pairs = pd.DataFrame(
-#     {
-#         "left": areas.index.values.take(left),
-#         "right": lines.index.values.take(right),
-#         "line": lines.geometry.values.take(right),
-#     }
-# )
-# ix = pairs.left.unique()
-# buffers = pd.Series(shapely.buffer(areas.geometry.values.take(ix), 1, quad_segs=1), name="wb", index=ix)
-# pairs = pairs.join(buffers, on="left")
-# shapely.prepare(pairs.wb.values)
-# contains = shapely.contains_properly(pairs.wb.values, pairs.line.values)
-# lines = lines.loc[~lines.index.isin(pairs.loc[contains].right.unique())].reset_index(drop=True)
-
-
-# ### Some waterbodies are represented as lines of their outline; fix
-# # find all those that are polygons where the first and last points are the same
-# # NOTE: there are some waterbodies in CA that are part of a chain of multilinestrings, some true lines,
-# # some outlines in multiple parts; these could not be fixed by methods below
-# tmp = lines.loc[lines.state.isin(["OK", "CA"])].copy()
-# first_pt = shapely.get_point(tmp.geometry.values, 0)
-# last_pt = shapely.get_point(tmp.geometry.values, -1)
-# tmp = tmp.loc[shapely.equals(first_pt, last_pt)]
-# tmp["num_pts"] = shapely.get_num_points(tmp.geometry.values)
-# # by visual inspection, ones with low numbers of points are loops in lines not waterbodies
-# tmp = tmp.loc[tmp.num_pts >= 10].copy()
-# ix = tmp.index.values
-
-# wb_lines = lines.loc[lines.index.isin(ix)].reset_index(drop=True)
-# lines = lines.loc[~lines.index.isin(ix)].reset_index(drop=True)
-
-# wb_lines["geometry"] = wb_lines.geometry.apply(shapely.Polygon)
-
-# # remove interior polygons / islands
-# left, right = shapely.STRtree(wb_lines.geometry.values).query(wb_lines.geometry.values, predicate="contains_properly")
-# wb_lines = wb_lines.take(np.unique(np.setdiff1d(wb_lines.index.values, right)))
-# areas = pd.concat([areas, wb_lines], ignore_index=True).reset_index(drop=True)
-
-# # dissolve to waterbodyreport link
-# areas = dissolve(
-#     areas.explode(ignore_index=True),
-#     by="url",
-#     agg={"year": "max", "on303dlist": "max", **{c: "max" for c in cols}},
-# )
-
-# # remove duplicates
-# areas = gp.GeoDataFrame(areas.groupby("geometry").first().reset_index(), crs=areas.crs)
-
-# # assign our own unique ID
-# areas["epaWbID"] = areas.index.values
-# lines["epaLineID"] = lines.index.values
+### Remove any lines within areas, including those that are at the boundary of the line
+# Note: some polygons are represented as both polygons and lines along their outer edge;
+# we have to buffer the polygons slightly because they don't exactly match
+left, right = shapely.STRtree(lines.geometry.values).query(areas.geometry.values, predicate="intersects")
+pairs = pd.DataFrame(
+    {
+        "left": areas.index.values.take(left),
+        "right": lines.index.values.take(right),
+        "line": lines.geometry.values.take(right),
+    }
+)
+ix = pairs.left.unique()
+buffers = pd.Series(shapely.buffer(areas.geometry.values.take(ix), 1, quad_segs=1), name="wb", index=ix)
+pairs = pairs.join(buffers, on="left")
+shapely.prepare(pairs.wb.values)
+contains = shapely.contains_properly(pairs.wb.values, pairs.line.values)
+lines = lines.loc[~lines.index.isin(pairs.loc[contains].right.unique())].reset_index(drop=True)
 
 
-# areas = areas.explode(ignore_index=True)
+### Some waterbodies are represented as lines of their outline; fix
+# find all those that are polygons where the first and last points are the same
+# NOTE: there are some waterbodies in CA that are part of a chain of multilinestrings, some true lines,
+# some outlines in multiple parts; these could not be fixed by methods below
+tmp = lines.loc[lines.state.isin(["OK", "CA"])].copy()
+first_pt = shapely.get_point(tmp.geometry.values, 0)
+last_pt = shapely.get_point(tmp.geometry.values, -1)
+tmp = tmp.loc[shapely.equals(first_pt, last_pt)]
+tmp["num_pts"] = shapely.get_num_points(tmp.geometry.values)
+# by visual inspection, ones with low numbers of points are loops in lines not waterbodies
+tmp = tmp.loc[tmp.num_pts >= 10].copy()
+ix = tmp.index.values
 
-# ################################################################################
-# ### Assign HUC2
-# ################################################################################
-# print("Intersecting with HUC2s")
+wb_lines = lines.loc[lines.index.isin(ix)].reset_index(drop=True)
+lines = lines.loc[~lines.index.isin(ix)].reset_index(drop=True)
 
-# # NOTE: because some of the units are watersheds, they touch multiple HUC2s and may
-# # overlap slightly; we clean these up by taking the one with the largest overlap
-# left, right = shapely.STRtree(areas.geometry.values).query(huc2s.geometry.values, predicate="intersects")
-# pairs = pd.DataFrame(
-#     {
-#         "HUC2": huc2s.HUC2.values.take(left),
-#         "huc2_geom": huc2s.geometry.values.take(left),
-#         "right": areas.index.values.take(right),
-#         "right_geom": areas.geometry.values.take(right),
-#         "overlap": np.float64(1),
-#     }
-# )
+wb_lines["geometry"] = wb_lines.geometry.apply(shapely.Polygon)
 
-# s = pairs.groupby("right").HUC2.nunique()
-# ix = pairs.right.isin(s[s > 1].index.values)
-# pairs.loc[ix, "overlap"] = shapely.area(
-#     shapely.intersection(pairs.loc[ix].huc2_geom.values, pairs.loc[ix].right_geom.values)
-# ) / shapely.area(pairs.loc[ix].right_geom)
+# remove interior polygons / islands
+left, right = shapely.STRtree(wb_lines.geometry.values).query(wb_lines.geometry.values, predicate="contains_properly")
+wb_lines = wb_lines.take(np.unique(np.setdiff1d(wb_lines.index.values, right)))
+areas = pd.concat([areas, wb_lines], ignore_index=True).reset_index(drop=True)
 
-# huc2_join = pairs.sort_values(by=["right", "overlap"], ascending=[True, False]).groupby("right").HUC2.first()
-# areas = areas.join(huc2_join, how="inner")
-# areas.to_feather(out_dir / "epa_areas.feather")
+# dissolve to waterbodyreport link
+areas = dissolve(
+    areas.explode(ignore_index=True),
+    by="url",
+    agg={"year": "max", "on303dlist": "max", **{c: "max" for c in cols}},
+)
 
+# remove duplicates
+areas = gp.GeoDataFrame(areas.groupby("geometry").first().reset_index(), crs=areas.crs)
 
-# left, right = shapely.STRtree(lines.geometry.values).query(huc2s.geometry.values, predicate="intersects")
-# pairs = pd.DataFrame(
-#     {
-#         "HUC2": huc2s.HUC2.values.take(left),
-#         "huc2_geom": huc2s.geometry.values.take(left),
-#         "right": lines.index.values.take(right),
-#         "right_geom": lines.geometry.values.take(right),
-#         "overlap": np.float64(0),
-#     }
-# )
-
-# s = pairs.groupby("right").HUC2.nunique()
-# ix = pairs.right.isin(s[s > 1].index.values)
-# pairs.loc[ix, "overlap"] = shapely.length(
-#     shapely.intersection(pairs.loc[ix].huc2_geom.values, pairs.loc[ix].right_geom.values)
-# ) / shapely.length(pairs.loc[ix].right_geom)
-
-# huc2_join = pairs.sort_values(by=["right", "overlap"], ascending=[True, False]).groupby("right").HUC2.first()
-# lines = lines.join(huc2_join, how="inner")
-# lines.to_feather(out_dir / "epa_lines.feather")
+# assign our own unique ID
+areas["epaWbID"] = areas.index.values
+lines["epaLineID"] = lines.index.values
 
 
-# FIXME: remove
-lines = gp.read_feather(out_dir / "epa_lines.feather")
-areas = gp.read_feather(out_dir / "epa_areas.feather")
+areas = areas.explode(ignore_index=True)
+
+################################################################################
+### Assign HUC2
+################################################################################
+print("Intersecting with HUC2s")
+
+# NOTE: because some of the units are watersheds, they touch multiple HUC2s and may
+# overlap slightly; we clean these up by taking the one with the largest overlap
+left, right = shapely.STRtree(areas.geometry.values).query(huc2s.geometry.values, predicate="intersects")
+pairs = pd.DataFrame(
+    {
+        "HUC2": huc2s.HUC2.values.take(left),
+        "huc2_geom": huc2s.geometry.values.take(left),
+        "right": areas.index.values.take(right),
+        "right_geom": areas.geometry.values.take(right),
+        "overlap": np.float64(1),
+    }
+)
+
+s = pairs.groupby("right").HUC2.nunique()
+ix = pairs.right.isin(s[s > 1].index.values)
+pairs.loc[ix, "overlap"] = shapely.area(
+    shapely.intersection(pairs.loc[ix].huc2_geom.values, pairs.loc[ix].right_geom.values)
+) / shapely.area(pairs.loc[ix].right_geom)
+
+huc2_join = pairs.sort_values(by=["right", "overlap"], ascending=[True, False]).groupby("right").HUC2.first()
+areas = areas.join(huc2_join, how="inner")
+areas.to_feather(out_dir / "epa_areas.feather")
+
+
+left, right = shapely.STRtree(lines.geometry.values).query(huc2s.geometry.values, predicate="intersects")
+pairs = pd.DataFrame(
+    {
+        "HUC2": huc2s.HUC2.values.take(left),
+        "huc2_geom": huc2s.geometry.values.take(left),
+        "right": lines.index.values.take(right),
+        "right_geom": lines.geometry.values.take(right),
+        "overlap": np.float64(0),
+    }
+)
+
+s = pairs.groupby("right").HUC2.nunique()
+ix = pairs.right.isin(s[s > 1].index.values)
+pairs.loc[ix, "overlap"] = shapely.length(
+    shapely.intersection(pairs.loc[ix].huc2_geom.values, pairs.loc[ix].right_geom.values)
+) / shapely.length(pairs.loc[ix].right_geom)
+
+huc2_join = pairs.sort_values(by=["right", "overlap"], ascending=[True, False]).groupby("right").HUC2.first()
+lines = lines.join(huc2_join, how="inner")
+lines.to_feather(out_dir / "epa_lines.feather")
 
 
 ################################################################################
