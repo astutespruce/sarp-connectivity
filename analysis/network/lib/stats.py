@@ -6,7 +6,7 @@ from pyarrow.dataset import dataset
 import pyarrow.compute as pc
 import numpy as np
 
-from analysis.constants import METERS_TO_MILES, KM2_TO_ACRES
+from analysis.constants import METERS_TO_MILES, KM2_TO_ACRES, EPA_CAUSE_TO_CODE
 from analysis.lib.graph.speedups import DirectedGraph
 
 data_dir = Path("data")
@@ -15,7 +15,7 @@ data_dir = Path("data")
 COUNT_KINDS = ["waterfalls", "dams", "small_barriers", "road_crossings", "headwaters"]
 
 
-def calculate_upstream_network_stats(
+def calculate_upstream_functional_network_stats(
     up_network_df, joins, focal_barrier_joins, barrier_joins, unaltered_waterbodies, unaltered_wetlands
 ):
     """Calculate upstream functional network statistics.  Each network starts
@@ -216,9 +216,10 @@ def calculate_upstream_network_stats(
     # determine the barrier type associated with this functional network
     network_barrier = (
         focal_barrier_joins.loc[focal_barrier_joins.upstream_id != 0, ["kind", "upstream_id"]]
+        .reset_index()
         .join(networkID, on="upstream_id", how="inner")
-        .set_index("networkID")
-        .kind.rename("barrier")
+        .set_index("networkID")[["id", "kind"]]
+        .rename(columns={"id": "barrier_id", "kind": "barrier"})
     )
 
     ### Collect results
@@ -257,7 +258,7 @@ def calculate_geometry_stats(df):
     Parameters
     ----------
     df : DataFrame
-        must have length, free_flowing, and perennial, and be indexed on
+        must have NHDPlusID, HUC2, length, free_flowing, and perennial, and be indexed on
         networkID
 
     Returns
@@ -442,66 +443,6 @@ def calculate_species_habitat_stats(df):
     return pd.DataFrame([], index=np.unique(df.index.values)).join(out).fillna(0)
 
 
-def calculate_upstream_mainstem_stats(df):
-    """Calculate total network miles, total perennial miles, total unaltered
-    perennial miles based on the upstream mainstem functional network.
-
-    Parameters
-    ----------
-    df : DataFrame
-        must have length, free_flowing, perennial, and sizeclass, and be indexed on
-        networkID
-
-    Returns
-    -------
-    DataFrame
-        contains mainstem_*_miles columns
-    """
-
-    total_miles = (df["length"].groupby(level=0).sum() * METERS_TO_MILES).rename("total_mainstem_miles")
-    perennial_miles = (df.loc[~df.intermittent, "length"].groupby(level=0).sum() * METERS_TO_MILES).rename(
-        "perennial_mainstem_miles"
-    )
-    intermittent_miles = (df.loc[df.intermittent, "length"].groupby(level=0).sum() * METERS_TO_MILES).rename(
-        "intermittent_mainstem_miles"
-    )
-    altered_miles = (df.loc[df.altered, "length"].groupby(level=0).sum() * METERS_TO_MILES).rename(
-        "altered_mainstem_miles"
-    )
-    unaltered_miles = (df.loc[~df.altered, "length"].groupby(level=0).sum() * METERS_TO_MILES).rename(
-        "unaltered_mainstem_miles"
-    )
-    perennial_unaltered_miles = (
-        df.loc[~(df.intermittent | df.altered), "length"].groupby(level=0).sum() * METERS_TO_MILES
-    ).rename("perennial_unaltered_mainstem_miles")
-
-    # calculate percent altered
-    pct_unaltered = (
-        (100.0 * (unaltered_miles / total_miles)).clip(0, 100).astype("float32").rename("pct_mainstem_unaltered")
-    )
-
-    sizeclasses = df.groupby(level=0).sizeclass.nunique().astype("uint8").rename("mainstem_sizeclasses")
-
-    results = (
-        (
-            pd.DataFrame(total_miles)
-            .join(perennial_miles)
-            .join(intermittent_miles)
-            .join(altered_miles)
-            .join(unaltered_miles)
-            .join(perennial_unaltered_miles)
-            .join(pct_unaltered)
-            .fillna(0)
-        )
-        .astype("float32")
-        .join(sizeclasses)
-    )
-
-    results["mainstem_sizeclasses"] = results.mainstem_sizeclasses.fillna(0).astype("uint8")
-
-    return results
-
-
 def calculate_upstream_waterbody_wetland_stats(df, unaltered_waterbodies, unaltered_wetlands):
     # make sure to count unique wetlands by ID and not double-count if multiple
     # flowlines in network touch same waterbody or
@@ -549,7 +490,175 @@ def calculate_upstream_waterbody_wetland_stats(df, unaltered_waterbodies, unalte
     )
 
 
-def calculate_downstream_stats(down_network_df, focal_barrier_joins, barrier_joins):
+def calculate_epa_impairment(df):
+    """Calculate set of impairments as identified by EPA present in the network.
+
+    Parameters
+    ----------
+    df : DataFrame
+        must have NHDPlusID, HUC2 and be indexed on networkID
+
+    Returns
+    -------
+    Series
+        contains impairment
+    """
+    cols = [
+        "temperature",
+        "cause_unknown_impaired_biota",
+        "oxygen_depletion",
+        "algal_growth",
+        "flow_alterations",
+        "habitat_alterations",
+        "hydrologic_alteration",
+        "cause_unknown_fish_kills",
+    ]
+
+    epa = (
+        dataset(
+            data_dir / "epa/derived/epa_flowlines.feather",
+            format="feather",
+        )
+        .to_table(filter=pc.field("HUC2").isin(df.HUC2.unique()), columns=["NHDPlusID"] + cols)
+        .to_pandas()
+        .set_index("NHDPlusID")
+    )
+    epa = df.join(epa, on="NHDPlusID", how="inner")
+    for col in cols:
+        epa[col] = epa[col].fillna(0).astype("bool")
+
+    epa = epa[cols].groupby(level=0).max()
+    # convert to codes
+    for col in cols:
+        epa[col] = epa[col].map({False: "", True: EPA_CAUSE_TO_CODE[col]})
+
+    return epa[cols].apply(lambda row: ",".join([x for x in row if x]), axis=1).rename("impairment")
+
+
+def calculate_upstream_mainstem_network_stats(df):
+    """Calculate total network miles, total perennial miles, total unaltered
+    perennial miles based on the upstream mainstem network.
+
+    Parameters
+    ----------
+    df : DataFrame
+        must have HUC2, NHDPlusID, length, perennial, and sizeclass, and be
+        indexed on networkID
+
+    Returns
+    -------
+    DataFrame
+        contains mainstem_*_miles columns
+    """
+
+    total_miles = (df["length"].groupby(level=0).sum() * METERS_TO_MILES).rename("total_upstream_mainstem_miles")
+    perennial_miles = (df.loc[~df.intermittent, "length"].groupby(level=0).sum() * METERS_TO_MILES).rename(
+        "perennial_upstream_mainstem_miles"
+    )
+    intermittent_miles = (df.loc[df.intermittent, "length"].groupby(level=0).sum() * METERS_TO_MILES).rename(
+        "intermittent_upstream_mainstem_miles"
+    )
+    altered_miles = (df.loc[df.altered, "length"].groupby(level=0).sum() * METERS_TO_MILES).rename(
+        "altered_upstream_mainstem_miles"
+    )
+    unaltered_miles = (df.loc[~df.altered, "length"].groupby(level=0).sum() * METERS_TO_MILES).rename(
+        "unaltered_upstream_mainstem_miles"
+    )
+    perennial_unaltered_miles = (
+        df.loc[~(df.intermittent | df.altered), "length"].groupby(level=0).sum() * METERS_TO_MILES
+    ).rename("perennial_unaltered_upstream_mainstem_miles")
+
+    # calculate percent altered
+    pct_unaltered = (
+        (100.0 * (unaltered_miles / total_miles))
+        .clip(0, 100)
+        .astype("float32")
+        .rename("pct_upstream_mainstem_unaltered")
+    )
+
+    sizeclasses = df.groupby(level=0).sizeclass.nunique().astype("uint8").rename("upstream_mainstem_sizeclasses")
+
+    impairment = calculate_epa_impairment(df).rename("upstream_mainstem_impairment")
+
+    results = (
+        pd.DataFrame(total_miles)
+        .join(perennial_miles)
+        .join(intermittent_miles)
+        .join(altered_miles)
+        .join(unaltered_miles)
+        .join(perennial_unaltered_miles)
+        .join(pct_unaltered)
+        .join(sizeclasses)
+        .join(impairment)
+    )
+
+    for col in [c for c in results.columns if c.endswith("_miles")]:
+        results[col] = results[col].fillna(0).astype("float32")
+
+    results["upstream_mainstem_sizeclasses"] = results.upstream_mainstem_sizeclasses.fillna(0).astype("uint8")
+    results["upstream_mainstem_impairment"] = results.upstream_mainstem_impairment.fillna("")
+
+    return results
+
+
+def calculate_downstream_mainstem_network_stats(df, focal_barrier_joins):
+    """Calculate total network miles, total perennial miles, total unaltered
+    perennial miles based on the downstream mainstem network.
+
+    Parameters
+    ----------
+    df : DataFrame
+        must have HUC2, NHDPlusID, length, free_flowing, perennial, and sizeclass, and be indexed on
+        networkID
+
+    Returns
+    -------
+    DataFrame
+        contains mainstem_*_miles columns
+    """
+
+    total_miles = (df["length"].groupby(level=0).sum() * METERS_TO_MILES).rename("total_downstream_mainstem_miles")
+    free_miles = (df.loc[df.free_flowing, "length"].groupby(level=0).sum() * METERS_TO_MILES).rename(
+        "free_downstream_mainstem_miles"
+    )
+    free_perennial_miles = (
+        df.loc[df.free_flowing & ~df.intermittent, "length"].groupby(level=0).sum() * METERS_TO_MILES
+    ).rename("free_perennial_downstream_mainstem_miles")
+    free_intermittent_miles = (
+        df.loc[df.free_flowing & df.intermittent, "length"].groupby(level=0).sum() * METERS_TO_MILES
+    ).rename("free_intermittent_downstream_mainstem_miles")
+    free_altered_miles = (
+        df.loc[df.free_flowing & df.altered, "length"].groupby(level=0).sum() * METERS_TO_MILES
+    ).rename("free_altered_downstream_mainstem_miles")
+    free_unaltered_miles = (
+        df.loc[df.free_flowing & ~df.altered, "length"].groupby(level=0).sum() * METERS_TO_MILES
+    ).rename("free_unaltered_downstream_mainstem_miles")
+
+    # NOTE: impairment is for the full downstream mainstem, not just free-flowing
+    impairment = calculate_epa_impairment(df).rename("downstream_mainstem_impairment")
+
+    # join to barrier downstreams
+    results = (
+        focal_barrier_joins[["downstream_id"]]
+        .join(total_miles, on="downstream_id")
+        .join(free_miles, on="downstream_id")
+        .join(free_perennial_miles, on="downstream_id")
+        .join(free_intermittent_miles, on="downstream_id")
+        .join(free_altered_miles, on="downstream_id")
+        .join(free_unaltered_miles, on="downstream_id")
+        .join(impairment, on="downstream_id")
+        .drop(columns=["downstream_id"])
+    )
+
+    for col in [c for c in results.columns if c.endswith("_miles")]:
+        results[col] = results[col].fillna(0).astype("float32")
+
+    results["downstream_mainstem_impairment"] = results.downstream_mainstem_impairment.fillna("")
+
+    return results
+
+
+def calculate_downstream_linear_network_stats(down_network_df, focal_barrier_joins, barrier_joins):
     """Calculate downstream statistics for each barrier based on its linear
     downstream network (to next barrier downstream or terminal / outlet) and
     total downstream (to final terminal / outlet).
@@ -649,7 +758,7 @@ def calculate_downstream_stats(down_network_df, focal_barrier_joins, barrier_joi
         * METERS_TO_MILES
     ).rename("free_unaltered_linear_downstream_miles")
 
-    # join individual network lengths to barrier downstreams
+    # join to barrier downstreams
     barrier_downstream_miles = (
         focal_barrier_joins[["downstream_id"]]
         .join(total_miles, on="downstream_id")
