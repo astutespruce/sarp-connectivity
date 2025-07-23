@@ -1,10 +1,14 @@
 import pyarrow as pa
 import pyarrow.compute as pc
 
-from api.constants import FullySupportedBarrierTypes, Scenarios, CUSTOM_TIER_FIELDS
+from api.constants import FullySupportedBarrierTypes, Scenarios, CUSTOM_TIER_FIELDS, SPECIES_HABITAT_FIELDS
 from api.lib.domains import unpack_domains
 from api.lib.extract import extract_records
 from api.lib.tiers import calculate_tiers
+
+# list of columns that can be dropped if entirely empty
+OPTIONAL_STRING_COLS = ["StateWRA"]
+OPTIONAL_NUMERIC_COLS = ["FlowsToOcean", "FlowsToGreatLakes"] + SPECIES_HABITAT_FIELDS
 
 
 def extract_for_download(
@@ -27,13 +31,20 @@ def extract_for_download(
     if len(df) == 0:
         return df
 
-    if barrier_type != "road_crossings":
-        # drop species habitat columns that have no useful data
-        spp_cols = [c for c in df.column_names if "Habitat" in c and c != "FishHabitatPartnership"]
-        drop_cols = [c for c in spp_cols if pc.max(df[c]).as_py() <= 0]
-        if len(drop_cols) > 0:
-            df = df.drop(drop_cols)
+    # drop columns that have no useful data
+    drop_cols = set()
+    for col in set(df.column_names).intersection(OPTIONAL_STRING_COLS):
+        if pc.all(df[col]):
+            drop_cols.add(col)
 
+    for col in set(df.column_names).intersection(OPTIONAL_NUMERIC_COLS):
+        if pc.all(pc.less_equal(df[col], 0)):
+            drop_cols.add(col)
+
+    if len(drop_cols) > 0:
+        df = df.drop(drop_cols)
+
+    if barrier_type != "road_crossings":
         # calculate custom ranks
         # NOTE: can only calculate ranks for those that have networks and are not excluded from ranking
         if custom_rank:

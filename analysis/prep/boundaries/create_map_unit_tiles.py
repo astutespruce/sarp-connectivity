@@ -143,6 +143,24 @@ outfilename.unlink()
 
 
 ################################################################################
+### State water resource areas
+################################################################################
+df = gp.read_feather(src_dir / "state_water_resource_areas.feather", columns=["geometry", "id", "name"]).to_crs(GEO_CRS)
+outfilename = tmp_dir / "state_water_resource_areas.fgb"
+write_dataframe(df, outfilename)
+mbtiles_filename = tile_dir / "StateWRA.mbtiles"
+ret = subprocess.run(
+    tippecanoe_args
+    + ["-Z", "1", "-z", MAX_ZOOM]
+    + ["-l", "StateWRA"]
+    + get_col_types(df)
+    + ["-o", f"{str(mbtiles_filename)}", str(outfilename)]
+)
+ret.check_returncode()
+outfilename.unlink()
+
+
+################################################################################
 ## HUC2
 ################################################################################
 print("Creating HUC2 tiles")
@@ -209,7 +227,7 @@ ret = subprocess.run(
     ]
     + [
         f"{tile_dir}/{unit}.mbtiles"
-        for unit in ["State", "County", "CongressionalDistrict", "HUC2", "HUC6", "HUC8", "HUC10", "HUC12"]
+        for unit in ["State", "County", "CongressionalDistrict", "HUC2", "StateWRA", "HUC6", "HUC8", "HUC10", "HUC12"]
     ]
 )
 ret.check_returncode()

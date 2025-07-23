@@ -110,6 +110,13 @@ def add_spatial_joins(df):
     )
     df = sjoin_points_to_poly(df, districts)
 
+    ### State water resource areas
+    print("Joining to state water resource areas")
+    wra = gp.read_feather(boundaries_dir / "state_water_resource_areas.feather", columns=["geometry", "id"]).rename(
+        columns={"id": "StateWRA"}
+    )
+    df = sjoin_points_to_poly(df, wra)
+
     ### Protected lands
     print("Joining to protected areas")
     protected = gp.read_feather(boundaries_dir / "protected_areas.feather")
@@ -165,6 +172,19 @@ def add_spatial_joins(df):
     )
     df = df.join(fhp)
     df["FishHabitatPartnership"] = df.FishHabitatPartnership.fillna("")
+
+    ### TNC Resilience & coldwater
+    tnc_res = gp.read_feather(
+        data_dir / "tnc_resilience/derived/tnc_resilient_watersheds.feather", columns=["geometry", "resilience"]
+    ).rename(columns={"resilience": "Resilience"})
+    df = sjoin_points_to_poly(df, tnc_res)
+    df["Resilience"] = df.Resilience.fillna(0).astype("uint8")
+
+    tnc_cold = gp.read_feather(
+        data_dir / "tnc_resilience/derived/tnc_coldwater_refugia_watersheds.feather", columns=["geometry", "cold"]
+    ).rename(columns={"cold": "Cold"})
+    df = sjoin_points_to_poly(df, tnc_cold)
+    df["Cold"] = df.Cold.fillna(0).astype("uint8")
 
     ### Wild & Scenic rivers
     print("Joining to wild & scenic rivers")

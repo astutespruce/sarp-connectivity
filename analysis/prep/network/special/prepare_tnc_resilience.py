@@ -7,7 +7,7 @@ import pandas as pd
 from pyogrio import read_dataframe, write_dataframe
 import shapely
 
-from analysis.constants import CRS
+from analysis.constants import CRS, TNC_RESILIENCE_TO_DOMAIN, TNC_COLDWATER_TO_DOMAIN
 from analysis.lib.geometry import dissolve, make_valid
 from analysis.lib.util import append
 
@@ -26,43 +26,70 @@ huc2s = huc2_df.HUC2.sort_values().values
 ################################################################################
 ### Extract TNC resilient watersheds and dissolve within HUC2s
 ################################################################################
-res_df = read_dataframe(
-    working_dir / "TNC_Freshwater_Resilience_Nov2023.gdb",
-    layer="Scored_Units_HUC12FCN_Ver20230928_resultfields",
-    columns=["HUC12", "Resil_Cl"],
-    use_arrow=True,
-    # extract above average watersheds based on guidance from Kat on 2/13/2024
-    where=""" "Resil_Cl" in ('Slightly Above Average', 'Above Average', 'Far Above Average') """,
-).to_crs(CRS)
+print("Processing resilient watersheds")
+res_df = (
+    read_dataframe(
+        working_dir / "TNC_Freshwater_Resilience_Nov2023.gdb",
+        layer="Scored_Units_HUC12FCN_Ver20230928_resultfields",
+        columns=["HUC12", "Resil_Cl"],
+        use_arrow=True,
+    )
+    .to_crs(CRS)
+    .rename(columns={"Resil_Cl": "resilience"})
+)
 
 res_df["geometry"] = make_valid(res_df.geometry.values)
+res_df["resilience"] = res_df.resilience.map(TNC_RESILIENCE_TO_DOMAIN).astype("uint8")
 
 # aggregate to HUC2
 res_df["HUC2"] = res_df.HUC12.str[:2]
+
+print("Dissolving by resilience class")
 res_df = dissolve(
     res_df.explode(ignore_index=True),
+    by=["HUC2", "resilience"],
+    grid_size=1e-3,
+).explode(ignore_index=True)
+
+# save for spatial joins to barriers
+res_df.to_feather(out_dir / "tnc_resilient_watersheds.feather")
+write_dataframe(res_df, out_dir / "tnc_resilient_watersheds.fgb")
+
+
+# dissolve resilient areas together at HUC2 level
+print("Dissolving resilient areas to HUC2")
+# extract above average watersheds based on guidance from Kat on 2/13/2024
+values = [
+    v
+    for k, v in TNC_RESILIENCE_TO_DOMAIN.items()
+    if k in {"Slightly Above Average", "Above Average", "Far Above Average"}
+]
+res_df = dissolve(
+    res_df.loc[res_df.resilience.isin(values)].explode(ignore_index=True),
     by="HUC2",
     grid_size=1e-3,
 ).explode(ignore_index=True)
 
 
-res_df.to_feather(working_dir / "tnc_resilient_watersheds.feather")
-write_dataframe(res_df, working_dir / "tnc_resilient_watersheds.fgb")
-
 ################################################################################
 ### Extract TNC cold water watersheds and dissolve within HUC2s
 ################################################################################
-temp_df = read_dataframe(
-    working_dir / "FCN_wTemperatureScore.gdb",
-    layer="River_FCN_Watersheds_Ver20230928_wTempScore",
-    columns=["cTempZCl"],
-    use_arrow=True,
-    # extract above average watersheds based on guidance from Kat on 2/4/2025
-    # limit these to above above average based on guidance from Kat on 2/26/2025
-    where=""" "cTempZCl" in ('Above Average', 'Far Above Average') """,
-).to_crs(CRS)
+print("\n\n--------------------------------\nProcessing coldwater watersheds")
+temp_df = (
+    read_dataframe(
+        working_dir / "FCN_wTemperatureScore.gdb",
+        layer="River_FCN_Watersheds_Ver20230928_wTempScore",
+        columns=["cTempZCl"],
+        use_arrow=True,
+    )
+    .to_crs(CRS)
+    .rename(columns={"cTempZCl": "cold"})
+)
 
 temp_df["geometry"] = make_valid(temp_df.geometry.values)
+temp_df["cold"] = temp_df.cold.map(TNC_COLDWATER_TO_DOMAIN).astype("uint8")
+
+
 temp_df = temp_df.explode(ignore_index=True)
 
 # join to HUC2 boundaries based on the representative points because the TNC
@@ -72,15 +99,26 @@ left, right = shapely.STRtree(shapely.point_on_surface(temp_df.geometry.values))
 )
 temp_df = temp_df.join(pd.Series(huc2_df.HUC2.values.take(left), name="HUC2", index=temp_df.index.values.take(right)))
 
-temp_df = dissolve(temp_df[["HUC2", "geometry"]].explode(ignore_index=True), by="HUC2").explode(ignore_index=True)
+print("Dissolving by coldwater class")
+temp_df = dissolve(temp_df, by=["HUC2", "cold"], grid_size=1e-3).explode(ignore_index=True)
 
-temp_df.to_feather(working_dir / "tnc_coldwater_refugia_watersheds.feather")
-write_dataframe(temp_df, working_dir / "tnc_coldwater_refugia_watersheds.fgb")
+# save for spatial joins to barriers
+temp_df.to_feather(out_dir / "tnc_coldwater_refugia_watersheds.feather")
+write_dataframe(temp_df, out_dir / "tnc_coldwater_refugia_watersheds.fgb")
+
+print("Dissolving coldwater areas by HUC2")
+# extract above average watersheds based on guidance from Kat on 2/4/2025
+# limit these to above above average based on guidance from Kat on 2/26/2025
+values = [v for k, v in TNC_COLDWATER_TO_DOMAIN.items() if k in {"Above Average", "Far Above Average"}]
+temp_df = dissolve(
+    temp_df.loc[temp_df.cold.isin(values), ["HUC2", "geometry"]].explode(ignore_index=True), by="HUC2"
+).explode(ignore_index=True)
 
 
 ################################################################################
 ### Extract raw flowlines that mostly overlap these watersheds
 ################################################################################
+print("\n\n--------------------------------\nJoining to flowlines")
 
 merged_res = None
 merged_temp = None

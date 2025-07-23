@@ -525,6 +525,8 @@ CROSSING_TYPE_TO_DOMAIN = {
     "removed": 0,
     # only for unassessed road crossings
     "assumed culvert": 99,
+    # FIXME: temporary, pending confirmation from Kat
+    "temporary structure": 0,
 }
 
 CONSTRICTION_TO_DOMAIN = {
@@ -812,6 +814,37 @@ FHP_LAYER_TO_CODE = {
     "FHP_SEAK_Boundary_2013": "SEAFHP",
     "FHP_SW_AK_Salmon_Boundary_2013": "SWASHP",
     "FHP_Western_Native_Trout_Boundary_2013": "WNTI",
+}
+
+TNC_RESILIENCE_TO_DOMAIN = {
+    "Far Below Average": 1,
+    "Below Average": 2,
+    "Slightly Below Average": 3,
+    "Average": 4,
+    "Slightly Above Average": 5,
+    "Above Average": 6,
+    "Far Above Average": 7,
+}
+# same as above but missing Far Below Average
+TNC_COLDWATER_TO_DOMAIN = {
+    "Below Average": 2,
+    "Slightly Below Average": 3,
+    "Average": 4,
+    "Slightly Above Average": 5,
+    "Above Average": 6,
+    "Far Above Average": 7,
+}
+
+
+EPA_CAUSE_TO_CODE = {
+    "temperature": "t",
+    "cause_unknown_impaired_biota": "b",
+    "oxygen_depletion": "o",
+    "algal_growth": "a",
+    "flow_alterations": "f",
+    "habitat_alterations": "a",
+    "hydrologic_alteration": "y",
+    "cause_unknown_fish_kills": "f",
 }
 
 
@@ -1539,6 +1572,12 @@ KEEP_PIPELINES = {
         50000100136899,
         # short stretch in urban San Luis Obispo, keep per direction from Kat 4/11/2024
         50000200011605,
+        # Anderson Lake dam
+        50000300014446,
+        # Fern Lake (looks like mostly overland flowline)
+        50000300004005,
+        # Wishon Reservoir
+        50001000073809,
     ],
     "21": [85000100010153],
 }

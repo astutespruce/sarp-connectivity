@@ -157,10 +157,24 @@ fhp = pd.concat(
     ],
     ignore_index=True,
 )
-
-
 fhp.to_feather(out_dir / "fhp_boundary.feather")
 write_dataframe(fhp, out_dir / "fhp_boundary.fgb")
+
+
+### State water resource areas
+wa_wria = (
+    read_dataframe(src_dir / "WA_WRIA.gdb", columns=["WRIA_ID", "WRIA_NM", "geometry"], use_arrow=True)
+    .to_crs(CRS)
+    .rename(columns={"WRIA_ID": "id", "WRIA_NM": "name"})
+)
+wa_wria["id"] = "WA" + wa_wria.id.values.astype("str")
+wa_wria["state"] = "WA"
+
+# WA is only one for now
+state_wra = wa_wria
+state_wra.to_feather(out_dir / "state_water_resource_areas.feather")
+write_dataframe(state_wra, out_dir / "state_water_resource_areas.fgb")
+
 
 ################################################################################
 ### Extract bounds and names for unit search in user interface
@@ -254,6 +268,13 @@ district_geo_df["layer"] = "CongressionalDistrict"
 district_geo_df["priority"] = np.uint8(5)
 district_geo_df["key"] = district_geo_df.name + " " + district_geo_df.id
 
+print("Processing state water resource areas")
+state_wra_geo_df = state_wra.to_crs(GEO_CRS).explode(ignore_index=True)
+state_wra_geo_df["bbox"] = encode_bbox(state_wra_geo_df.geometry.values)
+state_wra_geo_df["layer"] = "StateWRA"
+state_wra_geo_df["priority"] = np.uint8(6)
+state_wra_geo_df["key"] = state_wra_geo_df.id
+
 
 print("Processing fish habitat partnerships")
 fhp_geo_df = fhp.to_crs(GEO_CRS).explode(ignore_index=True)
@@ -280,6 +301,7 @@ out = pd.concat(
         district_geo_df[["layer", "priority", "id", "state", "name", "key", "bbox"]],
         fhp_geo_df[["layer", "priority", "id", "state", "name", "key", "bbox"]],
         region_geo_df[["layer", "priority", "id", "state", "name", "key", "bbox"]],
+        state_wra_geo_df[["layer", "priority", "id", "state", "name", "key", "bbox"]],
     ],
     sort=False,
     ignore_index=True,

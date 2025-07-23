@@ -154,6 +154,13 @@ were downloaded from the Census TIGER website.
 Native territories were downloaded from Native Land Digital (https://native-land.ca/)
 on 4/10/2024.
 
+### State water resource management areas
+
+Water resource inventory areas for Washington State were downloaded from https://geo.wa.gov/datasets/waecy::water-resource-inventory-areas-wria/about
+on 7/21/2025.
+
+These are intended to be combined with other state-level water resource areas once identified.
+
 ## 4. Create boundary vector tiles
 
 Vector tiles are are created for each of the boundary layers using `analysis/prep/boundaries/create_map_unit_tiles.py`.

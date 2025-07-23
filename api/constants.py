@@ -107,7 +107,7 @@ BOOLEAN_FILTER_FIELDS = ["Removed"]
 
 
 # Summary unit fields
-UNIT_FIELDS = ["HUC2", "HUC6", "HUC8", "HUC10", "HUC12", "State", "County", "CongressionalDistrict"]
+UNIT_FIELDS = ["HUC2", "HUC6", "HUC8", "HUC10", "HUC12", "State", "County", "CongressionalDistrict", "StateWRA"]
 
 
 # metric fields that are only valid for barriers with networks
@@ -158,7 +158,7 @@ METRIC_FIELDS = [
     "AlteredUpstreamMainstemMiles",
     "UnalteredUpstreamMainstemMiles",
     "PerennialUnalteredUpstreamMainstemMiles",
-    "PercentMainstemUnaltered",
+    "PercentUpstreamMainstemUnaltered",
     # downstream linear networks (to next barrier or outlet)
     "FreeLinearDownstreamMiles",
     "FreePerennialLinearDownstreamMiles",
@@ -440,6 +440,8 @@ GENERAL_API_FIELDS2 = (
         "EJTract",
         "EJTribal",
         "NativeTerritories",
+        "Resilience",
+        "Cold",
         "WildScenicRiver",
         "Wilderness",
         "FishHabitatPartnership",
@@ -1388,6 +1390,37 @@ FISH_HABITAT_PARTNERSHIPS = {
     "WNTI": "Western Native Trout Initiative",
 }
 
+TNC_RESILIENCE_DOMAIN = {
+    0: "Not assessed",
+    1: "Far Below Average",
+    2: "Below Average",
+    3: "Slightly Below Average",
+    4: "Average",
+    5: "Slightly Above Average",
+    6: "Above Average",
+    7: "Far Above Average",
+}
+
+TNC_COLDWATER_DOMAIN = {
+    0: "Not assessed",
+    2: "Below Average",
+    3: "Slightly Below Average",
+    4: "Average",
+    5: "Slightly Above Average",
+    6: "Above Average",
+    7: "Far Above Average",
+}
+
+# NOTE: EPA causes are stored as comma-delimited list
+EPA_CAUSE_CODES = {
+    "t": "temperature",
+    "b": "impaired biota (cause unknown)",
+    "o": "oxygen depletion",
+    "a": "habitat alterations",
+    "f": "fish kills (cause unknown)",
+    "y": "hydrologic alteration",
+}
+
 
 # mapping of field name to domains
 DOMAINS = {
@@ -1414,6 +1447,8 @@ DOMAINS = {
     "EJTract": BOOLEAN_DOMAIN,
     "EJTribal": BOOLEAN_DOMAIN,
     "DiadromousHabitat": DIADROMOUS_HABITAT_DOMAIN,
+    "Resilience": TNC_RESILIENCE_DOMAIN,
+    "Cold": TNC_COLDWATER_DOMAIN,
     "WildScenicRiver": WILD_SCENIC_RIVER_DOMAIN,
     "Wilderness": BOOLEAN_DOMAIN,
     # dam fields
@@ -1553,6 +1588,8 @@ FIELD_DEFINITIONS = {
     "EJTract": "Within an overburdened and underserved Census tracts a defined by the Climate and Environmental Justice Screening tool.",
     "EJTribal": "Within a disadvantaged tribal community as defined by the Climate and Environmental Justice Screening tool based on American Indian and Alaska Native areas as defined by the US Census Bureau.  Note: all tribal communities considered disadvantaged by the Climate and Environmental Justice Screening tool.",
     "NativeTerritories": "Native / indigenous people's territories as mapped by Native Land Digital (https://native-land.ca/",
+    "Resilience": "Freshwater resilience category of the watershed where the {type} occurs identified by The Nature Conservancy (v0.44)",
+    "Cold": "Cold water temperature score of the watershed where the {type} occurs identified by The Nature Conservancy (March 2024)",
     "FishHabitatPartnership": "Fish Habitat Partnerships working in the area where the {type} occurs.  See https://www.fishhabitat.org/the-partnerships for more information.",
     "Basin": "Name of the hydrologic basin (HUC6) where the {type} occurs.",
     "Subbasin": "Name of the hydrologic subbasin (HUC8) where the {type} occurs.",
@@ -1565,6 +1602,7 @@ FIELD_DEFINITIONS = {
     "County": "County where {type} occurs.",
     "State": "State where {type} occurs.",
     "CongressionalDistrict": "Congressional District where {type} occurs (118th Congressional Districts).",
+    "StateWRA": "State water resource area ID, prefixed by 2-letter state code.  In Washington State, this is the Water Resource Inventory Areas.",
     "HasNetwork": "indicates if this {type} was snapped to the aquatic network for analysis.  1 = on network, 0 = off network.  Note: network metrics and scores are not available for {type}s that are off network.",
     "Excluded": "this {type} was excluded from the connectivity analysis based on field reconnaissance or manual review of aerial imagery.",
     "Ranked": "this {type} was included for prioritization.  Some barriers that are beneficial to restricting the movement of invasive species or that are water diversions without associated barriers are excluded from ranking.",
@@ -1613,7 +1651,7 @@ FIELD_DEFINITIONS = {
     "AlteredUpstreamMainstemMiles": "number of altered miles in the upstream mainstem river network from this {type}, including miles in waterbodies.  See TotalUpstreamMainstemMiles for definition of mainstem and AlteredUpstreamMiles for definition of altered reaches.  -1 = not available.",
     "UnalteredUpstreamMainstemMiles": "number of unaltered miles in the upstream mainstem river network from this {type}, including miles in waterbodies.  See TotalUpstreamMainstemMiles for definition of mainstem and UnalteredUpstreamMiles for definition of unaltered reaches.  -1 = not available.",
     "PerennialUnalteredUpstreamMainstemMiles": "number of unaltered perennial miles in the upstream mainstem river network from this {type}, including miles in waterbodies.  See TotalUpstreamMainstemMiles for definition of mainstem and PerennialUnalteredUpstreamMiles for definition of perennial unaltered reaches.   -1 = not available.",
-    "PercentMainstemUnaltered": "percent of the upstream mainstem river network length from this {type} that is not specifically identified in NHD or the National Wetlands Inventory as altered (canal / ditch, within a reservoir, or other channel alteration).  -1 = not available.",
+    "PercentUpstreamMainstemUnaltered": "percent of the upstream mainstem river network length from this {type} that is not specifically identified in NHD or the National Wetlands Inventory as altered (canal / ditch, within a reservoir, or other channel alteration).  -1 = not available.",
     # downstream linear networks (to next barrier or outlet)
     "FreeLinearDownstreamMiles": "number of miles in the linear downstream flow direction between this {type} and the next barrier downstream (if any) or downstream-most point (e.g., ocean, river outlet, interior basin, etc) on the full aquatic network on which it occurs. Excludes miles in altered reaches in waterbodies.  -1 = not available.",
     "FreePerennialLinearDownstreamMiles": "number of perennial miles in the linear downstream flow direction between this {type} and the next barrier downstream or downstream-most point on the full aquatic network on which it occurs.  Excludes miles in altered reaches in waterbodies.  See PerennialUpstreamMiles for definition of perennial reaches. -1 = not available.",

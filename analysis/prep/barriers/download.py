@@ -295,21 +295,12 @@ for svc in ["public", "private"]:
 df.SARPID = df.SARPID.fillna("").astype("str")
 
 
-s = df.groupby("SARPID").size()
-ids = s[s > 1].index
-if len(ids):
-    print("WARNING: multiple dams with same SARPID")
-    print(
-        ", ".join(
-            df.loc[df.SARPID.isin(ids), ["SARPID", "svc"]]
-            .groupby("SARPID")
-            .svc.unique()
-            .apply(lambda x: f"({','.join(x)})")
-            .reset_index()
-            .apply(" ".join, axis=1)
-            .tolist()
-        )
-    )
+for svc in ["public", "private"]:
+    s = df.loc[df.svc == svc].groupby("SARPID").size()
+    ids = s[s > 1].index
+    if len(ids):
+        print(f"WARNING: multiple {svc.upper()} dams with same SARPID: {', '.join(ids)}")
+
 
 df.to_feather(out_dir / "sarp_dams.feather")
 
@@ -343,23 +334,16 @@ for svc in ["public", "private"]:
 # # DEBUG ONLY - SARPID must be present; follow up with SARP if not
 df.SARPID = df.SARPID.fillna("").astype("str")
 
-s = df.groupby("SARPID").size()
-ids = s[s > 1].index
-if len(ids):
-    print("WARNING: multiple small barriers with same SARPID")
-    print(
-        ", ".join(
-            df.loc[df.SARPID.isin(ids), ["SARPID", "svc"]]
-            .groupby("SARPID")
-            .svc.unique()
-            .apply(lambda x: f"({','.join(x)})")
-            .reset_index()
-            .apply(" ".join, axis=1)
-            .tolist()
-        )
-    )
+for svc in ["public", "private"]:
+    s = df.loc[df.svc == svc].groupby("SARPID").size()
+    ids = s[s > 1].index
+    if len(ids):
+        print(f"WARNING: multiple {svc.upper()} small barriers with same SARPID: {', '.join(ids)}\n")
+
 
 df.to_feather(out_dir / "sarp_small_barriers.feather")
+
+print("\n")
 
 
 ### Download small barrier survey photo URLs
@@ -384,21 +368,11 @@ if ix.max():
 
 df.SARPID = df.SARPID.fillna("").astype("str")
 
-s = df.groupby("SARPID").size()
-ids = s[s > 1].index
-if len(ids):
-    print("WARNING: multiple waterfalls with same SARPID")
-    print(
-        ", ".join(
-            df.loc[df.SARPID.isin(ids), ["SARPID", "svc"]]
-            .groupby("SARPID")
-            .svc.unique()
-            .apply(lambda x: f"({','.join(x)})")
-            .reset_index()
-            .apply(" ".join, axis=1)
-            .tolist()
-        )
-    )
+for svc in ["public", "private"]:
+    s = df.loc[df.svc == svc].groupby("SARPID").size()
+    ids = s[s > 1].index
+    if len(ids):
+        print(f"WARNING: multiple {svc.upper()} waterfalls with same SARPID: {', '.join(ids)}")
 
 
 df.to_feather(out_dir / "waterfalls.feather")
