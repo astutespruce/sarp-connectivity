@@ -70,7 +70,8 @@ waterbodies_dir = data_dir / "waterbodies"
 wetlands_dir = data_dir / "wetlands"
 out_dir = nhd_dir / "clean"
 
-huc2s = sorted(pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"]).HUC2.values)
+all_huc2s = sorted(pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"]).HUC2.values)
+huc2s = all_huc2s
 # manually subset keys from above for processing
 # huc2s = [
 #     "01",
@@ -340,6 +341,10 @@ for huc2 in huc2s:
 ### loops and are not marine-connected when excluding loops (and are not themselves loops)
 ### likely indicate miscoded loops
 ##########################################################################################
+
+if len(huc2s) < len(all_huc2s):
+    raise ValueError("Must run this on all HUC2s to prepare joins")
+
 
 all_joins = read_arrow_tables(
     [out_dir / huc2 / "flowline_joins.feather" for huc2 in huc2s],

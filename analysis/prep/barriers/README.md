@@ -22,7 +22,7 @@ WARNING: There are many duplicate dams within the inventory. Some occur very nea
 - Dams: hosted on FWS ArcGIS Online
 - Surveyed road barriers: hosted on ArcGIS Online in FWS organization (public barriers) and SARP organization (private barriers); services include related crossing survey photos
 - Waterfalls: hosted on FWS ArcGIS Online
-- Modeled road crossings: downloaded from USGS in Feb 2022 and provided directly by Kat from USFS data sources.
+- Modeled road crossings: downloaded from USGS in Feb 2022 and provided directly by Kat from USFS and 3rd party data sources.
 - National Anthropogenic Barriers Database (NABD): obtained by Kat and provided on 1/22/2021
 - OpenStreetMap
 
@@ -66,9 +66,9 @@ During the following process steps, barriers are assigned a status to determine 
 - invasive: natural or anthropogenic barriers specifically identified as barriers that impede the movement of invasive species. These break the network but are not prioritized for removal during ranking steps.
 - duplicate: barriers that duplicate other barriers at the same general location; to the degree possible these are identified manually and automatically. These are dropped from all analyses after this step.
 
-The scripts below also attempt to standardize incoming data values, which are somewhat variable because of the broad mix of data sources that are compiled into the master datasets for each barrier type.  As part of this, the scripts assign domain-encoded values that are used elsewhere in the Inventory & Prioritization Tool, including in the API and user interface.  These domain values are unpacked as part of creating download files for users and before display in the user interface.
+The scripts below also attempt to standardize incoming data values, which are somewhat variable because of the broad mix of data sources that are compiled into the master datasets for each barrier type. As part of this, the scripts assign domain-encoded values that are used elsewhere in the Inventory & Prioritization Tool, including in the API and user interface. These domain values are unpacked as part of creating download files for users and before display in the user interface.
 
-NOTE: the code assigns domain values that are not necessarily in sync with incoming domain-encoded attributes; do not use the source dataset domains for understanding values produced as part of this data chain.  Instead, see the domain values described in `api/constants.py`.
+NOTE: the code assigns domain values that are not necessarily in sync with incoming domain-encoded attributes; do not use the source dataset domains for understanding values produced as part of this data chain. Instead, see the domain values described in `api/constants.py`.
 
 ---
 
@@ -244,7 +244,7 @@ Snapped waterfalls that are not marked as dropped, excluded, or duplicates can p
 
 Road-related barriers are processed using `analysis/prep/barriers/prep_road_barriers.py`.
 
-Modeled USGS and USFS road / stream crossings are first prepared as described in [analysis/prep/barriers/special/README.md](./special/README.md). They are deduplicated and snapped to the network. They are then used as snapping targets for surveyed road-related barriers.
+Modeled USGS, USFS, and 3rd party road / stream crossings are first prepared as described in [analysis/prep/barriers/special/README.md](./special/README.md). They are deduplicated and snapped to the network. They are then used as snapping targets for surveyed road-related barriers.
 
 Any modeled crossings not already assigned to a crossing type that occur on stream orders of at least 7 are marked as assumed bridges instead of assumed culverts. This affects how they are snapped below.
 

@@ -364,7 +364,7 @@ for huc2 in sorted(huc4.HUC2.unique()):
             if len(ids) == 1:
                 return ids
 
-            # multiple segments, find the dowstream ones
+            # multiple segments, find the downstream ones
             dam_joins = find_joins(j, ids, downstream_col="downstream_id", upstream_col="upstream_id")
             return dam_joins.loc[
                 dam_joins.downstream_id.isin(ids) & ~dam_joins.upstream_id.isin(ids)

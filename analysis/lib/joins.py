@@ -188,7 +188,7 @@ def update_joins(
     ----------
     joins : DataFrame
         contains records with upstream_id and downstream_id representing joins between segments
-    new_dowstreams : Series
+    new_downstreams : Series
         Series, indexed on original line ID, with the new downstream ID for each original line ID
     new_upstreams : Series
         Series, indexed on original line ID, with the new upstream ID for each original line ID
