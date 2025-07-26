@@ -1,15 +1,3 @@
-"""
-Preprocess road / stream crossings into data needed by tippecanoe for creating vector tiles.
-
-Input:
-* USGS and USFS Road / Stream crossings, projected to match SARP standard projection (Albers CONUS).
-* pre-processed and snapped small barriers
-
-
-Outputs:
-`data/barriers/intermediate/road_crossings.feather`: road / stream crossing data for merging in with small barriers that do not have networks
-"""
-
 from pathlib import Path
 from time import time
 import warnings
@@ -19,7 +7,7 @@ import pyarrow.compute as pc
 import geopandas as gp
 import pandas as pd
 import shapely
-from pyogrio import read_dataframe
+from pyogrio import read_dataframe, write_dataframe
 import numpy as np
 
 from analysis.constants import (
@@ -143,7 +131,6 @@ df = df.to_crs(CRS)
 ### Cleanup fields
 df.River = df.River.str.strip().fillna("")
 df.Road = df.Road.str.strip().fillna("")
-
 
 # update crossingtype and set as domain
 df["CrossingType"] = df.CrossingType.fillna("").str.lower()
@@ -383,10 +370,54 @@ df.loc[df.BarrierOwnerType == 0, "dup_sort"] = df.dup_sort + 1
 
 usfs = df
 
+
+################################################################################
+### Read 3rd party road crossings
+################################################################################
+df = (
+    read_dataframe(
+        src_dir / "SARP_3rd_party_crossings/SARP_3rd_party_crossings.shp",
+        use_arrow=True,
+        columns=["StreamCros", "geometry"],
+    )
+    .to_crs(CRS)
+    .rename(columns={"StreamCros": "SourceID"})
+)
+df["geometry"] = shapely.force_2d(df.geometry.values)
+df["SourceID"] = df.SourceID.astype("str")
+
+# IMPORTANT: this must match api/constants.py::BARRIEROWNERTYPE_DOMAIN
+df["BarrierOwnerType"] = np.uint8(8)
+
+df["Road"] = ""
+df["River"] = ""
+
+# assume all are assumed culvert
+df["CrossingType"] = np.uint8(CROSSING_TYPE_TO_DOMAIN["assumed culvert"])
+df["Source"] = "SARP Southeast 3rd Party Crossings (2025)"
+
+tree = shapely.STRtree(df.geometry.values)
+left, right = tree.query(huc4.geometry.values, predicate="intersects")
+huc4_join = (
+    pd.DataFrame({"HUC4": huc4.HUC4.values.take(left)}, index=df.index.values.take(right)).groupby(level=0).HUC4.first()
+)
+df = df.join(huc4_join, how="inner").reset_index(drop=True)
+df["HUC2"] = df.HUC4.str[:2]
+print(f"Selected {len(df):,} SARP 3rd party road crossings in region")
+
+lon, lat = shapely.get_coordinates(df.to_crs("EPSG:4326").geometry.values).astype("float32").T
+df["lon"] = lon
+df["lat"] = lat
+
+df["dup_sort"] = df.BarrierOwnerType + usfs.dup_sort.max() + 1
+
+sarp_3rd_party = df
+
+
 ################################################################################
 ### Merge crossings
 ################################################################################
-df = pd.concat([usgs, usfs], ignore_index=True).sort_values("dup_sort", ascending=True)
+df = pd.concat([usgs, usfs, sarp_3rd_party], ignore_index=True).sort_values("dup_sort", ascending=True)
 df["id"] = (df.index.values + CROSSINGS_ID_OFFSET).astype("uint64")
 df = df.set_index("id", drop=False)
 
@@ -397,6 +428,20 @@ df["CrossingCode"] = (
     + (df.lon * 1e7).round(0).astype("int").abs().astype("str")
 )
 
+# match dtype of SARPID elsewhere
+df["SARPID"] = "cr" + df.CrossingCode.str[2:]
+
+# Save snapshot of 3rd party before dedup for Kat
+write_dataframe(
+    df.loc[
+        df.Source == "SARP Southeast 3rd Party Crossings (2025)",
+        ["geometry", "SARPID", "CrossingCode", "Source", "SourceID"],
+    ].reset_index(drop=True),
+    "/tmp/SARP_3rd_party_crossings.gdb",
+    driver="OpenFileGDB",
+)
+
+
 # There are a bunch of crossings with identical coordinates, remove them
 # NOTE: they have different labels, but that seems like it is a result of
 # them methods used to identify the crossings (e.g., named highways, roads, etc)
@@ -405,8 +450,6 @@ orig_count = len(df)
 df = gp.GeoDataFrame(df.groupby("CrossingCode").first().reset_index(), geometry="geometry", crs=df.crs)
 print(f"Dropped {orig_count - len(df):,} duplicate road crossings")
 
-# match dtype of SARPID elsewhere
-df["SARPID"] = "cr" + df.CrossingCode.str[2:]
 
 # add name field
 df["Name"] = ""

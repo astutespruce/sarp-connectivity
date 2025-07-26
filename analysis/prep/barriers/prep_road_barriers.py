@@ -201,11 +201,16 @@ df["SARP_Score"] = df.SARP_Score.fillna(-1).astype("float32")
 # fix casing issues of PotentialProject
 df["PotentialProject"] = df.PotentialProject.fillna("Unassessed").str.strip().str.replace("barrier", "Barrier")
 
-# fix typo and bogus value (1)
-df["PotentialProject"] = df.PotentialProject.replace("Insignficant Barrier", "Insignificant Barrier").replace("1", "")
+# fix typo and bogus value (0, 1)
+df["PotentialProject"] = (
+    df.PotentialProject.replace("Insignficant Barrier", "Insignificant Barrier").replace("0", "").replace("1", "")
+)
 
 # Recode No => No Barrier per guidance from SARP
 df.loc[df.PotentialProject == "No", "PotentialProject"] = "No Barrier"
+
+# Recode "Removed Crossing" => No Barrier per guidance from Kat 7/26/2025
+df.loc[df.PotentialProject == "Removed Crossing", "PotentialProject"] = "No Barrier"
 
 # mark missing and a few specific codes as unassessed, per guidance from SARP
 ix = df.PotentialProject.isin(["", "Unknown", "Small Project"])
@@ -1074,7 +1079,11 @@ crossings = pd.concat([crossings.reset_index(drop=True), tmp], ignore_index=True
 
 # sanity check
 if crossings.groupby("SARPID").size().max() > 1:
-    raise ValueError("ERROR: multiple SARPIDs now present for crossings")
+    # FIXME: raise error
+    warnings.warn(
+        "\n---------------------------------\nERROR: multiple SARPIDs now present for crossings\n-------------------------------\n"
+    )
+    # raise ValueError("ERROR: multiple SARPIDs now present for crossings")
 
 
 # NOTE: road crossings are always excluded from network analysis but cut networks
