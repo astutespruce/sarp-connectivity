@@ -161,6 +161,14 @@ on 7/21/2025.
 
 These are intended to be combined with other state-level water resource areas once identified.
 
+### Trout Unlimited Brook Trout Conservation Portfolio
+
+The most recent Trout Unlimited Brook Trout Conservation Portfolio data were provided by Matthew Mayfield at Trout Unlimited on 7/23/2025 via email.
+
+These are current as of 7/4/2022.
+
+More information available at: https://www.tu.org/science/conservation-planning-and-assessment/conservation-portfolio/
+
 ## 4. Create boundary vector tiles
 
 Vector tiles are are created for each of the boundary layers using `analysis/prep/boundaries/create_map_unit_tiles.py`.

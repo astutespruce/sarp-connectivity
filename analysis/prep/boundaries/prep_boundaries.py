@@ -23,6 +23,7 @@ from analysis.constants import (
     STATES,
     FHP_LAYER_TO_CODE,
     SARP_STATES,
+    TU_BROOK_TROUT_PORTFOLIO_TO_DOMAIN,
 )
 from analysis.lib.geometry import dissolve, to_multipolygon, make_valid
 from analysis.lib.geometry.polygons import unwrap_antimeridian
@@ -47,6 +48,7 @@ out_dir = data_dir / "boundaries"
 src_dir = out_dir / "source"
 
 county_filename = src_dir / "tl_2023_us_county.zip"
+huc2s = sorted(pd.read_feather(out_dir / "huc2.feather", columns=["HUC2"]).HUC2.values)
 huc4_df = gp.read_feather(out_dir / "huc4.feather")
 
 # state outer boundaries, NOT analysis boundaries
@@ -711,6 +713,7 @@ df = (
     .reset_index(drop=True)
 )
 df.to_feather(out_dir / "environmental_justice_tracts.feather")
+ej_tract = df
 
 # process Tribal lands (all are considered disadvantaged)
 df = read_dataframe(src_dir / "tl_2023_us_aiannh.zip", columns=[], use_arrow=True).to_crs(CRS)
@@ -725,8 +728,38 @@ df = (
     .explode(ignore_index=True)
     .reset_index(drop=True)
 )
-
 df.to_feather(out_dir / "tribal_lands.feather")
+ej_tribal = df
+
+### join to flowlines
+print("Joining environmental justice areas to flowlines")
+merged = None
+for huc2 in huc2s:
+    print(f"Processing {huc2}...")
+    flowlines = gp.read_feather(
+        data_dir / "nhd/raw/" / huc2 / "flowlines.feather", columns=["geometry", "HUC4", "NHDPlusID"]
+    )
+    flowlines["HUC2"] = flowlines.HUC4.str[:2]
+    tree = shapely.STRtree(flowlines.geometry.values)
+    # for speed and simplicity just use simple intersection and not check overlap
+    # full intersection and overlap calculation takes a LONG time
+    left, right = tree.query(ej_tract.geometry.values, predicate="intersects")
+    ids = flowlines.NHDPlusID.values.take(np.unique(right))
+    flowlines["EJTract"] = flowlines.NHDPlusID.isin(ids)
+
+    left, right = tree.query(ej_tribal.geometry.values, predicate="intersects")
+    ids = flowlines.NHDPlusID.values.take(np.unique(right))
+    flowlines["EJTribal"] = flowlines.NHDPlusID.isin(ids)
+
+    flowlines = flowlines.loc[flowlines.EJTract | flowlines.EJTribal, ["NHDPlusID", "HUC2", "EJTract", "EJTribal"]]
+
+    if merged is None:
+        merged = flowlines
+    else:
+        merged = pd.concat([merged, flowlines], ignore_index=True)
+
+merged.to_feather(out_dir / "derived/environmental_justice_flowlines.feather")
+
 
 ################################################################################
 ### Process native territories
@@ -821,3 +854,20 @@ ix = df.name.isin(replacements.keys())
 df.loc[ix, "name"] = df.loc[ix].name.map(replacements)
 
 df.to_feather(out_dir / "native_territories.feather")
+
+
+################################################################################
+### Process Trout Unlimited Eastern Brook Trout Conservation Portfolio
+################################################################################
+print("Processing Trout Unlimited Eastern Brook Trout Conservation Portfolio")
+df = (
+    read_dataframe(src_dir / "TU_MostRecentBrookTroutPortfolio.gdb", use_arrow=True, columns=["Portfolio_category"])
+    .to_crs(CRS)
+    .rename(columns={"Portfolio_category": "category"})
+)
+df = df.loc[~df.category.isin(["Not a brook trout population", "No brook trout"])].copy()
+df["geometry"] = make_valid(shapely.force_2d(df.geometry.values))
+df["category"] = df.category.map(TU_BROOK_TROUT_PORTFOLIO_TO_DOMAIN).astype("uint8")
+df = dissolve(df.explode(ignore_index=True), by="category", grid_size=1e-3).explode(ignore_index=True)
+
+df.to_feather(out_dir / "brook_trout_portfolio.feather")

@@ -186,6 +186,12 @@ def add_spatial_joins(df):
     df = sjoin_points_to_poly(df, tnc_cold)
     df["Cold"] = df.Cold.fillna(0).astype("uint8")
 
+    brook_trout_portfolio = gp.read_feather(
+        boundaries_dir / "brook_trout_portfolio.feather", columns=["geometry", "category"]
+    ).rename(columns={"category": "BrookTroutPortfolio"})
+    df = sjoin_points_to_poly(df, brook_trout_portfolio)
+    df["BrookTroutPortfolio"] = df.BrookTroutPortfolio.fillna(0).astype("uint8")
+
     ### Wild & Scenic rivers
     print("Joining to wild & scenic rivers")
     wsr = gp.read_feather(boundaries_dir / "wild_scenic_rivers.feather", columns=["geometry", "wsr"])
