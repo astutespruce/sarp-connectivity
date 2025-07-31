@@ -51,7 +51,7 @@ def read_feathers(paths, columns=None, geo=False, new_fields=None):
     return merged.reset_index(drop=True)
 
 
-def read_arrow_tables(paths, columns=None, filter=None, new_fields=None):
+def read_arrow_tables(paths, columns=None, filter=None, new_fields=None, dict_fields=None):
     """Read multiple feather files into a single pyarrow.Table
 
     Parameters
@@ -63,7 +63,10 @@ def read_arrow_tables(paths, columns=None, filter=None, new_fields=None):
         filter to apply when reading from disk
     new_fields : dict, optional (default: None)
         if present, is a mapping of new field name to add to a list-like of values
-        the same length as paths
+        the same order and length as paths
+    dict_fields : list-like, optional (default: None)
+        if present, is a list of new fields that should be dictionary encoded
+
     Returns
     -------
     pyarrow.Table
@@ -77,7 +80,14 @@ def read_arrow_tables(paths, columns=None, filter=None, new_fields=None):
 
         if new_fields is not None:
             for field, values in new_fields.items():
-                new_col = pa.array(np.repeat(values[i], len(table)))
+                if dict_fields is not None and field in dict_fields:
+                    # uint8 not yet supported for conversion to pandas categoricals
+                    index_value = np.int8(i) if len(paths) < 125 else np.uint32(i)
+                    new_col = pa.DictionaryArray.from_arrays(np.repeat(index_value, len(table)), new_fields[field])
+
+                else:
+                    new_col = pa.array(np.repeat(values[i], len(table)))
+
                 table = table.append_column(field, [new_col])
 
         try:
