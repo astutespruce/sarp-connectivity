@@ -66,6 +66,7 @@ def read_arrow_tables(paths, columns=None, filter=None, new_fields=None, dict_fi
         the same order and length as paths
     dict_fields : list-like, optional (default: None)
         if present, is a list of new fields that should be dictionary encoded
+        Do not use for existing fields already in the tables
 
     Returns
     -------
@@ -96,4 +97,11 @@ def read_arrow_tables(paths, columns=None, filter=None, new_fields=None, dict_fi
         except pa.lib.ArrowInvalid:
             merged = pa.concat_tables([merged, table], promote_options="default") if merged is not None else table
 
-    return merged.combine_chunks()
+    # retain geospatial metadata, drop pandas metadata
+    out_metadata = {}
+    geo_metadata = merged.schema.metadata.get(b"geo")
+    if geo_metadata:
+        out_metadata[b"geo"] = geo_metadata
+    merged = merged.combine_chunks().replace_schema_metadata(out_metadata)
+
+    return merged

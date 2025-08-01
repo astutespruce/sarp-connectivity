@@ -18,6 +18,10 @@ NETWORK_TYPES = {
         "kinds": ["waterfall", "dam", "small_barrier"],
         "column": "smallfish_network",
     },
+    # extract networks cutting at unsurveyed barriers too
+    "road_crossings": {
+        "kinds": ["waterfall", "dam", "small_barrier", "road_crossing"],
+    },
     ## other one-off network analyses
     # "full": {"kinds": [], "column": "primary_network"},
     # "dams_only": {"kinds": ["dam"], "column": "primary_network"},
@@ -27,12 +31,15 @@ NETWORK_TYPES = {
     #     "kinds": ["dam", "small_barrier"],
     #     "column": "smallfish_network",
     # },
-    # extract networks cutting at unsurveyed barriers too
-    # "road_crossings": {
-    #     "kinds": ["waterfall", "dam", "small_barrier", "road_crossing"],
-    #     "column": "road_crossing_network",
-    # }
 }
+
+# barrier types that are counted individually when calculating network stats
+BARRIER_KINDS = [
+    "waterfall",
+    "dam",
+    "small_barrier",
+    "road_crossing",
+]
 
 
 # All states in analysis region
@@ -192,6 +199,10 @@ LARGE_WB_AREA = 0.25
 # after building networks by inspecting the flows_to_ocean attribute.
 MAX_PIPELINE_LENGTH = 250  # meters
 
+SIZECLASSES = ["1a", "1b", "2", "3a", "3b", "4", "5"]
+
+FLOWLINE_JOIN_TYPES = ["origin", "terminal", "internal", "huc_in", "huc2_join", "huc2_drain", "former_pipeline_join"]
+
 
 # NOTE: not all feature services have all columns
 DAM_FS_COLS = [
@@ -325,7 +336,7 @@ KEEP_POTENTIAL_PROJECT = [
 ]
 
 UNRANKED_POTENTIAL_PROJECT = ["No Upstream Channel", "No Upstream Habitat"]
-REMOVED_POTENTIAL_PROJECT = ["Past Project", "Completed Project"]
+REMOVED_POTENTIAL_PROJECT = ["Past Project", "Completed Project", "Removed Crossing"]
 
 # These are DROPPED from all analysis and mapping
 # NA are modeled road / stream crossings from WDFW, drop them per direction from Kat (8/1/2024)
@@ -525,13 +536,14 @@ CROSSING_TYPE_TO_DOMAIN = {
     "removed": 0,
     # only for unassessed road crossings
     "assumed culvert": 99,
-    # FIXME: temporary, pending confirmation from Kat
-    "temporary structure": 0,
+    # added per direction from Kat on 7/24/2025
+    "temporary structure": 11,
 }
 
 CONSTRICTION_TO_DOMAIN = {
     "unknown": 0,
     "": 0,
+    "no": 0,
     "no data": 0,
     "spans full channel & banks": 1,
     "spans only channel & banks": 1,  # TODO: verify with Kat
@@ -845,6 +857,14 @@ EPA_CAUSE_TO_CODE = {
     "habitat_alterations": "a",
     "hydrologic_alteration": "y",
     "cause_unknown_fish_kills": "f",
+}
+
+TU_BROOK_TROUT_PORTFOLIO_TO_DOMAIN = {
+    "Other": 1,
+    "Other populations": 1,
+    "Other population": 1,
+    "Persistent": 2,
+    "Stronghold": 3,
 }
 
 

@@ -8,7 +8,7 @@ from pyarrow.dataset import dataset
 import pyarrow.compute as pc
 import numpy as np
 
-from analysis.constants import HUC2_EXITS, NETWORK_TYPES, EPA_CAUSE_TO_CODE
+from analysis.constants import HUC2_EXITS, NETWORK_TYPES, EPA_CAUSE_TO_CODE, FLOWLINE_JOIN_TYPES
 
 from analysis.lib.graph.speedups import DirectedGraph, LinearDirectedGraph
 from analysis.lib.io import read_arrow_tables
@@ -51,7 +51,7 @@ MAINSTEM_FLOWLINE_COLUMNS = [
 data_dir = Path("data")
 
 
-def connect_huc2s(joins):
+def connect_huc2s(joins, huc2s):
     """Find all connected groups of HUC2s.
 
     This reads in all flowline joins for all HUC2s and detects those that cross
@@ -64,98 +64,127 @@ def connect_huc2s(joins):
     joins : DataFrame
         contains HUC2, downstream_id, upstream_id, downstream, type
 
+    huc2s : list-like of str
+
     Returns
     -------
-    (groups, joins)
-        groups: list of sets; each set contains one or more HUC2s
-        joins: updated joins across HUC2 boundaries
+    (joins, groups)
+    joins: updated joins across HUC2 boundaries
+        groups: list of lists; each list contains one or more HUC2s
     """
 
     ### Extract the joins that cross region boundaries, and set new upstream IDs for them
     # We can join on the ids we generate (upstream_id, downstream_id) because there are no
     # original flowlines split at HUC2 join areas
-    # Note: we drop connections from region 03 into 08; these are negligible with respect
+    # NOTE: we drop connections from region 03 into 08; these are negligible with respect
     # to results but avoids lumping already very large analysis regions
+    # NOTE: these join from the downstream NHDPlusID to the upstream NHDPlusID of joins from another region
 
-    cross_region = joins.loc[
-        (joins.type == "huc_in") & (joins.upstream_id == 0),
-        ["upstream", "downstream", "downstream_id", "type", "HUC2"],
-    ].rename(columns={"HUC2": "downstream_HUC2"})
-
-    cross_region = cross_region.join(
-        joins.loc[
-            joins.downstream.isin(cross_region.upstream) & (joins.HUC2 != "03"),
-            ["downstream", "downstream_id", "HUC2"],
-        ]
-        .set_index("downstream")
-        .rename(columns={"downstream_id": "upstream_id", "HUC2": "upstream_HUC2"}),
-        on="upstream",
-        how="inner",
-    ).drop_duplicates()
-
-    # update joins to include those that cross region boundaries
-    joins = joins.join(
-        # upstream side of join
-        cross_region[["upstream_id", "downstream", "downstream_id"]].set_index("upstream_id"),
-        on="upstream_id",
-        rsuffix="_new_upstream",
-    ).join(
-        # downstream side of join
-        cross_region[["downstream_id", "upstream_id"]].set_index("downstream_id"),
-        on="downstream_id",
-        rsuffix="_new_downstream",
+    cross_region_upstream = (
+        joins.select(["downstream", "downstream_id", "HUC2"])
+        .filter(pc.not_equal(joins["HUC2"], "03"))
+        .rename_columns({"downstream": "join_key", "downstream_id": "upstream_id", "HUC2": "upstream_HUC2"})
     )
 
-    # update upstream side
-    ix = joins.downstream_id_new_upstream.notnull()
-    tmp = joins.loc[ix]
-    joins.loc[ix, "downstream"] = tmp.downstream_new_upstream.astype(joins.downstream.dtype)
-    joins.loc[ix, "downstream_id"] = tmp.downstream_id_new_upstream.astype(joins.downstream_id.dtype)
-    joins.loc[ix, "type"] = "huc2_join"
-
-    # update downstream side
-    ix = joins.upstream_id_new_downstream.notnull() & (joins.upstream_id == 0)
-    joins.loc[ix, "upstream_id"] = joins.loc[ix].upstream_id_new_downstream.astype(joins.upstream_id.dtype)
-
-    joins = joins.drop(
-        columns=[
-            "downstream_new_upstream",
-            "downstream_id_new_upstream",
-            "upstream_id_new_downstream",
-        ]
+    cross_region_downstream = (
+        joins.filter(
+            # we are specifically looking for ones marked as incoming to HUC and with no assigned upstream_id
+            pc.and_(
+                pc.and_(pc.equal(joins["type"], "huc_in"), pc.equal(joins["upstream_id"], 0)),
+                # these don't go anywhere downstream, so drop them
+                pc.not_equal(joins["downstream"], 0),
+            ),
+        )
+        .select(["upstream", "downstream", "downstream_id", "type", "HUC2"])
+        .rename_columns({"HUC2": "downstream_HUC2"})
     )
 
-    joins = joins.drop_duplicates(subset=["downstream_id", "upstream_id"]).copy()
+    cross_region = (
+        cross_region_upstream.join(
+            cross_region_downstream, "join_key", "upstream", coalesce_keys=False, join_type="inner"
+        )
+        .drop(["join_key"])
+        .group_by(
+            ["upstream", "upstream_id", "upstream_HUC2", "downstream", "downstream_id", "downstream_HUC2", "type"]
+        )
+        .aggregate([])
+    )
+
+    # something here is causing a lot of extra joins we shouldn't have
+    # upstream_id 5246729 has many upstreams; this is unexpected (there should be only 1 upstream per upstream_id)
+    joins = (
+        joins.join(
+            cross_region.select(["upstream_id", "downstream", "downstream_id"]).rename_columns(
+                {"downstream": "downstream_new_upstream", "downstream_id": "downstream_id_new_upstream"}
+            ),
+            "upstream_id",
+        )
+        .join(
+            cross_region.filter(pc.not_equal(cross_region["downstream_id"], 0))
+            .select(["downstream_id", "upstream_id"])
+            .rename_columns({"upstream_id": "upstream_id_new_downstream"}),
+            "downstream_id",
+        )
+        .combine_chunks()
+    )
+
+    has_new_upstream = pc.is_valid(joins["downstream_id_new_upstream"]).combine_chunks()
+    has_new_downstream = pc.and_(
+        pc.is_valid(joins["upstream_id_new_downstream"]), pc.equal(joins["upstream_id"], 0)
+    ).combine_chunks()
 
     # add information about the HUC2 drain points
     huc2_exits = set()
     for exits in HUC2_EXITS.values():
         huc2_exits.update(exits)
+    huc2_exits = pa.array(huc2_exits)
 
-    joins.loc[(joins.downstream == 0) & joins.upstream.isin(huc2_exits), "type"] = "huc2_drain"
+    cols = ["upstream", "downstream", "type", "marine", "great_lakes", "HUC2"]
+    joins = (
+        pa.Table.from_pydict(
+            {
+                "upstream": joins["upstream"],
+                "upstream_id": pc.if_else(
+                    has_new_downstream, joins["upstream_id_new_downstream"], joins["upstream_id"]
+                ),
+                "downstream": pc.if_else(has_new_upstream, joins["downstream_new_upstream"], joins["downstream"]),
+                "downstream_id": pc.if_else(
+                    has_new_upstream, joins["downstream_id_new_upstream"], joins["downstream_id"]
+                ),
+                # mark new huc2 joins and drains
+                "type": pc.if_else(
+                    has_new_upstream,
+                    "huc2_join",
+                    pc.if_else(pc.is_in(joins["downstream"], huc2_exits), "huc2_drain", joins["type"]),
+                ),
+                "marine": joins["marine"],
+                "great_lakes": joins["great_lakes"],
+                "HUC2": joins["HUC2"],
+            }
+        )
+        .group_by(["upstream_id", "downstream_id"], use_threads=False)
+        .aggregate([(c, "first") for c in cols])
+        .rename_columns({f"{c}_first": c for c in cols})
+        .combine_chunks()
+    )
 
     # make symmetric pairs of HUC2s so that we get all those that are connected
-    tmp = cross_region[["upstream_HUC2", "downstream_HUC2"]]
-    source = np.append(tmp.upstream_HUC2, tmp.downstream_HUC2)
-    target = np.append(tmp.downstream_HUC2, tmp.upstream_HUC2)
+    # NOTE: we have to convert to strings for graph to work
+    upstream_huc2 = pc.cast(cross_region["upstream_HUC2"], pa.int64()).combine_chunks()
+    downstream_huc2 = pc.cast(cross_region["downstream_HUC2"], pa.int64()).combine_chunks()
+    graph = DirectedGraph(
+        pa.concat_arrays([upstream_huc2, downstream_huc2]).to_numpy().astype("int64"),
+        pa.concat_arrays([downstream_huc2, upstream_huc2]).to_numpy().astype("int64"),
+    )
 
-    # Create a graph to coalesce into connected components
-    # Note: these are temporarily converted to int64 to use DirectedGraph
-    g = DirectedGraph(source.astype("int64"), target.astype("int64"))
-    connected_huc2 = g.components()
+    connected_huc2 = [[f"{huc2:02}" for huc2 in group] for group in graph.components()]
+    all_connected_huc2 = set()
+    for huc2_group in connected_huc2:
+        all_connected_huc2 = all_connected_huc2.union(huc2_group)
 
-    # convert back to strings
-    connected_huc2 = [{f"{huc2:02}" for huc2 in group} for group in connected_huc2]
+    isolated_huc2 = [[huc2] for huc2 in set(huc2s).difference(all_connected_huc2)]
 
-    isolated_huc2 = [
-        {huc2}
-        for huc2 in np.setdiff1d(
-            joins.HUC2.unique(),
-            np.unique(np.append(cross_region.upstream_HUC2, cross_region.downstream_HUC2)),
-        )
-    ]
-
-    return (connected_huc2 + isolated_huc2), joins
+    return joins, sorted(connected_huc2 + isolated_huc2, key=lambda x: list(x)[0])
 
 
 def load_flowlines(huc2s):
@@ -572,6 +601,7 @@ def create_barrier_networks(
     """
     network_start = time()
 
+    # TODO: return these as tables instead
     upstream_networks, upstream_mainstem_networks, downstream_mainstem_networks, downstream_linear_networks = (
         create_networks(
             joins,
@@ -582,7 +612,7 @@ def create_barrier_networks(
 
     print(f"{len(upstream_networks.unique()):,} networks created in {time() - network_start:.2f}s")
 
-    # join networkID to flowlines
+    # join upstream functional and mainstem networkIDs to flowlines
     # NOTE: can't join either type of downstream network here because a given
     # flowline may be shared between downstream networks of multiple barriers
     network_segments = network_segments.join(upstream_networks.rename(network_type)).join(

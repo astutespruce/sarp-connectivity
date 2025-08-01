@@ -7,13 +7,14 @@ import geopandas as gp
 import numpy as np
 import pandas as pd
 import pyarrow as pa
+from pyarrow.feather import write_feather
 import pyarrow.compute as pc
 import shapely
 
-from analysis.constants import CRS
+from analysis.constants import CRS, SIZECLASSES, BARRIER_KINDS, FLOWLINE_JOIN_TYPES
 from analysis.lib.graph.speedups.directedgraph import DirectedGraph
 from analysis.lib.flowlines import cut_flowlines_at_barriers
-from analysis.lib.io import read_feathers, read_arrow_tables
+from analysis.lib.io import read_arrow_tables
 from analysis.network.lib.networks import connect_huc2s
 
 warnings.filterwarnings("ignore", message=".*invalid value encountered in line_locate_point.*")
@@ -28,31 +29,31 @@ out_dir = data_dir / "networks/raw"
 out_dir.mkdir(exist_ok=True, parents=True)
 
 huc2_df = pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"])
-huc2s = huc2_df.HUC2.sort_values().values
+huc2s = sorted(huc2_df.HUC2.values)
 
 # manually subset keys from above for processing
 # huc2s = [
-# "01",
-# "02",
-# "03",
-# "04",
-# "05",
-# "06",
-# "07",
-# "08",
-# "09",
-# "10",
-# "11",
-# "12",
-# "13",
-# "14",
-# "15",
-# "16",
-# "17",
-# "18",
-# "19",
-# "20",
-# "21",
+#     "01",
+#     "02",
+#     "03",
+#     "04",
+#     "05",
+#     "06",
+#     "07",
+#     "08",
+#     "09",
+#     "10",
+#     "11",
+#     "12",
+#     "13",
+#     "14",
+#     "15",
+#     "16",
+#     "17",
+#     "18",
+#     "19",
+#     "20",
+#     "21",
 # ]
 
 
@@ -74,15 +75,30 @@ all_joins = read_arrow_tables(
     ],
     new_fields={"HUC2": huc2s},
     filter=pc.field("loop") == False,  # noqa
-).to_pandas()
+)
 
-groups, all_joins = connect_huc2s(all_joins)
-groups = sorted(groups)
+all_joins, groups = connect_huc2s(all_joins, huc2s)
 print(f"Found {len(groups)} HUC2 groups in {time() - start:,.2f}s")
+
+# recode type and HUC2 (we have to do this after reworking the joins)
+join_type_values = pa.array(FLOWLINE_JOIN_TYPES)
+huc2_values = pa.array(huc2s)
+all_joins = pa.Table.from_pydict(
+    {
+        **{c: all_joins[c] for c in all_joins.column_names if c not in {"type", "HUC2"}},
+        "type": pa.DictionaryArray.from_arrays(
+            pc.cast(pc.index_in(all_joins["type"].combine_chunks(), join_type_values), pa.int8()), join_type_values
+        ),
+        "HUC2": pa.DictionaryArray.from_arrays(
+            pc.cast(pc.index_in(all_joins["HUC2"].combine_chunks(), huc2_values), pa.int8()), huc2_values
+        ),
+    }
+)
+
 
 # remove any joins after joining regions that are marine but have an upstream of 0
 # (likely due to joins with regions not included in analysis)
-all_joins = all_joins.loc[~(all_joins.marine & (all_joins.upstream_id == 0))].copy()
+all_joins = all_joins.filter(pc.equal(pc.and_(all_joins["marine"], pc.equal(all_joins["upstream_id"], 0)), False))
 
 # persist table of connected HUC2s
 connected_huc2s = pd.DataFrame({"HUC2": groups}).explode(column="HUC2")
@@ -90,10 +106,23 @@ connected_huc2s["group"] = connected_huc2s.index.astype("uint8")
 connected_huc2s.reset_index(drop=True).to_feather(data_dir / "networks/connected_huc2s.feather")
 
 
-# find junctions (downstream_id with multiple upstream_id valeus)
-num_upstreams = all_joins.loc[all_joins.downstream_id != 0].groupby("downstream_id").size()
-multiple_upstreams = num_upstreams[num_upstreams > 1].index.values
-all_joins["junction"] = all_joins.downstream_id.isin(multiple_upstreams)
+# find junctions (downstream_id with multiple upstream_id values)
+num_upstreams = (
+    all_joins.select(["downstream_id", "upstream_id"])
+    .filter(pc.not_equal(all_joins["downstream_id"], 0))
+    .group_by("downstream_id")
+    .aggregate([("upstream_id", "count_distinct")])
+    .rename_columns({"upstream_id_count_distinct": "num_upstream"})
+)
+multiple_upstreams = num_upstreams.filter(pc.greater(num_upstreams["num_upstream"], 1))[
+    "downstream_id"
+].combine_chunks()
+all_joins = pa.Table.from_pydict(
+    {
+        **{c: all_joins[c] for c in all_joins.column_names},
+        "junction": pc.is_in(all_joins["downstream_id"], multiple_upstreams),
+    }
+)
 
 
 ### Aggregate barriers
@@ -101,22 +130,23 @@ all_joins["junction"] = all_joins.downstream_id.isin(multiple_upstreams)
 # from the snapped barrier data.  All barriers in this dataset cut the raw
 # networks, but subsets of them are used to create different network scenarios
 print("Aggregating barriers")
-kinds = ["waterfall", "dam", "small_barrier", "road_crossing"]
-all_barriers = read_feathers(
-    [barriers_dir / f"{kind}s.feather" for kind in kinds],
-    geo=True,
-    new_fields={"kind": kinds},
-).set_index("id", drop=False)
-
-# removed is not applicable for road crossings or waterfalls, backfill with False
-all_barriers["removed"] = all_barriers.removed.fillna(0).astype("bool")
-all_barriers["YearRemoved"] = all_barriers.YearRemoved.fillna(0).astype("uint16")
-
-# invasive is not applicable for road crossings, backfill with False
-all_barriers["invasive"] = all_barriers.invasive.fillna(0).astype("bool")
-
-print(f"Serializing {len(all_barriers):,} barriers")
-all_barriers.to_feather(out_dir / "all_barriers.feather")
+all_barriers = read_arrow_tables(
+    [barriers_dir / f"{kind}s.feather" for kind in BARRIER_KINDS],
+    new_fields={"kind": BARRIER_KINDS},
+    dict_fields={"kind"},
+)
+filled = {
+    # removed is not applicable for road crossings or waterfalls, backfill with False
+    "removed": pc.fill_null(all_barriers["removed"], False),
+    "YearRemoved": pc.fill_null(all_barriers["YearRemoved"], 0),
+    # invasive is not applicable for road crossings, backfill with False
+    "invasive": pc.fill_null(all_barriers["invasive"], False),
+}
+all_barriers = pa.Table.from_pydict(
+    {**{c: all_barriers[c] for c in all_barriers.column_names if c not in filled.keys()}, **filled},
+    metadata=all_barriers.schema.metadata,
+)
+write_feather(all_barriers, out_dir / "all_barriers.feather")
 
 
 ### Cut flowlines in each HUC2
@@ -129,50 +159,63 @@ for huc2 in huc2s:
     if not huc2_dir.exists():
         os.makedirs(huc2_dir)
 
-    barriers = all_barriers.loc[(all_barriers.HUC2 == huc2)].drop(columns=["HUC2"])
-    joins = all_joins.loc[all_joins.HUC2 == huc2].drop(columns=["HUC2"])
+    barriers = all_barriers.filter(pc.equal(all_barriers["HUC2"], huc2)).combine_chunks()
+    barriers = gp.GeoDataFrame(
+        barriers.drop(["HUC2", "geometry"]).to_pandas(),
+        geometry=shapely.from_wkb(barriers["geometry"].to_numpy()),
+        crs=CRS,
+    ).set_index("id", drop=False)
+
+    joins = all_joins.filter(pc.equal(all_joins["HUC2"], huc2)).drop(["HUC2"]).to_pandas()
 
     ##################### Cut flowlines at barriers #################
     ### Read NHD flowlines and joins
     print("Reading flowlines...")
     flowline_start = time()
 
-    flowlines = (
-        pa.dataset.dataset(nhd_dir / huc2 / "flowlines.feather", format="feather")
-        .to_table(
-            columns=[
-                "lineID",
-                "NHDPlusID",
-                "FCode",
-                "FType",
-                "GNIS_Name",
-                "geometry",
-                "StreamOrder",
-                "StreamLevel",  # used to create network tiles
-                "AreaSqKm",
-                "TotDASqKm",
-                "AnnualFlow",
-                "AnnualVelocity",
-                "loop",
-                "sizeclass",
-                "length",
-                "intermittent",
-                "altered",
-                "waterbody",
-            ],
-            # exclude loops and off-network flowlines
-            filter=(pc.field("loop") == False) & (pc.field("offnetwork") == False),  # noqa
-        )
-        .to_pandas()
-        .set_index("lineID", drop=False)
+    flowlines = pa.dataset.dataset(nhd_dir / huc2 / "flowlines.feather", format="feather").to_table(
+        columns=[
+            "lineID",
+            "NHDPlusID",
+            "FCode",
+            "FType",
+            "GNIS_Name",
+            "geometry",
+            "StreamOrder",
+            "StreamLevel",  # used to create network tiles
+            "AreaSqKm",
+            "TotDASqKm",
+            "AnnualFlow",
+            "AnnualVelocity",
+            "sizeclass",
+            "length",
+            "intermittent",
+            "altered",
+            "waterbody",
+        ],
+        # exclude loops and off-network flowlines
+        filter=(pc.field("loop") == False) & (pc.field("offnetwork") == False),  # noqa
     )
-    flowlines["geometry"] = shapely.from_wkb(flowlines.geometry.values)
-    flowlines = gp.GeoDataFrame(flowlines, geometry="geometry", crs=CRS)
+
+    sizeclass_values = pa.array(SIZECLASSES)
+    flowlines = pa.Table.from_pydict(
+        {
+            **{c: flowlines[c] for c in flowlines.column_names if c != "sizeclass"},
+            # NOTE: this converts blank size classes to nulls so they are excluded from stats
+            "sizeclass": pa.DictionaryArray.from_arrays(
+                pc.cast(pc.index_in(flowlines["sizeclass"].combine_chunks(), sizeclass_values), pa.int8()),
+                sizeclass_values,
+            ),
+        }
+    )
+
+    flowlines = gp.GeoDataFrame(
+        flowlines.drop(["geometry"]).to_pandas(), geometry=shapely.from_wkb(flowlines["geometry"].to_numpy()), crs=CRS
+    ).set_index("lineID", drop=False)
+
     print(f"Read {len(flowlines):,} flowlines in {time() - flowline_start:.2f}s")
 
-    # increment lineIDs before dropping loops
     next_segment_id = flowlines.lineID.max() + np.uint32(1)
-
     flowlines, joins, barrier_joins = cut_flowlines_at_barriers(
         flowlines, joins, barriers, next_segment_id=next_segment_id
     )
@@ -224,6 +267,8 @@ for huc2 in huc2s:
     flowlines["altered"] = flowlines.altered | flowlines.impoundment
 
     print(f"Serializing {len(flowlines):,} cut flowlines...")
+
+    # convert sizeclass to categorical for smaller data / memory footprint
     flowlines = flowlines.reset_index(drop=True)
     flowlines.to_feather(huc2_dir / "flowlines.feather")
 
@@ -250,7 +295,7 @@ for huc2 in huc2s:
         {
             "lineID": flowlines.lineID.values.take(right),
             "wbID": waterbodies.wbID.values.take(left),
-            "km2": waterbodies.km2.values.take(left),
+            "km2": waterbodies.km2.values.take(left).astype("float32"),
         }
     )
 
@@ -267,7 +312,7 @@ for huc2 in huc2s:
         {
             "lineID": flowlines.lineID.values.take(right),
             "wetlandID": wetlands.id.values.take(left),
-            "km2": wetlands.km2.values.take(left),
+            "km2": wetlands.km2.values.take(left).astype("float32"),
         }
     )
     pairs.to_feather(huc2_dir / "flowline_wetlands.feather")

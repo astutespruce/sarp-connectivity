@@ -5,7 +5,7 @@ import pyarrow as pa
 import pyarrow.compute as pc
 import numpy as np
 
-from analysis.constants import METERS_TO_MILES, KM2_TO_ACRES, EPA_CAUSE_TO_CODE, BARRIER_COUNT_KINDS
+from analysis.constants import METERS_TO_MILES, KM2_TO_ACRES, EPA_CAUSE_TO_CODE, BARRIER_KINDS
 from analysis.lib.graph.speedups import DirectedGraph
 from analysis.lib.io import read_arrow_tables
 
@@ -357,14 +357,13 @@ def calculate_functional_upstream_counts(network, joins, barrier_joins, out_inde
             {
                 "networkID": upstream_barriers["networkID"],
                 **{
-                    f"fn_{kind}s": pc.if_else(pc.equal(upstream_barriers["kind"], kind), 1, 0)
-                    for kind in BARRIER_COUNT_KINDS
+                    f"fn_{kind}s": pc.if_else(pc.equal(upstream_barriers["kind"], kind), 1, 0) for kind in BARRIER_KINDS
                 },
             }
         )
         .group_by("networkID")
-        .aggregate([(f"fn_{kind}s", "sum") for kind in BARRIER_COUNT_KINDS])
-        .rename_columns({f"fn_{kind}s_sum": f"fn_{kind}s" for kind in BARRIER_COUNT_KINDS})
+        .aggregate([(f"fn_{kind}s", "sum") for kind in BARRIER_KINDS])
+        .rename_columns({f"fn_{kind}s_sum": f"fn_{kind}s" for kind in BARRIER_KINDS})
     )
 
     # backfill counts so this is complete then set to smallest data types
@@ -855,16 +854,16 @@ def calculate_downstream_linear_network_stats(
                 "networkID": downstream_barriers["networkID"],
                 **{
                     f"ln_{kind}s": pc.if_else(pc.equal(downstream_barriers["kind"], kind), 1, 0)
-                    for kind in BARRIER_COUNT_KINDS
+                    for kind in BARRIER_KINDS
                 },
             }
         )
         .group_by("networkID")
-        .aggregate([(f"ln_{kind}s", "sum") for kind in BARRIER_COUNT_KINDS])
-        .rename_columns({**{f"ln_{kind}s_sum": f"ln_{kind}s" for kind in BARRIER_COUNT_KINDS}})
+        .aggregate([(f"ln_{kind}s", "sum") for kind in BARRIER_KINDS])
+        .rename_columns({**{f"ln_{kind}s_sum": f"ln_{kind}s" for kind in BARRIER_KINDS}})
     )
 
-    count_cols = [f"ln_{kind}s" for kind in BARRIER_COUNT_KINDS]
+    count_cols = [f"ln_{kind}s" for kind in BARRIER_KINDS]
     tot_downstream_stats = (
         downstreams.join(ln_downstream_stats, "downstream_network", "networkID")
         .join(
