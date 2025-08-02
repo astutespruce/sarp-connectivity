@@ -66,9 +66,22 @@ def calculate_upstream_functional_network_stats(network_flowlines, joins, focal_
     total_fn_upstream_stats = calculate_total_functional_upstream_stats(
         network, focal_barrier_joins, fn_upstream_counts, out_index
     )
-    network_barrier = get_network_barrier(network, focal_barrier_joins, out_index)
+
     network_root = get_network_root(network_flowlines.select(["networkID", "lineID", "NHDPlusID", "HUC2"]))
 
+    network_barrier = (
+        network.join(
+            focal_barrier_joins.select(["id", "kind", "upstream_id"]), "lineID", "upstream_id", join_type="inner"
+        )
+        # this has duplicates because of multiple upstreams coalesced for barrier
+        # NOTE: include id and kind in the grouping because pyarrow doesn't know how to take first value of kind (dict)
+        .group_by(["networkID", "id", "kind"])
+        .aggregate([])
+        .rename_columns({"id": "barrier_id", "kind": "barrier"})
+    )
+
+    # NOTE: this intentionally leaves the network barrier fields (barrier, barrier_id)
+    # null where the network is from a natural origin and not a barrier
     results = (
         flowline_stats.join(fn_upstream_counts, "networkID")
         .join(fn_upstream_waterbody_wetland_acres, "networkID")
@@ -510,49 +523,6 @@ def calculate_total_functional_upstream_stats(network, focal_barrier_joins, fn_u
     return counts.join(invasive_networks, "networkID").combine_chunks()
 
 
-def get_network_barrier(network, focal_barrier_joins, out_index):
-    """Determine the barrier type associated with this functional network
-
-    Parameters
-    ----------
-    network : pyarrow Table
-        upstream network table, must have networkID and lineID
-    focal_barrier_joins : pyarrow Table
-        limited to the barrier joins that cut the network type being analyzed
-    out_index : pyarrow Table
-        table of unique networkIDs that all stats are joined back to
-
-    Returns
-    -------
-    pyarrow Table
-    """
-
-    network_barrier = out_index.join(
-        # resolve barrier upstream_id to networkID
-        network.join(
-            focal_barrier_joins.select(["id", "kind", "upstream_id"]), "lineID", "upstream_id", join_type="inner"
-        )
-        # this has duplicates because of multiple upstreams coalesced for barrier
-        # NOTE: include id and kind in the grouping because pyarrow doesn't know how to take first value of kind (dict)
-        .group_by(["networkID", "id", "kind"])
-        .aggregate([])
-        .rename_columns({"id": "barrier_id", "kind": "barrier"}),
-        "networkID",
-    ).combine_chunks()
-
-    filled = pc.fill_null(network_barrier["barrier"], "")
-    values, indices = np.unique(filled, return_inverse=True)
-    network_barrier = pa.Table.from_pydict(
-        {
-            "networkID": network_barrier["networkID"],
-            "barrier_id": pc.fill_null(network_barrier["barrier_id"], 0),
-            "barrier": pa.DictionaryArray.from_arrays(indices.astype("int8"), values),
-        }
-    )
-
-    return network_barrier
-
-
 def get_network_root(network):
     """Find the root of each network and determine origin HUC2 and
     marine / Great Lakes connectivity
@@ -617,7 +587,7 @@ def calculate_upstream_mainstem_network_stats(network_flowlines):
 
     flowline_stats = {
         "networkID": network_flowlines["networkID"],
-        "sizeclasses": network_flowlines["sizeclass"],
+        "mainstem_sizeclasses": network_flowlines["sizeclass"],
         "total_upstream_mainstem_miles": miles,
         "perennial_upstream_mainstem_miles": pc.if_else(network_flowlines["intermittent"], 0, miles),
         "intermittent_upstream_mainstem_miles": pc.if_else(network_flowlines["intermittent"], miles, 0),
@@ -631,7 +601,7 @@ def calculate_upstream_mainstem_network_stats(network_flowlines):
 
     measure_cols = [c for c in flowline_stats.keys() if c.endswith("_miles")]
     presence_cols = [c for c in flowline_stats.keys() if c.startswith("has_")]
-    distinct_cols = ["sizeclasses"]
+    distinct_cols = ["mainstem_sizeclasses"]
 
     network_stats = (
         pa.Table.from_pydict(flowline_stats)
@@ -657,7 +627,7 @@ def calculate_upstream_mainstem_network_stats(network_flowlines):
         field_type = schema.field(col).type
         if field_type == pa.float64():
             schema = schema.set(i, pa.field(col, pa.float32()))
-        elif col.endswith("sizeclasses"):
+        elif col.endswith("mainstem_sizeclasses"):
             schema = schema.set(i, pa.field(col, pa.uint8()))
     network_stats = network_stats.cast(schema)
 
@@ -744,9 +714,8 @@ def calculate_downstream_mainstem_network_stats(network_flowlines, focal_barrier
             schema = schema.set(i, pa.field(col, pa.float32()))
     network_stats = network_stats.cast(schema)
 
-    # join to focal barrier joins to resolve to barrier ID
     network_stats = network_stats.join(
-        focal_barrier_downstreams, "networkID", "downstream_id", join_type="inner"
+        focal_barrier_downstreams.select(["id", "networkID"]), "networkID"
     ).combine_chunks()
 
     return network_stats
@@ -758,6 +727,9 @@ def calculate_downstream_linear_network_stats(
     """Calculate downstream statistics for each barrier based on its linear
     downstream network (to next barrier downstream or terminal / outlet) and
     total downstream (to final terminal / outlet).
+
+    Also uses info about focal barriers on the downstream side to calculate the
+    nearest upstream barrier per barrier.
 
     Parameters
     ----------
@@ -783,8 +755,8 @@ def calculate_downstream_linear_network_stats(
 
     Returns
     -------
-    Pandas DataFrame
-        Summary statistics, with one row per barrier.
+    pyarrow Table, Table
+        downstream linear network stats, nearest upstream barriers (per barrier ID)
     """
 
     miles = pc.multiply(network_flowlines["length"], METERS_TO_MILES)
@@ -849,8 +821,10 @@ def calculate_downstream_linear_network_stats(
     # that are downstream (interior or at downstream endpoint) but not the
     # barrier at the top of the linear network (which would then need to be deducted)
     # NOTE: a given barrier may occur at the downstream end of many different linear networks
-    downstream_barriers = network_flowlines.select(["networkID", "lineID"]).join(
-        barrier_joins.select(["kind", "upstream_id"]), "lineID", "upstream_id", join_type="inner"
+    downstream_barriers = (
+        network_flowlines.select(["networkID", "lineID"])
+        .join(barrier_joins.select(["kind", "upstream_id"]), "lineID", "upstream_id", join_type="inner")
+        .combine_chunks()
     )
 
     ln_downstream_stats = (
@@ -912,46 +886,69 @@ def calculate_downstream_linear_network_stats(
 
     tot_downstream_stats = pa.Table.from_pydict(out)
 
+    # mark the networks that have EJTracts / EJTribal present
+    downstream_ej = (
+        network_flowlines.select(["networkID", "EJTract", "EJTribal"])
+        .group_by(["networkID"])
+        .aggregate([("EJTract", "any"), ("EJTribal", "any")])
+        .rename_columns(
+            {"EJTract_any": "has_linear_downstream_ej_tract", "EJTribal_any": "has_linear_downstream_ej_tribal"}
+        )
+    )
+
     ### find the next focal barrier downstream; these are ones whose upstream is in the
     # linear networks of the next barrier upstream
-
     downstream_focal_barriers = (
         network_flowlines.select(["networkID", "lineID"])
         .join(focal_barrier_joins.select(["id", "kind", "upstream_id"]), "lineID", "upstream_id", join_type="inner")
         .drop(["lineID"])
-        .rename_columns({"id": "downstream_barrier_id", "kind": "downstream_barrier"})
-    )
-
-    downstream_focal_barriers = (
-        focal_barrier_downstreams.select(["networkID"])
-        .join(downstream_focal_barriers, "networkID")
-        .join(
-            network_stats.select(["networkID", "total_linear_downstream_miles"]).rename_columns(
-                {"total_linear_downstream_miles": "downstream_barrier_miles"}
-            ),
-            "networkID",
+        .join(network_stats.select(["networkID", "total_linear_downstream_miles"]), "networkID")
+        .rename_columns(
+            {
+                "id": "downstream_barrier_id",
+                "kind": "downstream_barrier",
+                "total_linear_downstream_miles": "downstream_barrier_miles",
+            }
         )
         .combine_chunks()
     )
-    downstream_focal_barriers = pa.Table.from_pydict(
+
+    # flip this and go from downstream id to upstream id and keep the closest one
+    upstream_focal_barriers = downstream_focal_barriers.join(focal_barrier_downstreams, "networkID").rename_columns(
         {
-            "networkID": downstream_focal_barriers["networkID"],
-            "downstream_barrier_id": pc.fill_null(downstream_focal_barriers["downstream_barrier_id"], 0),
-            "downstream_barrier": pc.fill_null(downstream_focal_barriers["downstream_barrier"], ""),
-            "downstream_barrier_miles": pc.if_else(
-                pc.is_null(downstream_focal_barriers["downstream_barrier_id"]),
-                0,
-                pc.fill_null(downstream_focal_barriers["downstream_barrier_miles"], 0),
-            ),
+            "id": "upstream_barrier_id",
+            "downstream_barrier_miles": "upstream_barrier_miles",
+            "downstream_barrier_id": "id",
         }
     )
 
+    nearest_upstream_barriers = (
+        upstream_focal_barriers.sort_by("upstream_barrier_miles")
+        .group_by("id", use_threads=False)
+        .aggregate([("upstream_barrier_id", "first"), ("upstream_barrier_miles", "first")])
+        .rename_columns(
+            {
+                "upstream_barrier_id_first": "upstream_barrier_id",
+                "upstream_barrier_miles_first": "upstream_barrier_miles",
+            }
+        )
+        # have to join in kind separately because pyarrow can't take first value of it in aggregation
+        .join(
+            focal_barrier_joins.select(["id", "kind"]).rename_columns({"kind": "upstream_barrier"}),
+            "upstream_barrier_id",
+            "id",
+        )
+        .combine_chunks()
+    )
+
+    # NOTE: we leave downstream barrier fields null where there is no downstream barrier
     results = (
         focal_barrier_downstreams.select(["id", "networkID"])
         .join(network_stats, "networkID")
         .join(tot_downstream_stats, "networkID")
+        .join(downstream_ej, "networkID")
         .join(downstream_focal_barriers, "networkID")
         .combine_chunks()
     )
 
-    return results
+    return results, nearest_upstream_barriers
