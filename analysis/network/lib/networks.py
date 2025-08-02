@@ -6,6 +6,7 @@ import pandas as pd
 import pyarrow as pa
 from pyarrow.dataset import dataset
 import pyarrow.compute as pc
+from pyarrow.feather import write_feather
 import numpy as np
 
 from analysis.constants import HUC2_EXITS, NETWORK_TYPES, EPA_CAUSE_TO_CODE, FLOWLINE_JOIN_TYPES
@@ -197,7 +198,7 @@ def load_flowlines(huc2s):
 
     Returns
     -------
-    DataFrame
+    pyarrow Table
     """
     flowlines = read_arrow_tables(
         [data_dir / "networks/raw" / huc2 / "flowlines.feather" for huc2 in huc2s],
@@ -209,21 +210,30 @@ def load_flowlines(huc2s):
         dict_fields={"HUC2"},
     )
 
+    # mark free flowing segments (must not be in altered waterbodies)
     flowlines = flowlines.append_column(
         "free_flowing", pc.if_else(pc.and_(flowlines["waterbody"], flowlines["altered"]), False, True)
     )
 
     # floodplain stats join on NHDPlusID
-    floodplain_stats = dataset(data_dir / "floodplains" / "floodplain_stats.feather", format="feather").to_table(
-        filter=pc.field("HUC2").isin(huc2s),
-        columns=["NHDPlusID", "floodplain_km2", "nat_floodplain_km2"],
+    floodplain_stats = (
+        dataset(data_dir / "floodplains" / "floodplain_stats.feather", format="feather")
+        .to_table(
+            filter=pc.field("HUC2").isin(huc2s),
+            columns=["NHDPlusID", "floodplain_km2", "nat_floodplain_km2"],
+        )
+        .combine_chunks()
     )
 
     # TNC resilient / cold join on NHDPlusID
-    resilient = dataset(
-        data_dir / "tnc_resilience/derived/tnc_resilient_flowlines.feather",
-        format="feather",
-    ).to_table(filter=pc.field("HUC2").isin(huc2s), columns=["NHDPlusID", "resilient", "cold"])
+    resilient = (
+        dataset(
+            data_dir / "tnc_resilience/derived/tnc_resilient_flowlines.feather",
+            format="feather",
+        )
+        .to_table(filter=pc.field("HUC2").isin(huc2s), columns=["NHDPlusID", "resilient", "cold"])
+        .combine_chunks()
+    )
 
     # Species habitat fields join on NHDPlusID
     habitat_dataset = dataset(data_dir / "species/derived/combined_species_habitat.feather", format="feather")
@@ -231,19 +241,27 @@ def load_flowlines(huc2s):
     habitat = habitat_dataset.to_table(filter=pc.field("HUC2").isin(huc2s), columns=["NHDPlusID"] + habitat_cols)
     # drop any columns not present in this set of HUC2s
     habitat_cols = [col for col in habitat_cols if pc.any(habitat[col]).as_py()]
-    habitat = habitat.select(["NHDPlusID"] + habitat_cols)
+    habitat = habitat.select(["NHDPlusID"] + habitat_cols).combine_chunks()
 
     # environmental justice joins on NHDPlusID
-    environmental_justice = dataset(
-        data_dir / "boundaries/derived/environmental_justice_flowlines.feather",
-        format="feather",
-    ).to_table(filter=pc.field("HUC2").isin(huc2s), columns=["NHDPlusID", "EJTract", "EJTribal"])
+    environmental_justice = (
+        dataset(
+            data_dir / "boundaries/derived/environmental_justice_flowlines.feather",
+            format="feather",
+        )
+        .to_table(filter=pc.field("HUC2").isin(huc2s), columns=["NHDPlusID", "EJTract", "EJTribal"])
+        .combine_chunks()
+    )
 
     # EPA impairments join on NHDPlusID
-    epa = dataset(
-        data_dir / "epa/derived/epa_flowlines.feather",
-        format="feather",
-    ).to_table(filter=pc.field("HUC2").isin(huc2s), columns=["NHDPlusID"] + list(EPA_CAUSE_TO_CODE.keys()))
+    epa = (
+        dataset(
+            data_dir / "epa/derived/epa_flowlines.feather",
+            format="feather",
+        )
+        .to_table(filter=pc.field("HUC2").isin(huc2s), columns=["NHDPlusID"] + list(EPA_CAUSE_TO_CODE.keys()))
+        .combine_chunks()
+    )
 
     flowlines = (
         flowlines.join(floodplain_stats, "NHDPlusID")
@@ -263,24 +281,13 @@ def load_flowlines(huc2s):
             out[col] = pc.cast(pc.fill_null(flowlines[col], 0), pa.float32())
         elif col in ["resilient", "cold", "EJTract", "EJTribal"] + habitat_cols + list(EPA_CAUSE_TO_CODE.keys()):
             out[col] = pc.fill_null(flowlines[col], False)
-        elif col == "sizeclass":
-            # set sizeclass blanks to null (prevents counting it with other size classes) and set to categorical type
-            # TODO: do this in cut_flowlines instead
-            # NOTE: values not present in values list are set to null
-            # not sure why this is so slow
-            # TODO: this can be skipped altogether if keeping flowlines as a table, since pyarrow string type is efficient
-            values = pa.array(["1a", "1b", "2", "3a", "3b", "4", "5"])
-            out[col] = pa.DictionaryArray.from_arrays(
-                pc.cast(pc.index_in(flowlines["sizeclass"], values), pa.int8()),
-                values,
-            )
 
     flowlines = pa.Table.from_pydict(out)
 
-    return flowlines.to_pandas().set_index("lineID")
+    return flowlines
 
 
-def coalesce_multiple_upstream_networks(up_network_df, joins, flowlines):
+def coalesce_multiple_upstream_networks(network_segments, joins, flowlines):
     """Coalesce networks that originate at same location (same barrier or network outlet)
     by setting all to the networkID of the largest drainage area / stream order.
 
@@ -290,270 +297,448 @@ def coalesce_multiple_upstream_networks(up_network_df, joins, flowlines):
 
     Parameters
     ----------
-    up_network_df : DataFrame
-        upstream network DataFrame
-    joins : DataFrame
+    network_segments : pyarrow Table
+        contains networkID, lineID
+    joins : pyarrow Table
         contains upstream_id, downstream_id
-    flowlines : DataFrame
-        flowline within analysis area, indexed on lineID
+    flowlines : pyarrow Table
+        flowlines within analysis area, contains lineID, TotDASqKm, StreamOrder
 
     Returns
     -------
-    DataFrame
-        same structure as up_network_df, with networkIDs updated for networks that
+    pyarrow Table
+        same structure as network_segments, with networkIDs updated for networks that
         were coalesced
     """
-    # find all networks where the downstream side of the network origin is a junction
-    networks_at_junctions = np.intersect1d(
-        up_network_df.networkID.unique(), joins.loc[joins.junction].upstream_id.unique()
+
+    networks_at_junctions = (
+        network_segments.select(["networkID"])
+        .filter(pc.equal(network_segments["networkID"], network_segments["lineID"]))
+        .join(
+            joins.select(["upstream_id", "downstream_id"]).filter(joins["junction"]),
+            "networkID",
+            "upstream_id",
+            join_type="inner",
+        )
+        .combine_chunks()
     )
+
     if len(networks_at_junctions):
         print(
             f"Merging multiple upstream networks at network junctions, affects {len(networks_at_junctions):,} networks"
         )
-        up_network_df = up_network_df.join(flowlines[["TotDASqKm", "StreamOrder"]], on="lineID")
 
-        downstreams = joins.loc[joins.upstream_id.isin(networks_at_junctions)].downstream_id.unique()
-        for downstream_id in downstreams:
-            # find all the networks that have the same downstream and fuse them
+        # create mapping from downstream_id of the junctions to the networkID to retain
+        new_networkIDs = (
+            networks_at_junctions.join(flowlines.select(["lineID", "TotDASqKm", "StreamOrder"]), "networkID", "lineID")
             # sort to preserve the one with largest drainage area / stream order
-            networkIDs = (
-                up_network_df.loc[
-                    up_network_df.networkID.isin(joins.loc[joins.downstream_id == downstream_id].upstream_id)
-                ]
-                .groupby("networkID")
-                .agg({"TotDASqKm": "max", "StreamOrder": "max"})
-                .sort_values(by=["TotDASqKm", "StreamOrder"], ascending=False)
-                .index.values
-            )
-            # use the networkID with longest number of segments as out networkID
-            networkID = networkIDs[0]
-            up_network_df.loc[up_network_df.networkID.isin(networkIDs), "networkID"] = networkID
+            .sort_by([("downstream_id", "ascending"), ("TotDASqKm", "descending"), ("StreamOrder", "descending")])
+            .group_by(["downstream_id"], use_threads=False)
+            .aggregate([("networkID", "first")])
+            .rename_columns({"networkID_first": "new_networkID"})
+            .combine_chunks()
+        )
 
-        up_network_df = up_network_df.drop(columns=["TotDASqKm", "StreamOrder"])
+        new_networkIDs = (
+            joins.select(["upstream_id", "downstream_id"])
+            .join(new_networkIDs, "downstream_id", join_type="inner")
+            .filter(pc.field("upstream_id") != pc.field("new_networkID"))
+            .combine_chunks()
+            .select(["upstream_id", "new_networkID"])
+            .rename_columns({"upstream_id": "prev_networkID"})
+        )
 
-    return up_network_df
+        if len(new_networkIDs):
+            network_segments = network_segments.join(new_networkIDs, "networkID", "prev_networkID")
+            network_segments = pa.Table.from_pydict(
+                {
+                    "networkID": pc.if_else(
+                        pc.is_valid(network_segments["new_networkID"]),
+                        network_segments["new_networkID"],
+                        network_segments["networkID"],
+                    ),
+                    "lineID": network_segments["lineID"],
+                }
+            ).combine_chunks()
+
+    return network_segments
 
 
-def create_networks(joins, barrier_joins, flowlines):
-    """Create 4 types of networks:
-    - upstream functional networks that start from natural origins in network or from barriers
-    - upstream mainstem networks that start from barriers
-    - downstream mainstem networks that start from barriers
-    - downstream linear networks that start from barriers
+def create_functional_upstream_networks(
+    joins,
+    focal_barrier_joins,
+    upstream_joins,
+    flowlines,
+):
+    """Create upstream functional networks based on network breaks located at
+    focal_barrier_joins
 
+    Upstream functional networks are assigned a networkID based on the upstream_id
+    at a given focal barrier join.
+
+    Parameters
+    ----------
+    joins : pyarrow Table
+        contains upstream_id, downstream_id
+    focal_barrier_joins : pyarrow Table
+        contains upstream_id, downstream_id
+    upstream_joins : pyarrow Table
+        subset of joins that exclude any joins where focal barriers are located
+    flowlines : pyarrow Table
+        contains lineID, TotDASqKm, StreamOrder
+
+    Returns
+    -------
+    pyarrow Table
+    """
+
+    start = time()
+
+    ### Find network origins
+    # find joins that are not marked as terminated, but do not have downstreams in the region;
+    # this happens for flowlines that extend into CAN / MEX
+    unterminated = joins.filter(
+        pc.and_(
+            # not already a downstream terminal
+            pc.not_equal(joins["downstream_id"], 0),
+            # but corresponding upstream for this downstream side is not present in the joins
+            pc.equal(pc.is_in(joins["downstream_id"], joins["upstream_id"]), False),
+        )
+    )
+
+    origin_ids = pc.unique(
+        pa.concat_arrays(
+            [
+                # anything that has no downstream is an origin
+                joins.filter(pc.equal(joins["downstream_id"], 0))["upstream_id"].combine_chunks(),
+                # if downstream_id is not in upstream_id for region, and is in flowlines, add downstream id as origin
+                unterminated.filter(pc.is_in(unterminated["downstream_id"], flowlines["lineID"]))[
+                    "downstream_id"
+                ].combine_chunks(),
+                # otherwise add upstream id
+                unterminated.filter(pc.equal(pc.is_in(unterminated["downstream_id"], flowlines["lineID"]), False))[
+                    "upstream_id"
+                ].combine_chunks(),
+            ]
+        )
+    )
+
+    # remove any origins that have associated barriers (this also ensures a unique list)
+    barrier_upstream_ids = pc.unique(
+        focal_barrier_joins.filter(pc.not_equal(focal_barrier_joins["upstream_id"], 0))["upstream_id"]
+    )
+    origin_ids = origin_ids.filter(pc.equal(pc.is_in(origin_ids, barrier_upstream_ids), False))
+
+    ### Create a directed graph facing upstream and traverse joins to create
+    # origin networks and barrier networks
+    upstream_graph = DirectedGraph(
+        upstream_joins["downstream_id"].to_numpy().astype("int64"),
+        upstream_joins["upstream_id"].to_numpy().astype("int64"),
+    )
+
+    print(f"Generating networks for {len(origin_ids):,} origin points")
+    if len(origin_ids) > 0:
+        origin_network_segments = pa.Table.from_arrays(
+            upstream_graph.network_pairs(origin_ids.to_numpy().astype("int64")).T.astype("uint32"),
+            ["networkID", "lineID"],
+        )
+        origin_network_segments = coalesce_multiple_upstream_networks(origin_network_segments, joins, flowlines)
+
+    else:
+        origin_network_segments = pa.Table.from_arrays(
+            [[], []], schema=pa.schema([("networkID", pa.uint32()), ("lineID", pa.uint32())])
+        )
+
+    print(f"Generating networks for {len(barrier_upstream_ids):,} barriers")
+    if len(barrier_upstream_ids):
+        barrier_network_segments = pa.Table.from_arrays(
+            upstream_graph.network_pairs(barrier_upstream_ids.to_numpy().astype("int64")).T.astype("uint32"),
+            ["networkID", "lineID"],
+        )
+        barrier_network_segments = coalesce_multiple_upstream_networks(barrier_network_segments, joins, flowlines)
+
+    else:
+        barrier_network_segments = pa.Table.from_arrays(
+            [[], []], schema=pa.schema([("networkID", pa.uint32()), ("lineID", pa.uint32())])
+        )
+
+    # use categorical type to store network type
+    network_type_values = pa.array(["origin", "barrier"])
+    origin_network_segments = origin_network_segments.append_column(
+        "type",
+        pa.DictionaryArray.from_arrays(np.repeat(np.int8(0), len(origin_network_segments)), network_type_values),
+    )
+    barrier_network_segments = barrier_network_segments.append_column(
+        "type",
+        pa.DictionaryArray.from_arrays(np.repeat(np.int8(1), len(barrier_network_segments)), network_type_values),
+    )
+
+    upstream_functional_network_segments = pa.concat_tables(
+        [origin_network_segments, barrier_network_segments]
+    ).combine_chunks()
+
+    # check for duplicates
+    dups = (
+        upstream_functional_network_segments.group_by("lineID")
+        .aggregate([("lineID", "count_distinct")])
+        .rename_columns({"lineID_count_distinct": "count"})
+        .filter(pc.field("count") > 1)
+        .combine_chunks()
+    )
+    if len(dups):
+        write_feather(dups, "/tmp/dup_upstream_functional_networks.feather")
+        raise ValueError(
+            f"{len(dups)} lineIDs are found in multiple networks: {', '.join([str(v) for v in dups['lineID'][:10].to_pylist()])}..."
+        )
+
+    print(
+        f"{len(pc.unique(upstream_functional_network_segments['networkID'])):,} upstream functional networks created in {time() - start:.2f}s"
+    )
+
+    return upstream_functional_network_segments
+
+
+def create_upstream_mainstem_networks(joins, focal_barrier_joins, upstream_joins, flowlines, mainstem_flowlines):
+    """Calcluate upstream mainstem networks.
 
     Mainstems have >= 1 sq mile drainage area and are limited to joins of the same stream order.
     This avoids smaller incoming tributaries on the upstream side and confluences
     that result in a larger stream order on the downstream side.
 
+    Upstream mainstem networks are assigned a networkID based on the upstream_id
+    at a given focal barrier join.
+
     Parameters
     ----------
-    joins : DataFrame
+    joins : pyarrow Table
         contains upstream_id, downstream_id
-    barrier_joins : DataFrame
-        contains upstream_id, downstream_id; indexed on id
-    flowlines : DataFrame
-        flowline within analysis area, indexed on lineID
+    focal_barrier_joins : pyarrow Table
+        contains upstream_id, downstream_id
+    upstream_joins : pyarrow Table
+        subset of joins that exclude any joins where focal barriers are located
+    flowlines : pyarrow Table
+        contains lineID, TotDASqKm, StreamOrder
+    mainstem_flowlines : pyarrow Table
+        subset of flowlines for mainstems
 
     Returns
     -------
-    (Series, Series, Series, Series)
-        (upstream functional network, upstream mainstem network, downstream mainstem network, downstream linear network)
-        where each contains is indexed on lineID and haves values for networkID
+    pyarrow Table
     """
+    start = time()
 
-    lineIDs = flowlines.index
-    mainstem_ids = flowlines.loc[(flowlines.TotDASqKm >= MAINSTEM_DRAINAGE_AREA)].index.values
-
-    barrier_upstream_ids = barrier_joins.loc[barrier_joins.upstream_id != 0].upstream_id.unique()
-    barrier_downstream_ids = barrier_joins.loc[barrier_joins.downstream_id != 0].downstream_id.unique()
-    mainstem_barrier_upstream_ids = barrier_joins.loc[barrier_joins.upstream_id.isin(mainstem_ids)].upstream_id.unique()
-    mainstem_barrier_downstream_ids = barrier_joins.loc[
-        barrier_joins.downstream_id.isin(mainstem_ids)
-    ].downstream_id.unique()
-
-    ### Extract flowline joins for network traversal and break at barriers
-    # Note: this drop any that are endpoints of the network
-    interior_joins = (
-        joins.loc[(joins.upstream_id != 0) & (joins.downstream_id != 0)]
-        .join(
-            flowlines[["StreamOrder", "TotDASqKm"]].rename(
-                columns={"StreamOrder": "downstream_streamorder", "TotDASqKm": "downstream_drainage_km2"}
-            ),
-            on="downstream_id",
-        )
-        .join(
-            flowlines[["StreamOrder", "TotDASqKm"]].rename(
-                columns={"StreamOrder": "upstream_streamorder", "TotDASqKm": "upstream_drainage_km2"}
-            ),
-            on="upstream_id",
-        )
+    # find barriers that are on large enough flowlines
+    # NOTE: joining from mainstems is fastest
+    mainstem_barrier_upstream_ids = (
+        mainstem_flowlines.select(["lineID"])
+        .join(focal_barrier_joins.select(["upstream_id"]), "lineID", "upstream_id", join_type="inner")["lineID"]
+        .combine_chunks()
     )
-
-    interior_joins["mainstem"] = (
-        (interior_joins.upstream_drainage_km2 >= MAINSTEM_DRAINAGE_AREA)
-        & (interior_joins.downstream_drainage_km2 >= MAINSTEM_DRAINAGE_AREA)
-        & (interior_joins.upstream_streamorder == interior_joins.downstream_streamorder)
-    )
-
-    upstream_joins = interior_joins.loc[
-        ~interior_joins.upstream_id.isin(barrier_upstream_ids),
-        ["downstream_id", "upstream_id", "mainstem"],
-    ].drop_duplicates()
-
-    downstream_joins = interior_joins.loc[
-        ~interior_joins.downstream_id.isin(barrier_downstream_ids),
-        ["downstream_id", "upstream_id", "mainstem"],
-    ].drop_duplicates(subset=["downstream_id", "upstream_id"])
-
-    ### Find network origins
-    # find joins that are not marked as terminated, but do not have upstreams in the region;
-    # this happens for flowlines that extend into CAN / MEX
-    unterminated = joins.loc[(joins.downstream_id != 0) & ~joins.downstream_id.isin(joins.upstream_id)]
-
-    origin_ids = np.concatenate(
-        [
-            # anything that has no downstream is an origin
-            joins.loc[joins.downstream_id == 0].upstream_id.unique(),
-            # if downstream_id is not in upstream_id for region, and is in flowlines, add downstream id as origin
-            unterminated.loc[unterminated.downstream_id.isin(lineIDs)].downstream_id.unique(),
-            # otherwise add upstream id
-            unterminated.loc[~unterminated.downstream_id.isin(lineIDs)].upstream_id.unique(),
-        ]
-    )
-    # remove any origins that have associated barriers (this also ensures a unique list)
-    origin_ids = np.setdiff1d(origin_ids, barrier_upstream_ids)
-
-    ### Create a directed graph facing upstream and traverse joins to create
-    # origin networks and barrier networks
-    upstream_graph = DirectedGraph(
-        upstream_joins.downstream_id.values.astype("int64"),
-        upstream_joins.upstream_id.values.astype("int64"),
-    )
-
-    print(f"Generating networks for {len(origin_ids):,} origin points")
-    if len(origin_ids) > 0:
-        origin_network_segments = pd.DataFrame(
-            upstream_graph.network_pairs(origin_ids.astype("int64")),
-            columns=["networkID", "lineID"],
-        ).astype("uint32")
-        origin_network_segments = coalesce_multiple_upstream_networks(origin_network_segments, joins, flowlines)
-
-    else:
-        origin_network_segments = pd.DataFrame([], columns=["networkID", "lineID"]).astype("uint32")
-
-    print(f"Generating networks for {len(barrier_upstream_ids):,} barriers")
-    if len(barrier_upstream_ids):
-        # barrier segments are the root of each upstream network from each barrier
-        # segments are indexed by the id of the segment at the root for each network
-        barrier_network_segments = pd.DataFrame(
-            upstream_graph.network_pairs(barrier_upstream_ids.astype("int64")),
-            columns=["networkID", "lineID"],
-        ).astype("uint32")
-        barrier_network_segments = coalesce_multiple_upstream_networks(barrier_network_segments, joins, flowlines)
-
-    else:
-        barrier_network_segments = pd.DataFrame([], columns=["networkID", "lineID"]).astype("uint32")
-
-    del upstream_graph
-
-    # Append network types together
-    origin_network_segments["type"] = "origin"
-    barrier_network_segments["type"] = "barrier"
-    up_network_df = pd.concat(
-        [
-            origin_network_segments,
-            barrier_network_segments,
-        ],
-        sort=False,
-        ignore_index=False,
-    ).reset_index(drop=True)
-
-    # check for duplicates
-    s = up_network_df.groupby("lineID").size()
-    s = s.loc[s > 1]
-    if len(s):
-        s.rename("count").reset_index().to_feather("/tmp/dup_networks.feather")
-        raise ValueError(
-            f"lineIDs are found in multiple networks: {', '.join([str(v) for v in s.index.values.tolist()[:10]])}..."
-        )
-
-    ### Extract mainstem networks
-    # NOTE: mainstem networks are only calculated for barriers, not origins
-    print("Extracting mainstem barrier networks")
 
     if len(mainstem_barrier_upstream_ids):
-        upstream_mainstem_joins = upstream_joins.loc[upstream_joins.mainstem]
+        print("Extracting upstream mainstem barrier networks")
 
-        upstream_mainstem_graph = DirectedGraph(
-            upstream_mainstem_joins.downstream_id.values.astype("int64"),
-            upstream_mainstem_joins.upstream_id.values.astype("int64"),
+        # find mainstem joins: must be on large enough flowline (drainage area) and same stream order on either side of join
+        # WARNING: there are cases due to bad data from NHD where the downstream stream order may be less than the upstream,
+        # which is not correct.  However, we still break at these to avoid issues traversing the mainstem networks
+        upstream_mainstem_joins = (
+            upstream_joins.join(
+                mainstem_flowlines.rename_columns({"StreamOrder": "upstream_streamorder"}),
+                "upstream_id",
+                "lineID",
+                join_type="inner",
+            )
+            .join(
+                mainstem_flowlines.rename_columns({"StreamOrder": "downstream_streamorder"}),
+                "downstream_id",
+                "lineID",
+            )
+            .filter(pc.field("upstream_streamorder") == pc.field("downstream_streamorder"))
+            .combine_chunks()
         )
 
-        up_mainstem_network_df = pd.DataFrame(
-            upstream_mainstem_graph.network_pairs(mainstem_barrier_upstream_ids.astype("int64")),
-            columns=["networkID", "lineID"],
-        ).astype("uint32")
-        up_mainstem_network_df = coalesce_multiple_upstream_networks(up_mainstem_network_df, joins, flowlines)
+        # create graph of mainstem joins facing in the upstream direction
+        upstream_mainstem_graph = DirectedGraph(
+            upstream_mainstem_joins["downstream_id"].to_numpy().astype("int64"),
+            upstream_mainstem_joins["upstream_id"].to_numpy().astype("int64"),
+        )
+
+        upstream_mainstem_network_segments = pa.Table.from_arrays(
+            upstream_mainstem_graph.network_pairs(mainstem_barrier_upstream_ids.to_numpy().astype("int64")).T.astype(
+                "uint32"
+            ),
+            ["networkID", "lineID"],
+        )
+        upstream_mainstem_network_segments = coalesce_multiple_upstream_networks(
+            upstream_mainstem_network_segments, joins, flowlines
+        )
+
+        # check for duplicates
+        dups = (
+            upstream_mainstem_network_segments.group_by("lineID")
+            .aggregate([("lineID", "count_distinct")])
+            .rename_columns({"lineID_count_distinct": "count"})
+            .filter(pc.field("count") > 1)
+            .combine_chunks()
+        )
+        if len(dups):
+            write_feather(dups, "/tmp/dup_upstream_mainstem_networks.feather")
+            raise ValueError(
+                f"{len(dups)} lineIDs are found in multiple networks: {', '.join([str(v) for v in dups['lineID'][:10].to_pylist()])}..."
+            )
 
         del upstream_mainstem_graph
 
-        # check for duplicates
-        s = up_mainstem_network_df.groupby("lineID").size()
-        s = s.loc[s > 1]
-        if len(s):
-            s.rename("count").reset_index().to_feather("/tmp/dup_up_mainstem_networks.feather")
-            raise ValueError(
-                f"lineIDs are found in multiple upstream mainstem networks: {', '.join([str(v) for v in s.index.values.tolist()[:10]])}..."
-            )
     else:
-        up_mainstem_network_df = pd.DataFrame([], columns=["networkID", "lineID"]).astype("uint32")
+        upstream_mainstem_network_segments = pa.Table.from_arrays(
+            [[], []], schema=pa.schema([("networkID", pa.uint32()), ("lineID", pa.uint32())])
+        )
+
+    print(
+        f"{len(pc.unique(upstream_mainstem_network_segments['networkID'])):,} upstream mainstem networks created in {time() - start:.2f}s"
+    )
+
+    return upstream_mainstem_network_segments
+
+
+def create_downstream_mainstem_networks(joins, focal_barrier_joins, downstream_joins, mainstem_flowlines):
+    """Calculate downstream mainstem networks.
+
+    See create_upstream_mainstem_networks for definition of mainstems.
+
+    Downstream mainstem networks are in the downstream linear (flow) direction
+    and are assigned networkID based on the downstream_id at a given focal barrier
+    join.
+
+    NOTE: mainstem networks are only calculated for barriers, not origins
+
+    NOTE: there will be duplicate lineIDs in these networks because the same
+    flowline may be shared in multiple downstream networks
+
+
+    Parameters
+    ----------
+    joins : pyarrow Table
+        contains upstream_id, downstream_id
+    focal_barrier_joins : pyarrow Table
+        contains upstream_id, downstream_id
+    downstream_joins : pyarrow Table
+        subset of joins that exclude any joins where focal barriers are located
+    mainstem_flowlines : pyarrow Table
+        subset of flowlines for mainstems
+
+    Returns
+    -------
+    pyarrow Table
+    """
+
+    start = time()
+
+    # NOTE: we have to use unique here since downstream_id occurs multiple times at barriers on confluences
+    mainstem_barrier_downstream_ids = pc.unique(
+        mainstem_flowlines.select(["lineID"])
+        .join(focal_barrier_joins.select(["downstream_id"]), "lineID", "downstream_id", join_type="inner")["lineID"]
+        .combine_chunks()
+    )
 
     if len(mainstem_barrier_downstream_ids):
-        downstream_mainstem_joins = downstream_joins.loc[downstream_joins.mainstem]
+        print("Extracting downstream mainstem barrier networks")
 
-        downstream_mainstem_graph = LinearDirectedGraph(
-            downstream_mainstem_joins.upstream_id.values.astype("int64"),
-            downstream_mainstem_joins.downstream_id.values.astype("int64"),
+        downstream_mainstem_joins = (
+            downstream_joins.join(
+                mainstem_flowlines.rename_columns({"StreamOrder": "downstream_streamorder"}),
+                "downstream_id",
+                "lineID",
+                join_type="inner",
+            )
+            .join(
+                mainstem_flowlines.rename_columns({"StreamOrder": "upstream_streamorder"}),
+                "upstream_id",
+                "lineID",
+            )
+            .filter(pc.field("upstream_streamorder") == pc.field("downstream_streamorder"))
+            .combine_chunks()
         )
 
-        down_mainstem_network_df = pd.DataFrame(
-            downstream_mainstem_graph.network_pairs(mainstem_barrier_downstream_ids.astype("int64")),
-            columns=["networkID", "lineID"],
-        ).astype("uint32")
+        # create linear graph facing in the downstream direction
+        downstream_mainstem_graph = LinearDirectedGraph(
+            downstream_mainstem_joins["upstream_id"].to_numpy().astype("int64"),
+            downstream_mainstem_joins["downstream_id"].to_numpy().astype("int64"),
+        )
+
+        downstream_mainstem_network_segments = pa.Table.from_arrays(
+            downstream_mainstem_graph.network_pairs(
+                mainstem_barrier_downstream_ids.to_numpy().astype("int64")
+            ).T.astype("uint32"),
+            ["networkID", "lineID"],
+        )
 
         del downstream_mainstem_graph
+
     else:
-        down_mainstem_network_df = pd.DataFrame([], columns=["networkID", "lineID"]).astype("uint32")
-
-    ### Extract linear networks facing downstream
-    # This assumes that there are no divergences because loops are removed
-    # from the joins
-    # NOTE: it is expected that a given lineID will be claimed as a downstream
-    # of many downstream networks.
-    print("Extracting downstream linear networks for each barrier")
-
-    if len(barrier_downstream_ids):
-        downstream_graph = LinearDirectedGraph(
-            downstream_joins.upstream_id.values.astype("int64"),
-            downstream_joins.downstream_id.values.astype("int64"),
+        downstream_mainstem_network_segments = pa.Table.from_arrays(
+            [[], []], schema=pa.schema([("networkID", pa.uint32()), ("lineID", pa.uint32())])
         )
 
-        down_network_df = pd.DataFrame(
-            downstream_graph.network_pairs(barrier_downstream_ids.astype("int64")),
-            columns=["networkID", "lineID"],
-        ).astype("uint32")
+    print(
+        f"{len(pc.unique(downstream_mainstem_network_segments['networkID'])):,} upstream mainstem networks created in {time() - start:.2f}s"
+    )
+
+    return downstream_mainstem_network_segments
+
+
+def create_downstream_linear_networks(focal_barrier_joins, downstream_joins):
+    """Create linear downstream networks
+
+    NOTE: This assumes that there are no divergences because loops are removed
+    from the joins
+
+    NOTE: it is expected that a given lineID will be claimed as a downstream
+    of many downstream networks.
+
+    Parameters
+    ----------
+    focal_barrier_joins : pyarrow Table
+        contains upstream_id, downstream_id
+    downstream_joins : pyarrow Table
+        subset of joins that exclude any joins where focal barriers are located
+
+    Returns
+    -------
+    pyarrow Table
+    """
+
+    start = time()
+
+    barrier_downstream_ids = pc.unique(
+        focal_barrier_joins.filter(pc.not_equal(focal_barrier_joins["downstream_id"], 0))["downstream_id"]
+    )
+
+    if len(barrier_downstream_ids):
+        print("Extracting downstream linear networks for each barrier")
+
+        downstream_linear_graph = LinearDirectedGraph(
+            downstream_joins["upstream_id"].to_numpy().astype("int64"),
+            downstream_joins["downstream_id"].to_numpy().astype("int64"),
+        )
+
+        downstream_linear_network_segments = pa.Table.from_arrays(
+            downstream_linear_graph.network_pairs(barrier_downstream_ids.to_numpy().astype("int64")).T.astype("uint32"),
+            ["networkID", "lineID"],
+        )
+
+        del downstream_linear_graph
 
     else:
-        down_network_df = pd.DataFrame([], columns=["networkID", "lineID"]).astype("uint32")
+        downstream_linear_network_segments = pa.Table.from_arrays(
+            [[], []], schema=pa.schema([("networkID", pa.uint32()), ("lineID", pa.uint32())])
+        )
 
-    return (
-        up_network_df.set_index("lineID").networkID,
-        up_mainstem_network_df.set_index("lineID").networkID,
-        down_mainstem_network_df.set_index("lineID").networkID,
-        down_network_df.set_index("lineID").networkID,
+    print(
+        f"{len(pc.unique(downstream_linear_network_segments['networkID'])):,} upstream mainstem networks created in {time() - start:.2f}s"
     )
+
+    return downstream_linear_network_segments
 
 
 def create_barrier_networks(
@@ -562,33 +747,31 @@ def create_barrier_networks(
     focal_barrier_joins,
     joins,
     flowlines,
-    network_segments,
+    # FIXME: remove
+    # network_segments,
     network_type,
-    huc2s,
 ):
     """Calculate networks based on barriers and network origins
 
     Parameters
     ----------
-    barriers : DataFrame
+    barriers : pyarrow Table
         barrier info for all barriers within the HUC2 group to joined back to
         barrier networks (inner join)
-    barrier_joins : DataFrame
+    barrier_joins : pyarrow Table
         all barriers joins within the HUC2 group (all types)
-    focal_barrier_joins : DataFrame
+    focal_barrier_joins : pyarrow Table
         barrier joins that denote network breaks
-    joins : DataFrame
+    joins : pyarrow Table
         all joins within the HUC2 group, used as the basis for constructing the
         networks
-    flowlines : DataFrame
+    flowlines : pyarrow Table
         flowline info that gets joined to the networkID for this type
-    network_segments : DataFrame
-        data frame to accumulate assignments of flowlines to networks, must
-        have same index as flowlines
+    # FIXME: remove
+    network_segments : pyarrow Table
+        data frame to accumulate assignments of flowlines to networks
     network_type : str
         name of network network_type, one of NETWORK_TYPES keys
-    huc2s : list-lie of str
-        list of HUC2s for this subset of data
 
     Returns
     -------
@@ -599,79 +782,78 @@ def create_barrier_networks(
             downstream_linear_network, downstream_linear_network_stats
         )
     """
-    network_start = time()
 
-    # TODO: return these as tables instead
-    upstream_networks, upstream_mainstem_networks, downstream_mainstem_networks, downstream_linear_networks = (
-        create_networks(
-            joins,
-            focal_barrier_joins,
-            flowlines,
-        )
+    ### Prepare joins for network analysis
+    # find joins that are interior to the network and not at upstream or downstream endpoints
+    interior_joins = joins.filter(
+        pc.and_(pc.not_equal(joins["upstream_id"], 0), pc.not_equal(joins["downstream_id"], 0))
     )
 
-    print(f"{len(upstream_networks.unique()):,} networks created in {time() - network_start:.2f}s")
+    # find upstream or downstream line IDs of barriers (depending on network direction)
+    # and remove the associated joins before building the graph; this breaks the network at those barriers
+    upstream_joins = interior_joins.join(
+        focal_barrier_joins.select(["upstream_id"]).combine_chunks(),
+        "upstream_id",
+        # use anti-join to find interior joins that are NOT associated with a barrier
+        # NOTE: this is much faster than checking membership in list of IDs
+        join_type="left anti",
+    ).combine_chunks()
+    downstream_joins = interior_joins.join(
+        focal_barrier_joins.select(["downstream_id"]).combine_chunks(),
+        "downstream_id",
+        join_type="left anti",
+    ).combine_chunks()
 
-    # join upstream functional and mainstem networkIDs to flowlines
-    # NOTE: can't join either type of downstream network here because a given
-    # flowline may be shared between downstream networks of multiple barriers
-    network_segments = network_segments.join(upstream_networks.rename(network_type)).join(
-        upstream_mainstem_networks.rename(f"{network_type}_mainstem")
+    ### Create functional upstream networks
+    upstream_functional_networks = create_functional_upstream_networks(
+        joins, focal_barrier_joins, upstream_joins, flowlines
     )
 
-    # any segment that wasn't assigned to a network can use its lineID as its network
-    # assume that these are isolated segments whose upstream / downstreams were
-    # removed because they were loops
-    ix = network_segments[network_type].isnull()
-    if ix.sum() > 0:
-        print(f"Backfilling {ix.sum():,} flowlines that weren't assigned to a network")
-        network_segments.loc[ix, network_type] = network_segments.loc[ix].index.values
-        network_segments[network_type] = network_segments[network_type].astype("uint32")
+    ### Create upstream and downstream mainstem networks
+    # find flowlines that qualify as mainstems due to drainage area
+    mainstem_flowlines = (
+        flowlines.filter(pc.greater_equal(flowlines["TotDASqKm"], MAINSTEM_DRAINAGE_AREA))
+        .select(["lineID", "StreamOrder"])
+        .combine_chunks()
+    )
+    upstream_mainstem_networks = create_upstream_mainstem_networks(
+        joins, focal_barrier_joins, upstream_joins, flowlines, mainstem_flowlines
+    )
+    downstream_mainstem_networks = create_downstream_mainstem_networks(
+        joins, focal_barrier_joins, downstream_joins, mainstem_flowlines
+    )
+
+    ### Create linear downstream networks
+    downstream_linear_networks = create_downstream_linear_networks(focal_barrier_joins, downstream_joins)
 
     # TODO: create this a pyarrow Table instead
-    up_network_df = (
-        network_segments[[network_type]]
-        .rename(columns={network_type: "networkID"})
-        .reset_index()
-        .set_index("networkID")
-        .join(flowlines, on="lineID")
-    )
-
-    # For any barriers that had multiple upstreams, those were coalesced to a single network above
-    # So drop any dangling upstream references (those that are not in networks and non-zero)
-    # NOTE: these are not persisted because we want the original barrier_joins to reflect multiple upstreams
-    # FIXME: we stopped doing this, make sure we're deduplicating below where necessary
-    # focal_barrier_joins = focal_barrier_joins.loc[
-    #     focal_barrier_joins.upstream_id.isin(upstream_networks.unique()) | (focal_barrier_joins.upstream_id == 0)
-    # ].copy()
+    # up_network_df = (
+    #     network_segments[[network_type]]
+    #     .rename(columns={network_type: "networkID"})
+    #     .reset_index()
+    #     .set_index("networkID")
+    #     .join(flowlines, on="lineID")
+    # )
 
     ### Calculate network statistics
     print("Calculating network stats...")
 
     stats_start = time()
 
-    fn_network_flowlines = pa.Table.from_pandas(up_network_df)
-    joins_table = pa.Table.from_pandas(joins)
-    barrier_joins_table = pa.Table.from_pandas(barrier_joins)
-    focal_barrier_joins_table = pa.Table.from_pandas(focal_barrier_joins)
-    flowlines_table = pa.Table.from_pandas(flowlines)
-
-    # FIXME: this is now a table
+    fn_network_flowlines = flowlines.join(upstream_functional_networks, "lineID").combine_chunks()
     upstream_functional_network_stats = calculate_upstream_functional_network_stats(
         fn_network_flowlines,
-        joins_table,
-        focal_barrier_joins_table,
-        barrier_joins_table,
+        joins,
+        focal_barrier_joins,
+        barrier_joins,
     )
 
-    up_mainstem_networks_table = pa.Table.from_pandas(upstream_mainstem_networks.reset_index())
     # NOTE: joining flowines to networks is MUCH faster than networks to flowlines
     up_mainstem_network_flowlines = (
-        flowlines_table.select(MAINSTEM_FLOWLINE_COLUMNS)
-        .join(up_mainstem_networks_table, "lineID", join_type="inner")
+        flowlines.select(MAINSTEM_FLOWLINE_COLUMNS)
+        .join(upstream_mainstem_networks, "lineID", join_type="inner")
         .combine_chunks()
     )
-    # FIXME: this is now a table
     upstream_mainstem_network_stats = calculate_upstream_mainstem_network_stats(up_mainstem_network_flowlines)
 
     # create deduplicated tables of barriers and their downstream lineIDs because
@@ -790,7 +972,7 @@ def create_barrier_networks(
         for c in upstream_functional_network_stats.columns
         if not c.startswith("free_") and c not in {"barrier_id", "barrier"}
     ]
-    upstream_networks = (
+    upstream_functional_networks = (
         focal_barrier_joins[["upstream_id"]]
         .join(
             upstream_functional_network_stats[upstream_functional_network_cols].rename(
@@ -805,7 +987,7 @@ def create_barrier_networks(
         )
     )
     # NOTE: by convention, barrier network stats are TitleCase when joined to barriers
-    upstream_networks = upstream_networks.rename(
+    upstream_functional_networks = upstream_functional_networks.rename(
         columns={
             **{
                 # standardize names before title-casing
@@ -815,7 +997,7 @@ def create_barrier_networks(
                 .replace("tot_", "total_upstream_")
                 .title()
                 .replace("_", "")
-                for c in upstream_networks.columns
+                for c in upstream_functional_networks.columns
             },
             "upstream_id": "upNetID",
             "origin_HUC2": "OriginHUC2",
@@ -865,7 +1047,7 @@ def create_barrier_networks(
     # Note: the join creates duplicates if there are multiple upstream or downstream
     # networks for a given barrier, so we drop these duplicates after the join just to be sure
     # (after filling nulls or it doesn't work properly)
-    barrier_networks = upstream_networks.join(downstream_networks).join(
+    barrier_networks = upstream_functional_networks.join(downstream_networks).join(
         barriers[["kind", "HUC2"]].rename(columns={"kind": "barrier"})
     )
 

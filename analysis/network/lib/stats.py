@@ -120,15 +120,19 @@ def calculate_flowline_stats(network_flowlines):
     if missing:
         print(f"Missing required columns from flowline attributes table: {', '.join(missing)}")
 
-    miles = pc.multiply(network_flowlines["length"], METERS_TO_MILES)
-    free_miles = pc.if_else(network_flowlines["free_flowing"], miles, 0)
+    miles = pc.multiply(network_flowlines["length"], METERS_TO_MILES).combine_chunks()
+    free_miles = pc.if_else(network_flowlines["free_flowing"], miles, 0).combine_chunks()
+
+    # only need to retain the index of sizeclasses for the stats here, which
+    # sidesteps issues around merging dictionaries
+    sizeclass = network_flowlines["sizeclass"].combine_chunks().indices
 
     # construct a new table with mileage / acreage by each type of flowline
     flowline_stats = {
         "networkID": network_flowlines["networkID"],
         # NOTE: this skips counting of null sizeclasses (these are flowlines without drainage area)
-        "sizeclasses": network_flowlines["sizeclass"],
-        "perennial_sizeclasses": pc.if_else(network_flowlines["intermittent"], None, network_flowlines["sizeclass"]),
+        "sizeclasses": sizeclass,
+        "perennial_sizeclasses": pc.if_else(network_flowlines["intermittent"], None, sizeclass),
         "fn_drainage_acres": pc.multiply(network_flowlines["AreaSqKm"], KM2_TO_ACRES),
         "total_miles": miles,
         "perennial_miles": pc.if_else(network_flowlines["intermittent"], 0, miles),
@@ -343,13 +347,14 @@ def calculate_functional_upstream_counts(network, joins, barrier_joins, out_inde
     # deduplicate due to multiple upstreams at confluences
     barrier_downstreams = (
         barrier_joins.select(["id", "kind", "downstream_id"])
-        .group_by("id", use_threads=False)
-        .aggregate([("kind", "first"), ("downstream_id", "first")])
-        .rename_columns({"kind_first": "kind", "downstream_id_first": "downstream_id"})
+        # NOTE: include kind in grouping because pyarrow doesn't know how to take the first value
+        .group_by(["id", "kind"], use_threads=False)
+        .aggregate([("downstream_id", "first")])
+        .rename_columns({"downstream_id_first": "downstream_id"})
     )
 
     upstream_barriers = network.join(
-        barrier_downstreams.select("downstream_id", "kind"), "lineID", "downstream_id", join_type="inner"
+        barrier_downstreams.select(["downstream_id", "kind"]), "lineID", "downstream_id", join_type="inner"
     )
 
     counts = (
@@ -528,10 +533,10 @@ def get_network_barrier(network, focal_barrier_joins, out_index):
             focal_barrier_joins.select(["id", "kind", "upstream_id"]), "lineID", "upstream_id", join_type="inner"
         )
         # this has duplicates because of multiple upstreams coalesced for barrier
-        # NOTE: have to do grouping without threads
-        .group_by("networkID", use_threads=False)
-        .aggregate([("id", "first"), ("kind", "first")])
-        .rename_columns({"id_first": "barrier_id", "kind_first": "barrier"}),
+        # NOTE: include id and kind in the grouping because pyarrow doesn't know how to take first value of kind (dict)
+        .group_by(["networkID", "id", "kind"])
+        .aggregate([])
+        .rename_columns({"id": "barrier_id", "kind": "barrier"}),
         "networkID",
     ).combine_chunks()
 

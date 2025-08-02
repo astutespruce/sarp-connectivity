@@ -220,7 +220,12 @@ for huc2 in huc2s:
         flowlines, joins, barriers, next_segment_id=next_segment_id
     )
 
+    # fix dtypes
+    join_type_dtype = pd.CategoricalDtype(categories=FLOWLINE_JOIN_TYPES, ordered=False)
+    joins["type"] = joins["type"].astype(join_type_dtype)
+
     barrier_joins = barrier_joins.join(barriers.kind)
+    barrier_joins["type"] = barrier_joins["type"].astype(join_type_dtype)
 
     ### mark likely impoundments (waterbody flowlines upstream of dam joins)
     dam_joins = barrier_joins.loc[barrier_joins.kind == "dam"].copy()
