@@ -9,7 +9,7 @@ import pyarrow.compute as pc
 from pyarrow.feather import write_feather
 import numpy as np
 
-from analysis.constants import HUC2_EXITS, NETWORK_TYPES, EPA_CAUSE_TO_CODE, FLOWLINE_JOIN_TYPES
+from analysis.constants import HUC2_EXITS, NETWORK_TYPES, EPA_CAUSE_TO_CODE, BARRIER_KINDS
 
 from analysis.lib.graph.speedups import DirectedGraph, LinearDirectedGraph
 from analysis.lib.io import read_arrow_tables
@@ -725,22 +725,19 @@ def create_downstream_linear_networks(focal_barrier_joins, downstream_joins):
 
 
 def create_barrier_networks(
-    barriers,
+    focal_barriers,
     barrier_joins,
     focal_barrier_joins,
     joins,
     flowlines,
-    # FIXME: remove
-    # network_segments,
     network_type,
 ):
     """Calculate networks based on barriers and network origins
 
     Parameters
     ----------
-    barriers : pyarrow Table
-        barrier info for all barriers within the HUC2 group to joined back to
-        barrier networks (inner join)
+    focal_barriers : pyarrow Table
+        barriers to which network results are joined
     barrier_joins : pyarrow Table
         all barriers joins within the HUC2 group (all types)
     focal_barrier_joins : pyarrow Table
@@ -750,20 +747,18 @@ def create_barrier_networks(
         networks
     flowlines : pyarrow Table
         flowline info that gets joined to the networkID for this type
-    # FIXME: remove
-    network_segments : pyarrow Table
-        data frame to accumulate assignments of flowlines to networks
     network_type : str
         name of network network_type, one of NETWORK_TYPES keys
 
     Returns
     -------
-    (DataFrame, DataFrame, DataFrame, DataFrame, DataFrame, DataFrame, DataFrame)
-        tuple of (
-            barrier_networks, network_stats, network_segments,
-            downstream_mainstem_network, downstream_mainstem_network_stats,
-            downstream_linear_network, downstream_linear_network_stats
-        )
+    tuple of pyarrow Tables:
+        barrier_networks
+        network_stats
+        upstream_functional_networks
+        upstream_mainstem_networks
+        downstream_mainstem_networks
+        downstream_linear_networks
     """
 
     ############################################################################
@@ -816,7 +811,7 @@ def create_barrier_networks(
         .combine_chunks()
     )
     upstream_mainstem_networks = create_upstream_mainstem_networks(
-        joins, focal_barrier_joins, upstream_joins, flowlines, mainstem_flowlines
+        joins, focal_barrier_joins, upstream_joins, mainstem_flowlines
     )
     downstream_mainstem_networks = create_downstream_mainstem_networks(
         joins, focal_barrier_joins, downstream_joins, mainstem_flowlines
@@ -868,14 +863,18 @@ def create_barrier_networks(
     downstream_linear_network_flowlines = flowlines.select(
         ["lineID", "length", "free_flowing", "intermittent", "altered", "EJTract", "EJTribal"]
     ).join(downstream_linear_networks, "lineID", join_type="inner")
-    downstream_linear_network_stats, nearest_upstream_barriers = calculate_downstream_linear_network_stats(
-        downstream_linear_network_flowlines,
-        focal_barrier_joins,
-        barrier_joins,
-        focal_barrier_downstreams,
+    downstream_linear_network_stats, nearest_upstream_barriers, downstream_barriers = (
+        calculate_downstream_linear_network_stats(
+            downstream_linear_network_flowlines,
+            focal_barrier_joins,
+            barrier_joins,
+            focal_barrier_downstreams,
+        )
     )
 
+    ############################################################################
     ### Join upstream network stats to downstream network stats
+    ############################################################################
     # NOTE: a network will only have upstream mainstem stats and mainstem / linear
     # downstream stats if it is upstream of a barrier.  This means natural network
     # origins are not assigned a nearest upstream barrier
@@ -883,17 +882,48 @@ def create_barrier_networks(
     network_stats = (
         upstream_functional_network_stats.join(upstream_mainstem_network_stats, "networkID")
         .join(nearest_upstream_barriers, "barrier_id", "id")
+        .join(downstream_barriers, "barrier_id", "id")
         .join(downstream_mainstem_network_stats.drop(["networkID"]), "barrier_id", "id")
         .join(downstream_linear_network_stats.drop(["networkID"]), "barrier_id", "id")
         .combine_chunks()
     )
 
-    # TODO: reorder fields
-    # TODO: prefix results by network type: fn_, um_, dm_, ld_
+    # reorder columns for better grouping
+    out_cols = (
+        [
+            "networkID",
+            "origin_HUC2",
+            "barrier_id",
+            "barrier",
+        ]
+        + [c for c in network_stats.column_names if c.startswith("fn_")]
+        + [c for c in network_stats.column_names if c.startswith("um_")]
+        + [c for c in network_stats.column_names if c.startswith("dm_")]
+        + [c for c in network_stats.column_names if c.startswith("dl_")]
+        + [c for c in network_stats.column_names if c.startswith("totu_")]
+        + [c for c in network_stats.column_names if c.startswith("totd_")]
+        + ["flows_to_ocean", "flows_to_great_lakes", "miles_to_outlet", "has_downstream_invasive_barrier"]
+        + [
+            "upstream_barrier_id",
+            "upstream_barrier",
+            "upstream_barrier_miles",
+            "downstream_barrier_id",
+            "downstream_barrier",
+            "downstream_barrier_miles",
+        ]
+    )
+
+    missing = set(network_stats.column_names).difference(out_cols)
+    if missing:
+        raise ValueError(f"Unexpected columns in network stats: {', '.join(missing)}")
+
+    network_stats = network_stats.select(out_cols)
 
     print(f"calculated stats in {time() - stats_start:.2f}s")
 
+    ############################################################################
     #### Calculate up and downstream network attributes for barriers
+    ############################################################################
 
     # NOTE: some statistics (totd_*, miles_to_outlet, flows_to_ocean, flows_to_great_lakes)
     # are evaluated from the upstream functional network (i.e., these are statistics)
@@ -902,277 +932,281 @@ def create_barrier_networks(
     # total network and are missing either upstream or downstream network
     print("calculating upstream and downstream networks for barriers")
 
-    # Exclude free-flowing metrics, those are only used on downstream functional networks
-    # and we already know the barrier here (it is the index)
+    barrier_functional_networks = upstream_functional_network_stats.filter(
+        pc.is_valid(upstream_functional_network_stats["barrier_id"])
+    )
+
+    # drop free-flowing miles from upstream side; we only need these on downstream side
     upstream_functional_network_cols = [
         c
-        for c in upstream_functional_network_stats.columns
-        if not c.startswith("free_") and c not in {"barrier_id", "barrier"}
+        for c in upstream_functional_network_stats.column_names
+        if not c.startswith("fn_free") and c not in {"barrier"}
     ]
-    upstream_functional_networks = (
-        focal_barrier_joins[["upstream_id"]]
-        .join(
-            upstream_functional_network_stats[upstream_functional_network_cols].rename(
-                columns={c: c.replace("_miles", "_upstream_miles") for c in upstream_functional_network_cols}
-            ),
-            on="upstream_id",
+    barrier_count_cols = [f"fn_{kind}s" for kind in BARRIER_KINDS + ["headwater"]]
+    barrier_upstream_functional_networks = (
+        barrier_functional_networks.select(upstream_functional_network_cols)
+        .rename_columns(
+            {
+                **{
+                    # standardize names before title-casing
+                    c: c.replace("fn_", "")
+                    .replace("sizeclasses", "size_classes")
+                    .replace("pct_", "percent_")
+                    .replace("_miles", "_upstream_miles")
+                    .replace("totu_", "total_upstream_")
+                    .title()
+                    .replace("_", "")
+                    for c in upstream_functional_network_cols
+                    if c not in barrier_count_cols
+                },
+                **{c: c.replace("fn_", "upstream_").title().replace("_", "") for c in barrier_count_cols},
+                "barrier_id": "id",
+                "networkID": "upNetID",
+                "origin_HUC2": "OriginHUC2",
+                "fn_natfldpln": "Landcover",
+                "fn_drainage_acres": "UpstreamDrainageAcres",
+                "fn_has_ej_tract": "HasUpstreamEJTract",
+                "fn_has_ej_tribal": "HasUpstreamEJTribal",
+            }
         )
-        .join(nearest_upstream_barrier, on="upstream_id")
-        .join(
-            upstream_mainstem_network_stats,
-            on="upstream_id",
-        )
+        .combine_chunks()
     )
-    # NOTE: by convention, barrier network stats are TitleCase when joined to barriers
-    upstream_functional_networks = upstream_functional_networks.rename(
-        columns={
+
+    # resolve the barrier to the networkID of the next network downstream
+    # based on which network contains its downstream_id
+    # NOTE: we only use the total and free-flowing mileage here
+    downstream_functional_network_cols = ["networkID", "fn_total_miles"] + [
+        c for c in upstream_functional_network_stats.column_names if c.startswith("fn_free_")
+    ]
+    barrier_downstream_functional_networks = (
+        focal_barrier_downstreams.select(["id", "networkID"])
+        .rename_columns({"networkID": "downstream_id"})
+        .join(upstream_functional_networks.select(["networkID", "lineID"]), "downstream_id", "lineID")
+        .select(["id", "networkID"])
+        .join(
+            barrier_functional_networks.select(downstream_functional_network_cols),
+            "networkID",
+        )
+        .rename_columns(
+            {
+                **{
+                    c: c.replace("fn_", "").replace("_miles", "_downstream_miles").title().replace("_", "")
+                    for c in downstream_functional_network_cols
+                },
+                "networkID": "downNetID",
+            }
+        )
+    ).combine_chunks()
+
+    barrier_upstream_mainstem_networks = upstream_mainstem_network_stats.rename_columns(
+        {
             **{
-                # standardize names before title-casing
-                c: c.replace("sizeclasses", "size_classes")
-                .replace("pct_", "percent_")
-                .replace("fn_", "upstream_")
-                .replace("tot_", "total_upstream_")
+                c: c.replace("um_has_", "has_mainstem_upstream_")
+                .replace("um_", "")
+                .replace("_miles", "_mainstem_upstream_miles")
                 .title()
                 .replace("_", "")
-                for c in upstream_functional_networks.columns
+                for c in upstream_mainstem_network_stats.column_names
             },
-            "upstream_id": "upNetID",
-            "origin_HUC2": "OriginHUC2",
-            "natfldpln": "Landcover",
-            "has_ej_tract": "HasUpstreamEJTract",
-            "has_ej_tribal": "HasUpstreamEJTribal",
-            "upstream_barrier_id": "UpstreamBarrierID",
+            "networkID": "upNetID",
+            "um_sizeclasses": "MainstemSizeClasses",
+            "um_pct_unaltered": "PercentMainstemUnaltered",
         }
+    ).combine_chunks()
+
+    barrier_downstream_mainstem_networks = (
+        downstream_mainstem_network_stats.rename_columns(
+            {
+                c: c.replace("dm_has_", "has_mainstem_downstream_")
+                .replace("dm_", "")
+                .replace("_miles", "_mainstem_downstream_miles")
+                .title()
+                .replace("_", "")
+                for c in downstream_mainstem_network_stats.column_names
+                if c not in {"id", "networkID"}
+            }
+        )
+        .drop(["networkID"])
+        .combine_chunks()
     )
 
-    downstream_functional_network_cols = [
-        c
-        for c in upstream_functional_network_stats
-        if (c.startswith("free_") or c in {"total_miles", "has_ej_tract", "has_ej_tribal"})
-    ]
-    downstream_networks = (
-        # find the network that contains the segment immediately downstream of the barrier;
-        # this is the downstream functional network
-        focal_barrier_joins[["downstream_id"]]
-        .join(
-            up_network_df.reset_index().set_index("lineID").networkID,
-            on="downstream_id",
+    barrier_linear_downstream_networks = (
+        downstream_linear_network_stats.rename_columns(
+            {
+                **{
+                    c: c.replace("dl_has_", "has_linear_downstream_")
+                    .replace("dl_", "")
+                    .replace("_miles", "_linear_downstream_miles")
+                    .replace("totd_", "total_downstream_")
+                    .title()
+                    .replace("_", "")
+                    for c in downstream_linear_network_stats.column_names
+                    if c not in {"id", "networkID"}
+                },
+                "dl_has_ej_tract": "HasLinearDownstreamEJTract",
+                "dl_has_ej_tribal": "HasLinearDownstreamEJTribal",
+            }
+        )
+        .drop(["networkID"])
+        .combine_chunks()
+    )
+
+    # join in SARPIDs
+    adjacent_barriers = (
+        nearest_upstream_barriers.join(
+            focal_barriers.select(["id", "SARPID"]).rename_columns({"SARPID": "UpstreamBarrierSARPID"}),
+            "upstream_barrier_id",
+            "id",
         )
         .join(
-            upstream_functional_network_stats[downstream_functional_network_cols].rename(
-                columns={c: c.replace("_miles", "_downstream_miles") for c in downstream_functional_network_cols}
+            downstream_barriers.join(
+                focal_barriers.select(["id", "SARPID"]).rename_columns({"SARPID": "DownstreamBarrierSARPID"}),
+                "downstream_barrier_id",
+                "id",
             ),
-            on="networkID",
+            "id",
+            join_type="full outer",
         )
-        # downstream stats are indexed on barrier ID
-        .join(downstream_mainstem_network_stats)
-        .join(downstream_linear_network_stats)
-        .drop(columns=["downstream_id"])
+        .rename_columns(
+            {
+                "upstream_barrier_id": "UpstreamBarrierID",
+                "upstream_barrier_miles": "UpstreamBarrierMiles",
+                "upstream_barrier": "UpstreamBarrier",
+                "downstream_barrier_id": "DownstreamBarrierID",
+                "downstream_barrier_miles": "DownstreamBarrierMiles",
+                "downstream_barrier": "DownstreamBarrier",
+            }
+        )
+    ).combine_chunks()
+
+    # NOTE: upstream or downstream networks may be null for a given barrier
+    barrier_networks = (
+        focal_barriers.select(["id", "kind", "HUC2"])
+        .join(barrier_upstream_functional_networks, "id")
+        .join(barrier_upstream_mainstem_networks, "upNetID")
+        .join(adjacent_barriers, "id")
+        .join(barrier_downstream_functional_networks, "id")
+        .join(barrier_downstream_mainstem_networks, "id")
+        .join(barrier_linear_downstream_networks, "id")
+        .combine_chunks()
     )
-    downstream_networks = downstream_networks.rename(
-        columns={
-            **{
-                c: c.replace("totd_", "total_downstream_").title().replace("_", "") for c in downstream_networks.columns
-            },
-            "networkID": "downNetID",
-            "has_ej_tract": "HasDownstreamEJTract",
-            "has_ej_tribal": "HasDownstreamEJTribal",
-            "downstream_barrier_id": "DownstreamBarrierID",
-        }
-    )
 
-    # Note: the join creates duplicates if there are multiple upstream or downstream
-    # networks for a given barrier, so we drop these duplicates after the join just to be sure
-    # (after filling nulls or it doesn't work properly)
-    barrier_networks = upstream_functional_networks.join(downstream_networks).join(
-        barriers[["kind", "HUC2"]].rename(columns={"kind": "barrier"})
-    )
-
-    # use SARPIDs for upstream / downstream barrier IDs
-    for col in ["UpstreamBarrierID", "DownstreamBarrierID"]:
-        barrier_networks[col] = barrier_networks[col].map(barriers.SARPID).fillna("")
-
-    ### fill missing data
-    # NOTE: upNetID or downNetID may be null if there aren't networks on that side
-    for col in ["upNetID", "downNetID"]:
-        barrier_networks[col] = barrier_networks[col].fillna(0).astype("uint32")
-
-    for col in [
-        c
-        for c in barrier_networks
-        if c.endswith("Miles") or c.endswith("Acres") or c.startswith("Percent") or c == "Landcover"
-    ]:
-        barrier_networks[col] = barrier_networks[col].fillna(0).astype("float32")
-
-    for col in [
-        "FlowsToOcean",
-        "FlowsToGreatLakes",
-        "InvasiveNetwork",
-        "HasUpstreamEJTract",
-        "HasUpstreamEJTribal",
-        "HasDownstreamEJTract",
-        "HasDownstreamEJTribal",
-    ]:
-        barrier_networks[col] = barrier_networks[col].fillna(False).astype("bool")
-
-    for col in ["SizeClasses", "PerennialSizeClasses", "MainstemSizeClasses"]:
-        barrier_networks[col] = barrier_networks[col].fillna(0).astype("uint8")
-
-    for col in [
-        "UpstreamBarrier",
-        "DownstreamBarrier",
-        "UpstreamMainstemImpairment",
-        "DownstreamMainstemImpairment",
-    ]:
-        barrier_networks[col] = barrier_networks[col].fillna("")
-
-    # if there is no upstream network, the network of a barrier is in the
-    # same HUC2 as the barrier
-    ix = barrier_networks.OriginHUC2.isnull()
-    barrier_networks.loc[ix, "OriginHUC2"] = barrier_networks.loc[ix].HUC2
-
-    barrier_networks.barrier = barrier_networks.barrier.fillna("")
-    barrier_networks.OriginHUC2 = barrier_networks.OriginHUC2.fillna("")
-
-    # if isolated network or connects to marine / Great Lakes / exit, there
-    # are no further miles downstream from this network
-    barrier_networks.MilesToOutlet = barrier_networks.MilesToOutlet.fillna(0).astype("float32")
-    # total drainage area will be 0 for barriers at top of network
-    barrier_networks.UpstreamDrainageAcres = barrier_networks.UpstreamDrainageAcres.fillna(0).astype("float32")
-
-    # Set upstream and downstream count columns to 0 where nan; these are
-    # for networks where barrier is at top of total network or bottom
-    # of total network
-    for stat_type in ["Upstream", "Total", "TotalDownstream"]:
-        for t in [
-            "Waterfalls",
-            "Dams",
-            "SmallBarriers",
-            "RoadCrossings",
-            "Headwaters",
-        ]:
-            col = f"{stat_type}{t}"
-            if col in barrier_networks.columns:
-                barrier_networks[col] = barrier_networks[col].fillna(0).astype("uint32")
-
-    # drop any duplicates then copy to degragment data frame
-    barrier_networks = barrier_networks.fillna(0).drop_duplicates().copy()
-
-    ### Calculate miles GAINED if barrier is removed
-    # this is the lesser of the upstream or free downstream lengths.
-    # Non-free miles downstream (downstream waterbodies) are omitted from this analysis.
-
-    # For barriers that flow directly into marine areas or Great Lakes
-    # (no downstream barriers), their GainMiles is only based on the upstream miles
-    # add count of downstream breaking barriers
-    downstream_cols = [
+    # Calculate downstream total breaking barriers
+    downstream_breaking_barrier_count_cols = [
         f"TotalDownstream{kind.title().replace('_', '')}s" for kind in NETWORK_TYPES[network_type]["kinds"]
     ]
-    total_downstream_barriers = barrier_networks[downstream_cols].sum(axis=1).rename("TotalDownstreamBarriers")
+    total_downstream_breaking_barriers = barrier_networks[downstream_breaking_barrier_count_cols[0]]
+    for col in downstream_breaking_barrier_count_cols[1:]:
+        total_downstream_breaking_barriers = pc.add(total_downstream_breaking_barriers, barrier_networks[col])
 
-    terminates_downstream_ix = (total_downstream_barriers == 0) & (
-        (barrier_networks.FlowsToOcean == 1) | (barrier_networks.FlowsToGreatLakes)
+    ### Calculate gain and total network miles
+    # For barriers that flow directly into marine areas or Great Lakes
+    # (no downstream barriers), their GainMiles is only based on the upstream miles
+    terminates_downstream = pc.and_(
+        pc.is_valid(barrier_networks["TotalUpstreamMiles"]),
+        pc.and_(
+            pc.equal(total_downstream_breaking_barriers, 0),
+            pc.or_(barrier_networks["FlowsToOcean"], barrier_networks["FlowsToGreatLakes"]),
+        ),
     )
 
-    total_network_miles = (
-        barrier_networks[["TotalUpstreamMiles", "FreeDownstreamMiles"]].sum(axis=1).rename("FunctionalNetworkMiles")
+    # similar for mainstem but it must flow directly to its outlet
+    mainstem_terminates_downstream = pc.and_(
+        pc.is_valid(barrier_networks["TotalMainstemUpstreamMiles"]),
+        pc.and_(
+            pc.and_(
+                pc.equal(total_downstream_breaking_barriers, 0),
+                pc.or_(barrier_networks["FlowsToOcean"], barrier_networks["FlowsToGreatLakes"]),
+            ),
+            pc.equal(barrier_networks["TotalMainstemDownstreamMiles"], barrier_networks["MilesToOutlet"]),
+        ),
     )
-    # Calculate gain miles as minimum length of upstream and downstream sides
-    gain_miles = barrier_networks[["TotalUpstreamMiles", "FreeDownstreamMiles"]].min(axis=1).rename("GainMiles")
-    # if it terminates downstream only use upstream value
-    gain_miles.loc[terminates_downstream_ix] = barrier_networks.loc[terminates_downstream_ix].TotalUpstreamMiles
 
-    perennial_network_miles = (
-        barrier_networks[["PerennialUpstreamMiles", "FreePerennialDownstreamMiles"]]
-        .sum(axis=1)
-        .rename("PerennialFunctionalNetworkMiles")
+    # Calculate gain miles as minimum length of upstream and downstream sides;
+    # if either is null, this uses the other
+    gain_miles = pc.if_else(
+        terminates_downstream,
+        barrier_networks["TotalUpstreamMiles"],
+        pc.min_element_wise(barrier_networks["TotalUpstreamMiles"], barrier_networks["FreeDownstreamMiles"]),
     )
-    perennial_gain_miles = (
-        barrier_networks[["PerennialUpstreamMiles", "FreePerennialDownstreamMiles"]]
-        .min(axis=1)
-        .rename("PerennialGainMiles")
+    functional_network_miles = pc.add(barrier_networks["TotalUpstreamMiles"], barrier_networks["FreeDownstreamMiles"])
+    perennial_gain_miles = pc.if_else(
+        terminates_downstream,
+        barrier_networks["PerennialUpstreamMiles"],
+        pc.min_element_wise(
+            barrier_networks["PerennialUpstreamMiles"], barrier_networks["FreePerennialDownstreamMiles"]
+        ),
     )
-    perennial_gain_miles.loc[terminates_downstream_ix] = barrier_networks.loc[
-        terminates_downstream_ix
-    ].PerennialUpstreamMiles
-
-    total_mainstem_network_miles = (
-        barrier_networks[["TotalUpstreamMainstemMiles", "FreeDownstreamMainstemMiles"]]
-        .sum(axis=1)
-        .rename("MainstemNetworkMiles")
+    perennial_network_miles = pc.add(
+        barrier_networks["PerennialUpstreamMiles"], barrier_networks["FreePerennialDownstreamMiles"]
     )
-    mainstem_gain_miles = (
-        barrier_networks[["TotalUpstreamMainstemMiles", "FreeDownstreamMainstemMiles"]]
-        .min(axis=1)
-        .rename("MainstemGainMiles")
+    mainstem_gain_miles = pc.if_else(
+        mainstem_terminates_downstream,
+        barrier_networks["TotalMainstemUpstreamMiles"],
+        pc.min_element_wise(
+            barrier_networks["TotalMainstemUpstreamMiles"], barrier_networks["FreeMainstemDownstreamMiles"]
+        ),
     )
-    mainstem_gain_miles.loc[terminates_downstream_ix] = barrier_networks.loc[
-        terminates_downstream_ix
-    ].TotalUpstreamMainstemMiles
-
-    perennial_mainstem_network_miles = (
-        barrier_networks[["PerennialUpstreamMainstemMiles", "FreePerennialDownstreamMainstemMiles"]]
-        .sum(axis=1)
-        .rename("PerennialMainstemNetworkMiles")
+    mainstem_network_miles = pc.add(
+        barrier_networks["TotalMainstemUpstreamMiles"], barrier_networks["FreeMainstemDownstreamMiles"]
     )
-    perennial_mainstem_gain_miles = (
-        barrier_networks[["PerennialUpstreamMainstemMiles", "FreePerennialDownstreamMainstemMiles"]]
-        .min(axis=1)
-        .rename("PerennialMainstemGainMiles")
+    perennial_mainstem_gain_miles = pc.if_else(
+        mainstem_terminates_downstream,
+        barrier_networks["PerennialMainstemUpstreamMiles"],
+        pc.min_element_wise(
+            barrier_networks["PerennialMainstemUpstreamMiles"], barrier_networks["FreePerennialMainstemDownstreamMiles"]
+        ),
     )
-    perennial_mainstem_gain_miles.loc[terminates_downstream_ix] = barrier_networks.loc[
-        terminates_downstream_ix
-    ].PerennialUpstreamMainstemMiles
-
-    other_stats = (
-        pd.DataFrame(total_downstream_barriers)
-        .join(total_network_miles)
-        .join(gain_miles)
-        .join(perennial_network_miles)
-        .join(perennial_gain_miles)
-        .join(total_mainstem_network_miles)
-        .join(mainstem_gain_miles)
-        .join(perennial_mainstem_network_miles)
-        .join(perennial_mainstem_gain_miles)
+    perennial_mainstem_network_miles = pc.add(
+        barrier_networks["PerennialMainstemUpstreamMiles"], barrier_networks["FreePerennialMainstemDownstreamMiles"]
     )
-    barrier_networks = barrier_networks.join(other_stats)
 
-    # Round floating point columns to 3 decimals
-    for column in [c for c in barrier_networks.columns if c.endswith("Miles")]:
-        barrier_networks[column] = barrier_networks[column].round(3).fillna(0)
+    other_stats = pa.Table.from_pydict(
+        {
+            "id": barrier_networks["id"],
+            "TotalDownstreamBarriers": total_downstream_breaking_barriers,
+            "GainMiles": gain_miles,
+            "FunctionalNetworkMiles": functional_network_miles,
+            "PerennialGainMiles": perennial_gain_miles,
+            "PerennialFunctionalNetworkMiles": perennial_network_miles,
+            "MainstemGainMiles": mainstem_gain_miles,
+            "MainstemNetworkMiles": mainstem_network_miles,
+            "PerennialMainstemGainMiles": perennial_mainstem_gain_miles,
+            "PerennialMainstemNetworkMiles": perennial_mainstem_network_miles,
+        }
+    )
 
-    ### Round PercentUnaltered and PercentAltered to integers
-    for subset in ["", "Perennial", "UpstreamMainstem"]:
-        barrier_networks[f"Percent{subset}Unaltered"] = (
-            barrier_networks[f"Percent{subset}Unaltered"].round().astype("int8")
-        )
-        barrier_networks[f"Percent{subset}Altered"] = 100 - barrier_networks[f"Percent{subset}Unaltered"]
+    barrier_networks = barrier_networks.join(other_stats, "id")
 
-    barrier_networks["PercentResilient"] = barrier_networks.PercentResilient.round().astype("int8")
-    barrier_networks["PercentCold"] = barrier_networks.PercentCold.round().astype("int8")
+    ### fill missing data
+    # NOTE: we are intentionally not filling the string columns
+    int_cols = [f.name for f in barrier_networks.schema if pa.types.is_integer(f.type)]
+    float_cols = [f.name for f in barrier_networks.schema if pa.types.is_floating(f.type)]
+    bool_cols = [f.name for f in barrier_networks.schema if pa.types.is_boolean(f.type)]
+    filled = {
+        # "id": barrier_networks["id"],
+        # if there is no upstream network, the network of a barrier is in the
+        # same HUC2 as the barrier
+        "OriginHUC2": pc.if_else(
+            pc.is_null(barrier_networks["OriginHUC2"]), barrier_networks["HUC2"], barrier_networks["OriginHUC2"]
+        ),
+        # NOTE: this also fills upNetID, downNetID
+        **{c: pc.fill_null(barrier_networks[c], 0) for c in int_cols},
+        # round floating point columns to 3 decimals
+        **{c: pc.round(pc.fill_null(barrier_networks[c], 0), 3) for c in float_cols},
+        **{c: pc.fill_null(barrier_networks[c], False) for c in bool_cols},
+    }
 
-    # assign downstream mainstem and linear networks to barrier IDs
-    if len(focal_barrier_joins) > 0:
-        downstream_mainstem_networks = (
-            focal_barrier_joins[["downstream_id"]]
-            .join(downstream_mainstem_networks.reset_index().set_index("networkID"), on="downstream_id", how="inner")
-            .lineID.reset_index()
-        )
-        downstream_linear_networks = (
-            focal_barrier_joins[["downstream_id"]]
-            .join(downstream_linear_networks.reset_index().set_index("networkID"), on="downstream_id", how="inner")
-            .lineID.reset_index()
-        )
-    else:
-        downstream_mainstem_networks = pd.DataFrame([], columns=["id", "lineID"])
-        downstream_linear_networks = pd.DataFrame([], columns=["id", "lineID"])
+    barrier_networks = pa.Table.from_pydict(
+        {c: filled.get(c, barrier_networks[c]) for c in barrier_networks.column_names}
+    )
 
     return (
         barrier_networks,
         network_stats,
-        network_segments,
-        downstream_mainstem_networks,
-        downstream_mainstem_network_stats,
-        downstream_linear_networks,
-        downstream_linear_network_stats,
+        upstream_functional_networks,
+        upstream_mainstem_networks,
+        # join downstream network segments to barrier ID for convenience
+        downstream_mainstem_networks.join(focal_barrier_downstreams.select(["id", "networkID"]), "networkID"),
+        downstream_linear_networks.join(focal_barrier_downstreams.select(["id", "networkID"]), "networkID"),
     )

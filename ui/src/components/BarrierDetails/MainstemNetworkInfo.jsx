@@ -18,10 +18,10 @@ const inactiveSideCSS = {
 const MainstemNetworkInfo = ({
   barrierType,
   networkType,
-  totalupstreammainstemmiles,
-  perennialupstreammainstemmiles,
-  alteredupstreammainstemmiles,
-  unalteredupstreammainstemmiles,
+  totalmainstemupstreammiles,
+  perennialmainstemupstreammiles,
+  alteredmainstemupstreammiles,
+  unalteredmainstemupstreammiles,
   freelineardownstreammiles,
   freeperenniallineardownstreammiles,
   freealteredlineardownstreammiles,
@@ -51,31 +51,31 @@ const MainstemNetworkInfo = ({
     totaldownstreambarriers === 0
 
   const mainstemGainMiles = Math.min(
-    totalupstreammainstemmiles,
+    totalmainstemupstreammiles,
     freelineardownstreammiles
   )
   const mainstemGainMilesSide =
-    alwaysUseUpstream || mainstemGainMiles === totalupstreammainstemmiles
+    alwaysUseUpstream || mainstemGainMiles === totalmainstemupstreammiles
       ? 'upstream'
       : 'downstream'
 
   const perennialMainstemGainMiles = Math.min(
-    perennialupstreammainstemmiles,
+    perennialmainstemupstreammiles,
     freeperenniallineardownstreammiles
   )
   const perennialMainstemGainMilesSide =
     alwaysUseUpstream ||
-    perennialMainstemGainMiles === perennialupstreammainstemmiles
+    perennialMainstemGainMiles === perennialmainstemupstreammiles
       ? 'upstream'
       : 'downstream'
 
-  const intermittentupstreammainstemmiles =
-    totalupstreammainstemmiles - perennialupstreammainstemmiles
+  const intermittentmainstemupstreammiles =
+    totalmainstemupstreammiles - perennialmainstemupstreammiles
   const freeintermittentlineardownstreammiles =
     freelineardownstreammiles - freeperenniallineardownstreammiles
 
-  const percentUnaltered = totalupstreammainstemmiles
-    ? (100 * unalteredupstreammainstemmiles) / totalupstreammainstemmiles
+  const percentUnaltered = totalmainstemupstreammiles
+    ? (100 * unalteredmainstemupstreammiles) / totalmainstemupstreammiles
     : 0
 
   return (
@@ -132,7 +132,7 @@ const MainstemNetworkInfo = ({
                   mainstemGainMilesSide === 'upstream' ? 'bold' : 'inherited',
               }}
             >
-              {formatNumber(totalupstreammainstemmiles, 2, true)}
+              {formatNumber(totalmainstemupstreammiles, 2, true)}
             </Box>
             <Box
               sx={{
@@ -171,7 +171,7 @@ const MainstemNetworkInfo = ({
                     : 'inherited',
               }}
             >
-              {formatNumber(perennialupstreammainstemmiles, 2, true)}
+              {formatNumber(perennialmainstemupstreammiles, 2, true)}
             </Box>
             <Box
               sx={{
@@ -204,7 +204,7 @@ const MainstemNetworkInfo = ({
               </Box>
             </Box>
             <Box>
-              {formatNumber(intermittentupstreammainstemmiles, 2, true)}
+              {formatNumber(intermittentmainstemupstreammiles, 2, true)}
             </Box>
             <Box>
               {formatNumber(freeintermittentlineardownstreammiles, 2, true)}
@@ -229,7 +229,7 @@ const MainstemNetworkInfo = ({
                 </InfoTooltip>
               </Box>
             </Box>
-            <Box>{formatNumber(alteredupstreammainstemmiles, 2, true)}</Box>
+            <Box>{formatNumber(alteredmainstemupstreammiles, 2, true)}</Box>
             <Box>{formatNumber(freealteredlineardownstreammiles, 2, true)}</Box>
           </Row>
 
@@ -252,7 +252,7 @@ const MainstemNetworkInfo = ({
                 </InfoTooltip>
               </Box>
             </Box>
-            <Box>{formatNumber(unalteredupstreammainstemmiles, 2, true)}</Box>
+            <Box>{formatNumber(unalteredmainstemupstreammiles, 2, true)}</Box>
             <Box>
               {formatNumber(freeunalteredlineardownstreammiles, 2, true)}
             </Box>
@@ -291,7 +291,7 @@ const MainstemNetworkInfo = ({
                     : inactiveSideCSS
                 }
               >
-                {formatNumber(totalupstreammainstemmiles, 2, true)}
+                {formatNumber(totalmainstemupstreammiles, 2, true)}
                 {alwaysUseUpstream ? <sup>*</sup> : null}
               </Box>
               <Box
@@ -326,7 +326,7 @@ const MainstemNetworkInfo = ({
                     : inactiveSideCSS
                 }
               >
-                {formatNumber(perennialupstreammainstemmiles, 2, true)}
+                {formatNumber(perennialmainstemupstreammiles, 2, true)}
                 {alwaysUseUpstream ? <sup>*</sup> : null}
               </Box>
               <Box
@@ -372,7 +372,7 @@ const MainstemNetworkInfo = ({
           .
         </Text>
       </Entry>
-      {totalupstreammainstemmiles > 0 ? (
+      {totalmainstemupstreammiles > 0 ? (
         <>
           <Entry>
             <Field label="Percent of the upstream network in unaltered stream channels">
@@ -417,10 +417,10 @@ MainstemNetworkInfo.propTypes = {
   headerFontSize: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   barrierType: PropTypes.string.isRequired,
   networkType: PropTypes.string.isRequired,
-  totalupstreammainstemmiles: PropTypes.number,
-  perennialupstreammainstemmiles: PropTypes.number,
-  alteredupstreammainstemmiles: PropTypes.number,
-  unalteredupstreammainstemmiles: PropTypes.number,
+  totalmainstemupstreammiles: PropTypes.number,
+  perennialmainstemupstreammiles: PropTypes.number,
+  alteredmainstemupstreammiles: PropTypes.number,
+  unalteredmainstemupstreammiles: PropTypes.number,
   mainstemsizeclasses: PropTypes.number,
   freelineardownstreammiles: PropTypes.number,
   freeperenniallineardownstreammiles: PropTypes.number,
@@ -437,10 +437,10 @@ MainstemNetworkInfo.propTypes = {
 MainstemNetworkInfo.defaultProps = {
   fontSize: 1,
   headerFontSize: 0,
-  totalupstreammainstemmiles: 0,
-  perennialupstreammainstemmiles: 0,
-  alteredupstreammainstemmiles: 0,
-  unalteredupstreammainstemmiles: 0,
+  totalmainstemupstreammiles: 0,
+  perennialmainstemupstreammiles: 0,
+  alteredmainstemupstreammiles: 0,
+  unalteredmainstemupstreammiles: 0,
   mainstemsizeclasses: 0,
   freelineardownstreammiles: 0,
   freeperenniallineardownstreammiles: 0,

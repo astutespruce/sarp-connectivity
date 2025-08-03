@@ -12,6 +12,22 @@ from analysis.lib.io import read_arrow_tables
 data_dir = Path("data")
 
 
+def percent(values):
+    """Calculate percent and round to nearest integer.
+
+    NOTE: we keep this as int8 so that we can fill nulls with -1 later
+
+    Parameters
+    ----------
+    values : pyarrow Array
+
+    Returns
+    -------
+    pyarrow Array
+    """
+    return pa.array(np.clip(pc.multiply(values, 100), 0, 100).round(0).astype("int8"))
+
+
 def calculate_upstream_functional_network_stats(network_flowlines, joins, focal_barrier_joins, barrier_joins):
     """Calculate upstream functional network statistics.  Each network starts
     at a downstream terminal or a barrier.
@@ -19,51 +35,47 @@ def calculate_upstream_functional_network_stats(network_flowlines, joins, focal_
     Parameters
     ----------
     network_flowlines : pyarrow Table
-        upstream networks with networkID, lineID and flowline-level attributes
-        for each flowline segment
+        Upstream networks with networkID, lineID and flowline-level attributes
+        for each flowline segment.
 
     joins : pyarrow Table
-        all flowline joins:
-        * upstream_id
-        * downstream_id
-        * kind
+        Joins between all flowlines.
+        Contains: upstream_id, downstream_id, kind, junction.
 
     focal_barrier_joins : pyarrow Table
-        limited to the barrier joins that cut the network type being analyzed
+        Joins associated with focal barriers; these cut the network.
+        Contains: id, upstream_id, downstream_id, kind.
         WARNING: contains multiple records per barrier due to multiple upstreams
-        contains:
-        * id
-        * upstream_id
-        * downstream_id
-        * kind
 
     barrier_joins : pyarrow Table
-        all barrier joins including those that do not cut the network type being analyzed
-        WARNING: contains multiple records per barrier due to multiple upstreams
-        contains:
-        * id
-        * upstream_id
-        * downstream_id
-        * kind
+        All joins associated with barriers, including those that don't cut
+        the network in a given analysis.
+        Contains: id, upstream_id, downstream_id, kind.
+        WARNING: contains multiple records per barrier due to multiple upstreams.
+
 
     Returns
     -------
     pyarrow Table
-        Summary statistics, with one row per functional network.
+        Summary statistics, with one row per functional network.  Stats specific
+        to the functional network are prefixed with "fn_".
     """
 
-    network = network_flowlines.select(["networkID", "lineID"])
+    # this is a low cost operation because HUC2 is a dict-encoded field
+    huc2s = pc.unique(network_flowlines["HUC2"]).tolist()
 
-    flowline_stats = calculate_flowline_stats(network_flowlines)
+    network = network_flowlines.select(["networkID", "lineID"]).combine_chunks()
+
+    flowline_stats = calculate_upstream_functional_flowline_stats(network_flowlines)
     out_index = flowline_stats.select(["networkID"])
 
-    fn_upstream_waterbody_wetland_acres = calculate_functional_upstream_waterbody_wetland_stats(
-        network_flowlines.select(["networkID", "lineID", "HUC2"]), out_index
+    fn_upstream_waterbody_wetland_acres = calculate_upstream_functional_waterbody_wetland_stats(
+        network, out_index, huc2s
     )
 
-    fn_upstream_counts = calculate_functional_upstream_counts(network, joins, barrier_joins, out_index)
+    fn_upstream_counts = calculate_upstream_functional_counts(network, joins, barrier_joins, out_index)
 
-    total_fn_upstream_stats = calculate_total_functional_upstream_stats(
+    total_fn_upstream_stats = calculate_total_upstream_functional_stats(
         network, focal_barrier_joins, fn_upstream_counts, out_index
     )
 
@@ -94,26 +106,29 @@ def calculate_upstream_functional_network_stats(network_flowlines, joins, focal_
     return results
 
 
-def calculate_flowline_stats(network_flowlines):
+def calculate_upstream_functional_flowline_stats(network_flowlines):
     """Calculate statistics based on flowline attributes.
     Includes various network lengths (total, free flowling, perennial, etc) and
     lengths by habitat, floodplain acreage, and overlap with certain indicators
     like EJ tracts / tribal and EPA impairments.
 
-    WARNING: Flowlines without associated catchments will have 0 values for
+    WARNING: flowlines without associated catchments will have 0 values for
     floodplain_acres, nat_floodplain_acres, natfldpln, fn_drainage_area
 
     Parameters
     ----------
     network_flowlines : pyarrow Table
-        must have networkID, NHDPlusID, length, free_flowing, perennial, resilient, cold, etc
+        Upstream networks with networkID, lineID and flowline-level attributes
+        for each flowline segment.
 
     Returns
     -------
-    DataFrame
+    pyarrow Table
         stats based on aggregating flowline properties
+        all columns are prefixed by "fn_"
     """
 
+    # validate incoming fields
     required_columns = {
         "networkID",
         "length",
@@ -131,7 +146,7 @@ def calculate_flowline_stats(network_flowlines):
     }.union(EPA_CAUSE_TO_CODE.keys())
     missing = required_columns.difference(network_flowlines.column_names)
     if missing:
-        print(f"Missing required columns from flowline attributes table: {', '.join(missing)}")
+        raise ValueError(f"Missing required columns from flowline attributes table: {', '.join(missing)}")
 
     miles = pc.multiply(network_flowlines["length"], METERS_TO_MILES).combine_chunks()
     free_miles = pc.if_else(network_flowlines["free_flowing"], miles, 0).combine_chunks()
@@ -144,45 +159,45 @@ def calculate_flowline_stats(network_flowlines):
     flowline_stats = {
         "networkID": network_flowlines["networkID"],
         # NOTE: this skips counting of null sizeclasses (these are flowlines without drainage area)
-        "sizeclasses": sizeclass,
-        "perennial_sizeclasses": pc.if_else(network_flowlines["intermittent"], None, sizeclass),
+        "fn_sizeclasses": sizeclass,
+        "fn_perennial_sizeclasses": pc.if_else(network_flowlines["intermittent"], None, sizeclass),
         "fn_drainage_acres": pc.multiply(network_flowlines["AreaSqKm"], KM2_TO_ACRES),
-        "total_miles": miles,
-        "perennial_miles": pc.if_else(network_flowlines["intermittent"], 0, miles),
-        "intermittent_miles": pc.if_else(network_flowlines["intermittent"], miles, 0),
-        "altered_miles": pc.if_else(network_flowlines["altered"], miles, 0),
-        "unaltered_miles": pc.if_else(network_flowlines["altered"], 0, miles),
-        "perennial_unaltered_miles": pc.if_else(
+        "fn_total_miles": miles,
+        "fn_perennial_miles": pc.if_else(network_flowlines["intermittent"], 0, miles),
+        "fn_intermittent_miles": pc.if_else(network_flowlines["intermittent"], miles, 0),
+        "fn_altered_miles": pc.if_else(network_flowlines["altered"], miles, 0),
+        "fn_unaltered_miles": pc.if_else(network_flowlines["altered"], 0, miles),
+        "fn_perennial_unaltered_miles": pc.if_else(
             pc.or_(network_flowlines["intermittent"], network_flowlines["altered"]), 0, miles
         ),
-        "resilient_miles": pc.if_else(network_flowlines["resilient"], miles, 0),
-        "cold_miles": pc.if_else(network_flowlines["cold"], miles, 0),
-        "free_miles": free_miles,
-        "free_perennial_miles": pc.if_else(network_flowlines["intermittent"], 0, free_miles),
-        "free_intermittent_miles": pc.if_else(network_flowlines["intermittent"], free_miles, 0),
-        "free_altered_miles": pc.if_else(network_flowlines["altered"], free_miles, 0),
-        "free_unaltered_miles": pc.if_else(network_flowlines["altered"], 0, free_miles),
-        "free_perennial_unaltered_miles": pc.if_else(
+        "fn_resilient_miles": pc.if_else(network_flowlines["resilient"], miles, 0),
+        "fn_cold_miles": pc.if_else(network_flowlines["cold"], miles, 0),
+        "fn_free_miles": free_miles,
+        "fn_free_perennial_miles": pc.if_else(network_flowlines["intermittent"], 0, free_miles),
+        "fn_free_intermittent_miles": pc.if_else(network_flowlines["intermittent"], free_miles, 0),
+        "fn_free_altered_miles": pc.if_else(network_flowlines["altered"], free_miles, 0),
+        "fn_free_unaltered_miles": pc.if_else(network_flowlines["altered"], 0, free_miles),
+        "fn_free_perennial_unaltered_miles": pc.if_else(
             pc.or_(network_flowlines["intermittent"], network_flowlines["altered"]), 0, free_miles
         ),
-        "free_resilient_miles": pc.if_else(network_flowlines["resilient"], free_miles, 0),
-        "free_cold_miles": pc.if_else(network_flowlines["cold"], free_miles, 0),
-        "floodplain_acres": pc.multiply(network_flowlines["floodplain_km2"], KM2_TO_ACRES),
-        "nat_floodplain_acres": pc.multiply(network_flowlines["nat_floodplain_km2"], KM2_TO_ACRES),
-        "has_ej_tract": network_flowlines["EJTract"],
-        "has_ej_tribal": network_flowlines["EJTribal"],
+        "fn_free_resilient_miles": pc.if_else(network_flowlines["resilient"], free_miles, 0),
+        "fn_free_cold_miles": pc.if_else(network_flowlines["cold"], free_miles, 0),
+        "fn_floodplain_acres": pc.multiply(network_flowlines["floodplain_km2"], KM2_TO_ACRES),
+        "fn_nat_floodplain_acres": pc.multiply(network_flowlines["nat_floodplain_km2"], KM2_TO_ACRES),
+        "fn_has_ej_tract": network_flowlines["EJTract"],
+        "fn_has_ej_tribal": network_flowlines["EJTribal"],
     }
 
     # calculate mileage by habitat that is present
     habitat_cols = [c for c in network_flowlines.column_names if c.endswith("_habitat")]
     for habitat in habitat_cols:
         present = pc.fill_null(network_flowlines[habitat], False)
-        flowline_stats[f"{habitat}_miles"] = pc.if_else(present, miles, 0)
-        flowline_stats[f"free_{habitat}_miles"] = pc.if_else(present, free_miles, 0)
+        flowline_stats[f"fn_{habitat}_miles"] = pc.if_else(present, miles, 0)
+        flowline_stats[f"fn_free_{habitat}_miles"] = pc.if_else(present, free_miles, 0)
 
     measure_cols = [c for c in flowline_stats.keys() if c.endswith("_miles") or c.endswith("_acres")]
-    presence_cols = [c for c in flowline_stats.keys() if c.startswith("has_")]
-    distinct_cols = ["sizeclasses", "perennial_sizeclasses"]
+    presence_cols = [c for c in flowline_stats.keys() if c.startswith("fn_has_")]
+    distinct_cols = [c for c in flowline_stats.keys() if c.endswith("_sizeclasses")]
 
     network_stats = (
         pa.Table.from_pydict(flowline_stats)
@@ -213,54 +228,39 @@ def calculate_flowline_stats(network_flowlines):
     network_stats = network_stats.cast(schema)
 
     ### calculate percents based on total network stats
-    pct_unaltered = np.clip(
-        pc.multiply(pc.divide(network_stats["unaltered_miles"], network_stats["total_miles"]), 100), 0, 100
-    )
-    pct_perennial_unaltered = np.clip(
-        pc.multiply(
-            pc.if_else(
-                pc.greater(network_stats["perennial_miles"], 0),
-                pc.divide(network_stats["perennial_unaltered_miles"], network_stats["perennial_miles"]),
-                0,
+    percents = pa.Table.from_pydict(
+        {
+            "networkID": network_stats["networkID"],
+            "fn_pct_unaltered": percent(
+                pc.divide(network_stats["fn_unaltered_miles"], network_stats["fn_total_miles"])
             ),
-            100,
-        ),
-        0,
-        100,
-    )
-    pct_resilient = np.clip(
-        pc.multiply(pc.divide(network_stats["resilient_miles"], network_stats["total_miles"]), 100), 0, 100
-    )
-    pct_cold = np.clip(pc.multiply(pc.divide(network_stats["cold_miles"], network_stats["total_miles"]), 100), 0, 100)
-
-    natfldpln = np.clip(
-        pc.multiply(
-            pc.if_else(
-                pc.greater(network_stats["floodplain_acres"], 0),
-                pc.divide(network_stats["nat_floodplain_acres"], network_stats["floodplain_acres"]),
-                0,
+            "fn_pct_perennial_unaltered": percent(
+                pc.if_else(
+                    pc.greater(network_stats["fn_perennial_miles"], 0),
+                    pc.divide(network_stats["fn_perennial_unaltered_miles"], network_stats["fn_perennial_miles"]),
+                    0,
+                )
             ),
-            100,
-        ),
-        0,
-        100,
+            "fn_pct_resilient": percent(
+                pc.divide(network_stats["fn_resilient_miles"], network_stats["fn_total_miles"])
+            ),
+            "fn_pct_cold": percent(pc.divide(network_stats["fn_cold_miles"], network_stats["fn_total_miles"])),
+            "fn_natfldpln": percent(
+                pc.if_else(
+                    pc.greater(network_stats["fn_floodplain_acres"], 0),
+                    pc.divide(network_stats["fn_nat_floodplain_acres"], network_stats["fn_floodplain_acres"]),
+                    0,
+                )
+            ),
+        }
     )
 
-    percents = {
-        "networkID": network_stats["networkID"],
-        "pct_unaltered": pct_unaltered,
-        "pct_perennial_unaltered": pct_perennial_unaltered,
-        "pct_resilient": pct_resilient,
-        "pct_cold": pct_cold,
-        "natfldpln": natfldpln,
-    }
-
-    network_stats = network_stats.join(pa.Table.from_pydict(percents), "networkID").combine_chunks()
+    network_stats = network_stats.join(percents, "networkID").combine_chunks()
 
     return network_stats
 
 
-def calculate_functional_upstream_waterbody_wetland_stats(network, out_index):
+def calculate_upstream_functional_waterbody_wetland_stats(network, out_index, huc2s):
     """Calculate total waterbody and wetland acreage per network.
 
     NOTE: this counts each waterbody / wetland only once per network, so we have
@@ -272,14 +272,20 @@ def calculate_functional_upstream_waterbody_wetland_stats(network, out_index):
         upstream network table, must have networkID, lineID, and HUC2
     out_index : pyarrow Table
         table of unique networkIDs that all stats are joined back to
-    """
+    huc2s : list-like of str
+        list of HUC2s for which to load data
 
-    huc2s = pc.unique(network["HUC2"]).tolist()
+    Returns
+    -------
+    pyarrow Table
+        contains networkID and acreage of unaltered waterbodies / wetlands
+    """
 
     wb = read_arrow_tables(
         [data_dir / "networks/raw" / huc2 / "flowline_waterbodies.feather" for huc2 in huc2s],
         columns=["lineID", "wbID", "km2"],
     )
+    # only count each waterbody once per network
     network_wb = out_index.join(
         network.join(wb, "lineID", join_type="inner")
         .group_by(["networkID", "wbID"], use_threads=False)
@@ -288,10 +294,11 @@ def calculate_functional_upstream_waterbody_wetland_stats(network, out_index):
         .aggregate([("km2_first", "sum")]),
         "networkID",
     ).combine_chunks()
+
     unaltered_waterbody_acres = pa.Table.from_pydict(
         {
             "networkID": network_wb["networkID"],
-            "unaltered_waterbody_acres": pc.cast(
+            "fn_unaltered_waterbody_acres": pc.cast(
                 pc.multiply(pc.fill_null(network_wb["km2_first_sum"], 0), KM2_TO_ACRES), pa.float32()
             ),
         }
@@ -309,10 +316,11 @@ def calculate_functional_upstream_waterbody_wetland_stats(network, out_index):
         .aggregate([("km2_first", "sum")]),
         "networkID",
     ).combine_chunks()
+
     unaltered_wetland_acres = pa.Table.from_pydict(
         {
             "networkID": network_wetlands["networkID"],
-            "unaltered_wetland_acres": pc.cast(
+            "fn_unaltered_wetland_acres": pc.cast(
                 pc.multiply(pc.fill_null(network_wetlands["km2_first_sum"], 0), KM2_TO_ACRES), pa.float32()
             ),
         }
@@ -321,7 +329,7 @@ def calculate_functional_upstream_waterbody_wetland_stats(network, out_index):
     return unaltered_waterbody_acres.join(unaltered_wetland_acres, "networkID").combine_chunks()
 
 
-def calculate_functional_upstream_counts(network, joins, barrier_joins, out_index):
+def calculate_upstream_functional_counts(network, joins, barrier_joins, out_index):
     """Count the number of barriers of each type WITHIN or TERMINATING the upstream functional
     network of each barrier.  Barriers of a lesser type than the one
     used to cut the network are within the network, those of equal or greater type
@@ -404,7 +412,7 @@ def calculate_functional_upstream_counts(network, joins, barrier_joins, out_inde
     return counts
 
 
-def calculate_total_functional_upstream_stats(network, focal_barrier_joins, fn_upstream_counts, out_index):
+def calculate_total_upstream_functional_stats(network, focal_barrier_joins, fn_upstream_counts, out_index):
     """Count TOTAL barriers of each kind in the total upstream network(s),
     (not limited to upstream functional network) using a directed graph of
     network joins facing upstream
@@ -431,6 +439,8 @@ def calculate_total_functional_upstream_stats(network, focal_barrier_joins, fn_u
     Returns
     -------
     pyarrow Table
+        total counts are prefixed with "totu_" (total upstream)
+        networks starting at or upstream of an invasive barrier are marked has_downstream_invasive_barrier=True
     """
 
     # use downstream_id to determine associated networkID for the downstream
@@ -462,13 +472,13 @@ def calculate_total_functional_upstream_stats(network, focal_barrier_joins, fn_u
         upstreams.join(fn_upstream_counts, "upstream_network", "networkID")
         .group_by("networkID")
         .aggregate([(col, "sum") for col in count_cols])
-        .rename_columns({f"{col}_sum": col.replace("fn_", "tot_") for col in count_cols})
+        .rename_columns({f"{col}_sum": col.replace("fn_", "totu_") for col in count_cols})
     )
 
     # backfill counts so this is complete then set to smallest data types
     counts = out_index.join(counts, "networkID")
     out = {"networkID": counts["networkID"]}
-    for col in [c for c in counts.column_names if c.startswith("tot_")]:
+    for col in [c for c in counts.column_names if c.startswith("totu_")]:
         max = pc.max(counts[col]).as_py()
         values = pc.fill_null(counts[col], 0)
         if max <= 255:
@@ -508,7 +518,7 @@ def calculate_total_functional_upstream_stats(network, focal_barrier_joins, fn_u
         pa.Table.from_pydict(
             {
                 "networkID": invasive_network_ids,
-                "invasive_network": pa.array(np.repeat(True, len(invasive_network_ids))),
+                "has_downstream_invasive_barrier": pa.array(np.repeat(True, len(invasive_network_ids))),
             }
         ),
         "networkID",
@@ -516,7 +526,9 @@ def calculate_total_functional_upstream_stats(network, focal_barrier_joins, fn_u
     invasive_networks = pa.Table.from_pydict(
         {
             "networkID": invasive_networks["networkID"],
-            "invasive_network": pc.fill_null(invasive_networks["invasive_network"], False),
+            "has_downstream_invasive_barrier": pc.fill_null(
+                invasive_networks["has_downstream_invasive_barrier"], False
+            ),
         }
     )
 
@@ -570,8 +582,10 @@ def calculate_upstream_mainstem_network_stats(network_flowlines):
     Returns
     -------
     pyarrow Table
+        fields are prefixed with "um_" (upstream mainstem)
     """
 
+    # validate incoming fields
     required_columns = {
         "networkID",
         "length",
@@ -581,27 +595,27 @@ def calculate_upstream_mainstem_network_stats(network_flowlines):
     }.union(EPA_CAUSE_TO_CODE.keys())
     missing = required_columns.difference(network_flowlines.column_names)
     if missing:
-        print(f"Missing required columns from flowline attributes table: {', '.join(missing)}")
+        raise ValueError(f"Missing required columns from flowline attributes table: {', '.join(missing)}")
 
     miles = pc.multiply(network_flowlines["length"], METERS_TO_MILES)
 
     flowline_stats = {
         "networkID": network_flowlines["networkID"],
-        "mainstem_sizeclasses": network_flowlines["sizeclass"],
-        "total_upstream_mainstem_miles": miles,
-        "perennial_upstream_mainstem_miles": pc.if_else(network_flowlines["intermittent"], 0, miles),
-        "intermittent_upstream_mainstem_miles": pc.if_else(network_flowlines["intermittent"], miles, 0),
-        "altered_upstream_mainstem_miles": pc.if_else(network_flowlines["altered"], miles, 0),
-        "unaltered_upstream_mainstem_miles": pc.if_else(network_flowlines["altered"], 0, miles),
-        "perennial_unaltered_upstream_mainstem_miles": pc.if_else(
+        "um_sizeclasses": network_flowlines["sizeclass"],
+        "um_total_miles": miles,
+        "um_perennial_miles": pc.if_else(network_flowlines["intermittent"], 0, miles),
+        "um_intermittent_miles": pc.if_else(network_flowlines["intermittent"], miles, 0),
+        "um_altered_miles": pc.if_else(network_flowlines["altered"], miles, 0),
+        "um_unaltered_miles": pc.if_else(network_flowlines["altered"], 0, miles),
+        "um_perennial_unaltered_miles": pc.if_else(
             pc.or_(network_flowlines["intermittent"], network_flowlines["altered"]), 0, miles
         ),
-        **{f"has_upstream_mainstem_{col}": network_flowlines[col] for col in EPA_CAUSE_TO_CODE.keys()},
+        **{f"um_has_{col}": network_flowlines[col] for col in EPA_CAUSE_TO_CODE.keys()},
     }
 
     measure_cols = [c for c in flowline_stats.keys() if c.endswith("_miles")]
-    presence_cols = [c for c in flowline_stats.keys() if c.startswith("has_")]
-    distinct_cols = ["mainstem_sizeclasses"]
+    presence_cols = [c for c in flowline_stats.keys() if c.startswith("um_has_")]
+    distinct_cols = ["um_sizeclasses"]
 
     network_stats = (
         pa.Table.from_pydict(flowline_stats)
@@ -627,23 +641,14 @@ def calculate_upstream_mainstem_network_stats(network_flowlines):
         field_type = schema.field(col).type
         if field_type == pa.float64():
             schema = schema.set(i, pa.field(col, pa.float32()))
-        elif col.endswith("mainstem_sizeclasses"):
+        elif col == "um_sizeclasses":
             schema = schema.set(i, pa.field(col, pa.uint8()))
     network_stats = network_stats.cast(schema)
 
     ### calculate percents based on total network stats
-    pct_unaltered = np.clip(
-        pc.multiply(
-            pc.divide(
-                network_stats["unaltered_upstream_mainstem_miles"], network_stats["total_upstream_mainstem_miles"]
-            ),
-            100,
-        ),
-        0,
-        100,
-    )
+    pct_unaltered = percent(pc.divide(network_stats["um_unaltered_miles"], network_stats["um_total_miles"]))
 
-    network_stats = network_stats.append_column("pct_upstream_mainstem_unaltered", pa.array(pct_unaltered))
+    network_stats = network_stats.append_column("um_pct_unaltered", pct_unaltered).combine_chunks()
 
     return network_stats
 
@@ -661,8 +666,10 @@ def calculate_downstream_mainstem_network_stats(network_flowlines, focal_barrier
     Returns
     -------
     pyarrow Table
+        output fields are prefixed "dm_" (downstream mainstem)
     """
 
+    # validate incoming fields
     required_columns = {
         "networkID",
         "length",
@@ -673,7 +680,7 @@ def calculate_downstream_mainstem_network_stats(network_flowlines, focal_barrier
     }.union(EPA_CAUSE_TO_CODE.keys())
     missing = required_columns.difference(network_flowlines.column_names)
     if missing:
-        print(f"Missing required columns from flowline attributes table: {', '.join(missing)}")
+        raise ValueError(f"Missing required columns from flowline attributes table: {', '.join(missing)}")
 
     miles = pc.multiply(network_flowlines["length"], METERS_TO_MILES)
     free_miles = pc.if_else(network_flowlines["free_flowing"], miles, 0)
@@ -681,17 +688,17 @@ def calculate_downstream_mainstem_network_stats(network_flowlines, focal_barrier
     # construct a new table with mileage / acreage by each type of flowline
     flowline_stats = {
         "networkID": network_flowlines["networkID"],
-        "total_downstream_mainstem_miles": miles,
-        "free_downstream_mainstem_miles": free_miles,
-        "free_perennial_downstream_mainstem_miles": pc.if_else(network_flowlines["intermittent"], 0, free_miles),
-        "free_intermittent_downstream_mainstem_miles": pc.if_else(network_flowlines["intermittent"], free_miles, 0),
-        "free_altered_downstream_mainstem_miles": pc.if_else(network_flowlines["altered"], free_miles, 0),
-        "free_unaltered_downstream_mainstem_miles": pc.if_else(network_flowlines["altered"], 0, free_miles),
-        **{f"has_downstream_mainstem_{col}": network_flowlines[col] for col in EPA_CAUSE_TO_CODE.keys()},
+        "dm_total_miles": miles,
+        "dm_free_miles": free_miles,
+        "dm_free_perennial_miles": pc.if_else(network_flowlines["intermittent"], 0, free_miles),
+        "dm_free_intermittent_miles": pc.if_else(network_flowlines["intermittent"], free_miles, 0),
+        "dm_free_altered_miles": pc.if_else(network_flowlines["altered"], free_miles, 0),
+        "dm_free_unaltered_miles": pc.if_else(network_flowlines["altered"], 0, free_miles),
+        **{f"dm_has_{col}": network_flowlines[col] for col in EPA_CAUSE_TO_CODE.keys()},
     }
 
     measure_cols = [c for c in flowline_stats.keys() if c.endswith("_miles")]
-    presence_cols = [c for c in flowline_stats.keys() if c.startswith("has_")]
+    presence_cols = [c for c in flowline_stats.keys() if c.startswith("dm_has_")]
 
     network_stats = (
         pa.Table.from_pydict(flowline_stats)
@@ -734,46 +741,63 @@ def calculate_downstream_linear_network_stats(
     Parameters
     ----------
     network_flowlines : pyarrow Table
-        must have networkID, NHDPlusID, length, free_flowing
+        Upstream networks with networkID, lineID and flowline-level attributes
+        for each flowline segment.  Must have length, free_flowing.
 
     focal_barrier_joins : pyarrow Table
-        limited to the barrier joins that cut the network type being analyzed
+        Joins associated with focal barriers; these cut the network.
+        Contains: id, upstream_id, downstream_id, kind.
+        WARNING: contains multiple records per barrier due to multiple upstreams
 
     barrier_joins : pyarrow Table
-        all barrier joins including those that do not cut the network type being analyzed
-        contains:
-        * upstream_id
-        * downstream_id
-        * kind
+        All joins associated with barriers, including those that don't cut
+        the network in a given analysis.
+        Contains: id, upstream_id, downstream_id, kind.
+        WARNING: contains multiple records per barrier due to multiple upstreams.
 
     focal_barrier_downstreams : pyarrow Table
-        deduplicated join table of barrier id, networkID (downstream network)
+        Deduplicated join table of barrier id, networkID (downstream network).
 
     barrier_downstreams_table : pyarrow Table
-        deduplicated table of barrier ID, kind, and downstream_id
-        this acts as the index to join barrier ID to downstream networks on downstream_id
+        Deduplicated table of barrier ID, kind, and downstream_id; this acts as
+        the index to join barrier ID to downstream networks on downstream_id.
 
     Returns
     -------
-    pyarrow Table, Table
-        downstream linear network stats, nearest upstream barriers (per barrier ID)
+    pyarrow Table, Table, Table
+        downstream linear network stats, nearest upstream barriers (per barrier ID), downstream barriers
+        linear stats are prefixed with "dl_" (downstream linear)
+        total downstream counts (across all downstream networks) are prefixed with "totd_"
     """
+
+    # validate incoming fields
+    required_columns = {
+        "networkID",
+        "length",
+        "altered",
+        "intermittent",
+        "free_flowing",
+        "EJTract",
+        "EJTribal",
+    }
+    missing = required_columns.difference(network_flowlines.column_names)
+    if missing:
+        raise ValueError(f"Missing required columns from flowline attributes table: {', '.join(missing)}")
 
     miles = pc.multiply(network_flowlines["length"], METERS_TO_MILES)
     free_miles = pc.if_else(network_flowlines["free_flowing"], miles, 0)
 
     flowline_stats = {
         "networkID": network_flowlines["networkID"],
-        "total_linear_downstream_miles": miles,
-        "free_linear_downstream_miles": free_miles,
-        "free_perennial_linear_downstream_miles": pc.if_else(network_flowlines["intermittent"], 0, free_miles),
-        "free_intermittent_linear_downstream_miles": pc.if_else(network_flowlines["intermittent"], free_miles, 0),
-        "free_altered_linear_downstream_miles": pc.if_else(network_flowlines["altered"], free_miles, 0),
-        "free_unaltered_linear_downstream_miles": pc.if_else(network_flowlines["altered"], 0, free_miles),
+        "dl_total_miles": miles,
+        "dl_free_miles": free_miles,
+        "dl_free_perennial_miles": pc.if_else(network_flowlines["intermittent"], 0, free_miles),
+        "dl_free_intermittent_miles": pc.if_else(network_flowlines["intermittent"], free_miles, 0),
+        "dl_free_altered_miles": pc.if_else(network_flowlines["altered"], free_miles, 0),
+        "dl_free_unaltered_miles": pc.if_else(network_flowlines["altered"], 0, free_miles),
     }
 
     measure_cols = [c for c in flowline_stats.keys() if c.endswith("_miles")]
-
     network_stats = (
         pa.Table.from_pydict(flowline_stats)
         .group_by("networkID")
@@ -827,28 +851,24 @@ def calculate_downstream_linear_network_stats(
         .combine_chunks()
     )
 
-    ln_downstream_stats = (
+    # first count barriers per individual network
+    downstream_counts = (
         pa.Table.from_pydict(
             {
                 "networkID": downstream_barriers["networkID"],
-                **{
-                    f"ln_{kind}s": pc.if_else(pc.equal(downstream_barriers["kind"], kind), 1, 0)
-                    for kind in BARRIER_KINDS
-                },
+                **{f"{kind}s": pc.if_else(pc.equal(downstream_barriers["kind"], kind), 1, 0) for kind in BARRIER_KINDS},
             }
         )
         .group_by("networkID")
-        .aggregate([(f"ln_{kind}s", "sum") for kind in BARRIER_KINDS])
-        .rename_columns({**{f"ln_{kind}s_sum": f"ln_{kind}s" for kind in BARRIER_KINDS}})
+        .aggregate([(f"{kind}s", "sum") for kind in BARRIER_KINDS])
+        .rename_columns({**{f"{kind}s_sum": f"{kind}s" for kind in BARRIER_KINDS}})
     )
 
-    count_cols = [f"ln_{kind}s" for kind in BARRIER_KINDS]
+    count_cols = [f"{kind}s" for kind in BARRIER_KINDS]
     tot_downstream_stats = (
-        downstreams.join(ln_downstream_stats, "downstream_network", "networkID")
+        downstreams.join(downstream_counts, "downstream_network", "networkID")
         .join(
-            network_stats.select(["networkID", "total_linear_downstream_miles"]).rename_columns(
-                {"total_linear_downstream_miles": "miles_to_outlet"}
-            ),
+            network_stats.select(["networkID", "dl_total_miles"]).rename_columns({"dl_total_miles": "miles_to_outlet"}),
             "downstream_network",
             "networkID",
         )
@@ -856,7 +876,7 @@ def calculate_downstream_linear_network_stats(
         .aggregate([(col, "sum") for col in count_cols] + [("miles_to_outlet", "sum")])
         .rename_columns(
             {
-                **{f"{col}_sum": col.replace("ln_", "totd_") for col in count_cols},
+                **{f"{col}_sum": f"totd_{col}" for col in count_cols},
                 "miles_to_outlet_sum": "miles_to_outlet",
             }
         )
@@ -891,9 +911,7 @@ def calculate_downstream_linear_network_stats(
         network_flowlines.select(["networkID", "EJTract", "EJTribal"])
         .group_by(["networkID"])
         .aggregate([("EJTract", "any"), ("EJTribal", "any")])
-        .rename_columns(
-            {"EJTract_any": "has_linear_downstream_ej_tract", "EJTribal_any": "has_linear_downstream_ej_tribal"}
-        )
+        .rename_columns({"EJTract_any": "dl_has_ej_tract", "EJTribal_any": "dl_has_ej_tribal"})
     )
 
     ### find the next focal barrier downstream; these are ones whose upstream is in the
@@ -902,19 +920,20 @@ def calculate_downstream_linear_network_stats(
         network_flowlines.select(["networkID", "lineID"])
         .join(focal_barrier_joins.select(["id", "kind", "upstream_id"]), "lineID", "upstream_id", join_type="inner")
         .drop(["lineID"])
-        .join(network_stats.select(["networkID", "total_linear_downstream_miles"]), "networkID")
+        .join(network_stats.select(["networkID", "dl_total_miles"]), "networkID")
         .rename_columns(
             {
                 "id": "downstream_barrier_id",
                 "kind": "downstream_barrier",
-                "total_linear_downstream_miles": "downstream_barrier_miles",
+                "dl_total_miles": "downstream_barrier_miles",
             }
         )
+        .join(focal_barrier_downstreams.select(["id", "networkID"]), "networkID")
         .combine_chunks()
     )
 
     # flip this and go from downstream id to upstream id and keep the closest one
-    upstream_focal_barriers = downstream_focal_barriers.join(focal_barrier_downstreams, "networkID").rename_columns(
+    upstream_focal_barriers = downstream_focal_barriers.rename_columns(
         {
             "id": "upstream_barrier_id",
             "downstream_barrier_miles": "upstream_barrier_miles",
@@ -947,8 +966,7 @@ def calculate_downstream_linear_network_stats(
         .join(network_stats, "networkID")
         .join(tot_downstream_stats, "networkID")
         .join(downstream_ej, "networkID")
-        .join(downstream_focal_barriers, "networkID")
         .combine_chunks()
     )
 
-    return results, nearest_upstream_barriers
+    return results, nearest_upstream_barriers, downstream_focal_barriers.drop(["networkID"])

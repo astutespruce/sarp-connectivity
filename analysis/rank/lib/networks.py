@@ -27,8 +27,8 @@ NETWORK_COLUMNS = [
     "downNetID",
     "GainMiles",
     "PerennialGainMiles",
-    "TotalNetworkMiles",
-    "TotalPerennialNetworkMiles",
+    "FunctionalNetworkMiles",
+    "PerennialFunctionalNetworkMiles",
     "TotalUpstreamMiles",
     "PerennialUpstreamMiles",
     "AlteredUpstreamMiles",
@@ -52,72 +52,65 @@ NETWORK_COLUMNS = [
     "PercentCold",
     "IntermittentUpstreamMiles",
     "FreeIntermittentDownstreamMiles",
-    "UpstreamUnalteredWaterbodyAcres",
-    "UpstreamUnalteredWetlandAcres",
+    "UnalteredWaterbodyAcres",
+    "UnalteredWetlandAcres",
+    "UpstreamBarrierID",
+    "UpstreamBarrier",
+    "UpstreamBarrierMiles",
     "MainstemGainMiles",
     "PerennialMainstemGainMiles",
-    "TotalMainstemNetworkMiles",
-    "TotalMainstemPerennialNetworkMiles",
-    "TotalUpstreamMainstemMiles",
-    "PerennialUpstreamMainstemMiles",
-    "IntermittentUpstreamMainstemMiles",
-    "AlteredUpstreamMainstemMiles",
-    "UnalteredUpstreamMainstemMiles",
-    "PerennialUnalteredUpstreamMainstemMiles",
+    "MainstemNetworkMiles",
+    "PerennialMainstemNetworkMiles",
+    "TotalMainstemUpstreamMiles",
+    "PerennialMainstemUpstreamMiles",
+    "IntermittentMainstemUpstreamMiles",
+    "AlteredMainstemUpstreamMiles",
+    "UnalteredMainstemUpstreamMiles",
+    "PerennialUnalteredMainstemUpstreamMiles",
     "PercentMainstemUnaltered",
+    "UpstreamMainstemImpairment",
+    "TotalMainstemDownstreamMiles",
+    "FreeMainstemDownstreamMiles",
+    "FreePerennialMainstemDownstreamMiles",
+    "FreeIntermittentMainstemDownstreamMiles",
+    "FreeAlteredMainstemDownstreamMiles",
+    "FreeUnalteredMainstemDownstreamMiles",
+    "DownstreamBarrierID",
+    "DownstreamBarrier",
+    "DownstreamBarrierMiles",
+    "DownstreamMainstemImpairment",
+    "TotalLinearDownstreamMiles",
     "FreeLinearDownstreamMiles",
     "FreePerennialLinearDownstreamMiles",
     "FreeIntermittentLinearDownstreamMiles",
     "FreeAlteredLinearDownstreamMiles",
     "FreeUnalteredLinearDownstreamMiles",
-    "natfldpln",
-    "sizeclasses",
-    "perennial_sizeclasses",
-    "mainstem_sizeclasses",
-    # "barrier",  # not used
-    "fn_da_acres",
-    "fn_waterfalls",
-    "fn_dams",
-    "fn_small_barriers",
-    "fn_road_crossings",
-    "fn_headwaters",
-    "tot_waterfalls",
-    "tot_dams",
-    "tot_small_barriers",
-    "tot_headwaters",
-    "tot_road_crossings",
-    "totd_waterfalls",
-    "totd_dams",
-    "totd_small_barriers",
-    "totd_road_crossings",
-    "miles_to_outlet",
-    "invasive_network",
+    "Landcover",
+    "SizeClasses",
+    "PerennialSizeClasses",
+    "MainstemSizeClasses",
+    "UpstreamDrainageAcres",
+    "UpstreamWaterfalls",
+    "UpstreamDams",
+    "UpstreamSmallBarriers",
+    "UpstreamRoadCrossings",
+    "UpstreamHeadwaters",
+    "TotalUpstreamWaterfalls",
+    "TotalUpstreamDams",
+    "TotalUpstreamSmallBarriers",
+    "TotalUpstreamHeadwaters",
+    "TotalUpstreamRoadCrossings",
+    "TotalDownstreamWaterfalls",
+    "TotalDownstreamDams",
+    "TotalDownstreamSmallBarriers",
+    "TotalDownstreamRoadCrossings",
+    "MilesToOutlet",
+    "InvasiveNetwork",
+    "HasUpstreamEJTract",
+    "HasUpstreamEJTribal",
+    "HasDownstreamEJTract",
+    "HasDownstreamEJTribal",
 ] + SPECIES_HABITAT_FIELDS
-
-
-NETWORK_COLUMN_NAMES = {
-    "natfldpln": "Landcover",
-    "sizeclasses": "SizeClasses",
-    "perennial_sizeclasses": "PerennialSizeClasses",
-    "mainstem_sizeclasses": "MainstemSizeClasses",
-    "fn_da_acres": "UpstreamDrainageAcres",
-    "fn_dams": "UpstreamDams",
-    "fn_small_barriers": "UpstreamSmallBarriers",
-    "fn_road_crossings": "UpstreamRoadCrossings",
-    "fn_waterfalls": "UpstreamWaterfalls",
-    "fn_headwaters": "UpstreamHeadwaters",
-    "tot_dams": "TotalUpstreamDams",
-    "tot_small_barriers": "TotalUpstreamSmallBarriers",
-    "tot_road_crossings": "TotalUpstreamRoadCrossings",
-    "tot_waterfalls": "TotalUpstreamWaterfalls",
-    "tot_headwaters": "TotalUpstreamHeadwaters",
-    "totd_dams": "TotalDownstreamDams",
-    "totd_road_crossings": "TotalDownstreamRoadCrossings",
-    "totd_small_barriers": "TotalDownstreamSmallBarriers",
-    "totd_waterfalls": "TotalDownstreamWaterfalls",
-    "miles_to_outlet": "MilesToOutlet",
-    "invasive_network": "InvasiveNetwork",
-}
 
 
 def get_network_results(df, network_type, state_ranks=False):
@@ -144,11 +137,7 @@ def get_network_results(df, network_type, state_ranks=False):
     networks = read_arrow_tables(
         [Path("data/networks/clean") / huc2 / f"{network_type}_network.feather" for huc2 in sorted(df.HUC2.unique())],
     ).to_pandas()
-    networks = (
-        networks[[c for c in NETWORK_COLUMNS if c in networks.columns]]
-        .rename(columns=NETWORK_COLUMN_NAMES)
-        .set_index("id")
-    )
+    networks = networks[[c for c in NETWORK_COLUMNS if c in networks.columns]].set_index("id")
 
     # join back to df using inner join, which limits to barrier types present in df
     networks = networks.join(
@@ -169,7 +158,8 @@ def get_network_results(df, network_type, state_ranks=False):
 
     # update data types and calculate total fields
     # calculate size classes GAINED instead of total
-    # doesn't apply to those that don't have upstream networks
+    # doesn't apply to those that don't have upstream networks or where size class
+    # is unknown for all upstream segments
     for col in ["SizeClasses", "PerennialSizeClasses", "MainstemSizeClasses"]:
         networks[col] = networks[col].astype("int8")
         networks.loc[networks[col] > 0, col] -= 1
@@ -187,10 +177,8 @@ def get_network_results(df, network_type, state_ranks=False):
     networks["PercentResilientClass"] = classify_percent_resilient(networks.PercentResilient)
     networks["PercentColdClass"] = classify_percent_cold(networks.PercentCold)
 
-    networks["UpstreamUnalteredWaterbodyClass"] = classify_unaltered_waterbody_area(
-        networks.UpstreamUnalteredWaterbodyAcres
-    )
-    networks["UpstreamUnalteredWetlandClass"] = classify_unaltered_wetland_area(networks.UpstreamUnalteredWetlandAcres)
+    networks["UnalteredWaterbodyClass"] = classify_unaltered_waterbody_area(networks.UnalteredWaterbodyAcres)
+    networks["UnalteredWetlandClass"] = classify_unaltered_wetland_area(networks.UnalteredWetlandAcres)
 
     # NOTE: per guidance from SARP, do not include count of waterfalls
     if network_type == "dams":
@@ -270,7 +258,7 @@ def get_removed_network_results(df, network_type):
     """
 
     networks = pd.read_feather(f"data/networks/clean/removed/removed_{network_type}_networks.feather").set_index("id")
-    networks = networks[[c for c in NETWORK_COLUMNS if c in networks.columns]].rename(columns=NETWORK_COLUMN_NAMES)
+    networks = networks[[c for c in NETWORK_COLUMNS if c in networks.columns]]
 
     # join back to df using inner join, which limits to barrier types present in df
     networks = networks.join(df[df.columns.intersection(["Unranked", "State"])], how="inner")

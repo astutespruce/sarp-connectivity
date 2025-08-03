@@ -15,10 +15,10 @@ const columnCSS = {
 const MainstemNetworkInfo = ({
   barrierType,
   networkType,
-  totalupstreammainstemmiles,
-  perennialupstreammainstemmiles,
-  alteredupstreammainstemmiles,
-  unalteredupstreammainstemmiles,
+  totalmainstemupstreammiles,
+  perennialmainstemupstreammiles,
+  alteredmainstemupstreammiles,
+  unalteredmainstemupstreammiles,
   mainstemsizeclasses,
   freelineardownstreammiles,
   freeperenniallineardownstreammiles,
@@ -47,34 +47,34 @@ const MainstemNetworkInfo = ({
     totaldownstreambarriers === 0
 
   const mainstemGainMiles = Math.min(
-    totalupstreammainstemmiles,
+    totalmainstemupstreammiles,
     freelineardownstreammiles
   )
   const mainstemGainMilesSide =
-    alwaysUseUpstream || mainstemGainMiles === totalupstreammainstemmiles
+    alwaysUseUpstream || mainstemGainMiles === totalmainstemupstreammiles
       ? 'upstream'
       : 'downstream'
 
   const perennialMainstemGainMiles = Math.min(
-    perennialupstreammainstemmiles,
+    perennialmainstemupstreammiles,
     freeperenniallineardownstreammiles
   )
   const perennialMainstemGainMilesSide =
     alwaysUseUpstream ||
-    perennialMainstemGainMiles === perennialupstreammainstemmiles
+    perennialMainstemGainMiles === perennialmainstemupstreammiles
       ? 'upstream'
       : 'downstream'
 
-  const intermittentupstreammainstemmiles =
-    totalupstreammainstemmiles - perennialupstreammainstemmiles
+  const intermittentmainstemupstreammiles =
+    totalmainstemupstreammiles - perennialmainstemupstreammiles
   const freeintermittentlineardownstreammiles =
     freelineardownstreammiles - freeperenniallineardownstreammiles
 
-  const percentUnaltered = totalupstreammainstemmiles
-    ? (100 * unalteredupstreammainstemmiles) / totalupstreammainstemmiles
+  const percentUnaltered = totalmainstemupstreammiles
+    ? (100 * unalteredmainstemupstreammiles) / totalmainstemupstreammiles
     : 0
 
-  const colWidth = totalupstreammainstemmiles > 0 ? 1 / 4 : 1 / 3
+  const colWidth = totalmainstemupstreammiles > 0 ? 1 / 4 : 1 / 3
 
   return (
     <Section
@@ -117,7 +117,7 @@ const MainstemNetworkInfo = ({
           </Text>
         </View>
 
-        {totalupstreammainstemmiles > 0 ? (
+        {totalmainstemupstreammiles > 0 ? (
           <View
             style={{
               flex: `1 1 ${colWidth}%`,
@@ -179,9 +179,9 @@ const MainstemNetworkInfo = ({
           <View style={{ flex: '0 0 140pt' }}>
             <Text>
               {mainstemGainMilesSide === 'upstream' ? (
-                <Bold>{formatNumber(totalupstreammainstemmiles, 2, true)}</Bold>
+                <Bold>{formatNumber(totalmainstemupstreammiles, 2, true)}</Bold>
               ) : (
-                <>{formatNumber(totalupstreammainstemmiles, 2, true)}</>
+                <>{formatNumber(totalmainstemupstreammiles, 2, true)}</>
               )}
             </Text>
           </View>
@@ -215,11 +215,11 @@ const MainstemNetworkInfo = ({
               {perennialMainstemGainMilesSide === 'upstream' ? (
                 <>
                   <Bold>
-                    {formatNumber(perennialupstreammainstemmiles, 2, true)}
+                    {formatNumber(perennialmainstemupstreammiles, 2, true)}
                   </Bold>
                 </>
               ) : (
-                <>{formatNumber(perennialupstreammainstemmiles, 2, true)}</>
+                <>{formatNumber(perennialmainstemupstreammiles, 2, true)}</>
               )}
             </Text>
           </View>
@@ -248,7 +248,7 @@ const MainstemNetworkInfo = ({
           </View>
           <View style={{ flex: '0 0 140pt' }}>
             <Text>
-              {formatNumber(intermittentupstreammainstemmiles, 2, true)}
+              {formatNumber(intermittentmainstemupstreammiles, 2, true)}
             </Text>
           </View>
           <View style={{ flex: '0 0 140pt' }}>
@@ -269,7 +269,7 @@ const MainstemNetworkInfo = ({
             <Text>Altered miles</Text>
           </View>
           <View style={{ flex: '0 0 140pt' }}>
-            <Text>{formatNumber(alteredupstreammainstemmiles, 2, true)}</Text>
+            <Text>{formatNumber(alteredmainstemupstreammiles, 2, true)}</Text>
           </View>
           <View style={{ flex: '0 0 140pt' }}>
             <Text>
@@ -289,7 +289,7 @@ const MainstemNetworkInfo = ({
             <Text>Unaltered miles</Text>
           </View>
           <View style={{ flex: '0 0 140pt' }}>
-            <Text>{formatNumber(unalteredupstreammainstemmiles, 2, true)}</Text>
+            <Text>{formatNumber(unalteredmainstemupstreammiles, 2, true)}</Text>
           </View>
           <View style={{ flex: '0 0 140pt' }}>
             <Text>
@@ -337,10 +337,10 @@ const MainstemNetworkInfo = ({
 MainstemNetworkInfo.propTypes = {
   barrierType: PropTypes.string.isRequired,
   networkType: PropTypes.string.isRequired,
-  totalupstreammainstemmiles: PropTypes.number,
-  perennialupstreammainstemmiles: PropTypes.number,
-  alteredupstreammainstemmiles: PropTypes.number,
-  unalteredupstreammainstemmiles: PropTypes.number,
+  totalmainstemupstreammiles: PropTypes.number,
+  perennialmainstemupstreammiles: PropTypes.number,
+  alteredmainstemupstreammiles: PropTypes.number,
+  unalteredmainstemupstreammiles: PropTypes.number,
   mainstemsizeclasses: PropTypes.number,
   freelineardownstreammiles: PropTypes.number,
   freeperenniallineardownstreammiles: PropTypes.number,
@@ -355,10 +355,10 @@ MainstemNetworkInfo.propTypes = {
 }
 
 MainstemNetworkInfo.defaultProps = {
-  totalupstreammainstemmiles: 0,
-  perennialupstreammainstemmiles: 0,
-  alteredupstreammainstemmiles: 0,
-  unalteredupstreammainstemmiles: 0,
+  totalmainstemupstreammiles: 0,
+  perennialmainstemupstreammiles: 0,
+  alteredmainstemupstreammiles: 0,
+  unalteredmainstemupstreammiles: 0,
   mainstemsizeclasses: 0,
   freelineardownstreammiles: 0,
   freeperenniallineardownstreammiles: 0,

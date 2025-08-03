@@ -60,7 +60,7 @@ const Report = ({
     removed,
     invasive,
     invasivenetwork,
-    totalupstreammainstemmiles = 0,
+    totalmainstemupstreammiles = 0,
   } = data
 
   const habitat = hasnetwork ? extractHabitat(data) : []
@@ -150,7 +150,7 @@ const Report = ({
           />
         ) : null}
 
-        {hasnetwork && totalupstreammainstemmiles > 0 ? (
+        {hasnetwork && totalmainstemupstreammiles > 0 ? (
           <MainstemNetworkInfo
             style={{ marginTop: 32 }}
             barrierType={barrierType}

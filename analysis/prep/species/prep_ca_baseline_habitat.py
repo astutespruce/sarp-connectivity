@@ -29,7 +29,7 @@ MAX_FILL_TO_OCEAN = 10000  # meters
 
 data_dir = Path("data")
 src_dir = data_dir / "species/source"
-nhd_dir = data_dir / "nhd/clean"
+nhd_dir = data_dir / "nhd/raw"
 out_dir = data_dir / "species/derived"
 
 infilename = src_dir / "CA_BaselineFishHabitat_v3.gdb"

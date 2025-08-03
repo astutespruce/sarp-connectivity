@@ -44,7 +44,7 @@ MAX_LINE_DIFF = 500  # meters
 
 data_dir = Path("data")
 src_dir = data_dir / "species/source"
-nhd_dir = data_dir / "nhd/clean"
+nhd_dir = data_dir / "nhd/raw"
 out_dir = data_dir / "species/derived"
 
 infilename = (

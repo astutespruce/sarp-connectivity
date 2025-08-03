@@ -49,6 +49,7 @@ DUPLICATE_TOLERANCE = 50
 
 
 data_dir = Path("data")
+boundaries_dir = data_dir / "boundaries"
 nhd_dir = data_dir / "nhd"
 barriers_dir = data_dir / "barriers"
 src_dir = barriers_dir / "source"
@@ -58,6 +59,8 @@ qa_dir = barriers_dir / "qa"
 
 
 start = time()
+
+huc2s = sorted(pd.read_feather(boundaries_dir / "HUC2.feather", columns=["HUC2"]))
 
 
 print("\n\n----------------------------------\nReading waterfalls\n---------------------------")
@@ -400,15 +403,12 @@ print("writing GIS for QA/QC")
 write_dataframe(df, qa_dir / "waterfalls.fgb")
 
 # Extract out only the snapped ones not on loops
-df = df.loc[df.primary_network | df.largefish_network | df.smallfish_network].reset_index(drop=True)
-df.lineID = df.lineID.astype("uint32")
-df.NHDPlusID = df.NHDPlusID.astype("uint64")
-
-print(f"Serializing {len(df)} snapped waterfalls")
-df[
+snapped_waterfalls = df.loc[
+    df.primary_network | df.largefish_network | df.smallfish_network,
     [
         "geometry",
         "id",
+        "SARPID",
         "HUC2",
         "lineID",
         "NHDPlusID",
@@ -416,11 +416,14 @@ df[
         "largefish_network",
         "smallfish_network",
         "invasive",
-    ]
-].to_feather(
-    snapped_dir / "waterfalls.feather",
-)
+    ],
+].reset_index(drop=True)
+snapped_waterfalls.lineID = snapped_waterfalls.lineID.astype("uint32")
+snapped_waterfalls.NHDPlusID = snapped_waterfalls.NHDPlusID.astype("uint64")
+snapped_waterfalls["HUC2"] = snapped_waterfalls.HUC2.astype(pd.CategoricalDtype(categories=huc2s, ordered=True))
 
+print(f"Serializing {len(snapped_waterfalls)} snapped waterfalls")
+snapped_waterfalls.to_feather(snapped_dir / "waterfalls.feather")
 write_dataframe(df, qa_dir / "snapped_waterfalls.fgb")
 
 print("All done in {:.2f}s".format(time() - start))

@@ -40,8 +40,8 @@ const FunctionalNetworkInfo = ({
   totaldownstreamdams,
   totaldownstreamsmallbarriers,
   totaldownstreamwaterfalls,
-  upstreamunalteredwaterbodyacres,
-  upstreamunalteredwetlandacres,
+  unalteredwaterbodyacres,
+  unalteredwetlandacres,
   sx,
 }) => {
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
@@ -324,10 +324,9 @@ const FunctionalNetworkInfo = ({
 
       <Box sx={{ mt: '2rem' }}>
         This network intersects{' '}
-        <b>{formatNumber(upstreamunalteredwaterbodyacres)} acres</b> of
-        unaltered lakes and ponds and{' '}
-        <b>{formatNumber(upstreamunalteredwetlandacres)} acres</b> of unaltered
-        freshwater wetlands.
+        <b>{formatNumber(unalteredwaterbodyacres)} acres</b> of unaltered lakes
+        and ponds and <b>{formatNumber(unalteredwetlandacres)} acres</b> of
+        unaltered freshwater wetlands.
       </Box>
 
       {unranked && !invasive ? (
@@ -427,8 +426,8 @@ FunctionalNetworkInfo.propTypes = {
   totaldownstreamdams: PropTypes.number,
   totaldownstreamsmallbarriers: PropTypes.number,
   totaldownstreamwaterfalls: PropTypes.number,
-  upstreamunalteredwaterbodyacres: PropTypes.number,
-  upstreamunalteredwetlandacres: PropTypes.number,
+  unalteredwaterbodyacres: PropTypes.number,
+  unalteredwetlandacres: PropTypes.number,
   sx: PropTypes.object,
 }
 
@@ -458,8 +457,8 @@ FunctionalNetworkInfo.defaultProps = {
   totaldownstreamdams: 0,
   totaldownstreamsmallbarriers: 0,
   totaldownstreamwaterfalls: 0,
-  upstreamunalteredwaterbodyacres: 0,
-  upstreamunalteredwetlandacres: 0,
+  unalteredwaterbodyacres: 0,
+  unalteredwetlandacres: 0,
   sx: null,
 }
 
