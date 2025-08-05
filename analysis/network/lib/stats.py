@@ -1,6 +1,5 @@
 from pathlib import Path
 
-import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 import numpy as np
@@ -462,6 +461,7 @@ def calculate_total_upstream_functional_stats(network, focal_barrier_joins, fn_u
         network_joins["upstream_id"].to_numpy().astype("int64"),  # upstream side of join
     )
 
+    # TODO: this is a performance hotspot (for road crossings)
     upstreams = pa.Table.from_arrays(
         upstream_graph.network_pairs(pc.unique(network["networkID"]).to_numpy().astype("int64")).T.astype("uint32"),
         ["networkID", "upstream_network"],
@@ -729,7 +729,7 @@ def calculate_downstream_mainstem_network_stats(network_flowlines, focal_barrier
 
 
 def calculate_downstream_linear_network_stats(
-    network_flowlines, focal_barrier_joins, barrier_joins, focal_barrier_downstreams
+    network_flowlines, focal_barrier_joins, barrier_joins, focal_barrier_downstreams, focal_barriers
 ):
     """Calculate downstream statistics for each barrier based on its linear
     downstream network (to next barrier downstream or terminal / outlet) and
@@ -761,6 +761,9 @@ def calculate_downstream_linear_network_stats(
     barrier_downstreams_table : pyarrow Table
         Deduplicated table of barrier ID, kind, and downstream_id; this acts as
         the index to join barrier ID to downstream networks on downstream_id.
+
+    focal_barriers : pyarrow Table
+        Table of barriers that break the network
 
     Returns
     -------
@@ -953,7 +956,7 @@ def calculate_downstream_linear_network_stats(
         )
         # have to join in kind separately because pyarrow can't take first value of it in aggregation
         .join(
-            focal_barrier_joins.select(["id", "kind"]).rename_columns({"kind": "upstream_barrier"}),
+            focal_barriers.select(["id", "kind"]).rename_columns({"kind": "upstream_barrier"}),
             "upstream_barrier_id",
             "id",
         )

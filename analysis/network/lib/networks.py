@@ -387,10 +387,12 @@ def create_functional_upstream_networks(
             # not already a downstream terminal
             pc.not_equal(joins["downstream_id"], 0),
             # but corresponding upstream for this downstream side is not present in the joins
+            # TODO: this is a performance hotspot
             pc.equal(pc.is_in(joins["downstream_id"], joins["upstream_id"]), False),
         )
     )
 
+    # TODO: performance hotspot (esp first 2 of the cases below)
     origin_ids = pc.unique(
         pa.concat_arrays(
             [
@@ -869,6 +871,7 @@ def create_barrier_networks(
             focal_barrier_joins,
             barrier_joins,
             focal_barrier_downstreams,
+            focal_barriers,
         )
     )
 
@@ -884,7 +887,7 @@ def create_barrier_networks(
         .join(nearest_upstream_barriers, "barrier_id", "id")
         .join(downstream_barriers, "barrier_id", "id")
         .join(downstream_mainstem_network_stats.drop(["networkID"]), "barrier_id", "id")
-        .join(downstream_linear_network_stats.drop(["networkID"]), "barrier_id", "id")
+        .join(downstream_linear_network_stats.rename_columns({"networkID": "downstream_networkID"}), "barrier_id", "id")
         .combine_chunks()
     )
 
@@ -902,7 +905,13 @@ def create_barrier_networks(
         + [c for c in network_stats.column_names if c.startswith("dl_")]
         + [c for c in network_stats.column_names if c.startswith("totu_")]
         + [c for c in network_stats.column_names if c.startswith("totd_")]
-        + ["flows_to_ocean", "flows_to_great_lakes", "miles_to_outlet", "has_downstream_invasive_barrier"]
+        + [
+            "downstream_networkID",
+            "flows_to_ocean",
+            "flows_to_great_lakes",
+            "miles_to_outlet",
+            "has_downstream_invasive_barrier",
+        ]
         + [
             "upstream_barrier_id",
             "upstream_barrier",
@@ -919,6 +928,18 @@ def create_barrier_networks(
 
     network_stats = network_stats.select(out_cols)
 
+    # Fill nulls
+    int_cols = [f.name for f in network_stats.schema if pa.types.is_integer(f.type)]
+    float_cols = [f.name for f in network_stats.schema if pa.types.is_floating(f.type)]
+    bool_cols = [f.name for f in network_stats.schema if pa.types.is_boolean(f.type)]
+    filled = {
+        **{c: pc.fill_null(network_stats[c], 0) for c in int_cols},
+        # round floating point columns to 3 decimals
+        **{c: pc.round(pc.fill_null(network_stats[c], 0), 3) for c in float_cols},
+        **{c: pc.fill_null(network_stats[c], False) for c in bool_cols},
+    }
+    network_stats = pa.Table.from_pydict({c: filled.get(c, network_stats[c]) for c in network_stats.column_names})
+
     print(f"calculated stats in {time() - stats_start:.2f}s")
 
     ############################################################################
@@ -932,10 +953,6 @@ def create_barrier_networks(
     # total network and are missing either upstream or downstream network
     print("calculating upstream and downstream networks for barriers")
 
-    barrier_functional_networks = upstream_functional_network_stats.filter(
-        pc.is_valid(upstream_functional_network_stats["barrier_id"])
-    )
-
     # drop free-flowing miles from upstream side; we only need these on downstream side
     upstream_functional_network_cols = [
         c
@@ -944,7 +961,8 @@ def create_barrier_networks(
     ]
     barrier_count_cols = [f"fn_{kind}s" for kind in BARRIER_KINDS + ["headwater"]]
     barrier_upstream_functional_networks = (
-        barrier_functional_networks.select(upstream_functional_network_cols)
+        upstream_functional_network_stats.filter(pc.is_valid(upstream_functional_network_stats["barrier_id"]))
+        .select(upstream_functional_network_cols)
         .rename_columns(
             {
                 **{
@@ -984,7 +1002,7 @@ def create_barrier_networks(
         .join(upstream_functional_networks.select(["networkID", "lineID"]), "downstream_id", "lineID")
         .select(["id", "networkID"])
         .join(
-            barrier_functional_networks.select(downstream_functional_network_cols),
+            upstream_functional_network_stats.select(downstream_functional_network_cols),
             "networkID",
         )
         .rename_columns(

@@ -18,7 +18,6 @@ NETWORK_TYPES = {
         "kinds": ["waterfall", "dam", "small_barrier"],
         "column": "smallfish_network",
     },
-    # extract networks cutting at unsurveyed barriers too
     "road_crossings": {
         "kinds": ["waterfall", "dam", "small_barrier", "road_crossing"],
     },
@@ -998,6 +997,8 @@ CONVERT_TO_LOOP = {
         # fix flowlines at Big Sheep Creek
         55000500199026,
         55000500304567,
+        # fix non-loop segment immediately between other loops at Bonneville Dam
+        55000300287268,
     ],
     "18": [
         # These are to remove a canal alongside the Link River
