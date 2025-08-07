@@ -91,17 +91,16 @@ def read_arrow_tables(paths, columns=None, filter=None, new_fields=None, dict_fi
 
                 table = table.append_column(field, [new_col])
 
-        try:
-            merged = pa.concat_tables([merged, table]) if merged is not None else table
-
-        except pa.lib.ArrowInvalid:
-            merged = pa.concat_tables([merged, table], promote_options="default") if merged is not None else table
+        merged = pa.concat_tables([merged, table], promote_options="permissive") if merged is not None else table
 
     # retain geospatial metadata, drop pandas metadata
     out_metadata = {}
-    geo_metadata = merged.schema.metadata.get(b"geo")
-    if geo_metadata:
-        out_metadata[b"geo"] = geo_metadata
-    merged = merged.combine_chunks().replace_schema_metadata(out_metadata)
 
-    return merged
+    if merged.schema.metadata is not None and "geometry" in (columns or []):
+        geo_metadata = merged.schema.metadata.get(b"geo")
+        if geo_metadata:
+            out_metadata[b"geo"] = geo_metadata
+
+    merged = merged.replace_schema_metadata(out_metadata)
+
+    return merged.combine_chunks()

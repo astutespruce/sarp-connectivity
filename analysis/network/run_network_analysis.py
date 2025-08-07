@@ -37,12 +37,6 @@ out_dir.mkdir(exist_ok=True, parents=True)
 start = time()
 
 huc2_group_df = pd.read_feather(networks_dir / "connected_huc2s.feather").sort_values(by=["group", "HUC2"])
-
-# FIXME: remove
-# huc2_group_df = huc2_group_df.loc[huc2_group_df.HUC2 == "18"]
-# worst case
-huc2_group_df = huc2_group_df.loc[huc2_group_df.group == 3]
-
 huc2s = huc2_group_df.HUC2.values
 groups = huc2_group_df.groupby("group").HUC2.apply(list).tolist()
 

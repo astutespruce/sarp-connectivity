@@ -1141,18 +1141,27 @@ def create_barrier_networks(
     )
 
     # Calculate gain miles as minimum length of upstream and downstream sides;
-    # if either is null, this uses the other
+    # if either is null, this uses the other unless it is at the top of the network,
+    # in which case miles gained should be 0
     gain_miles = pc.if_else(
         terminates_downstream,
         barrier_networks["TotalUpstreamMiles"],
-        pc.min_element_wise(barrier_networks["TotalUpstreamMiles"], barrier_networks["FreeDownstreamMiles"]),
+        pc.if_else(
+            pc.equal(barrier_networks["upNetID"], 0),
+            0,
+            pc.min_element_wise(barrier_networks["TotalUpstreamMiles"], barrier_networks["FreeDownstreamMiles"]),
+        ),
     )
     functional_network_miles = pc.add(barrier_networks["TotalUpstreamMiles"], barrier_networks["FreeDownstreamMiles"])
     perennial_gain_miles = pc.if_else(
         terminates_downstream,
         barrier_networks["PerennialUpstreamMiles"],
-        pc.min_element_wise(
-            barrier_networks["PerennialUpstreamMiles"], barrier_networks["FreePerennialDownstreamMiles"]
+        pc.if_else(
+            pc.equal(barrier_networks["upNetID"], 0),
+            0,
+            pc.min_element_wise(
+                barrier_networks["PerennialUpstreamMiles"], barrier_networks["FreePerennialDownstreamMiles"]
+            ),
         ),
     )
     perennial_network_miles = pc.add(
@@ -1161,8 +1170,12 @@ def create_barrier_networks(
     mainstem_gain_miles = pc.if_else(
         mainstem_terminates_downstream,
         barrier_networks["TotalMainstemUpstreamMiles"],
-        pc.min_element_wise(
-            barrier_networks["TotalMainstemUpstreamMiles"], barrier_networks["FreeMainstemDownstreamMiles"]
+        pc.if_else(
+            pc.equal(barrier_networks["upNetID"], 0),
+            0,
+            pc.min_element_wise(
+                barrier_networks["TotalMainstemUpstreamMiles"], barrier_networks["FreeMainstemDownstreamMiles"]
+            ),
         ),
     )
     mainstem_network_miles = pc.add(
@@ -1171,8 +1184,13 @@ def create_barrier_networks(
     perennial_mainstem_gain_miles = pc.if_else(
         mainstem_terminates_downstream,
         barrier_networks["PerennialMainstemUpstreamMiles"],
-        pc.min_element_wise(
-            barrier_networks["PerennialMainstemUpstreamMiles"], barrier_networks["FreePerennialMainstemDownstreamMiles"]
+        pc.if_else(
+            pc.equal(barrier_networks["upNetID"], 0),
+            0,
+            pc.min_element_wise(
+                barrier_networks["PerennialMainstemUpstreamMiles"],
+                barrier_networks["FreePerennialMainstemDownstreamMiles"],
+            ),
         ),
     )
     perennial_mainstem_network_miles = pc.add(
