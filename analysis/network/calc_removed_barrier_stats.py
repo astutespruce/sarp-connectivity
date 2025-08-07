@@ -180,6 +180,7 @@ for network_type in network_types:
         focal_barrier_filter = focal_barrier_filter & pc.equal(pc.field(col), True)
 
     removed_focal_barriers = removed_barriers.filter(focal_barrier_filter)
+    nonremoved_focal_barriers = nonremoved_barriers.filter(focal_barrier_filter)
 
     if len(removed_focal_barriers) == 0:
         print(f"skipping {network_type}, no removed barriers of this type present")
@@ -338,7 +339,7 @@ for network_type in network_types:
 
         (
             barrier_networks,
-            _,  # network_stats: not used
+            network_stats,
             upstream_functional_networks,
             _,  # upstream_mainstem_networks: not used
             _,  # downstream_mainstem_networks: not used
@@ -352,34 +353,34 @@ for network_type in network_types:
             network_type=network_type,
         )
 
-        # for any contiguous subnetworks, we need to deduct the miles_to_outlet
-        # calculated for the intermediate non-removed barriers and then deduct
-        # this amount from the MilesToOutlet for the previous stats
-        updated_downstream_stats = prev_downstream_stats.join(
-            barrier_networks.filter(
-                pc.and_(
-                    pc.not_equal(barrier_networks["upNetID"], 0),
-                    pc.is_in(barrier_networks["id"], nonremoved_barriers["id"]),
-                )
+        ### find all nonremoved barriers that were included in the above networks
+        # because they fall between adjacent subnetworks, and adjust their prior
+        # total miles downstream because any downstream total miles calculated for
+        # upstream subnetworks above will have passed through them to the bottom-most
+        # contiguous subnetwork (i.e., we would double-count miles without this)
+        nonremoved_barrier_networks = (
+            active_barrier_joins.select(["id", "upstream_id"])
+            .rename_columns({"upstream_id": "networkID"})
+            .join(nonremoved_focal_barriers.select(["id"]), "id", join_type="inner")
+            .drop(["id"])
+            .join(
+                network_stats.select(["networkID", "miles_to_outlet"]).rename_columns(
+                    {"miles_to_outlet": "MilesToOutlet_cur"}
+                ),
+                "networkID",
+                join_type="inner",
             )
-            .select(["upNetID", "MilesToOutlet"])
-            .rename_columns({"MilesToOutlet": "deduct_MilesToOutlet"}),
-            "subnetworkID",
-            "upNetID",
+            .combine_chunks()
         )
-        if pc.sum(pc.is_valid(updated_downstream_stats["deduct_MilesToOutlet"])).as_py():
-            print(
-                f"\n-------------------------\nTODO: VALIDATE downstream stats join: {year}, {network_type}\n----------------------------\n"
-            )
-
+        updated_downstream_stats = prev_downstream_stats.join(nonremoved_barrier_networks, "subnetworkID", "networkID")
         updated_downstream_stats = updated_downstream_stats.drop(
-            ["subnetworkID", "MilesToOutlet_prev", "deduct_MilesToOutlet"]
+            ["subnetworkID", "MilesToOutlet_prev", "MilesToOutlet_cur"]
         ).append_column(
             "MilesToOutlet_prev",
             pc.if_else(
-                pc.is_valid(updated_downstream_stats["deduct_MilesToOutlet"]),
+                pc.is_valid(updated_downstream_stats["MilesToOutlet_cur"]),
                 pc.subtract(
-                    updated_downstream_stats["MilesToOutlet_prev"], updated_downstream_stats["deduct_MilesToOutlet"]
+                    updated_downstream_stats["MilesToOutlet_prev"], updated_downstream_stats["MilesToOutlet_cur"]
                 ),
                 updated_downstream_stats["MilesToOutlet_prev"],
             ),
@@ -429,9 +430,7 @@ for network_type in network_types:
             .drop(DROP_COLS)
         )
 
-        update_cols = [
-            c.replace("_prev", "") for c in updated_downstream_stats.column_names if c not in {"id", "MilesToOutlet"}
-        ]
+        update_cols = ["OriginHUC2", "FlowsToOcean", "FlowsToGreatLakes", "HasDownstreamInvasiveBarrier"]
         updated = {
             c: pc.if_else(
                 pc.is_valid(cur_barrier_networks[f"{c}_prev"]),
@@ -441,7 +440,6 @@ for network_type in network_types:
             for c in update_cols
         }
         # relculate miles to outlet as sum of MilesToOutlet for the removed barrier plus MilesToOutlet at the bottom of its original network
-        # TODO: validate this
         updated["MilesToOutlet"] = pc.if_else(
             pc.is_valid(cur_barrier_networks["MilesToOutlet_prev"]),
             pc.add(cur_barrier_networks["MilesToOutlet"], cur_barrier_networks["MilesToOutlet_prev"]),
@@ -669,7 +667,6 @@ for network_type in network_types:
             # query segments on barrier_id == <id>
             # to query out the original unaggregated upstream network, use
             # (barrier_id == <id>) & (networkID == cur_networks.loc[<id>].upNetID)
-            # TODO: verify segments are correct
 
             # recalculate size classes
             sizeclasses = (
