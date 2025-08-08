@@ -68,6 +68,8 @@ def unpack_domains(df):
 
         elif field in MULTI_VALUE_DOMAINS:
             unpacked = unpack_multivalue_field(df[field], MULTI_VALUE_DOMAINS[field])
+            # force domain fields to string type
+            schema = schema.set(i, pa.field(field, "string"))
 
         else:
             unpacked = df[field]

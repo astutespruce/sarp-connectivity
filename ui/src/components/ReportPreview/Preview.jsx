@@ -58,7 +58,7 @@ const Preview = ({ networkType, data }) => {
     milestooutlet,
     invasive,
     invasivenetwork,
-    totalupstreammainstemmiles = 0,
+    totalmainstemupstreammiles = 0,
   } = data
 
   const barrierType =
@@ -322,7 +322,7 @@ const Preview = ({ networkType, data }) => {
             />
           ) : null}
 
-          {hasnetwork && totalupstreammainstemmiles > 0 ? (
+          {hasnetwork && totalmainstemupstreammiles > 0 ? (
             <MainstemNetworkInfo
               sx={{ mt: '3rem' }}
               barrierType={barrierType}
@@ -375,7 +375,7 @@ Preview.propTypes = {
     milestooutlet: PropTypes.number,
     invasive: PropTypes.bool,
     invasivenetwork: PropTypes.number,
-    totalupstreammainstemmiles: PropTypes.number,
+    totalmainstemupstreammiles: PropTypes.number,
     // other props validated by subcomponents
   }).isRequired,
 }

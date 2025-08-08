@@ -45,8 +45,8 @@ const FunctionalNetworkInfo = ({
   totaldownstreamdams,
   totaldownstreamsmallbarriers,
   totaldownstreamwaterfalls,
-  upstreamunalteredwaterbodyacres,
-  upstreamunalteredwetlandacres,
+  unalteredwaterbodyacres,
+  unalteredwetlandacres,
   ...props
 }) => {
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
@@ -485,11 +485,10 @@ const FunctionalNetworkInfo = ({
         <Field label="Total area of unaltered lakes and ponds">
           <Text
             sx={{
-              fontWeight:
-                upstreamunalteredwaterbodyacres > 0 ? 'bold' : 'inherit',
+              fontWeight: unalteredwaterbodyacres > 0 ? 'bold' : 'inherit',
             }}
           >
-            {formatNumber(upstreamunalteredwaterbodyacres)} acres
+            {formatNumber(unalteredwaterbodyacres)} acres
           </Text>
         </Field>
         <Text variant="help" sx={{ mt: '0.5rem', fontSize: 0 }}>
@@ -509,11 +508,10 @@ const FunctionalNetworkInfo = ({
         <Field label="Total area of unaltered freshwater wetlands">
           <Text
             sx={{
-              fontWeight:
-                upstreamunalteredwetlandacres > 0 ? 'bold' : 'inherit',
+              fontWeight: unalteredwetlandacres > 0 ? 'bold' : 'inherit',
             }}
           >
-            {formatNumber(upstreamunalteredwetlandacres)} acres
+            {formatNumber(unalteredwetlandacres)} acres
           </Text>
         </Field>
         <Text variant="help" sx={{ mt: '0.5rem', fontSize: 0 }}>
@@ -573,8 +571,8 @@ FunctionalNetworkInfo.propTypes = {
   totaldownstreamdams: PropTypes.number,
   totaldownstreamsmallbarriers: PropTypes.number,
   totaldownstreamwaterfalls: PropTypes.number,
-  upstreamunalteredwaterbodyacres: PropTypes.number,
-  upstreamunalteredwetlandacres: PropTypes.number,
+  unalteredwaterbodyacres: PropTypes.number,
+  unalteredwetlandacres: PropTypes.number,
 }
 
 FunctionalNetworkInfo.defaultProps = {
@@ -604,8 +602,8 @@ FunctionalNetworkInfo.defaultProps = {
   totaldownstreamdams: 0,
   totaldownstreamsmallbarriers: 0,
   totaldownstreamwaterfalls: 0,
-  upstreamunalteredwaterbodyacres: 0,
-  upstreamunalteredwetlandacres: 0,
+  unalteredwaterbodyacres: 0,
+  unalteredwetlandacres: 0,
 }
 
 export default FunctionalNetworkInfo

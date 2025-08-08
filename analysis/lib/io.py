@@ -1,4 +1,5 @@
 from pathlib import Path
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -51,7 +52,7 @@ def read_feathers(paths, columns=None, geo=False, new_fields=None):
     return merged.reset_index(drop=True)
 
 
-def read_arrow_tables(paths, columns=None, filter=None, new_fields=None):
+def read_arrow_tables(paths, columns=None, filter=None, new_fields=None, dict_fields=None):
     """Read multiple feather files into a single pyarrow.Table
 
     Parameters
@@ -63,27 +64,64 @@ def read_arrow_tables(paths, columns=None, filter=None, new_fields=None):
         filter to apply when reading from disk
     new_fields : dict, optional (default: None)
         if present, is a mapping of new field name to add to a list-like of values
-        the same length as paths
+        the same order and length as paths
+    dict_fields : list-like, optional (default: None)
+        if present, is a list of new fields that should be dictionary encoded
+        Do not use for existing fields already in the tables
+
     Returns
     -------
     pyarrow.Table
     """
+
+    # validate requested columns
+    if columns is not None:
+        detected_columns = []
+        for path in paths:
+            if Path(path).exists():
+                detected_columns.extend(dataset(path, format="feather").schema.names)
+        missing = set(columns).difference(set(detected_columns))
+        if missing:
+            raise ValueError(f"Columns not present in any of the source paths: {', '.join(missing)}")
+
     merged = None
     for i, path in enumerate(paths):
         if not Path(path).exists():
+            warnings.warn(f"{path} does not exist")
             continue
 
-        table = dataset(path, format="feather").to_table(columns=columns, filter=filter)
+        reader = dataset(path, format="feather")
+
+        # select subset of columns present in this particular dataset
+        if columns is not None:
+            read_columns = [c for c in reader.schema.names if c in columns]
+        else:
+            read_columns = None
+
+        table = reader.to_table(columns=read_columns, filter=filter)
 
         if new_fields is not None:
             for field, values in new_fields.items():
-                new_col = pa.array(np.repeat(values[i], len(table)))
+                if dict_fields is not None and field in dict_fields:
+                    # uint8 not yet supported for conversion to pandas categoricals
+                    index_value = np.int8(i) if len(paths) < 125 else np.uint32(i)
+                    new_col = pa.DictionaryArray.from_arrays(np.repeat(index_value, len(table)), new_fields[field])
+
+                else:
+                    new_col = pa.array(np.repeat(values[i], len(table)))
+
                 table = table.append_column(field, [new_col])
 
-        try:
-            merged = pa.concat_tables([merged, table]) if merged is not None else table
+        merged = pa.concat_tables([merged, table], promote_options="permissive") if merged is not None else table
 
-        except pa.lib.ArrowInvalid:
-            merged = pa.concat_tables([merged, table], promote_options="default") if merged is not None else table
+    # retain geospatial metadata, drop pandas metadata
+    out_metadata = {}
+
+    if merged.schema.metadata is not None and "geometry" in (columns or []):
+        geo_metadata = merged.schema.metadata.get(b"geo")
+        if geo_metadata:
+            out_metadata[b"geo"] = geo_metadata
+
+    merged = merged.replace_schema_metadata(out_metadata)
 
     return merged.combine_chunks()

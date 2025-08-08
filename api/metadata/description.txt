@@ -28,8 +28,58 @@ The data made available through this tool represent substantial effort
 and investment from the Southeast Aquatic Resources Partnership
 (SARP) and SARP's funders, partners, and data contributors.
 
+
+Credits:
+------------
 This project was supported in part by grants from the U.S. Fish and Wildlife
 Service Fish Passage Program, American Rivers, the U.S. Department of
 Agriculture, Forest Service, the National Fish and Wildlife Foundation, The
 Nature Conservancy, Trout Unlimited the Gulf Coastal Plains and Ozarks Landscape
 Conservation Cooperative, and the Florida State Wildlife Grants Program.
+
+
+Network types:
+------------
+There are results for 5 types of networks included in this dataset:
+
+1)  Upstream functional network: this network extends upstream from a given barrier
+    or the natural outlet of the network (i.e., outlet into ocean) up to any
+    upstream barriers or headwaters.  This is a dendritic network and includes
+    all tributaries up to their barrier or headwaters.
+2)  Downstream functional network: this network is the functional upstream network
+    of the next barrier downstream or natural outlet of the network.  It therefore
+    includes tributaries into that network that are not directly in the downstream
+    flow direction from the focal barrier of the network.
+3)  Upstream mainstem network: this network extends upstream from a given barrier
+    and is limited to flowlines with >= 1 square mile drainage area that have the
+    same stream order as the reach where the barrier is located.  This network
+    is not dendritic and does not include tributaries of lower size classes.  It
+    may not fully extend to the next barrier upstream.
+4)  Downstream mainstem network: this network extends downstream from a given
+    barrier in the downstream flow direction and is limited to flowlines with
+    >= 1 square mile drainage area that have the same stream order as the reach
+    where the barrier is located.  If the barrier occurs at a convergence where
+    the stream order is greater on the downstream side than the incoming
+    flowlines on the upstream side, the stream order of the downstream side is
+    used for the downstream mainstem network.  It may not fully extend to the
+    next barrier downstream.
+5)  Downstream linear network: this network extends downstream from a given
+    barrier in the downstream flow direction to the next downstream barrier or
+    natural outlet of the network.
+
+
+Note: all network types exclude all network "loops" formed by divergences that
+reconverge downstream.  These loops are identified at various points within the
+aquatic network within the NHD dataset, and do not always correctly distinguish
+between the main flow channel and side channels in highly braided river systems.
+
+Note: not all network statistics are calculated for removed barriers.  Mileage
+statistics for removed barriers are based other barriers present at the time a
+given barrier is removed, including barriers removed in the same year, with
+the exception of mileage gain statistics, which assumes that barriers immediately
+upstream and removed in the same year were already removed.  That is, for two
+barriers in series on the network that are removed in the same year, the
+upstream-most mileage gain is based on both barriers being present, whereas for
+the downstream barrier, it assumes the upstream one has already been removed.
+Do not sum mileage gained statistics for removed barriers as this will lead to
+double-counting those miles.

@@ -94,6 +94,8 @@ qa_dir = barriers_dir / "qa"
 
 start = time()
 
+huc2s = sorted(pd.read_feather(boundaries_dir / "HUC2.feather", columns=["HUC2"]))
+
 print("Reading data")
 df = gp.read_feather(src_dir / "sarp_small_barriers.feather")
 print(f"Read {len(df):,} small barriers")
@@ -1032,15 +1034,12 @@ df.to_feather(master_dir / "small_barriers.feather")
 write_dataframe(df, qa_dir / "small_barriers.fgb")
 
 ### Extract out only the snapped ones not on loops
-to_analyze = df.loc[df.primary_network | df.largefish_network | df.smallfish_network].reset_index(drop=True)
-to_analyze.lineID = to_analyze.lineID.astype("uint32")
-to_analyze.NHDPlusID = to_analyze.NHDPlusID.astype("uint64")
-
-print("Serializing {:,} snapped small barriers".format(len(to_analyze)))
-to_analyze[
+to_analyze = df.loc[
+    df.primary_network | df.largefish_network | df.smallfish_network,
     [
         "geometry",
         "id",
+        "SARPID",
         "HUC2",
         "lineID",
         "NHDPlusID",
@@ -1050,10 +1049,15 @@ to_analyze[
         "removed",
         "YearRemoved",
         "invasive",
-    ]
-].to_feather(
-    snapped_dir / "small_barriers.feather",
-)
+    ],
+].reset_index(drop=True)
+
+to_analyze.lineID = to_analyze.lineID.astype("uint32")
+to_analyze.NHDPlusID = to_analyze.NHDPlusID.astype("uint64")
+to_analyze["HUC2"] = to_analyze.HUC2.astype(pd.CategoricalDtype(categories=huc2s, ordered=True))
+
+print("Serializing {:,} snapped small barriers".format(len(to_analyze)))
+to_analyze.to_feather(snapped_dir / "small_barriers.feather")
 write_dataframe(to_analyze, qa_dir / "snapped_small_barriers.fgb")
 
 ################################################################################
@@ -1123,6 +1127,7 @@ snapped_crossings = crossings.loc[
     [
         "geometry",
         "id",
+        "SARPID",
         "HUC2",
         "lineID",
         "NHDPlusID",
@@ -1132,6 +1137,10 @@ snapped_crossings = crossings.loc[
     ],
 ].reset_index(drop=True)
 
-snapped_crossings.to_feather(barriers_dir / "snapped/road_crossings.feather")
+snapped_crossings.lineID = snapped_crossings.lineID.astype("uint32")
+snapped_crossings.NHDPlusID = snapped_crossings.NHDPlusID.astype("uint64")
+snapped_crossings["HUC2"] = snapped_crossings.HUC2.astype(pd.CategoricalDtype(categories=huc2s, ordered=True))
+
+snapped_crossings.to_feather(snapped_dir / "road_crossings.feather")
 
 print("All done in {:.2f}s".format(time() - start))

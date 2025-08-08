@@ -47,8 +47,8 @@ const FunctionalNetworkInfo = ({
   totaldownstreamdams,
   totaldownstreamsmallbarriers,
   totaldownstreamwaterfalls,
-  upstreamunalteredwaterbodyacres,
-  upstreamunalteredwetlandacres,
+  unalteredwaterbodyacres,
+  unalteredwetlandacres,
   ...props
 }) => {
   const barrierTypeLabel =
@@ -445,9 +445,9 @@ const FunctionalNetworkInfo = ({
         <View style={{ marginTop: 28 }}>
           <Text>
             This network intersects{' '}
-            <Bold>{formatNumber(upstreamunalteredwaterbodyacres)} acres</Bold>{' '}
-            of unaltered lakes and ponds and{' '}
-            <Bold>{formatNumber(upstreamunalteredwetlandacres)} acres</Bold> of
+            <Bold>{formatNumber(unalteredwaterbodyacres)} acres</Bold> of
+            unaltered lakes and ponds and{' '}
+            <Bold>{formatNumber(unalteredwetlandacres)} acres</Bold> of
             unaltered freshwater wetlands.
           </Text>
         </View>
@@ -574,8 +574,8 @@ FunctionalNetworkInfo.propTypes = {
   totaldownstreamdams: PropTypes.number,
   totaldownstreamsmallbarriers: PropTypes.number,
   totaldownstreamwaterfalls: PropTypes.number,
-  upstreamunalteredwaterbodyacres: PropTypes.number,
-  upstreamunalteredwetlandacres: PropTypes.number,
+  unalteredwaterbodyacres: PropTypes.number,
+  unalteredwetlandacres: PropTypes.number,
 }
 
 FunctionalNetworkInfo.defaultProps = {
@@ -605,8 +605,8 @@ FunctionalNetworkInfo.defaultProps = {
   totaldownstreamdams: 0,
   totaldownstreamsmallbarriers: 0,
   totaldownstreamwaterfalls: 0,
-  upstreamunalteredwaterbodyacres: 0,
-  upstreamunalteredwetlandacres: 0,
+  unalteredwaterbodyacres: 0,
+  unalteredwetlandacres: 0,
 }
 
 export default FunctionalNetworkInfo

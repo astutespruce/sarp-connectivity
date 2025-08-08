@@ -310,7 +310,7 @@ segments = read_arrow_tables(
         src_dir / f"clean/removed/removed_{network_type}_network_segments.feather"
         for network_type in sorted(network_cols)
     ],
-    columns=["lineID", "barrier_id"],
+    columns=["lineID", "id"],
     new_fields={"network_type": sorted(network_cols)},
 ).to_pandas()
 
@@ -344,7 +344,7 @@ lines = gp.GeoDataFrame(
 )
 
 # preliminary merge
-lines = merge_lines(lines, by=["network_type", "barrier_id", "sizeclass", "mapcode", "StreamLevel"])
+lines = merge_lines(lines, by=["network_type", "id", "sizeclass", "mapcode", "StreamLevel"])
 
 for level in zoom_config:
     minzoom, maxzoom = level["zoom"]
@@ -367,7 +367,7 @@ for level in zoom_config:
 
     subset = merge_lines(
         subset.explode(ignore_index=True),
-        by=["network_type", "barrier_id", "sizeclass", "mapcode"],
+        by=["network_type", "id", "sizeclass", "mapcode"],
     ).sort_values(by=["network_type", "sizeclass"])
 
     if simplification:

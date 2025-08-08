@@ -57,7 +57,7 @@ const BarrierDetails = ({
   lat,
   lon,
   alteredupstreammiles,
-  alteredupstreammainstemmiles,
+  alteredmainstemupstreammiles,
   annualflow,
   barrierownertype,
   barrierseverity,
@@ -103,7 +103,7 @@ const BarrierDetails = ({
   percentcold,
   percentresilient,
   perennialupstreammiles,
-  perennialupstreammainstemmiles,
+  perennialmainstemupstreammiles,
   protocolused,
   regionalsgcnspp,
   removed,
@@ -128,13 +128,13 @@ const BarrierDetails = ({
   totaldownstreamsmallbarriers,
   totaldownstreamwaterfalls,
   totalupstreammiles,
-  totalupstreammainstemmiles,
+  totalmainstemupstreammiles,
   trout,
   unalteredupstreammiles,
-  unalteredupstreammainstemmiles,
+  unalteredmainstemupstreammiles,
   unranked,
-  upstreamunalteredwaterbodyacres,
-  upstreamunalteredwetlandacres,
+  unalteredwaterbodyacres,
+  unalteredwetlandacres,
   nearestusgscrossingid,
   wilderness,
   wildscenicriver,
@@ -300,8 +300,8 @@ const BarrierDetails = ({
             totaldownstreamdams={totaldownstreamdams}
             totaldownstreamsmallbarriers={totaldownstreamsmallbarriers}
             totaldownstreamwaterfalls={totaldownstreamwaterfalls}
-            upstreamunalteredwaterbodyacres={upstreamunalteredwaterbodyacres}
-            upstreamunalteredwetlandacres={upstreamunalteredwetlandacres}
+            unalteredwaterbodyacres={unalteredwaterbodyacres}
+            unalteredwetlandacres={unalteredwetlandacres}
           />
         ) : (
           <NoNetworkInfo
@@ -338,7 +338,7 @@ const BarrierDetails = ({
         </Section>
       ) : null}
 
-      {hasnetwork && totalupstreammainstemmiles > 0 ? (
+      {hasnetwork && totalmainstemupstreammiles > 0 ? (
         <Section title="Mainstem network information">
           <MainstemNetworkInfo
             barrierType={barrierType}
@@ -349,10 +349,10 @@ const BarrierDetails = ({
             totaldownstreamdams={totaldownstreamdams}
             totaldownstreamsmallbarriers={totaldownstreamsmallbarriers}
             totaldownstreamwaterfalls={totaldownstreamwaterfalls}
-            totalupstreammainstemmiles={totalupstreammainstemmiles}
-            perennialupstreammainstemmiles={perennialupstreammainstemmiles}
-            alteredupstreammainstemmiles={alteredupstreammainstemmiles}
-            unalteredupstreammainstemmiles={unalteredupstreammainstemmiles}
+            totalmainstemupstreammiles={totalmainstemupstreammiles}
+            perennialmainstemupstreammiles={perennialmainstemupstreammiles}
+            alteredmainstemupstreammiles={alteredmainstemupstreammiles}
+            unalteredmainstemupstreammiles={unalteredmainstemupstreammiles}
             freelineardownstreammiles={freelineardownstreammiles}
             freeperenniallineardownstreammiles={
               freeperenniallineardownstreammiles
@@ -420,7 +420,7 @@ BarrierDetails.propTypes = {
   lat: PropTypes.number.isRequired,
   lon: PropTypes.number.isRequired,
   alteredupstreammiles: PropTypes.number,
-  alteredupstreammainstemmiles: PropTypes.number,
+  alteredmainstemupstreammiles: PropTypes.number,
   annualflow: PropTypes.number,
   barrierownertype: PropTypes.number,
   barrierseverity: PropTypes.number,
@@ -465,7 +465,7 @@ BarrierDetails.propTypes = {
   percentcold: PropTypes.number,
   percentresilient: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
-  perennialupstreammainstemmiles: PropTypes.number,
+  perennialmainstemupstreammiles: PropTypes.number,
   protocolused: PropTypes.string,
   regionalsgcnspp: PropTypes.number,
   removed: PropTypes.bool,
@@ -490,13 +490,13 @@ BarrierDetails.propTypes = {
   totaldownstreamsmallbarriers: PropTypes.number,
   totaldownstreamwaterfalls: PropTypes.number,
   totalupstreammiles: PropTypes.number,
-  totalupstreammainstemmiles: PropTypes.number,
+  totalmainstemupstreammiles: PropTypes.number,
   trout: PropTypes.string,
   unalteredupstreammiles: PropTypes.number,
-  unalteredupstreammainstemmiles: PropTypes.number,
+  unalteredmainstemupstreammiles: PropTypes.number,
   unranked: PropTypes.bool,
-  upstreamunalteredwaterbodyacres: PropTypes.number,
-  upstreamunalteredwetlandacres: PropTypes.number,
+  unalteredwaterbodyacres: PropTypes.number,
+  unalteredwetlandacres: PropTypes.number,
   nearestusgscrossingid: PropTypes.string,
   wilderness: PropTypes.number,
   wildscenicriver: PropTypes.number,
@@ -508,7 +508,7 @@ BarrierDetails.propTypes = {
 
 BarrierDetails.defaultProps = {
   alteredupstreammiles: 0,
-  alteredupstreammainstemmiles: 0,
+  alteredmainstemupstreammiles: 0,
   annualflow: null,
   barrierownertype: null,
   barrierseverity: null,
@@ -552,7 +552,7 @@ BarrierDetails.defaultProps = {
   percentcold: 0,
   percentresilient: 0,
   perennialupstreammiles: 0,
-  perennialupstreammainstemmiles: 0,
+  perennialmainstemupstreammiles: 0,
   protocolused: null,
   regionalsgcnspp: 0,
   resurveyed: 0,
@@ -577,13 +577,13 @@ BarrierDetails.defaultProps = {
   totaldownstreamsmallbarriers: 0,
   totaldownstreamwaterfalls: 0,
   totalupstreammiles: 0,
-  totalupstreammainstemmiles: 0,
+  totalmainstemupstreammiles: 0,
   trout: null,
   unalteredupstreammiles: 0,
-  unalteredupstreammainstemmiles: 0,
+  unalteredmainstemupstreammiles: 0,
   unranked: false,
-  upstreamunalteredwaterbodyacres: 0,
-  upstreamunalteredwetlandacres: 0,
+  unalteredwaterbodyacres: 0,
+  unalteredwetlandacres: 0,
   nearestusgscrossingid: null,
   wilderness: null,
   wildscenicriver: null,

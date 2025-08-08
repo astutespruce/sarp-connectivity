@@ -7,6 +7,7 @@ import pandas as pd
 import geopandas as gp
 import pyarrow as pa
 import pyarrow.compute as pc
+from pyarrow.csv import write_csv
 from pyogrio import write_dataframe
 import shapely
 
@@ -56,7 +57,7 @@ if barrier_type != "road_crossings":
     active_list = pd.concat([dams, small_barriers], ignore_index=True).set_index("id")
     df = df.join(active_list, on="id")
     df["ActiveList"] = df.ActiveList.fillna(0).astype("uint8")
-    df["KeepOnActiveList"] = df.KeepOnActiveList.fillna(0).astype("bool")
+    df["KeepOnActiveList"] = df.KeepOnActiveList.fillna(0)
 
 
 if state_rank or rank:
@@ -91,6 +92,11 @@ if rank:
 cols = [c for c in EXPORT_FIELDS[barrier_type] + ["upNetID", "downNetID"] if c in df.columns]
 
 df = unpack_domains(df[cols])
+
+
+# # to write as csv
+# table = pa.Table.from_pandas(df)
+# write_csv(table, out_dir / f"{barrier_type}{suffix}__{datetime.today().strftime('%m_%d_%Y')}.csv")
 
 
 # Kat needs these as FGDB

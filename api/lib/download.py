@@ -8,7 +8,7 @@ from api.lib.tiers import calculate_tiers
 
 # list of columns that can be dropped if entirely empty
 OPTIONAL_STRING_COLS = ["StateWRA"]
-OPTIONAL_NUMERIC_COLS = ["FlowsToOcean", "FlowsToGreatLakes"] + SPECIES_HABITAT_FIELDS
+OPTIONAL_NUMERIC_COLS = ["FlowsToOcean", "FlowsToGreatLakes", "BrookTroutPortfolio"] + SPECIES_HABITAT_FIELDS
 
 
 def extract_for_download(

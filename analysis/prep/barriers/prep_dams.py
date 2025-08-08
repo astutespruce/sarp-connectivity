@@ -104,6 +104,8 @@ qa_dir = barriers_dir / "qa"
 
 start = time()
 
+huc2s = sorted(pd.read_feather(boundaries_dir / "HUC2.feather", columns=["HUC2"]).HUC2.values)
+
 
 ### Read dams for analysis region states states and merge
 print("Reading dams in analysis region states")
@@ -1126,15 +1128,12 @@ write_dataframe(df, qa_dir / "dams.fgb")
 
 
 # Extract out only the snapped ones that are not on loops
-df = df.loc[df.primary_network | df.largefish_network | df.smallfish_network].reset_index(drop=True)
-df.lineID = df.lineID.astype("uint32")
-df.NHDPlusID = df.NHDPlusID.astype("uint64")
-
-print("Serializing {:,} snapped dams".format(len(df)))
-df[
+snapped_dams = df.loc[
+    df.primary_network | df.largefish_network | df.smallfish_network,
     [
         "geometry",
         "id",
+        "SARPID",
         "HUC2",
         "lineID",
         "NHDPlusID",
@@ -1144,10 +1143,17 @@ df[
         "removed",
         "YearRemoved",
         "invasive",
-    ]
-].to_feather(
-    snapped_dir / "dams.feather",
-)
+    ],
+].reset_index(drop=True)
+
+# fix data types
+snapped_dams.lineID = snapped_dams.lineID.astype("uint32")
+snapped_dams.NHDPlusID = snapped_dams.NHDPlusID.astype("uint64")
+snapped_dams["HUC2"] = snapped_dams.HUC2.astype(pd.CategoricalDtype(categories=huc2s, ordered=True))
+
+print("Serializing {:,} snapped dams".format(len(snapped_dams)))
+
+snapped_dams.to_feather(snapped_dir / "dams.feather")
 write_dataframe(df, qa_dir / "snapped_dams.fgb")
 
 

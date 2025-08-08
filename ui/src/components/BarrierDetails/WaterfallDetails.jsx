@@ -24,7 +24,7 @@ const WaterfallDetails = ({
   lat,
   lon,
   alteredupstreammiles,
-  alteredupstreammainstemmiles,
+  alteredmainstemupstreammiles,
   annualflow,
   basin,
   coldupstreammiles,
@@ -60,7 +60,7 @@ const WaterfallDetails = ({
   percentcold,
   percentresilient,
   perennialupstreammiles,
-  perennialupstreammainstemmiles,
+  perennialmainstemupstreammiles,
   regionalsgcnspp,
   salmonidesu,
   sizeclasses,
@@ -78,12 +78,12 @@ const WaterfallDetails = ({
   totaldownstreamsmallbarriers,
   totaldownstreamwaterfalls,
   totalupstreammiles,
-  totalupstreammainstemmiles,
+  totalmainstemupstreammiles,
   trout,
   unalteredupstreammiles,
-  unalteredupstreammainstemmiles,
-  upstreamunalteredwaterbodyacres,
-  upstreamunalteredwetlandacres,
+  unalteredmainstemupstreammiles,
+  unalteredwaterbodyacres,
+  unalteredwetlandacres,
   wilderness,
   wildscenicriver,
   invasive,
@@ -162,8 +162,8 @@ const WaterfallDetails = ({
             totaldownstreamdams={totaldownstreamdams}
             totaldownstreamsmallbarriers={totaldownstreamsmallbarriers}
             totaldownstreamwaterfalls={totaldownstreamwaterfalls}
-            upstreamunalteredwaterbodyacres={upstreamunalteredwaterbodyacres}
-            upstreamunalteredwetlandacres={upstreamunalteredwetlandacres}
+            unalteredwaterbodyacres={unalteredwaterbodyacres}
+            unalteredwetlandacres={unalteredwetlandacres}
           />
         ) : (
           <NoNetworkInfo
@@ -200,7 +200,7 @@ const WaterfallDetails = ({
         </Section>
       ) : null}
 
-      {hasnetwork && totalupstreammainstemmiles > 0 ? (
+      {hasnetwork && totalmainstemupstreammiles > 0 ? (
         <Section title="Mainstem network information">
           <MainstemNetworkInfo
             barrierType={barrierType}
@@ -210,10 +210,10 @@ const WaterfallDetails = ({
             totaldownstreamdams={totaldownstreamdams}
             totaldownstreamsmallbarriers={totaldownstreamsmallbarriers}
             totaldownstreamwaterfalls={totaldownstreamwaterfalls}
-            totalupstreammainstemmiles={totalupstreammainstemmiles}
-            perennialupstreammainstemmiles={perennialupstreammainstemmiles}
-            alteredupstreammainstemmiles={alteredupstreammainstemmiles}
-            unalteredupstreammainstemmiles={unalteredupstreammainstemmiles}
+            totalmainstemupstreammiles={totalmainstemupstreammiles}
+            perennialmainstemupstreammiles={perennialmainstemupstreammiles}
+            alteredmainstemupstreammiles={alteredmainstemupstreammiles}
+            unalteredmainstemupstreammiles={unalteredmainstemupstreammiles}
             freelineardownstreammiles={freelineardownstreammiles}
             freeperenniallineardownstreammiles={
               freeperenniallineardownstreammiles
@@ -279,7 +279,7 @@ WaterfallDetails.propTypes = {
   lon: PropTypes.number.isRequired,
   hasnetwork: PropTypes.bool.isRequired,
   alteredupstreammiles: PropTypes.number,
-  alteredupstreammainstemmiles: PropTypes.number,
+  alteredmainstemupstreammiles: PropTypes.number,
   annualflow: PropTypes.number,
   basin: PropTypes.string,
   coldupstreammiles: PropTypes.number,
@@ -314,7 +314,7 @@ WaterfallDetails.propTypes = {
   percentcold: PropTypes.number,
   percentresilient: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
-  perennialupstreammainstemmiles: PropTypes.number,
+  perennialmainstemupstreammiles: PropTypes.number,
   regionalsgcnspp: PropTypes.number,
   salmonidesu: PropTypes.string,
   sizeclasses: PropTypes.number,
@@ -332,12 +332,12 @@ WaterfallDetails.propTypes = {
   totaldownstreamsmallbarriers: PropTypes.number,
   totaldownstreamwaterfalls: PropTypes.number,
   totalupstreammiles: PropTypes.number,
-  totalupstreammainstemmiles: PropTypes.number,
+  totalmainstemupstreammiles: PropTypes.number,
   trout: PropTypes.string,
   unalteredupstreammiles: PropTypes.number,
-  unalteredupstreammainstemmiles: PropTypes.number,
-  upstreamunalteredwaterbodyacres: PropTypes.number,
-  upstreamunalteredwetlandacres: PropTypes.number,
+  unalteredmainstemupstreammiles: PropTypes.number,
+  unalteredwaterbodyacres: PropTypes.number,
+  unalteredwetlandacres: PropTypes.number,
   wilderness: PropTypes.number,
   wildscenicriver: PropTypes.number,
   invasive: PropTypes.bool,
@@ -347,7 +347,7 @@ WaterfallDetails.propTypes = {
 
 WaterfallDetails.defaultProps = {
   alteredupstreammiles: 0,
-  alteredupstreammainstemmiles: 0,
+  alteredmainstemupstreammiles: 0,
   annualflow: null,
   basin: null,
   coldupstreammiles: 0,
@@ -382,7 +382,7 @@ WaterfallDetails.defaultProps = {
   percentcold: 0,
   percentresilient: 0,
   perennialupstreammiles: 0,
-  perennialupstreammainstemmiles: 0,
+  perennialmainstemupstreammiles: 0,
   regionalsgcnspp: 0,
   salmonidesu: null,
   sizeclasses: null,
@@ -400,12 +400,12 @@ WaterfallDetails.defaultProps = {
   totaldownstreamsmallbarriers: 0,
   totaldownstreamwaterfalls: 0,
   totalupstreammiles: 0,
-  totalupstreammainstemmiles: 0,
+  totalmainstemupstreammiles: 0,
   trout: null,
   unalteredupstreammiles: 0,
-  unalteredupstreammainstemmiles: 0,
-  upstreamunalteredwaterbodyacres: 0,
-  upstreamunalteredwetlandacres: 0,
+  unalteredmainstemupstreammiles: 0,
+  unalteredwaterbodyacres: 0,
+  unalteredwetlandacres: 0,
   wilderness: null,
   wildscenicriver: null,
   invasive: false,

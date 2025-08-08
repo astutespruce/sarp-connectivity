@@ -1,11 +1,13 @@
 from pathlib import Path
 import pyarrow as pa
+import warnings
 
 import pandas as pd
 import pyarrow.compute as pc
 import numpy as np
 
 from api.constants import SPECIES_HABITAT_FIELDS
+from analysis.constants import EPA_CAUSE_TO_CODE
 from analysis.lib.io import read_arrow_tables
 from analysis.rank.lib.metrics import (
     classify_gain_miles,
@@ -20,17 +22,21 @@ from analysis.rank.lib.metrics import (
 )
 from api.lib.tiers import calculate_tiers, METRICS
 
+# TODO: convert some operations to pyarrow instead and then to pandas at the end;
+# then remove this filter
+warnings.filterwarnings("ignore", message=".*This is usually the result of calling `frame.insert`.*")
+
 
 NETWORK_COLUMNS = [
     "id",
+    # "kind", # not used
+    # "HUC2", # not used
     "upNetID",
     "downNetID",
-    "GainMiles",
-    "PerennialGainMiles",
-    "TotalNetworkMiles",
-    "TotalPerennialNetworkMiles",
+    # upstream / downstream functional network mileage
     "TotalUpstreamMiles",
     "PerennialUpstreamMiles",
+    "IntermittentUpstreamMiles",
     "AlteredUpstreamMiles",
     "UnalteredUpstreamMiles",
     "PerennialUnalteredUpstreamMiles",
@@ -39,85 +45,111 @@ NETWORK_COLUMNS = [
     "TotalDownstreamMiles",
     "FreeDownstreamMiles",
     "FreePerennialDownstreamMiles",
+    "FreeIntermittentDownstreamMiles",
     "FreeAlteredDownstreamMiles",
     "FreeUnalteredDownstreamMiles",
-    # "FreePerennialUnalteredDownstreamMiles",  # not used
+    # "FreePerennialUnalteredDownstreamMiles", # not used
     "FreeResilientDownstreamMiles",
     "FreeColdDownstreamMiles",
-    "PercentAltered",
-    "PercentPerennialAltered",
+    "GainMiles",
+    "FunctionalNetworkMiles",
+    "PerennialGainMiles",
+    "PerennialFunctionalNetworkMiles",
+    # other upstream functional network statistics
     "PercentUnaltered",
     "PercentPerennialUnaltered",
     "PercentResilient",
     "PercentCold",
-    "IntermittentUpstreamMiles",
-    "FreeIntermittentDownstreamMiles",
-    "UpstreamUnalteredWaterbodyAcres",
-    "UpstreamUnalteredWetlandAcres",
+    "Landcover",
+    "SizeClasses",
+    "PerennialSizeClasses",
+    "UnalteredWaterbodyAcres",
+    "UnalteredWetlandAcres",
+    "UpstreamDrainageAcres",
+    # "FloodplainAcres", # not used
+    # "NatFloodplainAcres", # not used
+    "HasUpstreamEJTract",
+    "HasUpstreamEJTribal",
+    # upstream functional and total barrier counts
+    "UpstreamWaterfalls",
+    "UpstreamDams",
+    "UpstreamSmallBarriers",
+    "UpstreamRoadCrossings",
+    "UpstreamHeadwaters",
+    "TotalUpstreamWaterfalls",
+    "TotalUpstreamDams",
+    "TotalUpstreamSmallBarriers",
+    "TotalUpstreamRoadCrossings",
+    "TotalUpstreamHeadwaters",
+    # upstream / downstream mainstem mileage
+    "TotalMainstemUpstreamMiles",
+    "PerennialMainstemUpstreamMiles",
+    "IntermittentMainstemUpstreamMiles",
+    "AlteredMainstemUpstreamMiles",
+    "UnalteredMainstemUpstreamMiles",
+    "PerennialUnalteredMainstemUpstreamMiles",
+    "TotalMainstemDownstreamMiles",
+    "FreeMainstemDownstreamMiles",
+    "FreePerennialMainstemDownstreamMiles",
+    "FreeIntermittentMainstemDownstreamMiles",
+    "FreeAlteredMainstemDownstreamMiles",
+    "FreeUnalteredMainstemDownstreamMiles",
     "MainstemGainMiles",
+    "MainstemNetworkMiles",
     "PerennialMainstemGainMiles",
-    "TotalMainstemNetworkMiles",
-    "TotalMainstemPerennialNetworkMiles",
-    "TotalUpstreamMainstemMiles",
-    "PerennialUpstreamMainstemMiles",
-    "IntermittentUpstreamMainstemMiles",
-    "AlteredUpstreamMainstemMiles",
-    "UnalteredUpstreamMainstemMiles",
-    "PerennialUnalteredUpstreamMainstemMiles",
+    "PerennialMainstemNetworkMiles",
+    # mainstem upstream / downstream EPA impairments (these will be consolidated into a single upstream field and downstream field)
+    "HasMainstemUpstreamTemperature",
+    "HasMainstemUpstreamCauseUnknownImpairedBiota",
+    "HasMainstemUpstreamOxygenDepletion",
+    "HasMainstemUpstreamAlgalGrowth",
+    "HasMainstemUpstreamFlowAlterations",
+    "HasMainstemUpstreamHabitatAlterations",
+    "HasMainstemUpstreamHydrologicAlteration",
+    "HasMainstemUpstreamCauseUnknownFishKills",
+    "HasMainstemDownstreamTemperature",
+    "HasMainstemDownstreamCauseUnknownImpairedBiota",
+    "HasMainstemDownstreamOxygenDepletion",
+    "HasMainstemDownstreamAlgalGrowth",
+    "HasMainstemDownstreamFlowAlterations",
+    "HasMainstemDownstreamHabitatAlterations",
+    "HasMainstemDownstreamHydrologicAlteration",
+    "HasMainstemDownstreamCauseUnknownFishKills",
+    # other mainstem stats
+    "MainstemSizeClasses",
     "PercentMainstemUnaltered",
+    # linear downstream mileage
+    "TotalLinearDownstreamMiles",
     "FreeLinearDownstreamMiles",
     "FreePerennialLinearDownstreamMiles",
     "FreeIntermittentLinearDownstreamMiles",
     "FreeAlteredLinearDownstreamMiles",
     "FreeUnalteredLinearDownstreamMiles",
-    "natfldpln",
-    "sizeclasses",
-    "perennial_sizeclasses",
-    "mainstem_sizeclasses",
-    # "barrier",  # not used
-    "fn_da_acres",
-    "fn_waterfalls",
-    "fn_dams",
-    "fn_small_barriers",
-    "fn_road_crossings",
-    "fn_headwaters",
-    "tot_waterfalls",
-    "tot_dams",
-    "tot_small_barriers",
-    "tot_headwaters",
-    "tot_road_crossings",
-    "totd_waterfalls",
-    "totd_dams",
-    "totd_small_barriers",
-    "totd_road_crossings",
-    "miles_to_outlet",
-    "invasive_network",
+    # other linear downstream stats
+    "HasLinearDownstreamEJTract",
+    "HasLinearDownstreamEJTribal",
+    # statistics for bottom of network
+    "HasDownstreamInvasiveBarrier",  # renamed to InvasiveNetwork for backward compatibility
+    # "OriginHUC2", # not used
+    # "FlowsToOcean",  # not used from networks; uses values from barriers master
+    # "FlowsToGreatLakes",  # not used from networks; uses values from barriers master
+    "MilesToOutlet",
+    # total downstream counts
+    "TotalDownstreamWaterfalls",
+    "TotalDownstreamDams",
+    "TotalDownstreamSmallBarriers",
+    "TotalDownstreamRoadCrossings",
+    # "TotalDownstreamBarriers", # not used
+    # upstream / downstream barrier info
+    # "UpstreamBarrierID", # not used
+    "UpstreamBarrierMiles",
+    "UpstreamBarrier",
+    "UpstreamBarrierSARPID",
+    # "DownstreamBarrierID", # not used
+    "DownstreamBarrier",
+    "DownstreamBarrierMiles",
+    "DownstreamBarrierSARPID",
 ] + SPECIES_HABITAT_FIELDS
-
-
-NETWORK_COLUMN_NAMES = {
-    "natfldpln": "Landcover",
-    "sizeclasses": "SizeClasses",
-    "perennial_sizeclasses": "PerennialSizeClasses",
-    "mainstem_sizeclasses": "MainstemSizeClasses",
-    "fn_da_acres": "UpstreamDrainageAcres",
-    "fn_dams": "UpstreamDams",
-    "fn_small_barriers": "UpstreamSmallBarriers",
-    "fn_road_crossings": "UpstreamRoadCrossings",
-    "fn_waterfalls": "UpstreamWaterfalls",
-    "fn_headwaters": "UpstreamHeadwaters",
-    "tot_dams": "TotalUpstreamDams",
-    "tot_small_barriers": "TotalUpstreamSmallBarriers",
-    "tot_road_crossings": "TotalUpstreamRoadCrossings",
-    "tot_waterfalls": "TotalUpstreamWaterfalls",
-    "tot_headwaters": "TotalUpstreamHeadwaters",
-    "totd_dams": "TotalDownstreamDams",
-    "totd_road_crossings": "TotalDownstreamRoadCrossings",
-    "totd_small_barriers": "TotalDownstreamSmallBarriers",
-    "totd_waterfalls": "TotalDownstreamWaterfalls",
-    "miles_to_outlet": "MilesToOutlet",
-    "invasive_network": "InvasiveNetwork",
-}
 
 
 def get_network_results(df, network_type, state_ranks=False):
@@ -141,12 +173,16 @@ def get_network_results(df, network_type, state_ranks=False):
         Contains network metrics and tiers
     """
 
-    networks = read_arrow_tables(
-        [Path("data/networks/clean") / huc2 / f"{network_type}_network.feather" for huc2 in sorted(df.HUC2.unique())],
-    ).to_pandas()
     networks = (
-        networks[[c for c in NETWORK_COLUMNS if c in networks.columns]]
-        .rename(columns=NETWORK_COLUMN_NAMES)
+        read_arrow_tables(
+            [
+                Path("data/networks/clean") / huc2 / f"{network_type}_network.feather"
+                for huc2 in sorted(df.HUC2.unique())
+            ],
+            columns=NETWORK_COLUMNS,
+        )
+        .rename_columns({"HasDownstreamInvasiveBarrier": "InvasiveNetwork"})
+        .to_pandas()
         .set_index("id")
     )
 
@@ -169,15 +205,20 @@ def get_network_results(df, network_type, state_ranks=False):
 
     # update data types and calculate total fields
     # calculate size classes GAINED instead of total
-    # doesn't apply to those that don't have upstream networks
+    # doesn't apply to those that don't have upstream networks or where size class
+    # is unknown for all upstream segments
     for col in ["SizeClasses", "PerennialSizeClasses", "MainstemSizeClasses"]:
         networks[col] = networks[col].astype("int8")
         networks.loc[networks[col] > 0, col] -= 1
 
+    # fill upstream / downstream barrier info
+    for col in ["UpstreamBarrier", "UpstreamBarrierSARPID", "DownstreamBarrier", "DownstreamBarrierSARPID"]:
+        networks[col] = networks[col].astype("str").fillna("")
+
     ### Calculate classes used for filtering
     networks["GainMilesClass"] = classify_gain_miles(networks.GainMiles)
 
-    # TODO: not available yet for removed barriers, so fill with -1
+    # not available yet for removed barriers, so fill with -1
     if networks.MainstemGainMiles.notnull().sum() > 0:
         networks["MainstemGainMilesClass"] = classify_mainstem_gain_miles(networks.MainstemGainMiles)
     else:
@@ -187,10 +228,8 @@ def get_network_results(df, network_type, state_ranks=False):
     networks["PercentResilientClass"] = classify_percent_resilient(networks.PercentResilient)
     networks["PercentColdClass"] = classify_percent_cold(networks.PercentCold)
 
-    networks["UpstreamUnalteredWaterbodyClass"] = classify_unaltered_waterbody_area(
-        networks.UpstreamUnalteredWaterbodyAcres
-    )
-    networks["UpstreamUnalteredWetlandClass"] = classify_unaltered_wetland_area(networks.UpstreamUnalteredWetlandAcres)
+    networks["UnalteredWaterbodyClass"] = classify_unaltered_waterbody_area(networks.UnalteredWaterbodyAcres)
+    networks["UnalteredWetlandClass"] = classify_unaltered_wetland_area(networks.UnalteredWetlandAcres)
 
     # NOTE: per guidance from SARP, do not include count of waterfalls
     if network_type == "dams":
@@ -216,7 +255,7 @@ def get_network_results(df, network_type, state_ranks=False):
     # NOTE: upNetID or downNetID may be 0 if there aren't networks on that side, but
     # we set to int dtype instead of uint to allow -1 for missing data later
     for col in ["upNetID", "downNetID"]:
-        networks[col] = networks[col].astype("int")
+        networks[col] = networks[col].astype("int64")
 
     for stat_type in [
         "Upstream",
@@ -229,6 +268,28 @@ def get_network_results(df, network_type, state_ranks=False):
 
     for col in ("Landcover",):
         networks[col] = networks[col].astype("int8")
+
+    # Consolidate upstream / downstream EPA impairments into codes
+    # TODO: could probably use bit-packing for this if we can filter by this in UI
+    # TODO: convert to coded domain when saving file
+    upstream_cols = []
+    downstream_cols = []
+    for key in EPA_CAUSE_TO_CODE.keys():
+        suffix = key.title().replace("_", "")
+        upstream_col = f"HasMainstemUpstream{suffix}"
+        upstream_cols.append(upstream_col)
+        downstream_col = f"HasMainstemDownstream{suffix}"
+        downstream_cols.append(downstream_col)
+        networks[upstream_col] = networks[upstream_col].map({False: "", True: EPA_CAUSE_TO_CODE[key]})
+        networks[downstream_col] = networks[downstream_col].map({False: "", True: EPA_CAUSE_TO_CODE[key]})
+
+    networks["MainstemUpstreamImpairment"] = networks[upstream_cols].apply(
+        lambda row: ",".join([x for x in row if x]), axis=1
+    )
+    networks["MainstemDownstreamImpairment"] = networks[downstream_cols].apply(
+        lambda row: ",".join([x for x in row if x]), axis=1
+    )
+    networks = networks.drop(columns=upstream_cols + downstream_cols)
 
     if not state_ranks:
         return networks.drop(columns=["Unranked", "State", "FlowsToOcean", "FlowsToGreatLakes"])
@@ -270,7 +331,10 @@ def get_removed_network_results(df, network_type):
     """
 
     networks = pd.read_feather(f"data/networks/clean/removed/removed_{network_type}_networks.feather").set_index("id")
-    networks = networks[[c for c in NETWORK_COLUMNS if c in networks.columns]].rename(columns=NETWORK_COLUMN_NAMES)
+    # NOTE: many columns are not calculated for removed barriers
+    networks = networks[[c for c in NETWORK_COLUMNS if c in networks.columns]].rename(
+        columns={"HasDownstreamInvasiveBarrier": "InvasiveNetwork"}
+    )
 
     # join back to df using inner join, which limits to barrier types present in df
     networks = networks.join(df[df.columns.intersection(["Unranked", "State"])], how="inner")
@@ -296,7 +360,7 @@ def get_removed_network_results(df, network_type):
     # Convert dtypes to allow missing data when joined to barriers later
     for col in ["upNetID", "downNetID"]:
         # Force to -1 since these aren't part of standard networks
-        networks[col] = -1
+        networks[col] = np.int64(-1)
 
     for col in ("Landcover",):
         networks[col] = networks[col].astype("int8")
