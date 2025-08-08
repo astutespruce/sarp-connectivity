@@ -28,7 +28,7 @@
     "buffer": "^6.0.3",
     "crossfilter2": "^1.5.4",
     "dequal": "^2.0.2",
-    "dotenv": "^17.2.1",
+    "dotenv": "^16.6.1",
     "fetch-jsonp": "^1.3.0",
     "file-saver": "^2.0.5",
     "gastby": "^1.0.1",
