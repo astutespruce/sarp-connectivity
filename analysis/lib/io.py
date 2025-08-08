@@ -1,4 +1,5 @@
 from pathlib import Path
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -72,12 +73,32 @@ def read_arrow_tables(paths, columns=None, filter=None, new_fields=None, dict_fi
     -------
     pyarrow.Table
     """
+
+    # validate requested columns
+    if columns is not None:
+        detected_columns = []
+        for path in paths:
+            if Path(path).exists():
+                detected_columns.extend(dataset(path, format="feather").schema.names)
+        missing = set(columns).difference(set(detected_columns))
+        if missing:
+            raise ValueError(f"Columns not present in any of the source paths: {', '.join(missing)}")
+
     merged = None
     for i, path in enumerate(paths):
         if not Path(path).exists():
+            warnings.warn(f"{path} does not exist")
             continue
 
-        table = dataset(path, format="feather").to_table(columns=columns, filter=filter)
+        reader = dataset(path, format="feather")
+
+        # select subset of columns present in this particular dataset
+        if columns is not None:
+            read_columns = [c for c in reader.schema.names if c in columns]
+        else:
+            read_columns = None
+
+        table = reader.to_table(columns=read_columns, filter=filter)
 
         if new_fields is not None:
             for field, values in new_fields.items():

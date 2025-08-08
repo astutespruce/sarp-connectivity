@@ -848,14 +848,13 @@ TNC_COLDWATER_TO_DOMAIN = {
 
 
 EPA_CAUSE_TO_CODE = {
-    "temperature": "t",
-    "cause_unknown_impaired_biota": "b",
-    "oxygen_depletion": "o",
     "algal_growth": "a",
-    "flow_alterations": "f",
-    "habitat_alterations": "a",
-    "hydrologic_alteration": "y",
+    "cause_unknown_impaired_biota": "b",
     "cause_unknown_fish_kills": "f",
+    "habitat_alterations": "h",
+    "oxygen_depletion": "o",
+    "temperature": "t",
+    "hydrologic_alteration": "y",
 }
 
 TU_BROOK_TROUT_PORTFOLIO_TO_DOMAIN = {

@@ -102,7 +102,14 @@ def unique(items):
 
 
 # Fields that have multiple values present, encoded as comma-delimited string
-MULTIPLE_VALUE_FIELDS = ["Trout", "SalmonidESU", "DisadvantagedCommunity", "FishHabitatPartnership"]
+MULTIPLE_VALUE_FIELDS = [
+    "Trout",
+    "SalmonidESU",
+    "DisadvantagedCommunity",
+    "FishHabitatPartnership",
+    "MainstemUpstreamImpairment",
+    "MainstemDownstreamImpairment",
+]
 BOOLEAN_FILTER_FIELDS = ["Removed"]
 
 
@@ -121,10 +128,10 @@ METRIC_FIELDS = [
     "SizeClasses",
     "PerennialSizeClasses",
     "MainstemSizeClasses",
-    "UpstreamBarrierID",
+    "UpstreamBarrierSARPID",
     "UpstreamBarrier",
     "UpstreamBarrierMiles",
-    "DownstreamBarrierID",
+    "DownstreamBarrierSARPID",
     "DownstreamBarrier",
     "DownstreamBarrierMiles",
     # full upstream functional network
@@ -154,8 +161,6 @@ METRIC_FIELDS = [
     "FreeUnalteredDownstreamMiles",
     "FreeResilientDownstreamMiles",
     "FreeColdDownstreamMiles",
-    "HasDownstreamEJTract",
-    "HasDownstreamEJTribal",
     # upstream / downstream functional network
     "GainMiles",
     "PerennialGainMiles",
@@ -169,7 +174,7 @@ METRIC_FIELDS = [
     "UnalteredMainstemUpstreamMiles",
     "PerennialUnalteredMainstemUpstreamMiles",
     "PercentMainstemUnaltered",
-    "UpstreamMainstemImpairment",
+    "MainstemUpstreamImpairment",
     # downstream mainstem network
     "TotalMainstemDownstreamMiles",
     "FreeMainstemDownstreamMiles",
@@ -177,7 +182,7 @@ METRIC_FIELDS = [
     "FreeIntermittentMainstemDownstreamMiles",
     "FreeAlteredMainstemDownstreamMiles",
     "FreeUnalteredMainstemDownstreamMiles",
-    "DownstreamMainstemImpairment",
+    "MainstemDownstreamImpairment",
     # mainstem total / gain
     "MainstemGainMiles",
     "PerennialMainstemGainMiles",
@@ -189,6 +194,8 @@ METRIC_FIELDS = [
     "FreeIntermittentLinearDownstreamMiles",
     "FreeAlteredLinearDownstreamMiles",
     "FreeUnalteredLinearDownstreamMiles",
+    "HasLinearDownstreamEJTract",
+    "HasLinearDownstreamEJTribal",
 ]
 
 # Per guidance from SARP, only expose upstream functional network counts
@@ -357,6 +364,8 @@ FILTER_FIELDS = [
     "UnalteredWetlandClass",
     "DiadromousHabitat",
     "YearSurveyedClass",
+    "MainstemUpstreamImpairment",
+    "MainstemDownstreamImpairment",
 ]
 
 DAM_FILTER_FIELDS = FILTER_FIELDS + [
@@ -729,6 +738,10 @@ WF_CORE_FIELDS = (
         "FishHabitatPartnership",
         "OwnerType",
         "ProtectedLand",
+        "NativeTerritories",
+        "Resilience",
+        "Cold",
+        "BrookTroutPortfolio",
         "WildScenicRiver",
         "Wilderness",
         # Watershed names
@@ -1445,12 +1458,13 @@ TU_BROOK_TROUT_PORTFOLIO_TO_DOMAIN = {
 # NOTE: EPA causes are stored as comma-delimited list
 # Currently not unpacked for the user
 EPA_CAUSE_CODES = {
+    "a": "algal_growth",
+    "b": "cause_unknown_impaired_biota",
+    "f": "cause_unknown_fish_kills",
+    "h": "habitat_alterations",
+    "o": "oxygen_depletion",
     "t": "temperature",
-    "b": "impaired biota (cause unknown)",
-    "o": "oxygen depletion",
-    "a": "habitat alterations",
-    "f": "fish kills (cause unknown)",
-    "y": "hydrologic alteration",
+    "y": "hydrologic_alteration",
 }
 
 
@@ -1478,10 +1492,10 @@ DOMAINS = {
     "Removed": BOOLEAN_DOMAIN,
     "EJTract": BOOLEAN_DOMAIN,
     "HasUpstreamEJTract": BOOLEAN_OFFNETWORK_DOMAIN,
-    "HasDownstreamEJTract": BOOLEAN_OFFNETWORK_DOMAIN,
+    "HasLinearDownstreamEJTract": BOOLEAN_OFFNETWORK_DOMAIN,
     "EJTribal": BOOLEAN_DOMAIN,
     "HasUpstreamEJTribal": BOOLEAN_OFFNETWORK_DOMAIN,
-    "HasDownstreamEJTribal": BOOLEAN_OFFNETWORK_DOMAIN,
+    "HasLinearDownstreamEJTribal": BOOLEAN_OFFNETWORK_DOMAIN,
     "DiadromousHabitat": DIADROMOUS_HABITAT_DOMAIN,
     "Resilience": TNC_RESILIENCE_DOMAIN,
     "Cold": TNC_COLDWATER_DOMAIN,
@@ -1624,10 +1638,10 @@ FIELD_DEFINITIONS = {
     "Wilderness": "Within a designated wilderness area in the Protected Areas Database of the United States (v4).",
     "EJTract": "Within an overburdened and underserved Census tracts a defined by the Climate and Environmental Justice Screening tool.",
     "HasUpstreamEJTract": "Upstream functional network overlaps with an overburdened and underserved Census tracts a defined by the Climate and Environmental Justice Screening tool.  -1 = not available.",
-    "HasDownstreamEJTract": "Downstream functional network overlaps with an overburdened and underserved Census tracts a defined by the Climate and Environmental Justice Screening tool.  -1 = not available.",
+    "HasLinearDownstreamEJTract": "Downstream linear network overlaps with an overburdened and underserved Census tracts a defined by the Climate and Environmental Justice Screening tool.  -1 = not available.",
     "EJTribal": "Within a disadvantaged tribal community as defined by the Climate and Environmental Justice Screening tool based on American Indian and Alaska Native areas as defined by the US Census Bureau.  Note: all tribal communities considered disadvantaged by the Climate and Environmental Justice Screening tool.",
     "HasUpstreamEJTribal": "Upstream functional network overlaps with a disadvantaged tribal community as defined by the Climate and Environmental Justice Screening tool.  See EJTribal for more information.  -1 = not available.",
-    "HasDownstreamEJTribal": "Downstream functional network overlaps with a disadvantaged tribal community as defined by the Climate and Environmental Justice Screening tool.  See EJTribal for more information.  -1 = not available.",
+    "HasLinearDownstreamEJTribal": "Downstream linear network overlaps with a disadvantaged tribal community as defined by the Climate and Environmental Justice Screening tool.  See EJTribal for more information.  -1 = not available.",
     "NativeTerritories": "Native / indigenous people's territories as mapped by Native Land Digital (https://native-land.ca/",
     "Resilience": "Freshwater resilience category of the watershed where the {type} occurs identified by The Nature Conservancy (v0.44)",
     "Cold": "Cold water temperature score of the watershed where the {type} occurs identified by The Nature Conservancy (March 2024)",
@@ -1658,12 +1672,12 @@ FIELD_DEFINITIONS = {
     "PerennialSizeClasses": "number of unique upstream size classes of perennial stream reaches that could be gained by removal of this {type}. -1 = not available.",
     "MainstemSizeClasses": "number of unique upstream size classes within the upstream mainstem network that could be gained by removal of this {type}. -1 = not available.",
     # upstream / downstream barrier info
-    "UpstreamBarrierID": "SARPID of the nearest upstream barrier (possible types are based on the network analysis scenario), if present.  A given functional network may terminate in multiple upstream barriers; this is the nearest barrier.  Blank indicates no upstream barrier.",
-    "UpstreamBarrier": "type of the nearest upstream barrier. Blank indicates no upstream barrier.",
-    "UpstreamBarrierMiles": "distance in miles to the nearest upstream barrier.  0 = no upstream barrier.",
-    "DownstreamBarrierID": "SARPID of the next downstream barrier, if present.  Blank indicates no downstream barrier.",
-    "DownstreamBarrier": "type of the next downstream barrier.  Blank indicates no downstream barrier.",
-    "DownstreamBarrierMiles": "distance in miles to the next downstream barrier.  0 = no downstream barrier.",
+    "UpstreamBarrierSARPID": "SARPID of the nearest upstream barrier (possible types are based on the network analysis scenario), if present.  A given functional network may terminate in multiple upstream barriers; this is the nearest barrier.  Blank indicates no upstream barrier.  Not available for removed barriers.",
+    "UpstreamBarrier": "type of the nearest upstream barrier. Blank indicates no upstream barrier.  Not available for removed barriers.",
+    "UpstreamBarrierMiles": "distance in miles to the nearest upstream barrier.  0 = no upstream barrier, -1 = not available.",
+    "DownstreamBarrierSARPID": "SARPID of the next downstream barrier, if present.  Blank indicates no downstream barrier.  Not available for removed barriers.",
+    "DownstreamBarrier": "type of the next downstream barrier.  Blank indicates no downstream barrier.  Not available for removed barriers.",
+    "DownstreamBarrierMiles": "distance in miles to the next downstream barrier.  0 = no downstream barrier, -1 = not available.",
     # upstream and downstream functional network stats
     "TotalUpstreamMiles": "number of miles in the upstream functional river network from this {type}, including miles in waterbodies. -1 = not available.",
     "PerennialUpstreamMiles": "number of perennial miles in the upstream functional river network from this {type}, including miles in waterbodies.  Perennial reaches are all those not specifically coded by NHD as ephemeral or intermittent, and include other types, such as canals and ditches that may not actually be perennial.  Networks are constructed using all flowlines, not just perennial reaches. -1 = not available.",
@@ -1701,7 +1715,7 @@ FIELD_DEFINITIONS = {
     "UnalteredMainstemUpstreamMiles": "number of unaltered miles in the upstream mainstem river network from this {type}, including miles in waterbodies.  See TotalMainstemUpstreamMiles for definition of mainstem and UnalteredUpstreamMiles for definition of unaltered reaches.  0 = no mainstem, -1 = not available.",
     "PerennialUnalteredMainstemUpstreamMiles": "number of unaltered perennial miles in the upstream mainstem river network from this {type}, including miles in waterbodies.  See TotalMainstemUpstreamMiles for definition of mainstem and PerennialUnalteredUpstreamMiles for definition of perennial unaltered reaches.   0 = no mainstem, -1 = not available.",
     "PercentMainstemUnaltered": "percent of the upstream mainstem river network length from this {type} that is not specifically identified in NHD or the National Wetlands Inventory as altered (canal / ditch, within a reservoir, or other channel alteration).  0 = no mainstem, -1 = not available.",
-    "UpstreamMainstemImpairment": "List of water quality impairments present in the upstream mainstem network for this {type}, derived from the EPA ATTAINS water quality dataset (https://www.epa.gov/waterdata/attains) associated with NHD HR flowlines.  Please see https://aquaticbarriers.org/epa_methods for more information.  t = temperature, b = impaired biota (cause unknown), o = oxygen depletion, a = habitat alterations, f = fish kills (source unknown), y = hydrologic alteration.  -1 = not available.",
+    "MainstemUpstreamImpairment": "List of water quality impairments present in the upstream mainstem network for this {type}, derived from the EPA ATTAINS water quality dataset (https://www.epa.gov/waterdata/attains) associated with NHD HR flowlines.  Please see https://aquaticbarriers.org/epa_methods for more information.  t = temperature, b = impaired biota (cause unknown), o = oxygen depletion, a = habitat alterations, f = fish kills (source unknown), y = hydrologic alteration.  -1 = not available.",
     # downstream mainstem network
     "TotalMainstemDownstreamMiles": "number of miles in the mainstem network from this {type}, including miles in waterbodies.  Note: this measures the length of the complete downstream network including all tributaries, and is not limited to the shortest downstream path.  0 = no mainstem, -1 = not available.",
     "FreeMainstemDownstreamMiles": "number of free-flowing miles in the downstream mainstem network.  Excludes miles in altered reaches in waterbodies.  0 = no mainstem, -1 = not available.",
@@ -1709,7 +1723,7 @@ FIELD_DEFINITIONS = {
     "FreeIntermittentMainstemDownstreamMiles": "number of free-flowing ephemeral and intermittent miles in the downstream mainstem network.  Excludes miles altered reaches in waterbodies.  See IntermittentUpstreamMiles for definition of intermittent reaches. 0 = no mainstem, -1 = not available.",
     "FreeAlteredMainstemDownstreamMiles": "number of free-flowing altered miles in the downstream mainstem network from this {type}.  Excludes miles in altered reaches in waterbodies.  See AlteredUpstreamMiles for definition of altered reaches. 0 = no mainstem,  -1 = not available.",
     "FreeUnalteredMainstemDownstreamMiles": "number of free-flowing altered miles in the downstream mainstem network from this {type}.  Excludes miles in altered reaches in waterbodies.  See UnalteredUpstreamMiles for definition of unaltered reaches.  0 = no mainstem,  -1 = not available.",
-    "DownstreamMainstemImpairment": "List of water quality impairments present in the downstream mainstem network for this {type}, derived from the EPA ATTAINS water quality dataset (https://www.epa.gov/waterdata/attains) associated with NHD HR flowlines.  Please see https://aquaticbarriers.org/epa_methods for more information.  t = temperature, b = impaired biota (cause unknown), o = oxygen depletion, a = habitat alterations, f = fish kills (source unknown), y = hydrologic alteration.  -1 = not available.",
+    "MainstemDownstreamImpairment": "List of water quality impairments present in the downstream mainstem network for this {type}, derived from the EPA ATTAINS water quality dataset (https://www.epa.gov/waterdata/attains) associated with NHD HR flowlines.  Please see https://aquaticbarriers.org/epa_methods for more information.  t = temperature, b = impaired biota (cause unknown), o = oxygen depletion, a = habitat alterations, f = fish kills (source unknown), y = hydrologic alteration.  -1 = not available.",
     # downstream linear networks (to next barrier or outlet)
     "FreeLinearDownstreamMiles": "number of miles in the linear downstream flow direction between this {type} and the next barrier downstream (if any) or downstream-most point (e.g., ocean, river outlet, interior basin, etc) on the full aquatic network on which it occurs. Excludes miles in altered reaches in waterbodies.  -1 = not available.",
     "FreePerennialLinearDownstreamMiles": "number of perennial miles in the linear downstream flow direction between this {type} and the next barrier downstream or downstream-most point on the full aquatic network on which it occurs.  Excludes miles in altered reaches in waterbodies.  See PerennialUpstreamMiles for definition of perennial reaches. -1 = not available.",

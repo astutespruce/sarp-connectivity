@@ -128,8 +128,14 @@ for col in nonremoved_dam_networks.columns:
     orig_dtype = nonremoved_dam_networks[col].dtype
     if col.endswith("Class"):
         dams[col] = dams[col].fillna(0).astype(orig_dtype)
+    elif orig_dtype == "object":
+        dams[col] = dams[col].fillna("")
     else:
         dams[col] = dams[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
+
+# convert some fields back to smaller types
+dams["UpstreamHeadwaters"] = dams.UpstreamHeadwaters.astype("int32")
+
 
 # Convert bool fields to uint8; none of the fields used for filtering can be
 # bool because fails on frontend
@@ -143,6 +149,29 @@ dams.reset_index().to_feather(results_dir / "dams.feather")
 
 # save for API (no private barriers)
 tmp = dams.loc[~dams.Private, DAM_API_FIELDS].reset_index()
+
+# use categoricals to save space
+for col in [
+    "Source",
+    "Name",
+    "StreamSizeClass",
+    "FedRegulatoryAgency",
+    "Trout",
+    "NativeTerritories",
+    "MainstemUpstreamImpairment",
+    "MainstemDownstreamImpairment",
+    "UpstreamBarrier",
+    "DownstreamBarrier",
+    "FishHabitatPartnership",
+    "DisadvantagedCommunity",
+    "SalmonidESU",
+    "COUNTYFIPS",
+    "Basin",
+    "Subbasin",
+    "Subwatershed",
+] + UNIT_FIELDS:
+    tmp[col] = tmp[col].astype("category")
+
 verify_domains(tmp)
 # downcast id to uint32 or it breaks in UI
 tmp["id"] = tmp.id.astype("uint32")
@@ -204,7 +233,8 @@ for col in nonremoved_small_barrier_networks.columns:
     orig_dtype = nonremoved_small_barrier_networks[col].dtype
     if col.endswith("Class"):
         small_barriers[col] = small_barriers[col].fillna(0).astype(orig_dtype)
-
+    elif orig_dtype == "object":
+        small_barriers[col] = small_barriers[col].fillna("")
     else:
         small_barriers[col] = small_barriers[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
 
@@ -217,6 +247,32 @@ small_barriers.reset_index().to_feather(results_dir / "small_barriers.feather")
 
 # save for API (no private barriers)
 tmp = small_barriers.loc[~small_barriers.Private, SB_API_FIELDS].reset_index()
+
+# use categoricals to save space
+for col in [
+    "Source",
+    "Name",
+    "River",
+    "Road",
+    "PotentialProject",
+    "ProtocolUsed",
+    "StreamSizeClass",
+    "Trout",
+    "NativeTerritories",
+    "MainstemUpstreamImpairment",
+    "MainstemDownstreamImpairment",
+    "UpstreamBarrier",
+    "DownstreamBarrier",
+    "FishHabitatPartnership",
+    "DisadvantagedCommunity",
+    "SalmonidESU",
+    "COUNTYFIPS",
+    "Basin",
+    "Subbasin",
+    "Subwatershed",
+] + UNIT_FIELDS:
+    tmp[col] = tmp[col].astype("category")
+
 verify_domains(tmp)
 tmp["id"] = tmp.id.astype("uint32")
 
@@ -245,10 +301,7 @@ small_barriers["Passability"] = small_barriers.BarrierSeverity.map(SEVERITY_TO_P
 
 
 combined = pd.concat(
-    [
-        dams.reset_index(),
-        small_barriers.reset_index(),
-    ],
+    [dams.reset_index(), small_barriers.reset_index()],
     ignore_index=True,
     sort=False,
 ).set_index("id")
@@ -321,28 +374,16 @@ for col in ["CoastalHUC8", "Wilderness"]:
 
 search_barriers = None
 
-for network_type in [
-    "combined_barriers",
-    "largefish_barriers",
-    "smallfish_barriers",
-]:
+for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barriers"]:
     nonremoved_networks = get_network_results(
-        combined.loc[~combined.Removed],
-        network_type=network_type,
-        state_ranks=False,
+        combined.loc[~combined.Removed], network_type=network_type, state_ranks=False
     )
     # cast so that this gets correctly split out as -1/0/1 values
     nonremoved_networks["InvasiveNetwork"] = nonremoved_networks.InvasiveNetwork.fillna(-1).astype("int8")
 
-    removed_networks = get_removed_network_results(
-        combined.loc[combined.Removed],
-        network_type=network_type,
-    )
+    removed_networks = get_removed_network_results(combined.loc[combined.Removed], network_type=network_type)
     networks = pd.concat(
-        [
-            nonremoved_networks.reset_index(),
-            removed_networks.reset_index(),
-        ],
+        [nonremoved_networks.reset_index(), removed_networks.reset_index()],
         ignore_index=True,
     ).set_index("id")
 
@@ -356,7 +397,10 @@ for network_type in [
     for col in nonremoved_networks.columns:
         orig_dtype = nonremoved_networks[col].dtype
 
-        if orig_dtype == bool or col.endswith("Class"):  # noqa: E721
+        if orig_dtype == "object":
+            scenario_results[col] = scenario_results[col].fillna("")
+
+        elif orig_dtype == bool or col.endswith("Class"):  # noqa: E721
             scenario_results[col] = scenario_results[col].fillna(0).astype(orig_dtype)
 
         else:
@@ -368,6 +412,29 @@ for network_type in [
 
     # save for API (no private barriers)
     tmp = scenario_results.loc[~scenario_results.Private, COMBINED_API_FIELDS].reset_index()
+    # use categoricals to save space
+    for col in [
+        "BarrierType",
+        "Source",
+        "Name",
+        "StreamSizeClass",
+        "FedRegulatoryAgency",
+        "Trout",
+        "NativeTerritories",
+        "MainstemUpstreamImpairment",
+        "MainstemDownstreamImpairment",
+        "UpstreamBarrier",
+        "DownstreamBarrier",
+        "FishHabitatPartnership",
+        "DisadvantagedCommunity",
+        "SalmonidESU",
+        "COUNTYFIPS",
+        "Basin",
+        "Subbasin",
+        "Subwatershed",
+    ] + UNIT_FIELDS:
+        tmp[col] = tmp[col].astype("category")
+
     verify_domains(tmp)
     tmp["id"] = tmp.id.astype("uint32")
 
@@ -395,9 +462,6 @@ waterfalls = waterfalls.loc[~(waterfalls.dropped | waterfalls.duplicate)].copy()
 tmp = waterfalls.copy()
 tmp["BarrierType"] = "waterfalls"
 
-# FIXME:  remove this line; it works around a duplicate SARPID that breaks the search index
-tmp = tmp.loc[~((tmp.SARPID == "f32256") & (tmp.Name == ""))].copy()
-
 search_barriers = pd.concat(
     [search_barriers, tmp[BARRIER_SEARCH_RESULT_FIELDS].reset_index(drop=True)], ignore_index=True
 )
@@ -416,7 +480,10 @@ for network_type in network_types:
     for col in networks.columns:
         orig_dtype = networks[col].dtype
 
-        if orig_dtype == bool or col.endswith("Class"):  # noqa: E721
+        if orig_dtype == "object":
+            scenario_results[col] = scenario_results[col].fillna("")
+
+        elif orig_dtype == bool or col.endswith("Class"):  # noqa: E721
             scenario_results[col] = scenario_results[col].fillna(0).astype(orig_dtype)
 
         else:
@@ -442,6 +509,29 @@ waterfalls.to_feather(results_dir / "waterfalls.feather")
 
 # save for API (no private barriers)
 tmp = waterfalls.loc[~waterfalls.Private, ["id"] + WF_API_FIELDS].reset_index()
+
+
+for col in [
+    "Source",
+    "Name",
+    "StreamSizeClass",
+    "Trout",
+    "NativeTerritories",
+    "MainstemUpstreamImpairment",
+    "MainstemDownstreamImpairment",
+    "UpstreamBarrier",
+    "DownstreamBarrier",
+    "FishHabitatPartnership",
+    # "DisadvantagedCommunity", # not used for waterfalls
+    "SalmonidESU",
+    # "COUNTYFIPS", not used for waterfalls
+    "Basin",
+    "Subbasin",
+    "Subwatershed",
+] + UNIT_FIELDS:
+    tmp[col] = tmp[col].astype("category")
+
+
 verify_domains(tmp)
 tmp["id"] = tmp.id.astype("uint32")
 
@@ -455,7 +545,6 @@ tmp.sort_values(by=["SARPID", "network_type"]).reset_index(drop=True).to_feather
 # NOTE: these don't currently have network data, but share logic with above
 print("Processing road crossings")
 crossings = gp.read_feather(barriers_dir / "road_crossings.feather").set_index("id").rename(columns=rename_cols)
-
 crossings["OnNetwork"] = ~(crossings.OnLoop | crossings.offnetwork_flowline)
 
 # only index non-surveyed crossings; surveyed ones already indexed as small barriers
@@ -468,7 +557,6 @@ search_barriers = pd.concat(
 crossings["StreamOrderClass"] = classify_streamorder(crossings.StreamOrder)
 for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
     crossings[f"{col}Class"] = classify_spps(crossings[col])
-
 
 crossings["AnnualFlowClass"] = classify_annual_flow(crossings.AnnualFlow)
 
@@ -483,6 +571,23 @@ crossings[ROAD_CROSSING_API_FIELDS + ["geometry", "symbol"]].reset_index().to_fe
 )
 
 tmp = crossings[ROAD_CROSSING_API_FIELDS].reset_index()
+
+for col in [
+    "Source",
+    "Name",
+    "StreamSizeClass",
+    "Trout",
+    "NativeTerritories",
+    "FishHabitatPartnership",
+    "DisadvantagedCommunity",
+    "SalmonidESU",
+    "COUNTYFIPS",
+    "Basin",
+    "Subbasin",
+    "Subwatershed",
+] + UNIT_FIELDS:
+    tmp[col] = tmp[col].astype("category")
+
 verify_domains(tmp)
 
 # downcast id to uint32 or it breaks in UI
@@ -500,9 +605,14 @@ search_barriers["search_key"] = (
 search_barriers["priority"] = search_barriers.BarrierType.map(
     {"dams": 0, "waterfalls": 1, "small_barriers": 2, "road_crossings": 3}
 ).astype("uint8")
-search_barriers.sort_values(by=["priority", "SARPID"]).drop_duplicates(subset="SARPID").reset_index(
-    drop=True
-).to_feather(api_dir / "search_barriers.feather")
+search_barriers = (
+    search_barriers.sort_values(by=["priority", "SARPID"]).drop_duplicates(subset="SARPID").reset_index(drop=True)
+)
+
+for col in ["Name", "River", "State", "BarrierType"]:
+    search_barriers[col] = search_barriers[col].astype("category")
+
+search_barriers.to_feather(api_dir / "search_barriers.feather")
 
 
 ################################################################################
@@ -528,10 +638,11 @@ with duckdb.connect(str(out_db)) as con:
         _ = con.execute(f"CREATE TABLE {network_type} AS SELECT * from ds")
         _ = con.execute(f"CREATE UNIQUE INDEX {network_type}_sarpid_index ON {network_type} (SARPID)")
 
-    print("Creating road_crossings table")
-    ds = dataset(api_dir / "road_crossings.feather", format="feather")
-    _ = con.execute("CREATE TABLE road_crossings AS SELECT * from ds")
-    _ = con.execute("CREATE UNIQUE INDEX road_crossings_sarpid_index ON road_crossings (SARPID)")
+    if "road_crossings" not in network_types:
+        print("Creating road_crossings table")
+        ds = dataset(api_dir / "road_crossings.feather", format="feather")
+        _ = con.execute("CREATE TABLE road_crossings AS SELECT * from ds")
+        _ = con.execute("CREATE UNIQUE INDEX road_crossings_sarpid_index ON road_crossings (SARPID)")
 
     print("Creating seach_barriers table")
     ds = dataset(api_dir / "search_barriers.feather", format="feather")

@@ -51,6 +51,7 @@ SUMMARY_UNITS = [
     "HUC8",
     "HUC10",
     "HUC12",
+    "StateWRA",
     # not shown thematically on map (units overlap)
     "FishHabitatPartnership",
 ]
@@ -209,6 +210,8 @@ for unit in SUMMARY_UNITS + ["Region"]:
         units = pd.read_feather(bnd_dir / "region_counties.feather", columns=["id"]).set_index("id")
     elif unit == "CongressionalDistrict":
         units = pd.read_feather(bnd_dir / "region_congressional_districts.feather", columns=["id"]).set_index("id")
+    elif unit == "StateWRA":
+        units = pd.read_feather(bnd_dir / "state_water_resource_areas.feather", columns=["id"]).set_index("id")
     elif unit == "FishHabitatPartnership":
         units = pd.read_feather(bnd_dir / "fhp_boundary.feather", columns=["id"]).set_index("id")
     elif unit == "Region":
