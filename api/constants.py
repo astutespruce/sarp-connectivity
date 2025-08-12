@@ -1429,23 +1429,23 @@ FISH_HABITAT_PARTNERSHIPS = {
 
 TNC_RESILIENCE_DOMAIN = {
     0: "Not assessed",
-    1: "Far Below Average",
-    2: "Below Average",
-    3: "Slightly Below Average",
+    1: "Far below average",
+    2: "Below average",
+    3: "Slightly below average",
     4: "Average",
-    5: "Slightly Above Average",
-    6: "Above Average",
-    7: "Far Above Average",
+    5: "Slightly above average",
+    6: "Above average",
+    7: "Far above average",
 }
 
 TNC_COLDWATER_DOMAIN = {
     0: "Not assessed",
-    2: "Below Average",
-    3: "Slightly Below Average",
+    2: "Below average",
+    3: "Slightly below Aaverage",
     4: "Average",
-    5: "Slightly Above Average",
-    6: "Above Average",
-    7: "Far Above Average",
+    5: "Slightly above average",
+    6: "Above average",
+    7: "Far above average",
 }
 
 TU_BROOK_TROUT_PORTFOLIO_TO_DOMAIN = {

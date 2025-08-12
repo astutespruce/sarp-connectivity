@@ -14,6 +14,9 @@ import {
   WATERBODY_SIZECLASS,
   FISH_HABITAT_PARTNERSHIPS,
   STATES,
+  TNC_COLDWATER_STATUS,
+  TNC_RESILIENCE,
+  TU_BROOK_TROUT_PORTFOLIO,
   WILDSCENIC_RIVER_LONG_LABELS,
 } from 'config'
 import { OutboundLink } from 'components/Link'
@@ -56,6 +59,9 @@ const LocationInfo = ({
   yearsurveyed,
   resurveyed,
   fatality,
+  cold,
+  resilience,
+  brooktroutportfolio,
 }) => {
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
   const hasRiverName =
@@ -192,14 +198,7 @@ const LocationInfo = ({
         </Entry>
       ) : null}
 
-      {nrcsdam === 1 ? (
-        <Entry>
-          This is a NRCS flood control dam
-          {/* <Field label="NRCS flood control dam">
-            {NRCSDAM[nrcsdam].toLowerCase()}
-          </Field> */}
-        </Entry>
-      ) : null}
+      {nrcsdam === 1 ? <Entry>This is a NRCS flood control dam</Entry> : null}
 
       {waterright !== null && waterright > 0 ? (
         <Entry>
@@ -234,6 +233,48 @@ const LocationInfo = ({
             Note: costs are modeled based on dam characteristics and are a very
             rough estimate only; please use with caution. Source: Jumani et. al.
             (in prep).
+          </Text>
+        </Entry>
+      ) : null}
+
+      {cold ? (
+        <Entry>
+          <Field label="Cold water temperature score">
+            {TNC_COLDWATER_STATUS[cold]}
+          </Field>
+          <Text sx={{ mt: '0.5rem', fontSize: 0, color: 'grey.7' }}>
+            Note: based on the cold water temperature score of the watershed
+            where this barrier occurs, as identified by The Nature Conservancy
+            (March 2024).
+          </Text>
+        </Entry>
+      ) : null}
+
+      {resilience ? (
+        <Entry>
+          <Field label="Freshwater resilience">
+            {TNC_RESILIENCE[resilience]}
+          </Field>
+          <Text sx={{ mt: '0.5rem', fontSize: 0, color: 'grey.7' }}>
+            Note: based on the freshwater resilience category of the watershed
+            where this barrier occurs, as identified by The Nature Conservancy
+            (v0.44).
+          </Text>
+        </Entry>
+      ) : null}
+
+      {brooktroutportfolio ? (
+        <Entry>
+          <Field label="Eastern brook trout conservation portfolio">
+            {TU_BROOK_TROUT_PORTFOLIO[brooktroutportfolio]}
+          </Field>
+          <Text sx={{ mt: '0.5rem', fontSize: 0, color: 'grey.7' }}>
+            Note: based on the{' '}
+            <OutboundLink to="https://www.tu.org/science/conservation-planning-and-assessment/conservation-portfolio/">
+              brook trout conservation portfolio
+            </OutboundLink>{' '}
+            category of the watershed where this barrier occurs, as identified
+            by Trout Unlimited (7/4/2022).
           </Text>
         </Entry>
       ) : null}

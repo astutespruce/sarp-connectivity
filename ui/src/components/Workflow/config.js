@@ -48,6 +48,10 @@ export const unitLayerConfig = {
     minzoom: 1,
     maxzoom: 24,
   },
+  StateWRA: {
+    minzoom: 1,
+    maxzoom: 24,
+  },
 }
 
 export const sources = {

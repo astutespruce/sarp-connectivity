@@ -1321,6 +1321,34 @@ export const COST_CLASS = {
   8: '>=$2M',
 }
 
+export const TNC_COLDWATER_STATUS = {
+  0: 'not assessed',
+  2: 'below average',
+  3: 'slightly below average',
+  4: 'average',
+  5: 'slightly above average',
+  6: 'above average',
+  7: 'far above average',
+}
+
+export const TNC_RESILIENCE = {
+  0: 'not assessed',
+  1: 'far below average',
+  2: 'below average',
+  3: 'slightly below average',
+  4: 'average',
+  5: 'slightly above average',
+  6: 'above average',
+  7: 'far above average',
+}
+
+export const TU_BROOK_TROUT_PORTFOLIO = {
+  0: 'not assessed / not a brook trout population',
+  1: 'other population (not persistent or stronghold)',
+  2: 'persistent',
+  3: 'stronghold',
+}
+
 export const WILDSCENIC_RIVER = {
   0: 'Not near a Wild & Scenic River', // not a wild and scenic river; exclude from filter
   1: 'Within a designated Wild & Scenic River corridor',

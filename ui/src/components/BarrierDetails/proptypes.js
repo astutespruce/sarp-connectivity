@@ -326,10 +326,13 @@ export const BarrierPropType = {
   subwatershed: PropTypes.string,
 
   // spatial join fields
+  brooktroutportfolio: PropTypes.number,
+  cold: PropTypes.number,
   ejtract: PropTypes.bool,
   ejtribal: PropTypes.bool,
   fishhabitatpartnership: PropTypes.string,
   nativeterritories: PropTypes.string,
+  resilience: PropTypes.number,
   wilderness: PropTypes.number,
   wildscenicriver: PropTypes.number,
 

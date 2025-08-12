@@ -2,20 +2,70 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Text, Link } from '@react-pdf/renderer'
 
-import { FISH_HABITAT_PARTNERSHIPS, STATES } from 'config'
+import {
+  FISH_HABITAT_PARTNERSHIPS,
+  STATES,
+  TNC_COLDWATER_STATUS,
+  TNC_RESILIENCE,
+  TU_BROOK_TROUT_PORTFOLIO,
+} from 'config'
 
 import { Entry, Entries, Section } from './elements'
 
 const LandscapeContext = ({
+  brooktroutportfolio,
+  cold,
   congressionaldistrict,
   ejtract,
   ejtribal,
   fishhabitatpartnership,
   nativeterritories,
+  resilience,
   ...props
 }) => (
   <Section title="Landscape context" {...props} wrap={false}>
     <Entries>
+      {cold ? (
+        <Entry>
+          <Text>
+            Cold water temperature score: {TNC_COLDWATER_STATUS[cold]}
+          </Text>
+          <Text style={{ fontSize: '10pt', color: '#7f8a93', lineHeight: 1.1 }}>
+            (based on the cold water temperature score of the watershed where
+            this barrier occurs, as identified by The Nature Conservancy (March
+            2024))
+          </Text>
+        </Entry>
+      ) : null}
+
+      {resilience ? (
+        <Entry>
+          <Text>Freshwater resilience: {TNC_RESILIENCE[resilience]}</Text>
+          <Text style={{ fontSize: '10pt', color: '#7f8a93', lineHeight: 1.1 }}>
+            (based on the freshwater resilience category of the watershed where
+            this barrier occurs, as identified by The Nature Conservancy
+            (v0.44))
+          </Text>
+        </Entry>
+      ) : null}
+
+      {brooktroutportfolio ? (
+        <Entry>
+          <Text>
+            Eastern brook trout conservation portfolio:{' '}
+            {TU_BROOK_TROUT_PORTFOLIO[brooktroutportfolio]}
+          </Text>
+          <Text style={{ fontSize: '10pt', color: '#7f8a93', lineHeight: 1.1 }}>
+            (based on the{' '}
+            <Link href="https://www.tu.org/science/conservation-planning-and-assessment/conservation-portfolio/">
+              brook trout conservation portfolio
+            </Link>{' '}
+            category of the watershed where this barrier occurs, as identified
+            by Trout Unlimited (7/4/2022))
+          </Text>
+        </Entry>
+      ) : null}
+
       {ejtract || ejtribal ? (
         <Entry>
           <Text>
