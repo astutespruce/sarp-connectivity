@@ -4,6 +4,10 @@ import { Box, Text } from 'theme-ui'
 
 import { SALMONID_ESU, TROUT, barrierTypeLabelSingular } from 'config'
 import { Entry, Field } from 'components/Sidebar'
+import {
+  SpeciesWatershedPresencePropTypeStub,
+  SpeciesWatershedPresenceDefaultProps,
+} from './proptypes'
 
 const presentCSS = {
   fontSize: 1,
@@ -133,19 +137,9 @@ const SpeciesInfo = ({
 
 SpeciesInfo.propTypes = {
   barrierType: PropTypes.string.isRequired,
-  tespp: PropTypes.number,
-  regionalsgcnspp: PropTypes.number,
-  statesgcnspp: PropTypes.number,
-  trout: PropTypes.string,
-  salmonidesu: PropTypes.string,
+  ...SpeciesWatershedPresencePropTypeStub,
 }
 
-SpeciesInfo.defaultProps = {
-  tespp: 0,
-  regionalsgcnspp: 0,
-  statesgcnspp: 0,
-  trout: null,
-  salmonidesu: null,
-}
+SpeciesInfo.defaultProps = SpeciesWatershedPresenceDefaultProps
 
 export default SpeciesInfo

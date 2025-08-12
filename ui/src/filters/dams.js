@@ -101,7 +101,7 @@ export const dams = [
       {
         field: 'mainstemgainmilesclass',
         title: 'Mainstem miles gained',
-        help: 'Upstream mainstem networks include the stream reaches upstream that are the same stream order as the one associated with this barrier with at least 1 square mile of drainage area. Downstream mainstem networks are based on the linear flow direction network from this barrier to the next barrier downstream or downstream-most point on that network.',
+        help: 'Upstream mainstem networks include the stream reaches upstream that are the same stream order as the one associated with this barrier with at least 1 square mile of drainage area. Downstream mainstem networks are based on the linear flow direction through the same stream order from this barrier to the next barrier downstream, a change in stream order, or the downstream-most point on the network.',
         ...getEntries(MAINSTEM_GAINMILES),
       },
       {
@@ -285,14 +285,14 @@ export const dams = [
         ...getEntries(WATERBODY_SIZECLASS),
       },
       {
-        field: 'upstreamunalteredwaterbodyclass',
+        field: 'unalteredwaterbodyclass',
         title: 'Total area of all unaltered lakes and ponds',
         sort: false,
         help: 'Note: this metric is based on all unaltered lakes and ponds that intersect any stream reach in the upstream functional network.  Waterbodies are derived from NHD, the National Wetlands Inventory (NWI), and state waterbody datasets (where available) and exclude any specifically marked by the data provider as altered and those that are associated with dams in this inventory.',
         ...getEntries(UNALTERED_WATERBODY_CLASS),
       },
       {
-        field: 'upstreamunalteredwetlandclass',
+        field: 'unalteredwetlandclass',
         title: 'Total area of all unaltered freshwater wetlands',
         sort: false,
         help: 'Note: this metric is based on all unaltered freshwater wetlands that intersect any stream reach in the upstream functional network.  Wetlands are derived from specific wetland types in the National Wetlands Inventory (freshwater scrub-shrub, freshwater forested, freshwater emergent) and NHD (swamp/marsh) and exclude any specifically marked by the data provider as altered.',

@@ -20,11 +20,12 @@ import { OutboundLink } from 'components/Link'
 import { Entry, Field } from 'components/Sidebar'
 import { formatNumber } from 'util/format'
 import { isEmptyString } from 'util/string'
+import { BarrierPropType, BarrierDefaultProps } from './proptypes'
 
 const LocationInfo = ({
   annualflow,
   barrierType,
-  reachName,
+  river,
   huc12,
   basin,
   subwatershed,
@@ -57,10 +58,10 @@ const LocationInfo = ({
   fatality,
 }) => {
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
-  const hasReachName =
-    !isEmptyString(reachName) &&
-    reachName.toLowerCase() !== 'unknown' &&
-    reachName.toLowerCase() !== 'unnamed'
+  const hasRiverName =
+    !isEmptyString(river) &&
+    river.toLowerCase() !== 'unknown' &&
+    river.toLowerCase() !== 'unnamed'
 
   return (
     <>
@@ -75,7 +76,7 @@ const LocationInfo = ({
 
       <Entry>
         <Text sx={{ fontSize: 1 }}>
-          {hasReachName ? `On ${reachName} in` : 'Within'} {subwatershed}{' '}
+          {hasRiverName ? `On ${river} in` : 'Within'} {subwatershed}{' '}
           Subwatershed, {basin} Subbasin{' '}
         </Text>
         <Text sx={{ fontSize: 0, color: 'grey.8' }}>(HUC12: {huc12})</Text>
@@ -300,71 +301,47 @@ const LocationInfo = ({
 }
 
 LocationInfo.propTypes = {
-  annualflow: PropTypes.number,
-  barrierType: PropTypes.string.isRequired,
-  reachName: PropTypes.string,
-  huc12: PropTypes.string.isRequired,
-  basin: PropTypes.string.isRequired,
-  subwatershed: PropTypes.string.isRequired,
-  congressionaldistrict: PropTypes.string,
+  ...BarrierPropType,
   ownertype: PropTypes.number,
   barrierownertype: PropTypes.number,
-  fercregulated: PropTypes.number,
-  stateregulated: PropTypes.number,
-  nrcsdam: PropTypes.number,
-  fedregulatoryagency: PropTypes.string,
-  waterright: PropTypes.number,
+  resurveyed: PropTypes.number,
+  yearsurveyed: PropTypes.number,
+
+  // dam specific fields
   costlower: PropTypes.number,
   costmean: PropTypes.number,
   costupper: PropTypes.number,
-  ejtract: PropTypes.bool,
-  ejtribal: PropTypes.bool,
-  fishhabitatpartnership: PropTypes.string,
-  nativeterritories: PropTypes.string,
-  intermittent: PropTypes.number,
-  canal: PropTypes.number,
-  storagevolume: PropTypes.number,
-  streamorder: PropTypes.number,
-  streamsizeclass: PropTypes.string,
-  waterbodysizeclass: PropTypes.number,
-  waterbodyacres: PropTypes.number,
-  wilderness: PropTypes.number,
-  wildscenicriver: PropTypes.number,
-  yearsurveyed: PropTypes.number,
-  resurveyed: PropTypes.number,
   fatality: PropTypes.number,
+  fedregulatoryagency: PropTypes.string,
+  fercregulated: PropTypes.number,
+  nrcsdam: PropTypes.number,
+  stateregulated: PropTypes.number,
+  storagevolume: PropTypes.number,
+  waterbodyacres: PropTypes.number,
+  waterbodysizeclass: PropTypes.number,
+  waterright: PropTypes.number,
 }
 
 LocationInfo.defaultProps = {
-  annualflow: null,
-  reachName: null,
-  congressionaldistrict: null,
+  ...BarrierDefaultProps,
   ownertype: 0,
   barrierownertype: 0,
-  fercregulated: null,
-  stateregulated: null,
-  nrcsdam: null,
-  fedregulatoryagency: null,
-  waterright: null,
+  resurveyed: 0,
+  yearsurveyed: 0,
+
+  // dam specific fields
   costlower: 0,
   costmean: 0,
   costupper: 0,
-  ejtract: false,
-  ejtribal: false,
-  fishhabitatpartnership: null,
-  nativeterritories: null,
-  intermittent: 0,
-  canal: 0,
-  storagevolume: null,
-  streamorder: 0,
-  streamsizeclass: null,
-  waterbodysizeclass: null,
-  waterbodyacres: null,
-  wilderness: null,
-  wildscenicriver: null,
-  yearsurveyed: 0,
-  resurveyed: 0,
   fatality: 0,
+  fedregulatoryagency: null,
+  fercregulated: null,
+  nrcsdam: null,
+  stateregulated: null,
+  storagevolume: null,
+  waterbodyacres: null,
+  waterbodysizeclass: null,
+  waterright: null,
 }
 
 export default LocationInfo

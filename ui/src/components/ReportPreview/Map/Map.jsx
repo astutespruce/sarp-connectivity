@@ -163,7 +163,7 @@ const Map = ({
               filterExpr = [
                 'all',
                 ['==', 'network_type', networkType],
-                ['==', 'barrier_id', networkID],
+                ['==', 'id', networkID],
               ]
             } else {
               filterExpr = ['==', networkType, networkID]

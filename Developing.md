@@ -91,7 +91,7 @@ uv lock --upgrade --dry-run
 uv lock --upgrade
 
 # or updgrade specific package(s)
-uv lock --upgrade <package>
+uv lock --upgrade-package <package>
 ```
 
 ## Javascript environment setup:

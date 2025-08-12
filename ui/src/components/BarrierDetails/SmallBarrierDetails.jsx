@@ -25,7 +25,7 @@ import MainstemNetworkInfo from './MainstemNetworkInfo'
 import NoNetworkInfo from './NoNetworkInfo'
 import SpeciesWatershedPresenceInfo from './SpeciesWatershedPresenceInfo'
 import SpeciesHabitatInfo from './SpeciesHabitatInfo'
-import { HabitatPropTypeStub, HabitatDefaultPropStub } from './proptypes'
+import { BarrierPropType, BarrierDefaultProps } from './proptypes'
 
 export const classifySARPScore = (score) => {
   // assumes -1 (NODATA) already filtered out
@@ -50,100 +50,35 @@ export const classifySARPScore = (score) => {
   return 'not calculated'
 }
 
-const BarrierDetails = ({
-  barrierType,
-  networkType,
-  sarpid,
-  lat,
-  lon,
-  alteredupstreammiles,
-  alteredmainstemupstreammiles,
-  annualflow,
-  barrierownertype,
-  barrierseverity,
-  basin,
-  canal,
-  coldupstreammiles,
-  condition,
-  congressionaldistrict,
-  constriction,
-  crossingtype,
-  diadromoushabitat,
-  ejtract,
-  ejtribal,
-  excluded,
-  fishhabitatpartnership,
-  flowstoocean,
-  flowstogreatlakes,
-  freealtereddownstreammiles,
-  freealteredlineardownstreammiles,
-  freecolddownstreammiles,
-  freedownstreammiles,
-  freelineardownstreammiles,
-  freeperennialdownstreammiles,
-  freeperenniallineardownstreammiles,
-  freeunaltereddownstreammiles,
-  freeunalteredlineardownstreammiles,
-  freeresilientdownstreammiles,
-  hasnetwork,
-  huc12,
-  in_network_type,
-  intermittent,
-  invasive,
-  invasivenetwork,
-  landcover,
-  sourcelink,
-  mainstemsizeclasses,
-  milestooutlet,
-  nativeterritories,
-  onloop,
-  ownertype,
-  partnerid,
-  passagefacility,
-  percentcold,
-  percentresilient,
-  perennialupstreammiles,
-  perennialmainstemupstreammiles,
-  protocolused,
-  regionalsgcnspp,
-  removed,
-  road,
-  roadtype,
-  salmonidesu,
-  sarp_score,
-  sizeclasses,
-  snapped,
-  source,
-  sourceid,
-  attachments,
-  statesgcnspp,
-  resilientupstreammiles,
-  resurveyed,
-  river,
-  streamorder,
-  streamsizeclass,
-  subwatershed,
-  tespp,
-  totaldownstreamdams,
-  totaldownstreamsmallbarriers,
-  totaldownstreamwaterfalls,
-  totalupstreammiles,
-  totalmainstemupstreammiles,
-  trout,
-  unalteredupstreammiles,
-  unalteredmainstemupstreammiles,
-  unranked,
-  unalteredwaterbodyacres,
-  unalteredwetlandacres,
-  nearestusgscrossingid,
-  wilderness,
-  wildscenicriver,
-  yearremoved,
-  yearsurveyed,
-  ...props // includes species habitat fields selected dynamically
-}) => {
+const BarrierDetails = (barrier) => {
+  const {
+    barrierType,
+    networkType,
+    barrierseverity,
+    condition,
+    constriction,
+    crossingtype,
+    excluded,
+    flowstoocean,
+    hasnetwork,
+    in_network_type,
+    invasive,
+    invasivenetwork,
+    milestooutlet,
+    onloop,
+    passagefacility,
+    protocolused,
+    removed,
+    road,
+    roadtype,
+    sarp_score,
+    snapped,
+    totalmainstemupstreammiles,
+    yearremoved,
+  } = barrier
+
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
-  const habitat = hasnetwork ? extractHabitat(props) : []
+  const habitat = hasnetwork ? extractHabitat(barrier) : []
 
   return (
     <Box
@@ -172,29 +107,7 @@ const BarrierDetails = ({
           </Entry>
         ) : null}
 
-        <LocationInfo
-          barrierType={barrierType}
-          annualflow={annualflow}
-          reachName={river}
-          basin={basin}
-          subwatershed={subwatershed}
-          huc12={huc12}
-          congressionaldistrict={congressionaldistrict}
-          ownertype={ownertype}
-          barrierownertype={barrierownertype}
-          ejtract={ejtract}
-          ejtribal={ejtribal}
-          fishhabitatpartnership={fishhabitatpartnership}
-          nativeterritories={nativeterritories}
-          intermittent={intermittent}
-          canal={canal}
-          streamorder={streamorder}
-          streamsizeclass={streamsizeclass}
-          wilderness={wilderness}
-          wildscenicriver={wildscenicriver}
-          yearsurveyed={yearsurveyed}
-          resurveyed={resurveyed}
-        />
+        <LocationInfo {...barrier} />
       </Section>
 
       <Section title="Barrier information">
@@ -272,37 +185,7 @@ const BarrierDetails = ({
         ) : null}
 
         {hasnetwork ? (
-          <FunctionalNetworkInfo
-            barrierType={barrierType}
-            networkType={networkType}
-            totalupstreammiles={totalupstreammiles}
-            perennialupstreammiles={perennialupstreammiles}
-            alteredupstreammiles={alteredupstreammiles}
-            unalteredupstreammiles={unalteredupstreammiles}
-            resilientupstreammiles={resilientupstreammiles}
-            coldupstreammiles={coldupstreammiles}
-            freedownstreammiles={freedownstreammiles}
-            freeperennialdownstreammiles={freeperennialdownstreammiles}
-            freealtereddownstreammiles={freealtereddownstreammiles}
-            freeunaltereddownstreammiles={freeunaltereddownstreammiles}
-            freeresilientdownstreammiles={freeresilientdownstreammiles}
-            freecolddownstreammiles={freecolddownstreammiles}
-            percentresilient={percentresilient}
-            percentcold={percentcold}
-            sizeclasses={sizeclasses}
-            landcover={landcover}
-            intermittent={intermittent}
-            invasive={invasive}
-            unranked={unranked}
-            removed={removed}
-            flowstoocean={flowstoocean}
-            flowstogreatlakes={flowstogreatlakes}
-            totaldownstreamdams={totaldownstreamdams}
-            totaldownstreamsmallbarriers={totaldownstreamsmallbarriers}
-            totaldownstreamwaterfalls={totaldownstreamwaterfalls}
-            unalteredwaterbodyacres={unalteredwaterbodyacres}
-            unalteredwetlandacres={unalteredwetlandacres}
-          />
+          <FunctionalNetworkInfo {...barrier} />
         ) : (
           <NoNetworkInfo
             barrierType={barrierType}
@@ -317,64 +200,24 @@ const BarrierDetails = ({
 
       {hasnetwork && habitat.length > 0 ? (
         <Section title="Species habitat information for this network">
-          <SpeciesHabitatInfo
-            barrierType={barrierType}
-            diadromoushabitat={diadromoushabitat}
-            habitat={habitat}
-          />
+          <SpeciesHabitatInfo {...barrier} habitat={habitat} />
         </Section>
       ) : null}
 
       {hasnetwork && flowstoocean && milestooutlet < 500 ? (
         <Section title="Marine connectivity">
-          <DiadromousInfo
-            barrierType={barrierType}
-            milestooutlet={milestooutlet}
-            totaldownstreamdams={totaldownstreamdams}
-            totaldownstreamsmallbarriers={totaldownstreamsmallbarriers}
-            totaldownstreamwaterfalls={totaldownstreamwaterfalls}
-            {...props}
-          />
+          <DiadromousInfo {...barrier} />
         </Section>
       ) : null}
 
       {hasnetwork && totalmainstemupstreammiles > 0 ? (
         <Section title="Mainstem network information">
-          <MainstemNetworkInfo
-            barrierType={barrierType}
-            networkType={networkType}
-            removed={removed}
-            flowstoocean={flowstoocean}
-            flowstogreatlakes={flowstogreatlakes}
-            totaldownstreamdams={totaldownstreamdams}
-            totaldownstreamsmallbarriers={totaldownstreamsmallbarriers}
-            totaldownstreamwaterfalls={totaldownstreamwaterfalls}
-            totalmainstemupstreammiles={totalmainstemupstreammiles}
-            perennialmainstemupstreammiles={perennialmainstemupstreammiles}
-            alteredmainstemupstreammiles={alteredmainstemupstreammiles}
-            unalteredmainstemupstreammiles={unalteredmainstemupstreammiles}
-            freelineardownstreammiles={freelineardownstreammiles}
-            freeperenniallineardownstreammiles={
-              freeperenniallineardownstreammiles
-            }
-            freealteredlineardownstreammiles={freealteredlineardownstreammiles}
-            freeunalteredlineardownstreammiles={
-              freeunalteredlineardownstreammiles
-            }
-            mainstemsizeclasses={mainstemsizeclasses}
-          />
+          <MainstemNetworkInfo {...barrier} />
         </Section>
       ) : null}
 
       <Section title="Species information for this subwatershed">
-        <SpeciesWatershedPresenceInfo
-          barrierType={barrierType}
-          tespp={tespp}
-          regionalsgcnspp={regionalsgcnspp}
-          statesgcnspp={statesgcnspp}
-          trout={trout}
-          salmonidesu={salmonidesu}
-        />
+        <SpeciesWatershedPresenceInfo {...barrier} />
       </Section>
 
       {hasnetwork && (invasive || invasivenetwork === 1) ? (
@@ -396,201 +239,45 @@ const BarrierDetails = ({
       ) : null}
 
       <Section title="Other information">
-        <IDInfo
-          barrierType={barrierType}
-          sarpid={sarpid}
-          lat={lat}
-          lon={lon}
-          source={source}
-          sourceid={sourceid}
-          partnerid={partnerid}
-          sourcelink={sourcelink}
-          nearestusgscrossingid={nearestusgscrossingid}
-          attachments={attachments}
-        />
+        <IDInfo {...barrier} />
       </Section>
     </Box>
   )
 }
 
 BarrierDetails.propTypes = {
-  barrierType: PropTypes.string.isRequired,
-  networkType: PropTypes.string.isRequired,
-  sarpid: PropTypes.string.isRequired,
-  lat: PropTypes.number.isRequired,
-  lon: PropTypes.number.isRequired,
-  alteredupstreammiles: PropTypes.number,
-  alteredmainstemupstreammiles: PropTypes.number,
-  annualflow: PropTypes.number,
+  ...BarrierPropType,
   barrierownertype: PropTypes.number,
   barrierseverity: PropTypes.number,
-  basin: PropTypes.string,
-  canal: PropTypes.number,
-  coldupstreammiles: PropTypes.number,
   condition: PropTypes.number,
-  congressionaldistrict: PropTypes.string,
   constriction: PropTypes.number,
   crossingtype: PropTypes.number,
-  diadromoushabitat: PropTypes.number,
-  ejtract: PropTypes.bool,
-  ejtribal: PropTypes.bool,
   excluded: PropTypes.bool,
-  fishhabitatpartnership: PropTypes.string,
-  flowstoocean: PropTypes.number,
-  flowstogreatlakes: PropTypes.number,
-  freealtereddownstreammiles: PropTypes.number,
-  freealteredlineardownstreammiles: PropTypes.number,
-  freecolddownstreammiles: PropTypes.number,
-  freedownstreammiles: PropTypes.number,
-  freelineardownstreammiles: PropTypes.number,
-  freeperennialdownstreammiles: PropTypes.number,
-  freeperenniallineardownstreammiles: PropTypes.number,
-  freeunaltereddownstreammiles: PropTypes.number,
-  freeunalteredlineardownstreammiles: PropTypes.number,
-  freeresilientdownstreammiles: PropTypes.number,
-  hasnetwork: PropTypes.bool.isRequired,
-  huc12: PropTypes.string,
-  in_network_type: PropTypes.bool,
-  intermittent: PropTypes.number,
-  invasive: PropTypes.bool,
-  landcover: PropTypes.number,
-  sourcelink: PropTypes.string,
-  mainstemsizeclasses: PropTypes.number,
-  milestooutlet: PropTypes.number,
-  nativeterritories: PropTypes.string,
-  onloop: PropTypes.bool,
   ownertype: PropTypes.number,
-  partnerid: PropTypes.string,
-  passagefacility: PropTypes.number,
-  percentcold: PropTypes.number,
-  percentresilient: PropTypes.number,
-  perennialupstreammiles: PropTypes.number,
-  perennialmainstemupstreammiles: PropTypes.number,
   protocolused: PropTypes.string,
-  regionalsgcnspp: PropTypes.number,
   removed: PropTypes.bool,
   road: PropTypes.string,
   roadtype: PropTypes.number,
-  salmonidesu: PropTypes.string,
   sarp_score: PropTypes.number,
-  sizeclasses: PropTypes.number,
-  snapped: PropTypes.bool,
-  source: PropTypes.string,
-  sourceid: PropTypes.string,
-  attachments: PropTypes.string,
-  statesgcnspp: PropTypes.number,
-  resilientupstreammiles: PropTypes.number,
-  resurveyed: PropTypes.number,
-  river: PropTypes.string,
-  streamorder: PropTypes.number,
-  streamsizeclass: PropTypes.string,
-  subwatershed: PropTypes.string,
-  tespp: PropTypes.number,
-  totaldownstreamdams: PropTypes.number,
-  totaldownstreamsmallbarriers: PropTypes.number,
-  totaldownstreamwaterfalls: PropTypes.number,
-  totalupstreammiles: PropTypes.number,
-  totalmainstemupstreammiles: PropTypes.number,
-  trout: PropTypes.string,
-  unalteredupstreammiles: PropTypes.number,
-  unalteredmainstemupstreammiles: PropTypes.number,
-  unranked: PropTypes.bool,
-  unalteredwaterbodyacres: PropTypes.number,
-  unalteredwetlandacres: PropTypes.number,
-  nearestusgscrossingid: PropTypes.string,
-  wilderness: PropTypes.number,
-  wildscenicriver: PropTypes.number,
   yearremoved: PropTypes.number,
-  yearsurveyed: PropTypes.number,
-  invasivenetwork: PropTypes.number,
-  ...HabitatPropTypeStub,
 }
 
 BarrierDetails.defaultProps = {
-  alteredupstreammiles: 0,
-  alteredmainstemupstreammiles: 0,
-  annualflow: null,
+  ...BarrierDefaultProps,
   barrierownertype: null,
   barrierseverity: null,
-  basin: null,
-  canal: 0,
-  coldupstreammiles: 0,
   condition: null,
-  congressionaldistrict: null,
   constriction: null,
   crossingtype: null,
-  diadromoushabitat: 0,
-  ejtract: false,
-  ejtribal: false,
   excluded: false,
-  fishhabitatpartnership: null,
-  flowstoocean: 0,
-  flowstogreatlakes: 0,
-  freealtereddownstreammiles: 0,
-  freealteredlineardownstreammiles: 0,
-  freecolddownstreammiles: 0,
-  freedownstreammiles: 0,
-  freelineardownstreammiles: 0,
-  freeperennialdownstreammiles: 0,
-  freeperenniallineardownstreammiles: 0,
-  freeunaltereddownstreammiles: 0,
-  freeunalteredlineardownstreammiles: 0,
-  freeresilientdownstreammiles: 0,
-  huc12: null,
-  in_network_type: false,
-  intermittent: -1,
-  invasive: 0,
-  landcover: null,
-  sourcelink: null,
-  mainstemsizeclasses: 0,
-  milestooutlet: 0,
-  nativeterritories: null,
-  onloop: false,
   ownertype: null,
-  partnerid: null,
   passagefacility: null,
-  percentcold: 0,
-  percentresilient: 0,
-  perennialupstreammiles: 0,
-  perennialmainstemupstreammiles: 0,
   protocolused: null,
-  regionalsgcnspp: 0,
-  resurveyed: 0,
   removed: false,
   road: null,
   roadtype: null,
-  salmonidesu: null,
   sarp_score: -1,
-  sizeclasses: null,
-  snapped: false,
-  source: null,
-  sourceid: null,
-  attachments: null,
-  statesgcnspp: 0,
-  resilientupstreammiles: 0,
-  river: null,
-  streamorder: 0,
-  streamsizeclass: null,
-  subwatershed: null,
-  tespp: 0,
-  totaldownstreamdams: 0,
-  totaldownstreamsmallbarriers: 0,
-  totaldownstreamwaterfalls: 0,
-  totalupstreammiles: 0,
-  totalmainstemupstreammiles: 0,
-  trout: null,
-  unalteredupstreammiles: 0,
-  unalteredmainstemupstreammiles: 0,
-  unranked: false,
-  unalteredwaterbodyacres: 0,
-  unalteredwetlandacres: 0,
-  nearestusgscrossingid: null,
-  wilderness: null,
-  wildscenicriver: null,
   yearremoved: 0,
-  yearsurveyed: 0,
-  invasivenetwork: 0,
-  ...HabitatDefaultPropStub,
 }
 
 export default BarrierDetails

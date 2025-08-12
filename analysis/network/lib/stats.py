@@ -107,7 +107,7 @@ def calculate_upstream_functional_network_stats(network_flowlines, joins, focal_
 
 def calculate_upstream_functional_flowline_stats(network_flowlines):
     """Calculate statistics based on flowline attributes.
-    Includes various network lengths (total, free flowling, perennial, etc) and
+    Includes various network lengths (total, free flowing, perennial, etc) and
     lengths by habitat, floodplain acreage, and overlap with certain indicators
     like EJ tracts / tribal and EPA impairments.
 

@@ -116,6 +116,7 @@ def add_spatial_joins(df):
         columns={"id": "StateWRA"}
     )
     df = sjoin_points_to_poly(df, wra)
+    df["StateWRA"] = df.StateWRA.fillna("")
 
     ### Protected lands
     print("Joining to protected areas")

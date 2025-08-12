@@ -3,6 +3,12 @@ import PropTypes from 'prop-types'
 import { Text, View } from '@react-pdf/renderer'
 
 import { siteMetadata } from 'config'
+import {
+  FunctionalNetworkPropTypeStub,
+  FunctionalNetworkDefaultProps,
+  LinearDownstreamNetworkPropTypeStub,
+  LinearDownstreamNetworkDefaultProps,
+} from 'components/BarrierDetails/proptypes'
 import { formatNumber, formatPercent } from 'util/format'
 
 import { Bold, Flex, Italic, Link, Section } from './elements'
@@ -543,6 +549,8 @@ const FunctionalNetworkInfo = ({
 }
 
 FunctionalNetworkInfo.propTypes = {
+  ...FunctionalNetworkPropTypeStub,
+  ...LinearDownstreamNetworkPropTypeStub,
   sarpid: PropTypes.string.isRequired,
   barrierType: PropTypes.string.isRequired,
   networkType: PropTypes.string.isRequired,
@@ -551,62 +559,22 @@ FunctionalNetworkInfo.propTypes = {
   excluded: PropTypes.bool,
   onloop: PropTypes.bool,
   diversion: PropTypes.number,
-  totalupstreammiles: PropTypes.number,
-  perennialupstreammiles: PropTypes.number,
-  alteredupstreammiles: PropTypes.number,
-  unalteredupstreammiles: PropTypes.number,
-  resilientupstreammiles: PropTypes.number,
-  coldupstreammiles: PropTypes.number,
-  freedownstreammiles: PropTypes.number,
-  freeperennialdownstreammiles: PropTypes.number,
-  freealtereddownstreammiles: PropTypes.number,
-  freeunaltereddownstreammiles: PropTypes.number,
-  freeresilientdownstreammiles: PropTypes.number,
-  freecolddownstreammiles: PropTypes.number,
-  landcover: PropTypes.number,
-  sizeclasses: PropTypes.number,
   invasive: PropTypes.bool,
   unranked: PropTypes.bool,
   removed: PropTypes.bool,
   yearremoved: PropTypes.number,
-  flowstoocean: PropTypes.number,
-  flowstogreatlakes: PropTypes.number,
-  totaldownstreamdams: PropTypes.number,
-  totaldownstreamsmallbarriers: PropTypes.number,
-  totaldownstreamwaterfalls: PropTypes.number,
-  unalteredwaterbodyacres: PropTypes.number,
-  unalteredwetlandacres: PropTypes.number,
 }
 
 FunctionalNetworkInfo.defaultProps = {
+  ...FunctionalNetworkDefaultProps,
+  ...LinearDownstreamNetworkDefaultProps,
   excluded: false,
   onloop: false,
   diversion: 0,
-  totalupstreammiles: 0,
-  perennialupstreammiles: 0,
-  alteredupstreammiles: 0,
-  unalteredupstreammiles: 0,
-  resilientupstreammiles: 0,
-  coldupstreammiles: 0,
-  freedownstreammiles: 0,
-  freeperennialdownstreammiles: 0,
-  freealtereddownstreammiles: 0,
-  freeunaltereddownstreammiles: 0,
-  freeresilientdownstreammiles: 0,
-  freecolddownstreammiles: 0,
-  landcover: 0,
-  sizeclasses: 0,
   invasive: false,
   unranked: false,
   removed: false,
   yearremoved: 0,
-  flowstoocean: 0,
-  flowstogreatlakes: 0,
-  totaldownstreamdams: 0,
-  totaldownstreamsmallbarriers: 0,
-  totaldownstreamwaterfalls: 0,
-  unalteredwaterbodyacres: 0,
-  unalteredwetlandacres: 0,
 }
 
 export default FunctionalNetworkInfo

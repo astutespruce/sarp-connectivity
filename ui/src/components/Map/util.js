@@ -174,7 +174,7 @@ export const highlightNetwork = (
   const filterExpr = removed
     ? [
         ['==', 'network_type', networkType],
-        ['==', 'barrier_id', networkID],
+        ['==', 'id', networkID],
       ]
     : [['==', networkType, networkID]]
 
@@ -195,13 +195,13 @@ export const highlightRemovedNetwork = (map, networkType, barrierID) => {
     'all',
     ['any', ['==', 'mapcode', 0], ['==', 'mapcode', 2]],
     ['==', 'network_type', networkType],
-    ['==', 'barrier_id', barrierID],
+    ['==', 'id', barrierID],
   ])
   map.setFilter('removed-network-intermittent-highlight', [
     'all',
     ['any', ['==', 'mapcode', 1], ['==', 'mapcode', 3]],
     ['==', 'network_type', networkType],
-    ['==', 'barrier_id', barrierID],
+    ['==', 'id', barrierID],
   ])
 }
 

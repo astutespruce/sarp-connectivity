@@ -3,6 +3,10 @@ import PropTypes from 'prop-types'
 import { Box, Heading, Grid, Paragraph, Text } from 'theme-ui'
 
 import { SALMONID_ESU, TROUT } from 'config'
+import {
+  SpeciesWatershedPresencePropTypeStub,
+  SpeciesWatershedPresenceDefaultProps,
+} from 'components/BarrierDetails/proptypes'
 import { formatNumber } from 'util/format'
 
 const SpeciesWatershedPresence = ({
@@ -93,20 +97,12 @@ const SpeciesWatershedPresence = ({
 
 SpeciesWatershedPresence.propTypes = {
   barrierType: PropTypes.string.isRequired,
-  tespp: PropTypes.number,
-  statesgcnspp: PropTypes.number,
-  regionalsgcnspp: PropTypes.number,
-  trout: PropTypes.string,
-  salmonidesu: PropTypes.string,
+  ...SpeciesWatershedPresencePropTypeStub,
   sx: PropTypes.object,
 }
 
 SpeciesWatershedPresence.defaultProps = {
-  tespp: 0,
-  statesgcnspp: 0,
-  regionalsgcnspp: 0,
-  trout: null,
-  salmonidesu: null,
+  ...SpeciesWatershedPresenceDefaultProps,
   sx: null,
 }
 

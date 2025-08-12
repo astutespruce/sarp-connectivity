@@ -700,7 +700,7 @@ ROAD_CROSSING_CORE_FIELDS = unique(ROAD_CROSSING_CORE_FIELDS)
 # include COUNTYFIPS, for download of road crossings by county
 ROAD_CROSSING_API_FIELDS = unique(ROAD_CROSSING_CORE_FIELDS + ["COUNTYFIPS"] + ROAD_CROSSING_FILTER_FIELDS)
 
-ROAD_CROSSING_EXPORT_FIELDS = ROAD_CROSSING_CORE_FIELDS
+ROAD_CROSSING_EXPORT_FIELDS = [f for f in ROAD_CROSSING_CORE_FIELDS if f not in {"SalmonidESU"}]
 
 # only need HUC12 for filtering
 ROAD_CROSSING_TILE_FILTER_FIELDS = unique(
@@ -1596,7 +1596,7 @@ FIELD_DEFINITIONS = {
     "Feasibility": "feasibility of {type} removal, based on reconnaissance.  Note: reconnaissance information is available only for a small number of {type}s.",
     "Diversion": "Identifies if dam is known to be a diversion.  Note: diversion information is available only for a small number of dams.",
     "LowheadDam": "Identifies if dam is known or estimated to be a lowhead dam.  Note: lowhead dam information is available only for a small number of dams.",
-    "StorageVolume": "Identifies the reported normal storage volume (acre/feet) of the impounded waterbody, from NID NormStor attribute, if known.  ",
+    "StorageVolume": "Identifies the reported normal storage volume (acre/feet) of the impounded waterbody, from NID NormStor attribute, if known.",
     "WaterbodyAcres": "area in acres of waterbody associated with dam.  -1 = no associated waterbody",
     "Fatality": "number of fatalities recorded at this location from Locations of Fatalities at Submerged Hydraulic Jumps (https://krcproject.groups.et.byu.net/browse.php)",
     # barrier-specific fields
@@ -1715,7 +1715,7 @@ FIELD_DEFINITIONS = {
     "UnalteredMainstemUpstreamMiles": "number of unaltered miles in the upstream mainstem river network from this {type}, including miles in waterbodies.  See TotalMainstemUpstreamMiles for definition of mainstem and UnalteredUpstreamMiles for definition of unaltered reaches.  0 = no mainstem, -1 = not available.",
     "PerennialUnalteredMainstemUpstreamMiles": "number of unaltered perennial miles in the upstream mainstem river network from this {type}, including miles in waterbodies.  See TotalMainstemUpstreamMiles for definition of mainstem and PerennialUnalteredUpstreamMiles for definition of perennial unaltered reaches.   0 = no mainstem, -1 = not available.",
     "PercentMainstemUnaltered": "percent of the upstream mainstem river network length from this {type} that is not specifically identified in NHD or the National Wetlands Inventory as altered (canal / ditch, within a reservoir, or other channel alteration).  0 = no mainstem, -1 = not available.",
-    "MainstemUpstreamImpairment": "List of water quality impairments present in the upstream mainstem network for this {type}, derived from the EPA ATTAINS water quality dataset (https://www.epa.gov/waterdata/attains) associated with NHD HR flowlines.  Please see https://aquaticbarriers.org/epa_methods for more information.  t = temperature, b = impaired biota (cause unknown), o = oxygen depletion, a = habitat alterations, f = fish kills (source unknown), y = hydrologic alteration.  -1 = not available.",
+    "MainstemUpstreamImpairment": "List of water quality impairments present in the upstream mainstem network for this {type}, derived from the EPA ATTAINS water quality dataset (https://www.epa.gov/waterdata/attains) associated with NHD HR flowlines.  Please see https://aquaticbarriers.org/epa_methods for more information.  a=algal growth, b=impaired biota (cause unknown), f=fish kills (cause unknown), h=habitat alterations, o=oxygen depletion, t=temperature, y=hydrologic alteration.",
     # downstream mainstem network
     "TotalMainstemDownstreamMiles": "number of miles in the mainstem network from this {type}, including miles in waterbodies.  Note: this measures the length of the complete downstream network including all tributaries, and is not limited to the shortest downstream path.  0 = no mainstem, -1 = not available.",
     "FreeMainstemDownstreamMiles": "number of free-flowing miles in the downstream mainstem network.  Excludes miles in altered reaches in waterbodies.  0 = no mainstem, -1 = not available.",
@@ -1723,7 +1723,7 @@ FIELD_DEFINITIONS = {
     "FreeIntermittentMainstemDownstreamMiles": "number of free-flowing ephemeral and intermittent miles in the downstream mainstem network.  Excludes miles altered reaches in waterbodies.  See IntermittentUpstreamMiles for definition of intermittent reaches. 0 = no mainstem, -1 = not available.",
     "FreeAlteredMainstemDownstreamMiles": "number of free-flowing altered miles in the downstream mainstem network from this {type}.  Excludes miles in altered reaches in waterbodies.  See AlteredUpstreamMiles for definition of altered reaches. 0 = no mainstem,  -1 = not available.",
     "FreeUnalteredMainstemDownstreamMiles": "number of free-flowing altered miles in the downstream mainstem network from this {type}.  Excludes miles in altered reaches in waterbodies.  See UnalteredUpstreamMiles for definition of unaltered reaches.  0 = no mainstem,  -1 = not available.",
-    "MainstemDownstreamImpairment": "List of water quality impairments present in the downstream mainstem network for this {type}, derived from the EPA ATTAINS water quality dataset (https://www.epa.gov/waterdata/attains) associated with NHD HR flowlines.  Please see https://aquaticbarriers.org/epa_methods for more information.  t = temperature, b = impaired biota (cause unknown), o = oxygen depletion, a = habitat alterations, f = fish kills (source unknown), y = hydrologic alteration.  -1 = not available.",
+    "MainstemDownstreamImpairment": "List of water quality impairments present in the downstream mainstem network for this {type}, derived from the EPA ATTAINS water quality dataset (https://www.epa.gov/waterdata/attains) associated with NHD HR flowlines.  Please see https://aquaticbarriers.org/epa_methods for more information.  See MainstemUpstreamImpairment for definition of codes.",
     # downstream linear networks (to next barrier or outlet)
     "FreeLinearDownstreamMiles": "number of miles in the linear downstream flow direction between this {type} and the next barrier downstream (if any) or downstream-most point (e.g., ocean, river outlet, interior basin, etc) on the full aquatic network on which it occurs. Excludes miles in altered reaches in waterbodies.  -1 = not available.",
     "FreePerennialLinearDownstreamMiles": "number of perennial miles in the linear downstream flow direction between this {type} and the next barrier downstream or downstream-most point on the full aquatic network on which it occurs.  Excludes miles in altered reaches in waterbodies.  See PerennialUpstreamMiles for definition of perennial reaches. -1 = not available.",
@@ -1776,6 +1776,7 @@ FIELD_DEFINITIONS = {
     "MNC_tier": "mainstem network connectivity tier for your selected subset.  Tier 1 represents the {type}s within the top 5% of scores for network connectivity and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "MWC_tier": "mainstem watershed condition tier for your selected subset.  Tier 1 represents the {type}s within the top 5% of scores for watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "MNCWC_tier": "mainstem combined network connectivity and watershed condition tier for your selected subset.  Tier 1 represents the {type}s within the top 5% of scores for the combined network connectivity and watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
+    "URL": "URL of a report page for this {type} within the National Aquatic Barrier Inventory & Prioritization Tool.",
 }
 
 DAM_FIELD_DEFINITIONS = {k: v.replace("{type}", "dam") for k, v in FIELD_DEFINITIONS.items()}

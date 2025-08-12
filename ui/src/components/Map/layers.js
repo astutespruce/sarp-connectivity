@@ -101,7 +101,7 @@ const removedNetworkHighlightLayer = {
   ...networkHighlightLayer,
   id: 'removed-network-highlight',
   'source-layer': 'removed_networks',
-  filter: ['==', 'barrier_id', Infinity],
+  filter: ['==', 'id', Infinity],
   paint: {
     ...networkHighlightLayer.paint,
   },

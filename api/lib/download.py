@@ -34,7 +34,7 @@ def extract_for_download(
     # drop columns that have no useful data
     drop_cols = set()
     for col in set(df.column_names).intersection(OPTIONAL_STRING_COLS):
-        if pc.all(df[col]):
+        if pc.all(pc.equal(df[col], "")):
             drop_cols.add(col)
 
     for col in set(df.column_names).intersection(OPTIONAL_NUMERIC_COLS):

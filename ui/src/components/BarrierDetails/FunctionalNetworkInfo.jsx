@@ -9,6 +9,11 @@ import { InfoTooltip } from 'components/Tooltip'
 import { Entry, Field } from 'components/Sidebar'
 import { formatNumber, formatPercent } from 'util/format'
 
+import {
+  FunctionalNetworkPropTypeStub,
+  FunctionalNetworkDefaultProps,
+} from './proptypes'
+
 const activeSideCSS = {
   fontWeight: 'bold',
 }
@@ -47,7 +52,6 @@ const FunctionalNetworkInfo = ({
   totaldownstreamwaterfalls,
   unalteredwaterbodyacres,
   unalteredwetlandacres,
-  ...props
 }) => {
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
 
@@ -86,7 +90,7 @@ const FunctionalNetworkInfo = ({
     : 0
 
   return (
-    <Box {...props}>
+    <Box>
       <Text variant="help" sx={{ fontSize: 0, mx: '0.5rem', mb: '1rem' }}>
         Functional networks are the full upstream dendritic network to the
         upstream-most points on the network or upstream barriers. The downstream
@@ -543,67 +547,23 @@ const FunctionalNetworkInfo = ({
 }
 
 FunctionalNetworkInfo.propTypes = {
+  ...FunctionalNetworkPropTypeStub,
   fontSize: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   headerFontSize: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   barrierType: PropTypes.string.isRequired,
   networkType: PropTypes.string.isRequired,
-  totalupstreammiles: PropTypes.number,
-  perennialupstreammiles: PropTypes.number,
-  alteredupstreammiles: PropTypes.number,
-  unalteredupstreammiles: PropTypes.number,
-  resilientupstreammiles: PropTypes.number,
-  coldupstreammiles: PropTypes.number,
-  freedownstreammiles: PropTypes.number,
-  freeperennialdownstreammiles: PropTypes.number,
-  freealtereddownstreammiles: PropTypes.number,
-  freeunaltereddownstreammiles: PropTypes.number,
-  freeresilientdownstreammiles: PropTypes.number,
-  freecolddownstreammiles: PropTypes.number,
-  percentresilient: PropTypes.number,
-  percentcold: PropTypes.number,
-  landcover: PropTypes.number,
-  sizeclasses: PropTypes.number,
   invasive: PropTypes.bool,
   unranked: PropTypes.bool,
   removed: PropTypes.bool,
-  flowstoocean: PropTypes.number,
-  flowstogreatlakes: PropTypes.number,
-  totaldownstreamdams: PropTypes.number,
-  totaldownstreamsmallbarriers: PropTypes.number,
-  totaldownstreamwaterfalls: PropTypes.number,
-  unalteredwaterbodyacres: PropTypes.number,
-  unalteredwetlandacres: PropTypes.number,
 }
 
 FunctionalNetworkInfo.defaultProps = {
+  ...FunctionalNetworkDefaultProps,
   fontSize: 1,
   headerFontSize: 0,
-  totalupstreammiles: 0,
-  perennialupstreammiles: 0,
-  alteredupstreammiles: 0,
-  unalteredupstreammiles: 0,
-  resilientupstreammiles: 0,
-  coldupstreammiles: 0,
-  freedownstreammiles: 0,
-  freeperennialdownstreammiles: 0,
-  freealtereddownstreammiles: 0,
-  freeunaltereddownstreammiles: 0,
-  freeresilientdownstreammiles: 0,
-  freecolddownstreammiles: 0,
-  percentresilient: 0,
-  percentcold: 0,
-  landcover: 0,
-  sizeclasses: 0,
   invasive: false,
   unranked: false,
   removed: false,
-  flowstoocean: 0,
-  flowstogreatlakes: 0,
-  totaldownstreamdams: 0,
-  totaldownstreamsmallbarriers: 0,
-  totaldownstreamwaterfalls: 0,
-  unalteredwaterbodyacres: 0,
-  unalteredwetlandacres: 0,
 }
 
 export default FunctionalNetworkInfo

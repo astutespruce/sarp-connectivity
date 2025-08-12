@@ -319,7 +319,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
 }
 
 BarrierDetails.propTypes = {
-  barrier: BarrierPropType.isRequired,
+  barrier: PropTypes.shape(BarrierPropType).isRequired,
   onClose: PropTypes.func.isRequired,
 }
 

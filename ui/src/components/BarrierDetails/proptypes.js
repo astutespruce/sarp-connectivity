@@ -1,14 +1,5 @@
 import PropTypes from 'prop-types'
 
-export const BarrierPropType = PropTypes.shape({
-  id: PropTypes.number, // absent for road crossings; not used
-  sarpid: PropTypes.string, // may be coming in as sarpidname before parsing, so don't require
-  name: PropTypes.string,
-  County: PropTypes.string,
-  State: PropTypes.string,
-  // TODO: other props
-})
-
 export const ScorePropType = PropTypes.shape({
   score: PropTypes.number,
   tier: PropTypes.number,
@@ -25,6 +16,128 @@ export const ScoresPropType = PropTypes.shape({
   mwc: ScorePropType,
   mncwc: ScorePropType,
 })
+
+export const FunctionalNetworkPropTypeStub = {
+  hasnetwork: PropTypes.bool,
+  in_network_type: PropTypes.bool,
+  // upstream functional network
+  totalupstreammiles: PropTypes.number,
+  alteredupstreammiles: PropTypes.number,
+  coldupstreammiles: PropTypes.number,
+  perennialupstreammiles: PropTypes.number,
+  resilientupstreammiles: PropTypes.number,
+  unalteredupstreammiles: PropTypes.number,
+  percentcold: PropTypes.number,
+  percentresilient: PropTypes.number,
+  unalteredwaterbodyacres: PropTypes.number,
+  unalteredwetlandacres: PropTypes.number,
+  landcover: PropTypes.number,
+  sizeclasses: PropTypes.number,
+
+  // downstream functional network
+  freedownstreammiles: PropTypes.number,
+  freealtereddownstreammiles: PropTypes.number,
+  freecolddownstreammiles: PropTypes.number,
+  freeperennialdownstreammiles: PropTypes.number,
+  freeunaltereddownstreammiles: PropTypes.number,
+  freeresilientdownstreammiles: PropTypes.number,
+}
+
+export const FunctionalNetworkDefaultProps = {
+  hasnetwork: false,
+  in_network_type: false,
+  // upstream functional network
+  totalupstreammiles: 0,
+  alteredupstreammiles: 0,
+  coldupstreammiles: 0,
+  perennialupstreammiles: 0,
+  resilientupstreammiles: 0,
+  unalteredupstreammiles: 0,
+  percentcold: 0,
+  percentresilient: 0,
+  unalteredwaterbodyacres: 0,
+  unalteredwetlandacres: 0,
+  landcover: null,
+  sizeclasses: null,
+  // downstream functional network
+  freedownstreammiles: 0,
+  freealtereddownstreammiles: 0,
+  freecolddownstreammiles: 0,
+  freeperennialdownstreammiles: 0,
+  freeunaltereddownstreammiles: 0,
+  freeresilientdownstreammiles: 0,
+}
+
+export const MainstemNetworkPropTypeStub = {
+  // upstream mainstem network
+  totalmainstemupstreammiles: PropTypes.number,
+  alteredmainstemupstreammiles: PropTypes.number,
+  perennialmainstemupstreammiles: PropTypes.number,
+  unalteredmainstemupstreammiles: PropTypes.number,
+  // downstream mainstem network
+  freemainstemdownstreammiles: PropTypes.number,
+  freealteredmainstemdownstreammiles: PropTypes.number,
+  freeperennialmainstemdownstreammiles: PropTypes.number,
+  freeunalteredmainstemdownstreamiles: PropTypes.number,
+
+  // other mainstem stats
+  mainstemsizeclasses: PropTypes.number,
+}
+
+export const MainstemNetworkDefaultProps = {
+  totalmainstemupstreammiles: 0,
+  alteredmainstemupstreammiles: 0,
+  perennialmainstemupstreammiles: 0,
+  unalteredmainstemupstreammiles: 0,
+  freemainstemdownstreammiles: 0,
+  freealteredmainstemdownstreammiles: 0,
+  freeperennialmainstemdownstreammiles: 0,
+  freeunalteredmainstemdownstreamiles: 0,
+
+  mainstemsizeclasses: 0,
+}
+
+export const LinearDownstreamNetworkPropTypeStub = {
+  flowstoocean: PropTypes.number,
+  flowstogreatlakes: PropTypes.number,
+  invasivenetwork: PropTypes.number,
+  milestooutlet: PropTypes.number,
+  totaldownstreamdams: PropTypes.number,
+  totaldownstreamsmallbarriers: PropTypes.number,
+  totaldownstreamwaterfalls: PropTypes.number,
+
+  // linear downstream miles are not currently used
+  // freelineardownstreammiles: PropTypes.number,
+  // freealteredlineardownstreammiles: PropTypes.number,
+  // freeperenniallineardownstreammiles: PropTypes.number,
+  // freeunalteredlineardownstreammiles: PropTypes.number,
+}
+
+export const LinearDownstreamNetworkDefaultProps = {
+  flowstoocean: 0,
+  flowstogreatlakes: 0,
+  invasivenetwork: 0,
+  milestooutlet: 0,
+  totaldownstreamdams: 0,
+  totaldownstreamsmallbarriers: 0,
+  totaldownstreamwaterfalls: 0,
+}
+
+export const SpeciesWatershedPresencePropTypeStub = {
+  tespp: PropTypes.number,
+  statesgcnspp: PropTypes.number,
+  regionalsgcnspp: PropTypes.number,
+  trout: PropTypes.string,
+  salmonidesu: PropTypes.string,
+}
+
+export const SpeciesWatershedPresenceDefaultProps = {
+  tespp: 0,
+  statesgcnspp: 0,
+  regionalsgcnspp: 0,
+  trout: null,
+  salmonidesu: null,
+}
 
 // must be kept in sync with api/constants.py::SPECIES_HABITAT
 export const HabitatPropTypeStub = {
@@ -108,7 +221,7 @@ export const HabitatPropTypeStub = {
   freeyellowstonecutthroattrouthabitatdownstreammiles: PropTypes.number,
 }
 
-export const HabitatDefaultPropStub = {
+export const HabitatDefaultProps = {
   alabamashadhabitatupstreammiles: 0,
   freealabamashadhabitatdownstreammiles: 0,
   alewifehabitatupstreammiles: 0,
@@ -183,4 +296,107 @@ export const HabitatDefaultPropStub = {
   freewhitesturgeonhabitatdownstreammiles: 0,
   yellowstonecutthroattrouthabitatupstreammiles: 0,
   freeyellowstonecutthroattrouthabitatdownstreammiles: 0,
+}
+
+export const BarrierPropType = {
+  barrierType: PropTypes.string.isRequired,
+  networkType: PropTypes.string.isRequired,
+  id: PropTypes.number, // absent for road crossings; not used
+  sarpidname: PropTypes.string,
+  sarpid: PropTypes.string, // may be coming in as sarpidname before parsing, so don't require
+  name: PropTypes.string,
+  source: PropTypes.string,
+  sourceid: PropTypes.string,
+  sourcelink: PropTypes.string,
+  partnerid: PropTypes.string,
+
+  // general status properties (not always present for all barrier types)
+  excluded: PropTypes.bool,
+  invasive: PropTypes.bool,
+  removed: PropTypes.bool,
+
+  // location / unit fields
+  lat: PropTypes.number.isRequired,
+  lon: PropTypes.number.isRequired,
+  County: PropTypes.string,
+  State: PropTypes.string,
+  huc12: PropTypes.string,
+  congressionaldistrict: PropTypes.string,
+  basin: PropTypes.string,
+  subwatershed: PropTypes.string,
+
+  // spatial join fields
+  ejtract: PropTypes.bool,
+  ejtribal: PropTypes.bool,
+  fishhabitatpartnership: PropTypes.string,
+  nativeterritories: PropTypes.string,
+  wilderness: PropTypes.number,
+  wildscenicriver: PropTypes.number,
+
+  // snapping / flowline fields
+  snapped: PropTypes.bool,
+  annualflow: PropTypes.number,
+  canal: PropTypes.number,
+  diadromoushabitat: PropTypes.number,
+  intermittent: PropTypes.number,
+  onloop: PropTypes.bool,
+  river: PropTypes.string,
+  streamorder: PropTypes.number,
+  streamsizeclass: PropTypes.string,
+
+  // other fields above
+  ...FunctionalNetworkPropTypeStub,
+  ...MainstemNetworkPropTypeStub,
+  ...LinearDownstreamNetworkPropTypeStub,
+  ...SpeciesWatershedPresencePropTypeStub,
+  ...HabitatPropTypeStub,
+}
+
+export const BarrierDefaultProps = {
+  id: null,
+  sarpidname: '|', // should never be empty, but breaks badly if it is,
+  sarpid: null,
+  name: null,
+  source: null,
+  sourceid: null,
+  sourcelink: null,
+  partnerid: null,
+
+  // general status properties
+  excluded: false,
+  invasive: false,
+  removed: false,
+
+  // location / unit fields
+  County: null,
+  State: null,
+  huc12: null,
+  congressionaldistrict: null,
+  basin: null,
+  subwatershed: null,
+
+  // spatial join fields
+  ejtract: null,
+  ejtribal: null,
+  fishhabitatpartnership: null,
+  nativeterritories: null,
+  wilderness: null,
+  wildscenicriver: null,
+
+  // snapping / flowline fields
+  snapped: false,
+  annualflow: 0,
+  canal: 0,
+  diadromoushabitat: 0,
+  intermittent: 0,
+  onloop: false,
+  river: null,
+  streamsizeclass: null,
+
+  // other fields above
+  ...FunctionalNetworkDefaultProps,
+  ...MainstemNetworkDefaultProps,
+  ...LinearDownstreamNetworkDefaultProps,
+  ...SpeciesWatershedPresenceDefaultProps,
+  ...HabitatDefaultProps,
 }

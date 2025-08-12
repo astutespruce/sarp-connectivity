@@ -7,6 +7,10 @@ import { Table, Row } from 'components/Table'
 import { InfoTooltip } from 'components/Tooltip'
 import { Entry, Field } from 'components/Sidebar'
 import { formatNumber, formatPercent } from 'util/format'
+import {
+  MainstemNetworkPropTypeStub,
+  MainstemNetworkDefaultProps,
+} from './proptypes'
 
 const activeSideCSS = {
   fontWeight: 'bold',
@@ -22,10 +26,10 @@ const MainstemNetworkInfo = ({
   perennialmainstemupstreammiles,
   alteredmainstemupstreammiles,
   unalteredmainstemupstreammiles,
-  freelineardownstreammiles,
-  freeperenniallineardownstreammiles,
-  freealteredlineardownstreammiles,
-  freeunalteredlineardownstreammiles,
+  freemainstemdownstreammiles,
+  freeperennialmainstemdownstreammiles,
+  freealteredmainstemdownstreammiles,
+  freeunalteredmainstemdownstreammiles,
   mainstemsizeclasses,
   fontSize,
   headerFontSize,
@@ -35,7 +39,6 @@ const MainstemNetworkInfo = ({
   totaldownstreamdams,
   totaldownstreamsmallbarriers,
   totaldownstreamwaterfalls,
-  ...props
 }) => {
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
 
@@ -52,7 +55,7 @@ const MainstemNetworkInfo = ({
 
   const mainstemGainMiles = Math.min(
     totalmainstemupstreammiles,
-    freelineardownstreammiles
+    freemainstemdownstreammiles
   )
   const mainstemGainMilesSide =
     alwaysUseUpstream || mainstemGainMiles === totalmainstemupstreammiles
@@ -61,7 +64,7 @@ const MainstemNetworkInfo = ({
 
   const perennialMainstemGainMiles = Math.min(
     perennialmainstemupstreammiles,
-    freeperenniallineardownstreammiles
+    freeperennialmainstemdownstreammiles
   )
   const perennialMainstemGainMilesSide =
     alwaysUseUpstream ||
@@ -71,24 +74,24 @@ const MainstemNetworkInfo = ({
 
   const intermittentmainstemupstreammiles =
     totalmainstemupstreammiles - perennialmainstemupstreammiles
-  const freeintermittentlineardownstreammiles =
-    freelineardownstreammiles - freeperenniallineardownstreammiles
+  const freeintermittentmainstemdownstreammiles =
+    freemainstemdownstreammiles - freeperennialmainstemdownstreammiles
 
   const percentUnaltered = totalmainstemupstreammiles
     ? (100 * unalteredmainstemupstreammiles) / totalmainstemupstreammiles
     : 0
 
   return (
-    <Box {...props}>
+    <Box>
       <Text variant="help" sx={{ fontSize: 0 }}>
         <Text variant="help" sx={{ fontSize: 0, mx: '0.5rem', mb: '1rem' }}>
           Upstream mainstem networks include the stream reaches upstream that
           are the same stream order as the one associated with this barrier
           (excludes smaller tributaries) with at least 1 square mile of drainage
           area. Downstream mainstem networks are based on the linear flow
-          direction network from this barrier to the next barrier downstream or
-          downstream-most point on that network (does not include any
-          tributaries).
+          direction through the same stream order to the next barrier
+          downstream, a change in stream order, or the downstream-most point on
+          that network.
         </Text>
       </Text>
       <Entry>
@@ -140,7 +143,7 @@ const MainstemNetworkInfo = ({
                   mainstemGainMilesSide === 'downstream' ? 'bold' : 'inherited',
               }}
             >
-              {formatNumber(freelineardownstreammiles, 2, true)}
+              {formatNumber(freemainstemdownstreammiles, 2, true)}
             </Box>
           </Row>
 
@@ -181,7 +184,7 @@ const MainstemNetworkInfo = ({
                     : 'inherited',
               }}
             >
-              {formatNumber(freeperenniallineardownstreammiles, 2, true)}
+              {formatNumber(freeperennialmainstemdownstreammiles, 2, true)}
             </Box>
           </Row>
 
@@ -197,9 +200,10 @@ const MainstemNetworkInfo = ({
                   <br />
                   <br />
                   Total ephemeral and intermittent miles downstream is the sum
-                  of all ephemeral and intermittent reach lengths in the linear
-                  flow direction network immediately downstream of this network,
-                  excluding all lengths within altered waterbodies.
+                  of all ephemeral and intermittent reach lengths in the
+                  downstream mainstem network in the linear flow direction
+                  immediately downstream of this network, excluding all lengths
+                  within altered waterbodies.
                 </InfoTooltip>
               </Box>
             </Box>
@@ -207,7 +211,7 @@ const MainstemNetworkInfo = ({
               {formatNumber(intermittentmainstemupstreammiles, 2, true)}
             </Box>
             <Box>
-              {formatNumber(freeintermittentlineardownstreammiles, 2, true)}
+              {formatNumber(freeintermittentmainstemdownstreammiles, 2, true)}
             </Box>
           </Row>
 
@@ -223,14 +227,16 @@ const MainstemNetworkInfo = ({
                   <br />
                   <br />
                   Total altered miles downstream is the sum of all altered reach
-                  lengths in the linear flow direction network immediately
-                  downstream of this network, excluding all lengths within
-                  altered waterbodies.
+                  lengths in the downstream mainstem network in the linear flow
+                  direction immediately downstream of this network, excluding
+                  all lengths within altered waterbodies.
                 </InfoTooltip>
               </Box>
             </Box>
             <Box>{formatNumber(alteredmainstemupstreammiles, 2, true)}</Box>
-            <Box>{formatNumber(freealteredlineardownstreammiles, 2, true)}</Box>
+            <Box>
+              {formatNumber(freealteredmainstemdownstreammiles, 2, true)}
+            </Box>
           </Row>
 
           <Row sx={{ px: '0.5rem' }}>
@@ -246,15 +252,15 @@ const MainstemNetworkInfo = ({
                   <br />
                   <br />
                   Total unaltered miles downstream is the sum of all unaltered
-                  reach lengths in the linear flow direction network immediately
-                  downstream of this network, excluding all lengths within
-                  altered waterbodies.
+                  reach lengths in the downstream mainstem network in the linear
+                  flow direction immediately downstream of this network,
+                  excluding all lengths within altered waterbodies.
                 </InfoTooltip>
               </Box>
             </Box>
             <Box>{formatNumber(unalteredmainstemupstreammiles, 2, true)}</Box>
             <Box>
-              {formatNumber(freeunalteredlineardownstreammiles, 2, true)}
+              {formatNumber(freeunalteredmainstemdownstreammiles, 2, true)}
             </Box>
           </Row>
         </Table>
@@ -280,7 +286,7 @@ const MainstemNetworkInfo = ({
                     The total mainstem miles that{' '}
                     {removed ? 'were' : 'could be'} gained by removing this
                     barrier is the lesser of the upstream mainstem network miles
-                    or downstream linear flow direction network miles.
+                    or free-flowing downstream mainstem network miles.
                   </InfoTooltip>
                 </Box>
               </Box>
@@ -301,7 +307,7 @@ const MainstemNetworkInfo = ({
                     : inactiveSideCSS
                 }
               >
-                {formatNumber(freelineardownstreammiles, 2, true)}
+                {formatNumber(freemainstemdownstreammiles, 2, true)}
               </Box>
             </Row>
             <Row sx={{ px: '0.5rem' }}>
@@ -314,7 +320,7 @@ const MainstemNetworkInfo = ({
                     The total perennial mainstem miles that{' '}
                     {removed ? 'were' : 'could be'} gained by removing this
                     barrier is the lesser of the upstream perennial mainstem
-                    network miles or downstream linear flow direction network
+                    network miles or free-flowing downstream mainstem network
                     perennial miles.
                   </InfoTooltip>
                 </Box>
@@ -336,7 +342,7 @@ const MainstemNetworkInfo = ({
                     : inactiveSideCSS
                 }
               >
-                {formatNumber(freeperenniallineardownstreammiles, 2, true)}
+                {formatNumber(freeperennialmainstemdownstreammiles, 2, true)}
               </Box>
             </Row>
           </Table>
@@ -413,45 +419,19 @@ const MainstemNetworkInfo = ({
 }
 
 MainstemNetworkInfo.propTypes = {
+  ...MainstemNetworkPropTypeStub,
   fontSize: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   headerFontSize: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   barrierType: PropTypes.string.isRequired,
   networkType: PropTypes.string.isRequired,
-  totalmainstemupstreammiles: PropTypes.number,
-  perennialmainstemupstreammiles: PropTypes.number,
-  alteredmainstemupstreammiles: PropTypes.number,
-  unalteredmainstemupstreammiles: PropTypes.number,
-  mainstemsizeclasses: PropTypes.number,
-  freelineardownstreammiles: PropTypes.number,
-  freeperenniallineardownstreammiles: PropTypes.number,
-  freealteredlineardownstreammiles: PropTypes.number,
-  freeunalteredlineardownstreammiles: PropTypes.number,
   removed: PropTypes.bool,
-  flowstoocean: PropTypes.number,
-  flowstogreatlakes: PropTypes.number,
-  totaldownstreamdams: PropTypes.number,
-  totaldownstreamsmallbarriers: PropTypes.number,
-  totaldownstreamwaterfalls: PropTypes.number,
 }
 
 MainstemNetworkInfo.defaultProps = {
+  ...MainstemNetworkDefaultProps,
   fontSize: 1,
   headerFontSize: 0,
-  totalmainstemupstreammiles: 0,
-  perennialmainstemupstreammiles: 0,
-  alteredmainstemupstreammiles: 0,
-  unalteredmainstemupstreammiles: 0,
-  mainstemsizeclasses: 0,
-  freelineardownstreammiles: 0,
-  freeperenniallineardownstreammiles: 0,
-  freealteredlineardownstreammiles: 0,
-  freeunalteredlineardownstreammiles: 0,
   removed: false,
-  flowstoocean: 0,
-  flowstogreatlakes: 0,
-  totaldownstreamdams: 0,
-  totaldownstreamsmallbarriers: 0,
-  totaldownstreamwaterfalls: 0,
 }
 
 export default MainstemNetworkInfo

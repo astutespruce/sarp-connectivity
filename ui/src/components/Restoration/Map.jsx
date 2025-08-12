@@ -56,10 +56,10 @@ const RestorationMap = ({
     if (map) {
       map.setFilter('network-highlight', ['==', 'dams', Infinity])
       map.setFilter('network-intermittent-highlight', ['==', 'dams', Infinity])
-      map.setFilter('removed-network-highlight', ['==', 'barrier_id', Infinity])
+      map.setFilter('removed-network-highlight', ['==', 'id', Infinity])
       map.setFilter('removed-network-intermittent-highlight', [
         '==',
-        'barrier_id',
+        'id',
         Infinity,
       ])
     }

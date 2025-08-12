@@ -3,6 +3,10 @@ import PropTypes from 'prop-types'
 import { Text, View } from '@react-pdf/renderer'
 
 import { SALMONID_ESU, TROUT } from 'config'
+import {
+  SpeciesWatershedPresencePropTypeStub,
+  SpeciesWatershedPresenceDefaultProps,
+} from 'components/BarrierDetails/proptypes'
 import { formatNumber } from 'util/format'
 
 import { Bold, Flex, List, ListItem, Section } from './elements'
@@ -115,19 +119,9 @@ const SpeciesWatershedPresence = ({
 
 SpeciesWatershedPresence.propTypes = {
   barrierType: PropTypes.string.isRequired,
-  tespp: PropTypes.number,
-  statesgcnspp: PropTypes.number,
-  regionalsgcnspp: PropTypes.number,
-  trout: PropTypes.string,
-  salmonidesu: PropTypes.string,
+  ...SpeciesWatershedPresencePropTypeStub,
 }
 
-SpeciesWatershedPresence.defaultProps = {
-  tespp: 0,
-  statesgcnspp: 0,
-  regionalsgcnspp: 0,
-  trout: null,
-  salmonidesu: null,
-}
+SpeciesWatershedPresence.defaultProps = SpeciesWatershedPresenceDefaultProps
 
 export default SpeciesWatershedPresence

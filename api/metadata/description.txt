@@ -74,12 +74,12 @@ aquatic network within the NHD dataset, and do not always correctly distinguish
 between the main flow channel and side channels in highly braided river systems.
 
 Note: not all network statistics are calculated for removed barriers.  Mileage
-statistics for removed barriers are based other barriers present at the time a
-given barrier is removed, including barriers removed in the same year, with
-the exception of mileage gain statistics, which assumes that barriers immediately
-upstream and removed in the same year were already removed.  That is, for two
-barriers in series on the network that are removed in the same year, the
-upstream-most mileage gain is based on both barriers being present, whereas for
-the downstream barrier, it assumes the upstream one has already been removed.
-Do not sum mileage gained statistics for removed barriers as this will lead to
-double-counting those miles.
+statistics for removed barriers are based on other barriers present at the time
+a given barrier is removed, including barriers removed in the same year, with
+the exception of mileage gain statistics, which assumes that barriers
+immediately upstream and removed in the same year were already removed.  That
+is, for two barriers in series on the network that are removed in the same year,
+the upstream-most mileage gain is based on both barriers being present, whereas
+for the downstream barrier, it assumes the upstream one has already been
+removed. Do not sum mileage gained statistics for removed barriers as this will
+lead to double-counting those miles.

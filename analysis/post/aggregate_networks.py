@@ -80,6 +80,10 @@ rename_cols = {
 ### Read dams and associated networks
 print("Reading dams and networks")
 dams = gp.read_feather(barriers_dir / "dams.feather").set_index("id").rename(columns=rename_cols)
+
+# FIXME: remove; now part of spatial_joins.py
+dams["StateWRA"] = dams.StateWRA.fillna("")
+
 dams["in_network_type"] = dams.primary_network
 
 # add stream order and species classes for filtering
@@ -109,14 +113,12 @@ nonremoved_dam_networks["InvasiveNetwork"] = nonremoved_dam_networks.InvasiveNet
 removed_dam_networks = get_removed_network_results(dams.loc[dams.Removed], "dams")
 
 dam_networks = pd.concat(
-    [
-        nonremoved_dam_networks.reset_index(),
-        removed_dam_networks.reset_index(),
-    ],
+    [nonremoved_dam_networks.reset_index(), removed_dam_networks.reset_index()],
     ignore_index=True,
 ).set_index("id")
 
 dams = dams.join(dam_networks)
+
 for col in ["HasNetwork", "Ranked"]:
     dams[col] = dams[col].fillna(0).astype("bool")
 
@@ -128,6 +130,9 @@ for col in nonremoved_dam_networks.columns:
     orig_dtype = nonremoved_dam_networks[col].dtype
     if col.endswith("Class"):
         dams[col] = dams[col].fillna(0).astype(orig_dtype)
+    elif orig_dtype.name == "category":
+        # blank must already exist as a category in series
+        dams[col] = dams[col].fillna("")
     elif orig_dtype == "object":
         dams[col] = dams[col].fillna("")
     else:
@@ -153,7 +158,6 @@ tmp = dams.loc[~dams.Private, DAM_API_FIELDS].reset_index()
 # use categoricals to save space
 for col in [
     "Source",
-    "Name",
     "StreamSizeClass",
     "FedRegulatoryAgency",
     "Trout",
@@ -168,8 +172,15 @@ for col in [
     "COUNTYFIPS",
     "Basin",
     "Subbasin",
-    "Subwatershed",
-] + UNIT_FIELDS:
+    "HUC2",
+    "HUC6",
+    "HUC8",
+    "HUC10",
+    "State",
+    "County",
+    "CongressionalDistrict",
+    "StateWRA",
+]:
     tmp[col] = tmp[col].astype("category")
 
 verify_domains(tmp)
@@ -187,6 +198,10 @@ tmp.sort_values("SARPID").drop_duplicates(subset="SARPID").reset_index(drop=True
 ### Read small barriers and associated networks
 print("Reading small barriers and networks")
 small_barriers = gp.read_feather(barriers_dir / "small_barriers.feather").set_index("id").rename(columns=rename_cols)
+
+# FIXME: remove; now part of spatial_joins.py
+small_barriers["StateWRA"] = small_barriers.StateWRA.fillna("")
+
 small_barriers["in_network_type"] = small_barriers.primary_network
 
 small_barriers = small_barriers.loc[~(small_barriers.dropped | small_barriers.duplicate)].copy()
@@ -233,6 +248,8 @@ for col in nonremoved_small_barrier_networks.columns:
     orig_dtype = nonremoved_small_barrier_networks[col].dtype
     if col.endswith("Class"):
         small_barriers[col] = small_barriers[col].fillna(0).astype(orig_dtype)
+    elif orig_dtype.name == "category":
+        small_barriers[col] = small_barriers[col].fillna("")
     elif orig_dtype == "object":
         small_barriers[col] = small_barriers[col].fillna("")
     else:
@@ -251,9 +268,6 @@ tmp = small_barriers.loc[~small_barriers.Private, SB_API_FIELDS].reset_index()
 # use categoricals to save space
 for col in [
     "Source",
-    "Name",
-    "River",
-    "Road",
     "PotentialProject",
     "ProtocolUsed",
     "StreamSizeClass",
@@ -269,8 +283,15 @@ for col in [
     "COUNTYFIPS",
     "Basin",
     "Subbasin",
-    "Subwatershed",
-] + UNIT_FIELDS:
+    "HUC2",
+    "HUC6",
+    "HUC8",
+    "HUC10",
+    "State",
+    "County",
+    "CongressionalDistrict",
+    "StateWRA",
+]:
     tmp[col] = tmp[col].astype("category")
 
 verify_domains(tmp)
@@ -342,6 +363,7 @@ fill_columns = [
     "WaterbodySizeClass",
     "Width",
     "YearCompleted",
+    "Fatality",
     "CostClass",  # limited to dams for now
     # small barrier columns
     "Constriction",
@@ -364,7 +386,6 @@ for col in fill_columns:
     orig_dtype = dtypes[col]
     if col.endswith("Class") or col in {"Resurveyed"}:
         combined[col] = combined[col].fillna(0).astype(orig_dtype)
-
     else:
         combined[col] = combined[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
 
@@ -397,7 +418,10 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
     for col in nonremoved_networks.columns:
         orig_dtype = nonremoved_networks[col].dtype
 
-        if orig_dtype == "object":
+        if orig_dtype.name == "category":
+            scenario_results[col] = scenario_results[col].fillna("")
+
+        elif orig_dtype == "object":
             scenario_results[col] = scenario_results[col].fillna("")
 
         elif orig_dtype == bool or col.endswith("Class"):  # noqa: E721
@@ -416,7 +440,6 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
     for col in [
         "BarrierType",
         "Source",
-        "Name",
         "StreamSizeClass",
         "FedRegulatoryAgency",
         "Trout",
@@ -431,8 +454,15 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
         "COUNTYFIPS",
         "Basin",
         "Subbasin",
-        "Subwatershed",
-    ] + UNIT_FIELDS:
+        "HUC2",
+        "HUC6",
+        "HUC8",
+        "HUC10",
+        "State",
+        "County",
+        "CongressionalDistrict",
+        "StateWRA",
+    ]:
         tmp[col] = tmp[col].astype("category")
 
     verify_domains(tmp)
@@ -459,6 +489,9 @@ print("Reading waterfalls and networks")
 waterfalls = gp.read_feather(barriers_dir / "waterfalls.feather").set_index("id").rename(columns=rename_cols)
 waterfalls = waterfalls.loc[~(waterfalls.dropped | waterfalls.duplicate)].copy()
 
+# FIXME: remove; now part of spatial_joins.py
+waterfalls["StateWRA"] = waterfalls.StateWRA.fillna("")
+
 tmp = waterfalls.copy()
 tmp["BarrierType"] = "waterfalls"
 
@@ -468,6 +501,10 @@ search_barriers = pd.concat(
 
 # backfill Unranked for compatibility (this is needed when getting networks)
 waterfalls["Unranked"] = False
+
+# for compatibility with other types
+for col in ["Wilderness"]:
+    waterfalls[col] = waterfalls[col].astype("uint8")
 
 merged = None
 for network_type in network_types:
@@ -480,7 +517,10 @@ for network_type in network_types:
     for col in networks.columns:
         orig_dtype = networks[col].dtype
 
-        if orig_dtype == "object":
+        if orig_dtype.name == "category":
+            scenario_results[col] = scenario_results[col].fillna("")
+
+        elif orig_dtype == "object":
             scenario_results[col] = scenario_results[col].fillna("")
 
         elif orig_dtype == bool or col.endswith("Class"):  # noqa: E721
@@ -513,7 +553,6 @@ tmp = waterfalls.loc[~waterfalls.Private, ["id"] + WF_API_FIELDS].reset_index()
 
 for col in [
     "Source",
-    "Name",
     "StreamSizeClass",
     "Trout",
     "NativeTerritories",
@@ -527,8 +566,15 @@ for col in [
     # "COUNTYFIPS", not used for waterfalls
     "Basin",
     "Subbasin",
-    "Subwatershed",
-] + UNIT_FIELDS:
+    "HUC2",
+    "HUC6",
+    "HUC8",
+    "HUC10",
+    "State",
+    "County",
+    "CongressionalDistrict",
+    "StateWRA",
+]:
     tmp[col] = tmp[col].astype("category")
 
 
@@ -545,6 +591,10 @@ tmp.sort_values(by=["SARPID", "network_type"]).reset_index(drop=True).to_feather
 # NOTE: these don't currently have network data, but share logic with above
 print("Processing road crossings")
 crossings = gp.read_feather(barriers_dir / "road_crossings.feather").set_index("id").rename(columns=rename_cols)
+
+# FIXME: remove; now part of spatial_joins.py
+crossings["StateWRA"] = crossings.StateWRA.fillna("")
+
 crossings["OnNetwork"] = ~(crossings.OnLoop | crossings.offnetwork_flowline)
 
 # only index non-surveyed crossings; surveyed ones already indexed as small barriers

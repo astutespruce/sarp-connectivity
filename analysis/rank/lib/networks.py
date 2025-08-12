@@ -211,9 +211,12 @@ def get_network_results(df, network_type, state_ranks=False):
         networks[col] = networks[col].astype("int8")
         networks.loc[networks[col] > 0, col] -= 1
 
-    # fill upstream / downstream barrier info
-    for col in ["UpstreamBarrier", "UpstreamBarrierSARPID", "DownstreamBarrier", "DownstreamBarrierSARPID"]:
-        networks[col] = networks[col].astype("str").fillna("")
+    # fill upstream / downstream barrier info (have to add category for blanks FIRST)
+    for col in ["UpstreamBarrier", "DownstreamBarrier"]:
+        networks[col] = networks[col].cat.add_categories([""]).fillna("")
+
+    for col in ["UpstreamBarrierSARPID", "DownstreamBarrierSARPID"]:
+        networks[col] = networks[col].fillna("")
 
     ### Calculate classes used for filtering
     networks["GainMilesClass"] = classify_gain_miles(networks.GainMiles)

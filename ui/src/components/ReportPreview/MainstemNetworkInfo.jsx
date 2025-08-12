@@ -2,6 +2,12 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Grid, Heading, Paragraph } from 'theme-ui'
 
+import {
+  MainstemNetworkPropTypeStub,
+  MainstemNetworkDefaultProps,
+  LinearDownstreamNetworkPropTypeStub,
+  LinearDownstreamNetworkDefaultProps,
+} from 'components/BarrierDetails/proptypes'
 import { Table, Row } from 'components/Table'
 import { barrierTypeLabelSingular } from 'config'
 import { formatNumber, formatPercent } from 'util/format'
@@ -14,10 +20,10 @@ const MainstemNetworkInfo = ({
   alteredmainstemupstreammiles,
   unalteredmainstemupstreammiles,
   mainstemsizeclasses,
-  freelineardownstreammiles,
-  freeperenniallineardownstreammiles,
-  freealteredlineardownstreammiles,
-  freeunalteredlineardownstreammiles,
+  freemainstemdownstreammiles,
+  freeperennialmainstemdownstreammiles,
+  freealteredmainstemdownstreammiles,
+  freeunalteredmainstemdownstreammiles,
   removed,
   flowstoocean,
   flowstogreatlakes,
@@ -41,7 +47,7 @@ const MainstemNetworkInfo = ({
 
   const mainstemGainMiles = Math.min(
     totalmainstemupstreammiles,
-    freelineardownstreammiles
+    freemainstemdownstreammiles
   )
   const mainstemGainMilesSide =
     alwaysUseUpstream || mainstemGainMiles === totalmainstemupstreammiles
@@ -50,7 +56,7 @@ const MainstemNetworkInfo = ({
 
   const perennialMainstemGainMiles = Math.min(
     perennialmainstemupstreammiles,
-    freeperenniallineardownstreammiles
+    freeperennialmainstemdownstreammiles
   )
   const perennialMainstemGainMilesSide =
     alwaysUseUpstream ||
@@ -60,8 +66,8 @@ const MainstemNetworkInfo = ({
 
   const intermittentmainstemupstreammiles =
     totalmainstemupstreammiles - perennialmainstemupstreammiles
-  const freeintermittentlineardownstreammiles =
-    freelineardownstreammiles - freeperenniallineardownstreammiles
+  const freeintermittentmainstemdownstreammiles =
+    freemainstemdownstreammiles - freeperennialmainstemdownstreammiles
 
   const percentUnaltered = totalmainstemupstreammiles
     ? (100 * unalteredmainstemupstreammiles) / totalmainstemupstreammiles
@@ -76,9 +82,8 @@ const MainstemNetworkInfo = ({
         the same stream order as the one associated with this barrier (excludes
         smaller tributaries) with at least 1 square mile of drainage area.
         Downstream mainstem networks are based on the linear flow direction
-        network from this barrier to the next barrier downstream or
-        downstream-most point on that network (does not include any
-        tributaries).
+        through the same stream order to the next barrier downstream, a change
+        in stream order, or the downstream-most point on the network.
       </Paragraph>
 
       <Grid
@@ -161,7 +166,7 @@ const MainstemNetworkInfo = ({
                   mainstemGainMilesSide === 'downstream' ? 'bold' : 'inherited',
               }}
             >
-              {formatNumber(freelineardownstreammiles, 2, true)}
+              {formatNumber(freemainstemdownstreammiles, 2, true)}
             </Box>
           </Row>
 
@@ -185,7 +190,7 @@ const MainstemNetworkInfo = ({
                     : 'inherited',
               }}
             >
-              {formatNumber(freeperenniallineardownstreammiles, 2, true)}
+              {formatNumber(freeperennialmainstemdownstreammiles, 2, true)}
             </Box>
           </Row>
 
@@ -195,21 +200,23 @@ const MainstemNetworkInfo = ({
               {formatNumber(intermittentmainstemupstreammiles, 2, true)}
             </Box>
             <Box>
-              {formatNumber(freeintermittentlineardownstreammiles, 2, true)}
+              {formatNumber(freeintermittentmainstemdownstreammiles, 2, true)}
             </Box>
           </Row>
 
           <Row>
             <Box>Altered miles</Box>
             <Box>{formatNumber(alteredmainstemupstreammiles, 2, true)}</Box>
-            <Box>{formatNumber(freealteredlineardownstreammiles, 2, true)}</Box>
+            <Box>
+              {formatNumber(freealteredmainstemdownstreammiles, 2, true)}
+            </Box>
           </Row>
 
           <Row>
             <Box>Unaltered miles</Box>
             <Box>{formatNumber(unalteredmainstemupstreammiles, 2, true)}</Box>
             <Box>
-              {formatNumber(freeunalteredlineardownstreammiles, 2, true)}
+              {formatNumber(freeunalteredmainstemdownstreammiles, 2, true)}
             </Box>
           </Row>
         </Table>
@@ -249,42 +256,18 @@ const MainstemNetworkInfo = ({
 }
 
 MainstemNetworkInfo.propTypes = {
+  ...MainstemNetworkPropTypeStub,
+  ...LinearDownstreamNetworkPropTypeStub,
   barrierType: PropTypes.string.isRequired,
   networkType: PropTypes.string.isRequired,
-  totalmainstemupstreammiles: PropTypes.number,
-  perennialmainstemupstreammiles: PropTypes.number,
-  alteredmainstemupstreammiles: PropTypes.number,
-  unalteredmainstemupstreammiles: PropTypes.number,
-  mainstemsizeclasses: PropTypes.number,
-  freelineardownstreammiles: PropTypes.number,
-  freeperenniallineardownstreammiles: PropTypes.number,
-  freealteredlineardownstreammiles: PropTypes.number,
-  freeunalteredlineardownstreammiles: PropTypes.number,
   removed: PropTypes.bool,
-  flowstoocean: PropTypes.number,
-  flowstogreatlakes: PropTypes.number,
-  totaldownstreamdams: PropTypes.number,
-  totaldownstreamsmallbarriers: PropTypes.number,
-  totaldownstreamwaterfalls: PropTypes.number,
   sx: PropTypes.object,
 }
 
 MainstemNetworkInfo.defaultProps = {
-  totalmainstemupstreammiles: 0,
-  perennialmainstemupstreammiles: 0,
-  alteredmainstemupstreammiles: 0,
-  unalteredmainstemupstreammiles: 0,
-  mainstemsizeclasses: 0,
-  freelineardownstreammiles: 0,
-  freeperenniallineardownstreammiles: 0,
-  freealteredlineardownstreammiles: 0,
-  freeunalteredlineardownstreammiles: 0,
+  ...MainstemNetworkDefaultProps,
+  ...LinearDownstreamNetworkDefaultProps,
   removed: false,
-  flowstoocean: 0,
-  flowstogreatlakes: 0,
-  totaldownstreamdams: 0,
-  totaldownstreamsmallbarriers: 0,
-  totaldownstreamwaterfalls: 0,
   sx: null,
 }
 
