@@ -16,6 +16,7 @@ const UnitSearch = ({
   layer,
   ignoreIds,
   showCount,
+  minLength,
   onSelect,
 }) => {
   const [{ query, activeIndex }, setState] = useState({
@@ -30,7 +31,7 @@ const UnitSearch = ({
   } = useQuery({
     queryKey: ['search', system, layer, query],
     queryFn: async () => {
-      if (!(query && query.length >= 3)) {
+      if (!(query && query.length >= minLength)) {
         return {}
       }
 
@@ -44,13 +45,7 @@ const UnitSearch = ({
     refetchOnMount: false,
   })
 
-  const showID = layer
-    ? !(
-        layer === 'State' ||
-        layer === 'County' ||
-        layer === 'CongressionalDistrict'
-      )
-    : system !== 'ADM'
+  const showID = layer ? layer.startsWith('HUC') : system !== 'ADM'
 
   const handleChange = useCallback((value) => {
     setState(() => ({ query: value, activeIndex: null }))
@@ -126,13 +121,7 @@ const UnitSearch = ({
     ? LAYER_NAMES[layer].toLowerCase()
     : SYSTEMS[system].toLowerCase()
   const suffix = ` name${
-    (system && system !== 'ADM') ||
-    (layer &&
-      !(
-        layer === 'State' ||
-        layer === 'County' ||
-        layer === 'CongressionalDistrict'
-      ))
+    (system && system !== 'ADM') || (layer && layer.startsWith('HUC'))
       ? ' or ID'
       : ''
   }`
@@ -171,14 +160,15 @@ const UnitSearch = ({
         </Box>
       ) : null}
 
-      {query.length > 0 && (results.length === 0 || query.length <= 3) ? (
+      {query.length > 0 &&
+      (results.length === 0 || query.length <= minLength) ? (
         <Flex
           sx={{
             my: '1rem',
             justifyContent: 'center',
           }}
         >
-          {query.length >= 3 ? (
+          {query.length >= minLength ? (
             <>
               {error !== null ? (
                 <Flex sx={{ alignItems: 'center', gap: '0.5rem' }}>
@@ -230,6 +220,7 @@ UnitSearch.propTypes = {
   layer: PropTypes.string,
   ignoreIds: PropTypes.object, // Set
   showCount: PropTypes.bool,
+  minLength: PropTypes.number,
   onSelect: PropTypes.func.isRequired,
 }
 
@@ -238,6 +229,7 @@ UnitSearch.defaultProps = {
   system: null,
   ignoreIds: null,
   showCount: false,
+  minLength: 3,
 }
 
 export default memo(UnitSearch)

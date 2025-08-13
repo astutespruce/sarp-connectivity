@@ -275,7 +275,9 @@ state_wra_geo_df = state_wra.to_crs(GEO_CRS).explode(ignore_index=True)
 state_wra_geo_df["bbox"] = encode_bbox(state_wra_geo_df.geometry.values)
 state_wra_geo_df["layer"] = "StateWRA"
 state_wra_geo_df["priority"] = np.uint8(6)
-state_wra_geo_df["key"] = state_wra_geo_df.id
+# NOTE: trim state code from id
+state_wra_geo_df["key"] = state_wra_geo_df.name + " " + state_wra_geo_df.id.str[2:]
+state_wra_geo_df["name"] = state_wra_geo_df["name"] + " (" + state_wra_geo_df.id.str[2:] + ")"
 
 
 print("Processing fish habitat partnerships")

@@ -41,6 +41,14 @@ export const FunctionalNetworkPropTypeStub = {
   freeperennialdownstreammiles: PropTypes.number,
   freeunaltereddownstreammiles: PropTypes.number,
   freeresilientdownstreammiles: PropTypes.number,
+
+  // upstream / downstream barrier info
+  upstreambarrier: PropTypes.string,
+  upstreambarriersarpid: PropTypes.string,
+  upstreambarriermiles: PropTypes.number,
+  downstreambarrier: PropTypes.string,
+  downstreambarriersarpid: PropTypes.string,
+  downstreambarriermiles: PropTypes.number,
 }
 
 export const FunctionalNetworkDefaultProps = {
@@ -66,6 +74,13 @@ export const FunctionalNetworkDefaultProps = {
   freeperennialdownstreammiles: 0,
   freeunaltereddownstreammiles: 0,
   freeresilientdownstreammiles: 0,
+  // upstream / downstream barrier info
+  upstreambarrier: null,
+  upstreambarriersarpid: null,
+  upstreambarriermiles: null,
+  downstreambarrier: null,
+  downstreambarriersarpid: null,
+  downstreambarriermiles: null,
 }
 
 export const MainstemNetworkPropTypeStub = {

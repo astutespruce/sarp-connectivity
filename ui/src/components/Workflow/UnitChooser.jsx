@@ -201,6 +201,7 @@ const UnitChooser = ({
               : null
           }
           showCount
+          minLength={layer === 'StateWRA' ? 1 : 3}
           onSelect={selectUnit}
         />
 

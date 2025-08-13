@@ -17,6 +17,10 @@ const hucLayerOptions = [
   { value: 'HUC12', label: 'Subwatershed', sublabel: '(HUC12)' },
 ]
 
+const otherLayerOptions = [
+  { value: 'StateWRA', label: 'State Water Resource Areas' },
+]
+
 const LayerChooser = ({ setLayer }) => {
   const handleSelectLayer = (layer) => {
     setLayer(layer)
@@ -48,6 +52,20 @@ const LayerChooser = ({ setLayer }) => {
           Hydrologic unit
         </Heading>
         <ToggleButton options={hucLayerOptions} onChange={handleSelectLayer} />
+      </Box>
+
+      <Box sx={{ mt: '3rem' }}>
+        <Heading as="h4" sx={{ mb: '0.25rem' }}>
+          Other units
+        </Heading>
+        <ToggleButton
+          options={otherLayerOptions}
+          onChange={handleSelectLayer}
+        />
+        <Text variant="help" sx={{ fontSize: 0, mt: '0.5rem' }}>
+          State water resource areas currently include Washington State Water
+          Resource Inventory Areas.
+        </Text>
       </Box>
     </Box>
   )

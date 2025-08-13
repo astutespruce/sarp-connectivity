@@ -23,6 +23,7 @@ def get_unit_ids(
     State: str = None,
     County: str = None,
     CongressionalDistrict: str = None,
+    StateWRA: str = None,
     # FishHabitatPartnership specifically excluded here; is handled as a filter below
 ):
     """Extract unit ids for each unit type from the URL query parameters
@@ -45,6 +46,8 @@ def get_unit_ids(
         comma-delimited list of County FIPS values for unit_ids
     CongressionalDistrict : str, optional
         comma-delimited list of congressional district values for unit_ids
+    StateWRA : str, optional
+        comma-delimited list of state water resource area values for unit_ids
 
     Returns
     -------
@@ -60,6 +63,7 @@ def get_unit_ids(
         "State": State,
         "COUNTYFIPS": County,
         "CongressionalDistrict": CongressionalDistrict,
+        "StateWRA": StateWRA,
     }
     unit_ids = {}
     for key, ids in units.items():
@@ -106,6 +110,7 @@ def get_filter_params(
         "State",
         "COUNTYFIPS",
         "CongressionalDistrict",
+        "StateWRA",
     }
 
     match barrier_type:

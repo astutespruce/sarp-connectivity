@@ -60,6 +60,7 @@ class Layers(str, Enum):
     CongressionalDistrict = "CongressionalDistrict"
     FishHabitatPartnership = "FishHabitatPartnership"
     Region = "Region"
+    StateWRA = "StateWRA"
 
 
 class Formats(str, Enum):

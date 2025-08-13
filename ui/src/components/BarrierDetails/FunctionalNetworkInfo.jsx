@@ -52,6 +52,12 @@ const FunctionalNetworkInfo = ({
   totaldownstreamwaterfalls,
   unalteredwaterbodyacres,
   unalteredwetlandacres,
+  upstreambarrier,
+  upstreambarriersarpid,
+  upstreambarriermiles,
+  downstreambarrier,
+  downstreambarriersarpid,
+  downstreambarriermiles,
 }) => {
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
 
@@ -532,6 +538,30 @@ const FunctionalNetworkInfo = ({
           </ExpandableParagraph>
         </Text>
       </Entry>
+
+      {upstreambarrier ? (
+        <Entry>
+          <Field label="Nearest upstream barrier">
+            {barrierTypeLabelSingular[`${upstreambarrier}s`]}
+            <br />
+            id: {upstreambarriersarpid}
+            <br />
+            {formatNumber(upstreambarriermiles)} miles upstream
+          </Field>
+        </Entry>
+      ) : null}
+
+      {downstreambarrier ? (
+        <Entry>
+          <Field label="Downstream barrier">
+            {barrierTypeLabelSingular[`${downstreambarrier}s`]}
+            <br />
+            id: {downstreambarriersarpid}
+            <br />
+            {formatNumber(downstreambarriermiles)} miles downstream
+          </Field>
+        </Entry>
+      ) : null}
 
       {unranked && !invasive ? (
         <Entry>

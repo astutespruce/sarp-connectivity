@@ -347,6 +347,7 @@ out = units.join(stats.set_index(["layer", "id"]))
 
 out.reset_index().to_feather(api_dir / "map_units.feather")
 
+
 ### Output minimal subset and join to tiles
 
 # create bitset field based on number of barriers present per unit; where false for a given barrier type,

@@ -1620,11 +1620,13 @@ export const MAP_SERVICES = {
 export const SYSTEMS = {
   ADM: 'State / County',
   HUC: 'Hydrologic unit',
+  OTHER: 'Other unit',
 }
 
 export const SYSTEM_UNITS = {
   ADM: ['State', 'County'],
   HUC: ['HUC2', 'HUC6', 'HUC8', 'HUC10', 'HUC12'],
+  OTHER: ['StateWRA'],
 }
 
 export const SCENARIOS = {
@@ -1647,6 +1649,7 @@ export const LAYER_NAMES = {
   HUC8: 'Subbasin',
   HUC10: 'Watershed',
   HUC12: 'Subwatershed',
+  StateWRA: 'State water resource area',
 }
 
 // Ideal zoom level for each layer, e.g., when fitting bounds to a selected feature
@@ -1657,6 +1660,7 @@ export const LAYER_ZOOM = {
   HUC8: 8,
   HUC10: 9,
   HUC12: 10,
+  StateWRA: 5,
 }
 
 // Bounds around all selected HUC6s
