@@ -128,7 +128,7 @@ const UnitSearch = ({
 
   return (
     <Box onKeyDown={handleKeyDown}>
-      <Text>Search for {searchLabel}:</Text>
+      <Text>Search for a {searchLabel}:</Text>
       <SearchField
         value={query}
         isLoading={isLoading}
