@@ -82,6 +82,8 @@ export const MainstemNetworkPropTypeStub = {
 
   // other mainstem stats
   mainstemsizeclasses: PropTypes.number,
+  mainstemupstreamimpairment: PropTypes.string,
+  mainstemdownstreamimpairment: PropTypes.string,
 }
 
 export const MainstemNetworkDefaultProps = {

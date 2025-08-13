@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Grid, Heading, Paragraph } from 'theme-ui'
+import { Box, Grid, Heading, Paragraph, Text } from 'theme-ui'
 
 import {
   MainstemNetworkPropTypeStub,
@@ -8,8 +8,9 @@ import {
   LinearDownstreamNetworkPropTypeStub,
   LinearDownstreamNetworkDefaultProps,
 } from 'components/BarrierDetails/proptypes'
+import { OutboundLink } from 'components/Link'
 import { Table, Row } from 'components/Table'
-import { barrierTypeLabelSingular } from 'config'
+import { barrierTypeLabelSingular, EPA_CAUSE_CODES } from 'config'
 import { formatNumber, formatPercent } from 'util/format'
 
 const MainstemNetworkInfo = ({
@@ -24,6 +25,8 @@ const MainstemNetworkInfo = ({
   freeperennialmainstemdownstreammiles,
   freealteredmainstemdownstreammiles,
   freeunalteredmainstemdownstreammiles,
+  mainstemupstreamimpairment,
+  mainstemdownstreamimpairment,
   removed,
   flowstoocean,
   flowstogreatlakes,
@@ -219,6 +222,34 @@ const MainstemNetworkInfo = ({
               {formatNumber(freeunalteredmainstemdownstreammiles, 2, true)}
             </Box>
           </Row>
+
+          {mainstemupstreamimpairment || mainstemdownstreamimpairment ? (
+            <Row>
+              <Box>
+                Water quality impairments
+                <br />
+                present:
+              </Box>
+              <Box sx={{ fontSize: 1 }}>
+                {mainstemupstreamimpairment
+                  ? mainstemupstreamimpairment
+                      .split(',')
+                      .map((code) => (
+                        <Text key={code}>{EPA_CAUSE_CODES[code]}</Text>
+                      ))
+                  : null}
+              </Box>
+              <Box sx={{ fontSize: 1 }}>
+                {mainstemdownstreamimpairment
+                  ? mainstemdownstreamimpairment
+                      .split(',')
+                      .map((code) => (
+                        <Text key={code}>{EPA_CAUSE_CODES[code]}</Text>
+                      ))
+                  : null}
+              </Box>
+            </Row>
+          ) : null}
         </Table>
       </Box>
 
@@ -250,6 +281,17 @@ const MainstemNetworkInfo = ({
             was unknown were lumped together for this analysis`
           : null}
         .
+        {mainstemupstreamimpairment || mainstemdownstreamimpairment ? (
+          <>
+            <br />
+            <br />
+            Water quality impairments based on based on{' '}
+            <OutboundLink to="https://www.epa.gov/waterdata/attains">
+              EPA ATTAINS
+            </OutboundLink>{' '}
+            water quality data within the mainstem network.
+          </>
+        ) : null}
       </Paragraph>
     </Box>
   )

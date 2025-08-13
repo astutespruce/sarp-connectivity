@@ -2,7 +2,8 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Text } from 'theme-ui'
 
-import { barrierTypeLabelSingular } from 'config'
+import { barrierTypeLabelSingular, EPA_CAUSE_CODES } from 'config'
+import { OutboundLink } from 'components/Link'
 import { Table, Row } from 'components/Table'
 import { InfoTooltip } from 'components/Tooltip'
 import { Entry, Field } from 'components/Sidebar'
@@ -30,6 +31,8 @@ const MainstemNetworkInfo = ({
   freeperennialmainstemdownstreammiles,
   freealteredmainstemdownstreammiles,
   freeunalteredmainstemdownstreammiles,
+  mainstemupstreamimpairment,
+  mainstemdownstreamimpairment,
   mainstemsizeclasses,
   fontSize,
   headerFontSize,
@@ -413,6 +416,46 @@ const MainstemNetworkInfo = ({
             </Field>
           </Entry>
         </>
+      ) : null}
+
+      {mainstemupstreamimpairment || mainstemdownstreamimpairment ? (
+        <Entry>
+          <Text>Water quality impairments present:</Text>
+          <Text sx={{ ml: '0.5rem', mt: '0.25rem' }}>
+            {mainstemupstreamimpairment ? (
+              <>
+                upstream:{' '}
+                {mainstemupstreamimpairment
+                  .split(',')
+                  .map((code) => EPA_CAUSE_CODES[code])
+                  .join(', ')}
+              </>
+            ) : null}
+
+            {mainstemupstreamimpairment && mainstemdownstreamimpairment ? (
+              <br />
+            ) : null}
+
+            {mainstemdownstreamimpairment ? (
+              <>
+                downstream:{' '}
+                {mainstemdownstreamimpairment
+                  .split(',')
+                  .map((code) => EPA_CAUSE_CODES[code])
+                  .join(', ')}
+              </>
+            ) : null}
+          </Text>
+          <Text
+            sx={{ ml: '0.5rem', mt: '0.25rem', fontSize: 0, color: 'grey.7' }}
+          >
+            based on{' '}
+            <OutboundLink to="https://www.epa.gov/waterdata/attains">
+              EPA ATTAINS
+            </OutboundLink>{' '}
+            water quality data within the mainstem network
+          </Text>
+        </Entry>
       ) : null}
     </Box>
   )

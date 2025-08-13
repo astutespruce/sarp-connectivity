@@ -137,6 +137,7 @@ const Report = ({
         {hasnetwork && habitat.length > 0 ? (
           <SpeciesHabitat
             style={{ marginTop: 32 }}
+            barrierType={barrierType}
             {...data}
             habitat={habitat}
           />

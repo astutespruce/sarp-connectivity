@@ -214,11 +214,10 @@ const LocationInfo = ({
             {formatNumber(fatality)}
           </Field>
           <Text sx={{ fontSize: 0, color: 'grey.7' }}>
-            (based on data provided by{' '}
+            based on data provided by{' '}
             <OutboundLink to="https://krcproject.groups.et.byu.net/browse.php">
               Fatalities at Submerged Hydraulic Jumps
             </OutboundLink>
-            )
           </Text>
         </Entry>
       ) : null}
@@ -239,13 +238,12 @@ const LocationInfo = ({
 
       {cold ? (
         <Entry>
-          <Field label="Cold water temperature score">
+          <Field label="Ability of the watershed to maintain cold water habitat">
             {TNC_COLDWATER_STATUS[cold]}
           </Field>
           <Text sx={{ mt: '0.5rem', fontSize: 0, color: 'grey.7' }}>
-            Note: based on the cold water temperature score of the watershed
-            where this barrier occurs, as identified by The Nature Conservancy
-            (March 2024).
+            based on The Nature Conservancy&apos;s cold water temperature score
+            where this barrier occurs (TNC; March 2024).
           </Text>
         </Entry>
       ) : null}
@@ -256,9 +254,8 @@ const LocationInfo = ({
             {TNC_RESILIENCE[resilience]}
           </Field>
           <Text sx={{ mt: '0.5rem', fontSize: 0, color: 'grey.7' }}>
-            Note: based on the freshwater resilience category of the watershed
-            where this barrier occurs, as identified by The Nature Conservancy
-            (v0.44).
+            based on the The Nature Conservancy&apos;s freshwater resilience
+            category of the watershed where this barrier occurs (v0.44).
           </Text>
         </Entry>
       ) : null}
@@ -269,7 +266,7 @@ const LocationInfo = ({
             {TU_BROOK_TROUT_PORTFOLIO[brooktroutportfolio]}
           </Field>
           <Text sx={{ mt: '0.5rem', fontSize: 0, color: 'grey.7' }}>
-            Note: based on the{' '}
+            based on the{' '}
             <OutboundLink to="https://www.tu.org/science/conservation-planning-and-assessment/conservation-portfolio/">
               brook trout conservation portfolio
             </OutboundLink>{' '}
@@ -310,11 +307,11 @@ const LocationInfo = ({
           <Text>Within the following native territories:</Text>
           <Text sx={{ mt: '0.25rem', ml: '1rem' }}>{nativeterritories}</Text>
           <Text sx={{ fontSize: 0, color: 'grey.7', ml: '1rem' }}>
-            (based on data provided by{' '}
+            based on data provided by{' '}
             <OutboundLink to="https://native-land.ca/">
               Native Land Digital
             </OutboundLink>
-            )
+            .
           </Text>
         </Entry>
       ) : null}

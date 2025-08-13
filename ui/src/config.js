@@ -1365,6 +1365,16 @@ export const WILDSCENIC_RIVER_LONG_LABELS = {
   4: 'Within 250 meters of an eligible / suitable Wild & Scenic River but outside a designated or eligible / suitable corridor',
 }
 
+export const EPA_CAUSE_CODES = {
+  a: 'algal growth',
+  b: 'impaired biota (cause unknown)',
+  f: 'fish kills (cause unknown)',
+  h: 'habitat alterations',
+  o: 'oxygen depletion',
+  t: 'temperature',
+  y: 'hydrologic alteration',
+}
+
 // NOTE: these are encoded into a comma-delimited field
 export const FISH_HABITAT_PARTNERSHIPS = {
   ACFHP: {

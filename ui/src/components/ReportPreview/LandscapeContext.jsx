@@ -28,10 +28,11 @@ const LandscapeContext = ({
 
     {cold ? (
       <Entry>
-        Cold water temperature score: {TNC_COLDWATER_STATUS[cold]}
+        Ability of the watershed to maintain cold water habitat:{' '}
+        {TNC_COLDWATER_STATUS[cold]}
         <Text sx={{ fontSize: 0, color: 'grey.7', lineHeight: 1.1 }}>
-          (based on the cold water temperature score of the watershed where this
-          barrier occurs, as identified by The Nature Conservancy (March 2024))
+          based on The Nature Conservancy&apos;s cold water temperature score
+          where this barrier occurs (TNC; March 2024).
         </Text>
       </Entry>
     ) : null}
@@ -40,8 +41,8 @@ const LandscapeContext = ({
       <Entry>
         Freshwater resilience: {TNC_RESILIENCE[resilience]}
         <Text sx={{ fontSize: 0, color: 'grey.7', lineHeight: 1.1 }}>
-          (based on the freshwater resilience category of the watershed where
-          this barrier occurs, as identified by The Nature Conservancy (v0.44))
+          based on the The Nature Conservancy&apos;s freshwater resilience
+          category of the watershed where this barrier occurs (v0.44).
         </Text>
       </Entry>
     ) : null}
@@ -51,12 +52,12 @@ const LandscapeContext = ({
         Eastern brook trout conservation portfolio:{' '}
         {TU_BROOK_TROUT_PORTFOLIO[brooktroutportfolio]}
         <Text sx={{ fontSize: 0, color: 'grey.7', lineHeight: 1.1 }}>
-          (based on the{' '}
+          based on the{' '}
           <OutboundLink to="https://www.tu.org/science/conservation-planning-and-assessment/conservation-portfolio/">
             brook trout conservation portfolio
           </OutboundLink>{' '}
           category of the watershed where this barrier occurs, as identified by
-          Trout Unlimited (7/4/2022))
+          Trout Unlimited (7/4/2022).
         </Text>
       </Entry>
     ) : null}
@@ -76,11 +77,11 @@ const LandscapeContext = ({
           Within the following native territories: {nativeterritories}
         </Text>
         <Text sx={{ fontSize: 0, color: 'grey.7', lineHeight: 1.1 }}>
-          (based on data provided by{' '}
+          based on data provided by{' '}
           <OutboundLink to="https://native-land.ca/">
             Native Land Digital
           </OutboundLink>
-          )
+          .
         </Text>
       </Entry>
     ) : null}

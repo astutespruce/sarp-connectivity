@@ -8,9 +8,10 @@ import {
   LinearDownstreamNetworkPropTypeStub,
   LinearDownstreamNetworkDefaultProps,
 } from 'components/BarrierDetails/proptypes'
+import { EPA_CAUSE_CODES } from 'config'
 import { formatNumber, formatPercent } from 'util/format'
 
-import { Bold, Flex, Section } from './elements'
+import { Bold, Flex, Link, Section } from './elements'
 
 const columnCSS = {
   marginLeft: 14,
@@ -30,13 +31,15 @@ const MainstemNetworkInfo = ({
   freeperennialmainstemdownstreammiles,
   freealteredmainstemdownstreammiles,
   freeunalteredmainstemdownstreammiles,
+  mainstemupstreamimpairment,
+  mainstemdownstreamimpairment,
   removed,
   flowstoocean,
   flowstogreatlakes,
   totaldownstreamdams,
   totaldownstreamsmallbarriers,
   totaldownstreamwaterfalls,
-  ...props
+  style,
 }) => {
   const barrierTypeLabel =
     barrierType === 'dams' ? 'dam' : 'road-related barrier'
@@ -85,7 +88,7 @@ const MainstemNetworkInfo = ({
   return (
     <Section
       title="Mainstem network information"
-      {...props}
+      style={style}
       wrap={false}
       marginBottom={6}
     >
@@ -305,6 +308,39 @@ const MainstemNetworkInfo = ({
           </View>
         </Flex>
 
+        {mainstemupstreamimpairment || mainstemdownstreamimpairment ? (
+          <Flex
+            style={{
+              borderTop: '1px solid #dee1e3',
+              marginTop: 6,
+              paddingTop: 6,
+            }}
+          >
+            <View style={{ flex: '1 1 auto' }}>
+              <Text>Water quality impairments</Text>
+              <Text>present:</Text>
+            </View>
+            <View style={{ flex: '0 0 140pt', fontSize: 10 }}>
+              {mainstemupstreamimpairment
+                ? mainstemupstreamimpairment
+                    .split(',')
+                    .map((code) => (
+                      <Text key={code}>{EPA_CAUSE_CODES[code]}</Text>
+                    ))
+                : null}
+            </View>
+            <View style={{ flex: '0 0 140pt', fontSize: 10 }}>
+              {mainstemdownstreamimpairment
+                ? mainstemdownstreamimpairment
+                    .split(',')
+                    .map((code) => (
+                      <Text key={code}>{EPA_CAUSE_CODES[code]}</Text>
+                    ))
+                : null}
+            </View>
+          </Flex>
+        ) : null}
+
         {alwaysUseUpstream ? (
           <Text style={{ color: '#7f8a93', marginTop: 28, fontSize: 10 }}>
             Note: upstream miles are used because the downstream network flows
@@ -335,6 +371,17 @@ const MainstemNetworkInfo = ({
             ? `, including any that were present at the time this ${barrierTypeLabel} was removed, with the exception of those directly upstream that were removed in the same year as this barrier. All barriers removed prior to 2000 or where the year they were removed was unknown were lumped together for this analysis`
             : null}
           .
+          {mainstemupstreamimpairment || mainstemdownstreamimpairment ? (
+            <>
+              <br />
+              <br />
+              Water quality impairments based on based on{' '}
+              <Link href="https://www.epa.gov/waterdata/attains">
+                EPA ATTAINS
+              </Link>{' '}
+              water quality data within the mainstem network.
+            </>
+          ) : null}
         </Text>
       </View>
     </Section>
@@ -347,12 +394,14 @@ MainstemNetworkInfo.propTypes = {
   barrierType: PropTypes.string.isRequired,
   networkType: PropTypes.string.isRequired,
   removed: PropTypes.bool,
+  style: PropTypes.object,
 }
 
 MainstemNetworkInfo.defaultProps = {
   ...MainstemNetworkDefaultProps,
   ...LinearDownstreamNetworkDefaultProps,
   removed: false,
+  style: null,
 }
 
 export default MainstemNetworkInfo

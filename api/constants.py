@@ -1458,13 +1458,13 @@ TU_BROOK_TROUT_PORTFOLIO_TO_DOMAIN = {
 # NOTE: EPA causes are stored as comma-delimited list
 # Currently not unpacked for the user
 EPA_CAUSE_CODES = {
-    "a": "algal_growth",
-    "b": "cause_unknown_impaired_biota",
-    "f": "cause_unknown_fish_kills",
-    "h": "habitat_alterations",
-    "o": "oxygen_depletion",
+    "a": "algal growth",
+    "b": "impaired biota (cause unknown)",
+    "f": "fish kills (cause unknown)",
+    "h": "habitat alterations",
+    "o": "oxygen depletion",
     "t": "temperature",
-    "y": "hydrologic_alteration",
+    "y": "hydrologic alteration",
 }
 
 
@@ -1643,8 +1643,8 @@ FIELD_DEFINITIONS = {
     "HasUpstreamEJTribal": "Upstream functional network overlaps with a disadvantaged tribal community as defined by the Climate and Environmental Justice Screening tool.  See EJTribal for more information.  -1 = not available.",
     "HasLinearDownstreamEJTribal": "Downstream linear network overlaps with a disadvantaged tribal community as defined by the Climate and Environmental Justice Screening tool.  See EJTribal for more information.  -1 = not available.",
     "NativeTerritories": "Native / indigenous people's territories as mapped by Native Land Digital (https://native-land.ca/",
-    "Resilience": "Freshwater resilience category of the watershed where the {type} occurs identified by The Nature Conservancy (v0.44)",
-    "Cold": "Cold water temperature score of the watershed where the {type} occurs identified by The Nature Conservancy (March 2024)",
+    "Resilience": "The Nature Conservancy's freshwater resilience category of the watershed where the {type} occurs (v0.44).",
+    "Cold": "Ability of the watershed to maintain cold water habitat based on The Nature Conservancy's cold water temperature score where this {type} occurs (TNC; March 2024).",
     "BrookTroutPortfolio": "Eastern Brook Trout Conservation Portfolio category for the watershed where the {type} occurs, based on the most recent Brook Trout Conservation Portfolio dataset provided by Trout Unlimited (last updated 7/4/2022).  See https://www.tu.org/science/conservation-planning-and-assessment/conservation-portfolio/ for more information.",
     "FishHabitatPartnership": "Fish Habitat Partnerships working in the area where the {type} occurs.  See https://www.fishhabitat.org/the-partnerships for more information.",
     "Basin": "Name of the hydrologic basin (HUC6) where the {type} occurs.",

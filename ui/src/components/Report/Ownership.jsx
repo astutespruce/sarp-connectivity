@@ -139,11 +139,11 @@ const Ownership = ({
                     lineHeight: 1.1,
                   }}
                 >
-                  (based on data provided by{' '}
+                  based on data provided by{' '}
                   <Link href="https://krcproject.groups.et.byu.net/browse.php">
                     Fatalities at Submerged Hydraulic Jumps
                   </Link>
-                  )
+                  .
                 </Text>
               </Entry>
             ) : null}

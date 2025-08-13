@@ -28,12 +28,12 @@ const LandscapeContext = ({
       {cold ? (
         <Entry>
           <Text>
-            Cold water temperature score: {TNC_COLDWATER_STATUS[cold]}
+            Ability of the watershed to maintain cold water habitat:{' '}
+            {TNC_COLDWATER_STATUS[cold]}
           </Text>
           <Text style={{ fontSize: '10pt', color: '#7f8a93', lineHeight: 1.1 }}>
-            (based on the cold water temperature score of the watershed where
-            this barrier occurs, as identified by The Nature Conservancy (March
-            2024))
+            based on The Nature Conservancy&apos;s cold water temperature score
+            where this barrier occurs (TNC; March 2024).
           </Text>
         </Entry>
       ) : null}
@@ -42,9 +42,8 @@ const LandscapeContext = ({
         <Entry>
           <Text>Freshwater resilience: {TNC_RESILIENCE[resilience]}</Text>
           <Text style={{ fontSize: '10pt', color: '#7f8a93', lineHeight: 1.1 }}>
-            (based on the freshwater resilience category of the watershed where
-            this barrier occurs, as identified by The Nature Conservancy
-            (v0.44))
+            based on the The Nature Conservancy&apos;s freshwater resilience
+            category of the watershed where this barrier occurs (v0.44).
           </Text>
         </Entry>
       ) : null}
@@ -56,12 +55,12 @@ const LandscapeContext = ({
             {TU_BROOK_TROUT_PORTFOLIO[brooktroutportfolio]}
           </Text>
           <Text style={{ fontSize: '10pt', color: '#7f8a93', lineHeight: 1.1 }}>
-            (based on the{' '}
+            based on the{' '}
             <Link href="https://www.tu.org/science/conservation-planning-and-assessment/conservation-portfolio/">
               brook trout conservation portfolio
             </Link>{' '}
             category of the watershed where this barrier occurs, as identified
-            by Trout Unlimited (7/4/2022))
+            by Trout Unlimited (7/4/2022).
           </Text>
         </Entry>
       ) : null}
@@ -86,8 +85,8 @@ const LandscapeContext = ({
             apologies, no disrespect is intended.
           </Text>
           <Text style={{ fontSize: '10pt', color: '#7f8a93', lineHeight: 1.1 }}>
-            (based on data provided by{' '}
-            <Link href="https://native-land.ca/">Native Land Digital</Link>)
+            based on data provided by{' '}
+            <Link href="https://native-land.ca/">Native Land Digital</Link>
           </Text>
         </Entry>
       ) : null}
@@ -122,19 +121,25 @@ const LandscapeContext = ({
 )
 
 LandscapeContext.propTypes = {
+  brooktroutportfolio: PropTypes.number,
+  cold: PropTypes.number,
   congressionaldistrict: PropTypes.string,
   ejtract: PropTypes.bool,
   ejtribal: PropTypes.bool,
   fishhabitatpartnership: PropTypes.string,
   nativeterritories: PropTypes.string,
+  resilience: PropTypes.number,
 }
 
 LandscapeContext.defaultProps = {
+  brooktroutportfolio: null,
+  cold: null,
   congressionaldistrict: null,
   ejtract: false,
   ejtribal: false,
   fishhabitatpartnership: null,
   nativeterritories: null,
+  resilience: null,
 }
 
 export default LandscapeContext

@@ -109,11 +109,11 @@ const Ownership = ({
             <Entry>
               Number of fatalities recorded: {formatNumber(fatality)}
               <Text sx={{ fontSize: 0, color: 'grey.7' }}>
-                (based on data provided by{' '}
+                based on data provided by{' '}
                 <OutboundLink to="https://krcproject.groups.et.byu.net/browse.php">
                   Fatalities at Submerged Hydraulic Jumps
                 </OutboundLink>
-                )
+                .
               </Text>
             </Entry>
           ) : null}

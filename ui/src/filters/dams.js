@@ -39,6 +39,7 @@ import {
   COST_CLASS,
   DIADROMOUS_HABITAT,
   WILDSCENIC_RIVER,
+  EPA_CAUSE_CODES,
 } from 'config'
 
 import { getEntries, hasDiadromousData } from './common'
@@ -297,6 +298,28 @@ export const dams = [
         sort: false,
         help: 'Note: this metric is based on all unaltered freshwater wetlands that intersect any stream reach in the upstream functional network.  Wetlands are derived from specific wetland types in the National Wetlands Inventory (freshwater scrub-shrub, freshwater forested, freshwater emergent) and NHD (swamp/marsh) and exclude any specifically marked by the data provider as altered.',
         ...getEntries(UNALTERED_WETLAND_CLASS),
+      },
+      {
+        field: 'mainstemupstreamimpairment',
+        title: 'Water quality impairments in the upstream mainstem network',
+        sort: false,
+        help: 'Note: based on data derived from EPA ATTAINS water quality data within the upstream mainstem network.  Water quality data are assigned to NHD flowlines and may not perfectly align with aquatic networks used in this analysis, and thus should be treated as a reasonable approximation.',
+        hideMissingValues: true,
+        hideIfEmpty: true,
+        isArray: true,
+        labels: Object.values(EPA_CAUSE_CODES),
+        values: Object.keys(EPA_CAUSE_CODES),
+      },
+      {
+        field: 'mainstemdownstreamimpairment',
+        title: 'Water quality impairments in the downstream mainstem network',
+        sort: false,
+        help: 'Note: based on data derived from EPA ATTAINS water quality data within the downstream mainstem network.  Water quality data are assigned to NHD flowlines and may not perfectly align with aquatic networks used in this analysis, and thus should be treated as a reasonable approximation.',
+        hideMissingValues: true,
+        hideIfEmpty: true,
+        isArray: true,
+        labels: Object.values(EPA_CAUSE_CODES),
+        values: Object.keys(EPA_CAUSE_CODES),
       },
     ],
   },
