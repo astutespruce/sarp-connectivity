@@ -7,7 +7,7 @@ from api.constants import (
     SB_FILTER_FIELD_MAP,
     COMBINED_FILTER_FIELD_MAP,
     ROAD_CROSSING_FILTER_FIELD_MAP,
-    MULTIPLE_VALUE_FIELDS,
+    MULTIPLE_VALUE_DICT_FIELDS,
     BOOLEAN_FILTER_FIELDS,
     FullySupportedBarrierTypes,
 )
@@ -147,9 +147,9 @@ def get_filter_params(
         # convert all incoming filter keys to their uppercase field name
         for key in filter_keys:
             field = field_map[key]
-            if field in MULTIPLE_VALUE_FIELDS:
+            if field in MULTIPLE_VALUE_DICT_FIELDS:
                 filters[field] = (
-                    "in_string",
+                    "in_dict",
                     request.query_params.get(key).split(","),
                 )
             elif field in BOOLEAN_FILTER_FIELDS:

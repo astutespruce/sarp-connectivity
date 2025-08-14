@@ -6,6 +6,7 @@ from api.data import barrier_datasets
 
 
 def _construct_filter_expr(
+    dataset: pa.dataset.Dataset,
     unit_ids: dict,
     filters: dict,
     ranked_only: bool = False,
@@ -14,6 +15,8 @@ def _construct_filter_expr(
 
     Parameters
     ----------
+    dataset : pyarrow Dataset
+        dataset that data are being read from
     unit_ids : dict
         dict of {<unit type>:[...unit ids...], ...}
     filters : dict
@@ -38,12 +41,17 @@ def _construct_filter_expr(
 
     # fields are evaluated using AND logic
     for key, (match_type, values) in filters.items():
-        if match_type == "in_string":
-            # test if incoming string is present within the set of comma-delimited
-            # values in the field using OR logic
-            match_ix = pc.match_substring(pc.field(key), values[0])
+        if match_type == "in_dict":
+            # find the corresponding dictionary entries so that we can search for these
+            # NOTE: we have to read at least 1 record from the dataset to get the dictionary
+            dictionary = dataset.scanner(columns=[key]).head(1)[key].combine_chunks().dictionary
+
+            # value filters are combined with OR logic
+            matches = dictionary.filter(pc.match_substring(dictionary, values[0]))
+            match_ix = pc.is_in(pc.field(key), matches)
             for value in values[1:]:
-                match_ix = match_ix | pc.match_substring(pc.field(key), value)
+                matches = dictionary.filter(pc.match_substring(dictionary, value))
+                match_ix = match_ix | pc.is_in(pc.field(key), matches)
 
             ix = ix & match_ix
 
@@ -79,7 +87,7 @@ def get_record_count(
         _description_
     """
     dataset = barrier_datasets[barrier_type]
-    filter = _construct_filter_expr(unit_ids, filters, ranked_only=ranked_only)
+    filter = _construct_filter_expr(dataset, unit_ids, filters, ranked_only=ranked_only)
     scanner = dataset.scanner(columns=[], filter=filter)
 
     return scanner.count_rows()
@@ -118,7 +126,7 @@ def extract_records(
     """
 
     dataset = barrier_datasets[barrier_type]
-    filter = _construct_filter_expr(unit_ids, filters, ranked_only=ranked_only)
+    filter = _construct_filter_expr(dataset, unit_ids, filters, ranked_only=ranked_only)
     scanner = dataset.scanner(columns=columns, filter=filter)
 
     if as_table:

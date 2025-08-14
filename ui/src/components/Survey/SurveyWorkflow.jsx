@@ -17,6 +17,7 @@ import { TopBar } from 'components/Map'
 import { Sidebar } from 'components/Sidebar'
 import { Filters, LayerChooser, UnitChooser } from 'components/Workflow'
 import { unitLayerConfig } from 'components/Workflow/config'
+import { serializeQueryKey } from 'util/data'
 
 import Map from './Map'
 
@@ -231,7 +232,7 @@ const SurveyWorkflow = () => {
       data,
       bounds: newBounds = null,
     } = await queryClient.fetchQuery({
-      queryKey: [barrierType, layer, nonzeroSummaryUnits],
+      queryKey: [barrierType, layer, serializeQueryKey(nonzeroSummaryUnits)],
       queryFn: async () =>
         fetchBarrierInfo(barrierType, {
           [layer]: nonzeroSummaryUnits.map(({ id }) => id),

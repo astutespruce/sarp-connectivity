@@ -108,3 +108,12 @@ export const unpackBits = (packed, fieldBits) => {
 export const isEqual = (left, right, props) =>
   props.filter((p) => left && right && dequal(left[p], right[p])).length ===
   props.length
+
+/** Serialize a key, which may be a nested object, so that it can
+ * be used as a query key for tanstack/react-query
+ *
+ * @param {Object | String} key - query key
+ * @returns String - serialized query key
+ */
+export const serializeQueryKey = (key) =>
+  JSON.stringify(key, (_, value) => (value instanceof Set ? [...value] : value))

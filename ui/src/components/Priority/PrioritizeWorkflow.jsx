@@ -24,6 +24,7 @@ import {
 } from 'components/Workflow'
 import { unitLayerConfig } from 'components/Workflow/config'
 import { trackPrioritize } from 'util/analytics'
+import { serializeQueryKey } from 'util/data'
 
 import Map from './Map'
 import Results from './Results'
@@ -201,6 +202,8 @@ const Prioritize = () => {
       .fetchQuery({
         queryKey: [selectedUnitLayer, id],
         queryFn: async () => fetchUnitDetails(selectedUnitLayer, id),
+        staleTime: 30 * 60 * 1000, // 30 minutes
+        // staleTime: 1, // use then reload to force refresh of underlying data during dev
       })
       .then((unitData) => {
         if (summaryUnitsRef.current.has(id)) {
@@ -285,7 +288,7 @@ const Prioritize = () => {
       data,
       bounds: newBounds = null,
     } = await queryClient.fetchQuery({
-      queryKey: [barrierType, layer, nonzeroSummaryUnits],
+      queryKey: [barrierType, layer, serializeQueryKey(nonzeroSummaryUnits)],
       queryFn: async () =>
         fetchBarrierInfo(barrierType, {
           [layer]: nonzeroSummaryUnits.map(({ id }) => id),
@@ -299,6 +302,7 @@ const Prioritize = () => {
     if (error || !data) {
       setIsLoading(false)
       setIsError(true)
+      setState((prevState) => ({ ...prevState, rankDate: [] }))
       return
     }
 
@@ -320,7 +324,12 @@ const Prioritize = () => {
       data,
       bounds: newBounds = null,
     } = await queryClient.fetchQuery({
-      queryKey: [barrierType, layer, summaryUnits, filters],
+      queryKey: [
+        barrierType,
+        layer,
+        serializeQueryKey(summaryUnits),
+        serializeQueryKey(filters),
+      ],
       queryFn: async () =>
         fetchBarrierRanks(
           barrierType,

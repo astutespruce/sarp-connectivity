@@ -433,8 +433,8 @@ sname_to_cname = {
 }
 
 
-# assign 8-bit uint codes
-name_to_code = {spp: i for i, spp in enumerate(sorted(trout_df.SNAME.unique()))}
+# assign 0-padded codes
+name_to_code = {spp: f"{i + 1:02d}" for i, spp in enumerate(sorted(trout_df.SNAME.unique()))}
 code_to_name = {v: k for k, v in name_to_code.items()}
 code_to_common_name = {v: sname_to_cname[k] for k, v in name_to_code.items()}
 print("------------------------------------------------------------------------")
@@ -443,11 +443,11 @@ print(code_to_common_name)
 print("------------------------------------------------------------------------")
 
 
-trout_df["trout"] = trout_df.SNAME.map(name_to_code).astype("uint8")
+trout_df["trout"] = trout_df.SNAME.map(name_to_code)
 trout_df = pd.DataFrame(trout_df.groupby("HUC12").trout.unique())
 trout_df["trout_spp_count"] = trout_df.trout.apply(len)
 trout_df["trout_spp"] = trout_df.trout.apply(lambda x: ", ".join(sorted(code_to_name[v] for v in x)))
-trout_df["trout"] = trout_df.trout.apply(lambda x: ",".join([str(v) for v in sorted(x)]))
+trout_df["trout"] = trout_df.trout.apply(lambda x: ",".join(sorted(x)))
 
 # emit a message to manually update the hard-coded domain used for download
 tmp = trout_df.groupby("trout").trout_spp.first().to_dict()

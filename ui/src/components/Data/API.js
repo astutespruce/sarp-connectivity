@@ -101,7 +101,16 @@ export const fetchBarrierRanks = async (barrierType, summaryUnits, filters) => {
   })}`
 
   // Unpack bit-packed tier scenarios
-  const { data: packedTiers, bounds } = await fetchFeather(url, undefined)
+  const {
+    data: packedTiers,
+    bounds,
+    error,
+  } = await fetchFeather(url, undefined)
+  if (error) {
+    // data needs to be non-null or map breaks
+    return { error, bounds: null, data: [] }
+  }
+
   const data = packedTiers.map(({ id, full, perennial, mainstem }) => ({
     id,
     // ...unpackBits(tiers, TIER_PACK_BITS),
