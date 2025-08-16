@@ -152,7 +152,7 @@ NETWORK_COLUMNS = [
 ] + SPECIES_HABITAT_FIELDS
 
 
-def get_network_results(df, network_type, state_ranks=False):
+def get_network_results(df, network_type, state_ranks=False, huc8_ranks=False):
     """Read network results, calculate derived metric classes, and calculate
     tiers.
 
@@ -166,6 +166,8 @@ def get_network_results(df, network_type, state_ranks=False):
     network_type : {"dams", "combined_barriers", "largefish_barriers", "smallfish_barriers"}
     state_ranks : bool, optional (default: False)
         if True, results will include tiers for the state level
+    huc8_ranks : bool, optional (default: False)
+        if True, results will include tiers for the HUC8 level
 
     Returns
     -------
@@ -188,7 +190,7 @@ def get_network_results(df, network_type, state_ranks=False):
 
     # join back to df using inner join, which limits to barrier types present in df
     networks = networks.join(
-        df[df.columns.intersection(["Unranked", "State", "FlowsToOcean", "FlowsToGreatLakes"])], how="inner"
+        df[df.columns.intersection(["Unranked", "State", "HUC8", "FlowsToOcean", "FlowsToGreatLakes"])], how="inner"
     )
 
     # sanity check to make sure no duplicate networks
@@ -294,28 +296,38 @@ def get_network_results(df, network_type, state_ranks=False):
     )
     networks = networks.drop(columns=upstream_cols + downstream_cols)
 
-    if not state_ranks:
-        return networks.drop(columns=["Unranked", "State", "FlowsToOcean", "FlowsToGreatLakes"])
+    ### Calculate tiers
+    if state_ranks or huc8_ranks:
+        # (exclude unranked invasive spp. barriers / no structure diversions)
+        # NOTE: tiers are calculated using a pyarrow Table
+        to_rank = pa.Table.from_pandas(networks.loc[~networks.Unranked, ["State", "HUC8"] + METRICS].reset_index())
 
-    ### Calculate state tiers for each of total and perennial
-    # (exclude unranked invasive spp. barriers / no structure diversions)
-    # NOTE: tiers are calculated using a pyarrow Table
-    to_rank = pa.Table.from_pandas(networks.loc[~networks.Unranked, ["State"] + METRICS].reset_index())
+        if state_ranks:
+            merged = []
+            for state in to_rank["State"].unique().to_pylist():
+                subset = to_rank.filter(pc.equal(to_rank["State"], state))
+                tiers = calculate_tiers(subset).add_column(0, subset.schema.field("id"), subset["id"])
+                merged.append(tiers)
 
-    merged = []
-    for state in to_rank["State"].unique():
-        subset = to_rank.filter(pc.equal(to_rank["State"], state))
-        tiers = calculate_tiers(subset).add_column(0, subset.schema.field("id"), subset["id"])
-        merged.append(tiers)
+            state_tiers = pa.concat_tables(merged).combine_chunks().to_pandas().set_index("id")
+            state_tiers.rename(columns={col: f"State_{col}" for col in state_tiers.columns}, inplace=True)
+            networks = networks.join(state_tiers)
 
-    state_tiers = pa.concat_tables(merged).combine_chunks().to_pandas().set_index("id")
-    state_tiers.rename(columns={col: f"State_{col}" for col in state_tiers.columns}, inplace=True)
+        if huc8_ranks:
+            merged = []
+            for huc8 in to_rank["HUC8"].unique().to_pylist():
+                subset = to_rank.filter(pc.equal(to_rank["HUC8"], huc8))
+                tiers = calculate_tiers(subset).add_column(0, subset.schema.field("id"), subset["id"])
+                merged.append(tiers)
 
-    networks = networks.join(state_tiers)
-    for col in [col for col in networks.columns if col.endswith("_tier")]:
-        networks[col] = networks[col].fillna(np.int8(-1)).astype("int8")
+            huc8_tiers = pa.concat_tables(merged).combine_chunks().to_pandas().set_index("id")
+            huc8_tiers.rename(columns={col: f"HUC8_{col}" for col in huc8_tiers.columns}, inplace=True)
+            networks = networks.join(huc8_tiers)
 
-    return networks.drop(columns=["Unranked", "State", "FlowsToOcean", "FlowsToGreatLakes"])
+        for col in [col for col in networks.columns if col.endswith("_tier")]:
+            networks[col] = networks[col].fillna(np.int8(-1)).astype("int8")
+
+    return networks.drop(columns=["Unranked", "State", "HUC8", "FlowsToOcean", "FlowsToGreatLakes"])
 
 
 def get_removed_network_results(df, network_type):

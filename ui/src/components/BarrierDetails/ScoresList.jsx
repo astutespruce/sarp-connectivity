@@ -26,7 +26,7 @@ const ScoresList = ({ nc, wc, ncwc, pnc, pwc, pncwc, mnc, mwc, mncwc }) => (
           tier={ncwc.tier}
         />
       </Box>
-      <Text variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
+      <Text variant="help" sx={{ mx: '1rem', mt: '1rem', fontSize: 0 }}>
         Note: network connectivity is based on the total perennial length in a
         given network. Watershed condition is based on the percent of the total
         length of stream reaches in the network that are not altered (canals /

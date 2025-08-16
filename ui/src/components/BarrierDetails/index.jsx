@@ -211,6 +211,21 @@ const BarrierDetails = ({ barrier, onClose }) => {
         })
       }
 
+      if (
+        data.huc8_ncwc_tier !== null &&
+        data.huc8_ncwc_tier !== undefined &&
+        data.huc8_ncwc_tier !== -1
+      ) {
+        scores.huc8 = {}
+        metrics.forEach((metric) => {
+          const tier = data[`huc8_${metric}_tier`]
+          scores.huc8[metric] = {
+            score: tierToPercent(tier),
+            tier,
+          }
+        })
+      }
+
       // add in custom results if available
       if (tiers) {
         scores.custom = {}

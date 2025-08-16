@@ -12,6 +12,7 @@ import { ScoresPropType } from './proptypes'
 const tabs = [
   { id: 'custom', label: 'Selected Area' },
   { id: 'state', label: 'State' },
+  { id: 'huc8', label: 'Subbasin' },
 ]
 
 const tabIndex = groupBy(tabs, 'id')
@@ -19,6 +20,7 @@ const tabIndex = groupBy(tabs, 'id')
 const Scores = ({ networkType, scores }) => {
   const hasCustomTiers = scores.custom && scores.custom.ncwc
   const hasStateTiers = scores.state && scores.state.ncwc
+  const hasHUC8Tiers = scores.huc8 && scores.huc8.ncwc
 
   const availableTabs = []
   if (hasCustomTiers) {
@@ -26,6 +28,9 @@ const Scores = ({ networkType, scores }) => {
   }
   if (hasStateTiers) {
     availableTabs.push(tabs[1])
+  }
+  if (hasHUC8Tiers) {
+    availableTabs.push(tabs[2])
   }
 
   const [tab, setTab] = useState(
@@ -36,7 +41,7 @@ const Scores = ({ networkType, scores }) => {
     setTab(id)
   }
 
-  if (!(hasStateTiers || hasCustomTiers)) {
+  if (!(hasStateTiers || hasHUC8Tiers || hasCustomTiers)) {
     return (
       <Text sx={{ color: 'grey.8' }}>
         State-level ranks are not available for this network type because there
@@ -88,6 +93,7 @@ Scores.propTypes = {
   networkType: PropTypes.string.isRequired,
   scores: PropTypes.shape({
     state: ScoresPropType,
+    huc8: ScoresPropType,
     custom: ScoresPropType,
   }).isRequired,
 }

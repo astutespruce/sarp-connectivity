@@ -81,9 +81,6 @@ rename_cols = {
 print("Reading dams and networks")
 dams = gp.read_feather(barriers_dir / "dams.feather").set_index("id").rename(columns=rename_cols)
 
-# FIXME: remove; now part of spatial_joins.py
-dams["StateWRA"] = dams.StateWRA.fillna("")
-
 dams["in_network_type"] = dams.primary_network
 
 # add stream order and species classes for filtering
@@ -104,7 +101,7 @@ pd.DataFrame(dams.loc[dams.Removed, removed_dam_cols].reset_index()).to_feather(
 # retained but also don't have networks
 dams = dams.loc[~(dams.dropped | dams.duplicate)].copy()
 
-nonremoved_dam_networks = get_network_results(dams.loc[~dams.Removed], "dams", state_ranks=True)
+nonremoved_dam_networks = get_network_results(dams.loc[~dams.Removed], "dams", state_ranks=True, huc8_ranks=True)
 
 # cast so that this gets correctly split out as -1/0/1 values
 nonremoved_dam_networks["InvasiveNetwork"] = nonremoved_dam_networks.InvasiveNetwork.fillna(-1).astype("int8")
@@ -199,9 +196,6 @@ tmp.sort_values("SARPID").drop_duplicates(subset="SARPID").reset_index(drop=True
 print("Reading small barriers and networks")
 small_barriers = gp.read_feather(barriers_dir / "small_barriers.feather").set_index("id").rename(columns=rename_cols)
 
-# FIXME: remove; now part of spatial_joins.py
-small_barriers["StateWRA"] = small_barriers.StateWRA.fillna("")
-
 small_barriers["in_network_type"] = small_barriers.primary_network
 
 small_barriers = small_barriers.loc[~(small_barriers.dropped | small_barriers.duplicate)].copy()
@@ -216,7 +210,7 @@ small_barriers["AnnualFlowClass"] = classify_annual_flow(small_barriers.AnnualFl
 # NOTE: not calculating state ranks, per guidance from SARP
 # (not enough barriers to have appropriate ranks)
 nonremoved_small_barrier_networks = get_network_results(
-    small_barriers.loc[~small_barriers.Removed], "combined_barriers"
+    small_barriers.loc[~small_barriers.Removed], "combined_barriers", state_ranks=False, huc8_ranks=True
 )
 # cast so that this gets correctly split out as -1/0/1 values
 nonremoved_small_barrier_networks["InvasiveNetwork"] = nonremoved_small_barrier_networks.InvasiveNetwork.fillna(
@@ -397,7 +391,7 @@ search_barriers = None
 
 for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barriers"]:
     nonremoved_networks = get_network_results(
-        combined.loc[~combined.Removed], network_type=network_type, state_ranks=False
+        combined.loc[~combined.Removed], network_type=network_type, state_ranks=False, huc8_ranks=True
     )
     # cast so that this gets correctly split out as -1/0/1 values
     nonremoved_networks["InvasiveNetwork"] = nonremoved_networks.InvasiveNetwork.fillna(-1).astype("int8")
@@ -489,9 +483,6 @@ print("Reading waterfalls and networks")
 waterfalls = gp.read_feather(barriers_dir / "waterfalls.feather").set_index("id").rename(columns=rename_cols)
 waterfalls = waterfalls.loc[~(waterfalls.dropped | waterfalls.duplicate)].copy()
 
-# FIXME: remove; now part of spatial_joins.py
-waterfalls["StateWRA"] = waterfalls.StateWRA.fillna("")
-
 tmp = waterfalls.copy()
 tmp["BarrierType"] = "waterfalls"
 
@@ -508,7 +499,7 @@ for col in ["Wilderness"]:
 
 merged = None
 for network_type in network_types:
-    networks = get_network_results(waterfalls, network_type=network_type, state_ranks=False)
+    networks = get_network_results(waterfalls, network_type=network_type, state_ranks=False, huc8_ranks=False)
 
     # cast so that this gets correctly split out as -1/0/1 values
     networks["InvasiveNetwork"] = networks.InvasiveNetwork.astype("int8")
@@ -591,9 +582,6 @@ tmp.sort_values(by=["SARPID", "network_type"]).reset_index(drop=True).to_feather
 # NOTE: these don't currently have network data, but share logic with above
 print("Processing road crossings")
 crossings = gp.read_feather(barriers_dir / "road_crossings.feather").set_index("id").rename(columns=rename_cols)
-
-# FIXME: remove; now part of spatial_joins.py
-crossings["StateWRA"] = crossings.StateWRA.fillna("")
 
 crossings["OnNetwork"] = ~(crossings.OnLoop | crossings.offnetwork_flowline)
 

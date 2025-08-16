@@ -4,7 +4,7 @@ import PropTypes from 'prop-types'
 import { Box, Heading, Text, Paragraph } from 'theme-ui'
 
 import { Table, Row } from 'components/Table'
-import { barrierTypeLabels } from 'config'
+import { barrierTypeLabels, STATES } from 'config'
 
 const Scores = ({
   barrierType,
@@ -21,13 +21,25 @@ const Scores = ({
   state_mnc_tier,
   state_mwc_tier,
   state_mncwc_tier,
+  huc8_nc_tier,
+  huc8_wc_tier,
+  huc8_ncwc_tier,
+  huc8_pnc_tier,
+  huc8_pwc_tier,
+  huc8_pncwc_tier,
+  huc8_mnc_tier,
+  huc8_mwc_tier,
+  huc8_mncwc_tier,
   sx,
 }) => {
   if (!ranked) {
     return null
   }
 
-  if (networkType !== 'dams') {
+  const hasStateTiers = networkType === 'dams' && state_ncwc_tier !== -1
+  const hasHUC8Tiers = huc8_ncwc_tier !== -1
+
+  if (!(hasStateTiers || hasHUC8Tiers)) {
     return null
   }
 
@@ -56,52 +68,115 @@ const Scores = ({
       </Text>
 
       <Box>
-        <Table
-          columns="18em 1fr 1fr 1fr"
-          sx={{
-            mt: '2rem',
-            '> div:not(:first-of-type)': {
-              pt: '0.5rem',
-            },
-          }}
-        >
-          <Row
+        {hasStateTiers ? (
+          <Table
+            columns="18em 1fr 1fr 1fr"
             sx={{
-              lineHeight: 1.2,
-              alignItems: 'end',
-              '& > div+div': { textAlign: 'center' },
+              mt: '2rem',
+              '> div:not(:first-of-type)': {
+                pt: '0.5rem',
+              },
             }}
           >
-            <Box sx={{ fontStyle: 'italic' }}>
-              Compared to other {barrierTypeLabel} in {state}:
-            </Box>
-            <Box sx={{ fontWeight: 'bold' }}>full network</Box>
-            <Box sx={{ fontWeight: 'bold' }}>perennial reaches</Box>
-            <Box sx={{ fontWeight: 'bold' }}>mainstem network</Box>
-          </Row>
-          <Row sx={{ '& > div+div': { textAlign: 'center' } }}>
-            <Box>Network connectivity tier</Box>
-            <Box>{state_nc_tier}</Box>
-            <Box>{state_pnc_tier}</Box>
-            <Box>{state_mnc_tier}</Box>
-          </Row>
-          <Row sx={{ '& > div+div': { textAlign: 'center' } }}>
-            <Box>Watershed condition tier</Box>
-            <Box>{state_wc_tier}</Box>
-            <Box>{state_pwc_tier}</Box>
-            <Box>{state_mwc_tier}</Box>
-          </Row>
-          <Row sx={{ '& > div+div': { textAlign: 'center' } }}>
-            <Box>
-              Combined network connectivity &amp;
-              <br />
-              watershed condition tier
-            </Box>
-            <Box>{state_ncwc_tier}</Box>
-            <Box>{state_pncwc_tier}</Box>
-            <Box>{state_mncwc_tier}</Box>
-          </Row>
-        </Table>
+            <Row
+              sx={{
+                lineHeight: 1.2,
+                alignItems: 'end',
+                '& > div+div': { textAlign: 'center' },
+              }}
+            >
+              <Box sx={{ fontStyle: 'italic' }}>
+                Compared to other {barrierTypeLabel} in {STATES[state]}:
+              </Box>
+              <Box sx={{ fontWeight: 'bold' }}>full network</Box>
+              <Box sx={{ fontWeight: 'bold' }}>perennial reaches</Box>
+              <Box sx={{ fontWeight: 'bold' }}>mainstem network</Box>
+            </Row>
+            <Row sx={{ '& > div+div': { textAlign: 'center' } }}>
+              <Box>Network connectivity tier</Box>
+              <Box>{state_nc_tier}</Box>
+              <Box>{state_pnc_tier}</Box>
+              <Box>{state_mnc_tier}</Box>
+            </Row>
+            <Row sx={{ '& > div+div': { textAlign: 'center' } }}>
+              <Box>Watershed condition tier</Box>
+              <Box>{state_wc_tier}</Box>
+              <Box>{state_pwc_tier}</Box>
+              <Box>{state_mwc_tier}</Box>
+            </Row>
+            <Row sx={{ '& > div+div': { textAlign: 'center' } }}>
+              <Box>
+                Combined network connectivity &amp;
+                <br />
+                watershed condition tier
+              </Box>
+              <Box>{state_ncwc_tier}</Box>
+              <Box>{state_pncwc_tier}</Box>
+              <Box>{state_mncwc_tier}</Box>
+            </Row>
+          </Table>
+        ) : null}
+
+        {hasHUC8Tiers ? (
+          <Table
+            columns="18em 1fr 1fr 1fr"
+            sx={{
+              mt: hasStateTiers ? '4rem' : '2rem',
+              '> div:not(:first-of-type)': {
+                pt: '0.5rem',
+              },
+            }}
+          >
+            <Row
+              sx={{
+                lineHeight: 1.2,
+                alignItems: 'end',
+                '& > div+div': { textAlign: 'center' },
+              }}
+            >
+              <Box sx={{ fontStyle: 'italic' }}>
+                Compared to other {barrierTypeLabel} in this subbasin:
+              </Box>
+              <Box sx={{ fontWeight: 'bold' }}>
+                full
+                <br />
+                network
+              </Box>
+              <Box sx={{ fontWeight: 'bold' }}>
+                perennial
+                <br />
+                reaches
+              </Box>
+              <Box sx={{ fontWeight: 'bold' }}>
+                mainstem
+                <br />
+                network
+              </Box>
+            </Row>
+            <Row sx={{ '& > div+div': { textAlign: 'center' } }}>
+              <Box>Network connectivity tier</Box>
+              <Box>{huc8_nc_tier}</Box>
+              <Box>{huc8_pnc_tier}</Box>
+              <Box>{huc8_mnc_tier}</Box>
+            </Row>
+            <Row sx={{ '& > div+div': { textAlign: 'center' } }}>
+              <Box>Watershed condition tier</Box>
+              <Box>{huc8_wc_tier}</Box>
+              <Box>{huc8_pwc_tier}</Box>
+              <Box>{huc8_mwc_tier}</Box>
+            </Row>
+            <Row sx={{ '& > div+div': { textAlign: 'center' } }}>
+              <Box>
+                Combined network connectivity &amp;
+                <br />
+                watershed condition tier
+              </Box>
+              <Box>{huc8_ncwc_tier}</Box>
+              <Box>{huc8_pncwc_tier}</Box>
+              <Box>{huc8_mncwc_tier}</Box>
+            </Row>
+          </Table>
+        ) : null}
       </Box>
 
       <Paragraph variant="help" sx={{ mt: '2rem', fontSize: 0 }}>
@@ -143,6 +218,15 @@ Scores.propTypes = {
   state_mnc_tier: PropTypes.number,
   state_mwc_tier: PropTypes.number,
   state_mncwc_tier: PropTypes.number,
+  huc8_nc_tier: PropTypes.number,
+  huc8_wc_tier: PropTypes.number,
+  huc8_ncwc_tier: PropTypes.number,
+  huc8_pnc_tier: PropTypes.number,
+  huc8_pwc_tier: PropTypes.number,
+  huc8_pncwc_tier: PropTypes.number,
+  huc8_mnc_tier: PropTypes.number,
+  huc8_mwc_tier: PropTypes.number,
+  huc8_mncwc_tier: PropTypes.number,
   sx: PropTypes.object,
 }
 
@@ -158,6 +242,15 @@ Scores.defaultProps = {
   state_mnc_tier: null,
   state_mwc_tier: null,
   state_mncwc_tier: null,
+  huc8_nc_tier: null,
+  huc8_wc_tier: null,
+  huc8_ncwc_tier: null,
+  huc8_pnc_tier: null,
+  huc8_pwc_tier: null,
+  huc8_pncwc_tier: null,
+  huc8_mnc_tier: null,
+  huc8_mwc_tier: null,
+  huc8_mncwc_tier: null,
   sx: null,
 }
 
