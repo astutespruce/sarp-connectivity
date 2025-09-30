@@ -854,6 +854,7 @@ EPA_CAUSE_TO_CODE = {
     "habitat_alterations": "h",
     "oxygen_depletion": "o",
     "temperature": "t",
+    # "flow_alterations": "x",  # not present for any flowlines
     "hydrologic_alteration": "y",
 }
 

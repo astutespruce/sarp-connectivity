@@ -896,8 +896,8 @@ def calculate_downstream_linear_network_stats(
         "miles_to_outlet": pc.cast(pc.fill_null(tot_downstream_stats["miles_to_outlet"], 0), pa.float32()),
     }
     for col in [c for c in tot_downstream_stats.column_names if c.startswith("totd_")]:
-        max = pc.max(tot_downstream_stats[col]).as_py()
         values = pc.fill_null(tot_downstream_stats[col], 0)
+        max = pc.max(values).as_py()
         if max <= 255:
             values = pc.cast(values, pa.uint8())
         elif max <= 65535:

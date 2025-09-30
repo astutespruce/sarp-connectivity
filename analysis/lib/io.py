@@ -52,7 +52,7 @@ def read_feathers(paths, columns=None, geo=False, new_fields=None):
     return merged.reset_index(drop=True)
 
 
-def read_arrow_tables(paths, columns=None, filter=None, new_fields=None, dict_fields=None):
+def read_arrow_tables(paths, columns=None, filter=None, new_fields=None, dict_fields=None, allow_missing_columns=False):
     """Read multiple feather files into a single pyarrow.Table
 
     Parameters
@@ -68,6 +68,9 @@ def read_arrow_tables(paths, columns=None, filter=None, new_fields=None, dict_fi
     dict_fields : list-like, optional (default: None)
         if present, is a list of new fields that should be dictionary encoded
         Do not use for existing fields already in the tables
+    allow_missing_columns : bool, optional (default: False)
+        if True and some of the columns are not present in any of the source files,
+        will emit a warning instead of an error
 
     Returns
     -------
@@ -82,7 +85,11 @@ def read_arrow_tables(paths, columns=None, filter=None, new_fields=None, dict_fi
                 detected_columns.extend(dataset(path, format="feather").schema.names)
         missing = set(columns).difference(set(detected_columns))
         if missing:
-            raise ValueError(f"Columns not present in any of the source paths: {', '.join(missing)}")
+            message = f"Columns not present in any of the source paths: {', '.join(missing)}"
+            if allow_missing_columns:
+                warnings.warn(message)
+            else:
+                raise ValueError(message)
 
     merged = None
     for i, path in enumerate(paths):

@@ -636,7 +636,7 @@ export const otherBarrierPointLayer = {
         ['get', 'symbol'],
         1, // unsnapped (actually off-network)
         pointColors.offNetwork.color,
-        2, // non-barrier
+        2, // non-barrier / insignificant barrier
         [
           'match',
           ['get', 'barrier_type'],

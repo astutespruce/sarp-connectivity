@@ -40,12 +40,12 @@ export_hucs = {
     # "14",
     # "15",
     # "16",
-    "17",
+    # "17",
     # "18",
     # "21"
 }
 
-for group in [{"17"}]:
+for group in [{"18"}]:
     group = sorted(group)
 
     segments = (
@@ -76,9 +76,9 @@ for group in [{"17"}]:
     # select barriers with total mainstem miles
     barriers = read_feathers(
         [src_dir / "clean" / huc2 / "dams_network.feather" for huc2 in group],
-        columns=["id", "TotalMainstemNetworkMiles"],
+        columns=["id", "MainstemNetworkMiles"],
     )
-    barriers = barriers.loc[barriers.TotalMainstemNetworkMiles > 0]
+    barriers = barriers.loc[barriers.MainstemNetworkMiles > 0]
     export_barrier_ids = barriers.id.unique()
     segments = segments.loc[segments.networkID.isin(export_barrier_ids)]
     stats = stats.loc[stats.index.isin(export_barrier_ids)]

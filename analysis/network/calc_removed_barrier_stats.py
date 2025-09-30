@@ -167,7 +167,7 @@ removed_barriers = removed_barriers.join(
 )
 
 for network_type in network_types:
-    print(f"\n===========================\nCreating networks for {network_type}")
+    print(f"\n===========================\nCreating removed barrier networks for {network_type}")
     network_start = time()
 
     prev_network_col = f"{network_type}_networkID"

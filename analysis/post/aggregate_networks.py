@@ -195,9 +195,7 @@ tmp.sort_values("SARPID").drop_duplicates(subset="SARPID").reset_index(drop=True
 ### Read small barriers and associated networks
 print("Reading small barriers and networks")
 small_barriers = gp.read_feather(barriers_dir / "small_barriers.feather").set_index("id").rename(columns=rename_cols)
-
 small_barriers["in_network_type"] = small_barriers.primary_network
-
 small_barriers = small_barriers.loc[~(small_barriers.dropped | small_barriers.duplicate)].copy()
 
 # add stream order and species classes for filtering

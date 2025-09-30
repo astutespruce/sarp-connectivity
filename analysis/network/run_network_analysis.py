@@ -145,6 +145,8 @@ for group_huc2s in groups:
             filter = filter & pc.equal(pc.field(col), True)
         # otherwise: all barriers otherwise included here are used for the analysis,
         # including road crossings
+        # NOTE: this means all surveyed road barriers that are small-bodied fish barriers and worse
+        # are included in the analysis for unsurveyed road crossings
 
         focal_barriers = barriers.filter(filter).combine_chunks()
         focal_barrier_joins = barrier_joins.filter(filter).combine_chunks()

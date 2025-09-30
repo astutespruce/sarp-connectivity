@@ -1372,6 +1372,7 @@ export const EPA_CAUSE_CODES = {
   h: 'habitat alterations',
   o: 'oxygen depletion',
   t: 'temperature',
+  // x: 'flow alterations', // not present for any flowlines
   y: 'hydrologic alteration',
 }
 

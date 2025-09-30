@@ -60,7 +60,7 @@ qa_dir = barriers_dir / "qa"
 
 start = time()
 
-huc2s = sorted(pd.read_feather(boundaries_dir / "HUC2.feather", columns=["HUC2"]))
+huc2s = sorted(pd.read_feather(boundaries_dir / "HUC2.feather", columns=["HUC2"]).HUC2.values)
 
 
 print("\n\n----------------------------------\nReading waterfalls\n---------------------------")

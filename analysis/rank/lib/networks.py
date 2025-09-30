@@ -103,7 +103,7 @@ NETWORK_COLUMNS = [
     "HasMainstemUpstreamCauseUnknownImpairedBiota",
     "HasMainstemUpstreamOxygenDepletion",
     "HasMainstemUpstreamAlgalGrowth",
-    "HasMainstemUpstreamFlowAlterations",
+    # "HasMainstemUpstreamFlowAlterations", # not present for any flowlines
     "HasMainstemUpstreamHabitatAlterations",
     "HasMainstemUpstreamHydrologicAlteration",
     "HasMainstemUpstreamCauseUnknownFishKills",
@@ -111,7 +111,7 @@ NETWORK_COLUMNS = [
     "HasMainstemDownstreamCauseUnknownImpairedBiota",
     "HasMainstemDownstreamOxygenDepletion",
     "HasMainstemDownstreamAlgalGrowth",
-    "HasMainstemDownstreamFlowAlterations",
+    # "HasMainstemDownstreamFlowAlterations", # not present for any flowlines
     "HasMainstemDownstreamHabitatAlterations",
     "HasMainstemDownstreamHydrologicAlteration",
     "HasMainstemDownstreamCauseUnknownFishKills",
@@ -182,6 +182,7 @@ def get_network_results(df, network_type, state_ranks=False, huc8_ranks=False):
                 for huc2 in sorted(df.HUC2.unique())
             ],
             columns=NETWORK_COLUMNS,
+            allow_missing_columns=True,
         )
         .rename_columns({"HasDownstreamInvasiveBarrier": "InvasiveNetwork"})
         .to_pandas()

@@ -12,13 +12,13 @@ out_dir = Path("/tmp/sarp")
 out_dir.mkdir(exist_ok=True, parents=True)
 
 
-# full network scenarios are: "dams", "combined_barriers", "largefish_barriers", "smallfish_barriers"
-scenario = "combined_barriers"
-mainstem = True
-# ext = "fgb"
-# driver = "FlatGeobuf"
-ext = "gdb"
-driver = "OpenFileGDB"
+# full network scenarios are: "dams", "combined_barriers", "largefish_barriers", "smallfish_barriers", "road_crossings"
+scenario = "dams"
+mainstem = False
+ext = "fgb"
+driver = "FlatGeobuf"
+# ext = "gdb"
+# driver = "OpenFileGDB"
 
 
 # Doesn't appear to work in QGIS
@@ -30,8 +30,8 @@ scenario_suffix = "_mainstem" if mainstem else ""
 groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
 
 export_hucs = {
-    "01",
-    "02",
+    # "01",
+    # "02",
     # "03",
     # "04",
     # "05",
@@ -47,10 +47,9 @@ export_hucs = {
     # "15",
     # "16",
     # "17",
-    # "18",
-    # "21"
+    "18",
+    # "21",
 }
-# export_hucs = {"08", "11"}
 
 # FIXME: remove
 groups_df = groups_df.loc[groups_df.HUC2.isin(export_hucs)]
@@ -106,15 +105,32 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
             "natfldpln",
             "sizeclasses",
             "barrier",
+            "upstream_barrier_id",
+            "upstream_barrier",
+            "upstream_barrier_miles",
+            "downstream_barrier_id",
+            "downstream_barrier",
+            "downstream_barrier_miles",
             "invasive_network",  # true if upstream of an invasive barrier
-            # upstream mainstem network miles
-            "total_mainstem_miles",
-            "perennial_mainstem_miles",
-            "intermittent_mainstem_miles",
-            "altered_mainstem_miles",
-            "unaltered_mainstem_miles",
-            "perennial_unaltered_mainstem_miles",
-            "pct_mainstem_unaltered",
+            "has_ej_tract",
+            "has_ej_tribal",
+            # upstream mainstem
+            "total_upstream_mainstem_miles",
+            "perennial_upstream_mainstem_miles",
+            "intermittent_upstream_mainstem_miles",
+            "altered_upstream_mainstem_miles",
+            "unaltered_upstream_mainstem_miles",
+            "perennial_unaltered_upstream_mainstem_miles",
+            "pct_upstream_mainstem_unaltered",
+            "upstream_mainstem_impairment",
+            # downstream mainstem
+            "total_downstream_mainstem_miles",
+            "free_downstream_mainstem_miles",
+            "free_perennial_downstream_mainstem_miles",
+            "free_intermittent_downstream_mainstem_miles",
+            "free_altered_downstream_mainstem_miles",
+            "free_unaltered_downstream_mainstem_miles",
+            "downstream_mainstem_impairment",
             # downstream linear network miles (downstream to next barrier / outlet)
             "total_linear_downstream_miles",
             "free_linear_downstream_miles",
@@ -143,7 +159,7 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
             if col in stats.columns:
                 stats[col] = stats[col].fillna(0).astype("uint32")
 
-    for col in ["flows_to_ocean", "flows_to_great_lakes", "invasive_network"]:
+    for col in ["flows_to_ocean", "flows_to_great_lakes", "invasive_network", "has_ej_tract", "has_ej_tribal"]:
         if col in stats.columns:
             stats[col] = stats[col].astype("uint8")
 
@@ -174,6 +190,18 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
                 "TotDASqKm",
             ],
         ).set_index("lineID")
+
+        # temporary, not useful
+        other = pd.read_feather(
+            Path("data/nhd/clean") / huc2 / "flowlines.feather",
+            columns=[
+                "lineID",
+                "Slope",
+                "MinElev",
+                "MaxElev",
+            ],
+        ).set_index("lineID")
+        flowlines = flowlines.join(other)
 
         flowlines = (
             flowlines.join(segments, how="inner")

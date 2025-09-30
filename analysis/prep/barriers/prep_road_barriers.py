@@ -94,7 +94,7 @@ qa_dir = barriers_dir / "qa"
 
 start = time()
 
-huc2s = sorted(pd.read_feather(boundaries_dir / "HUC2.feather", columns=["HUC2"]))
+huc2s = sorted(pd.read_feather(boundaries_dir / "HUC2.feather", columns=["HUC2"]).HUC2.values)
 
 print("Reading data")
 df = gp.read_feather(src_dir / "sarp_small_barriers.feather")
@@ -774,6 +774,7 @@ copy_cols = [
     "YearSurveyedClass",
     "Resurveyed",
     "PartnerID",
+    "unranked",
 ]
 crossings = crossings.join(
     df.loc[~df.Private, copy_cols].rename(columns={c: f"{c}_barrier" for c in copy_cols}),
@@ -999,8 +1000,8 @@ df["symbol"] = 0
 df.loc[df.invasive, "symbol"] = 4
 # BarrierSeverity = 4 => minor barrier (only breaks networks in small-bodied fish scenario and displayed separately on map otherwise)
 df.loc[df.BarrierSeverity == 4, "symbol"] = 3
-# BarrierSeverity = 8 => not a barrier
-df.loc[df.BarrierSeverity == 8, "symbol"] = 2
+# BarrierSeverity = 8 => not a barrier, 5 => insignificant barrier
+df.loc[df.BarrierSeverity.isin([5, 8]), "symbol"] = 2
 df.loc[~df.snapped, "symbol"] = 1
 # intentionally give removed barriers higher precedence
 df.loc[df.removed, "symbol"] = 5

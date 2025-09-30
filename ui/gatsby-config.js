@@ -1,6 +1,7 @@
 // load appropriate dotenv file
 require('dotenv').config({
   path: `.env.${process.env.NODE_ENV}`,
+  quiet: true,
 })
 
 const { version, date } = require('./package.json')

@@ -12,7 +12,7 @@ src_dir = Path("data/networks")
 out_dir = Path("/tmp/sarp")
 out_dir.mkdir(exist_ok=True)
 
-scenario = "artificial_barriers"  # "dams", "combined_barriers", "largefish_barriers", "smallfish_barriers", "artificial_barriers"
+scenario = "full"  # "dams", "combined_barriers", "largefish_barriers", "smallfish_barriers", "artificial_barriers"
 suffix = ""
 ext = "gdb"
 driver = "OpenFileGDB"
