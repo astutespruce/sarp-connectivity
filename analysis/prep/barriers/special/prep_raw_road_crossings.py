@@ -313,6 +313,7 @@ usgs = usgs.append_column(
 ################################################################################
 ### Read USFS road crossings
 ################################################################################
+print("Reading USFS road crossings")
 meta, usfs = read_arrow(
     src_dir / "USFS_Crossings_Raw_2024.gdb",
     layer="FS_RdsOnly_Xings_National",
@@ -348,7 +349,7 @@ usfs = usfs.append_column(
 ################################################################################
 ### Read 3rd party road crossings
 ################################################################################
-
+print("Reading third-party / private road crossings")
 meta, third_party = read_arrow(
     src_dir / "SARP_3rd_party_crossings/SARP_3rd_party_crossings.shp", columns=["StreamCros"], read_geometry=True
 )
@@ -557,6 +558,7 @@ df = df.drop(["dup_group"]).append_column("dup_group", pc.if_else(has_dups, df["
 ################################################################################
 ### Try to backfill road and stream name from other duplicates, if possible
 ################################################################################
+print("Backfilling road and river names")
 ix = pc.and_(pc.equal(df["duplicate"], False), pc.equal(df["Road"], ""))
 dup_groups = df.filter(ix)["dup_group"]
 # take the first non-empty value per group
@@ -599,7 +601,11 @@ del geom
 # save the raw points so that we can look up source points to final crossing points later
 df.to_feather(src_dir / "all_road_crossings.feather")
 
-print("Dropping duplicates and unsnapped crossings from later processing")
+
+################################################################################
+### Process final retained road crossings for analysis
+################################################################################
+print("\nDropping duplicates and unsnapped crossings from later processing")
 df = (
     df.loc[df.snapped & (~df.duplicate)]
     .drop(columns=["index", "index_keep", "CrossingCode_keep", "duplicate", "dup_group"])
