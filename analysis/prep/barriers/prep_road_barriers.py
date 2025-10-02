@@ -120,11 +120,7 @@ urls = (
 
 df = df.join(urls)
 
-crossings = (
-    gp.read_feather(src_dir / "road_crossings.feather")
-    .set_index("id", drop=False)
-    .drop(columns=["maintainer", "tiger2020_linearids", "nhdhr_permanent_identifier"])
-)
+crossings = gp.read_feather(src_dir / "road_crossings.feather").set_index("id", drop=False)
 
 # save original USGS ID because SourceID gets overwritten on match with road barrier
 crossings["USGSCrossingID"] = crossings.SourceID.values
