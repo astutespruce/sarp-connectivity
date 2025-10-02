@@ -1,6 +1,6 @@
-import shapely
-import pandas as pd
 import numpy as np
+import pandas as pd
+import shapely
 
 
 def connect_points(start, end):
@@ -55,9 +55,7 @@ def window(geometries, distance):
         polygon windows
     """
     minx, miny, maxx, maxy = shapely.bounds(geometries).T
-    windows = shapely.box(
-        minx - distance, miny - distance, maxx + distance, maxy + distance
-    )
+    windows = shapely.box(minx - distance, miny - distance, maxx + distance, maxy + distance)
 
     if isinstance(geometries, pd.Series):
         return pd.Series(windows, index=geometries.index)

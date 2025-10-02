@@ -46,7 +46,6 @@ dev = [
     "tabulate",
     "tqdm",
     "watchfiles",
-    "geoarrow-pyarrow>=0.2.0",
 ]
 
 [project.urls]

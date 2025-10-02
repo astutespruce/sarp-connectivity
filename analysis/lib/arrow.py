@@ -1,7 +1,6 @@
 import pyarrow as pa
 import pyarrow.compute as pc
 from pyproj import Transformer, CRS as ProjCRS
-import geoarrow.pyarrow as ga
 
 
 def map_values(arr, dict_values, dtype=None):
@@ -23,22 +22,6 @@ def map_values(arr, dict_values, dtype=None):
     return pc.take(values, pc.index_in(arr, keys))
 
 
-def points_to_crs(points, crs):
-    """Convert geoarrow-encoded points to a different CRS
-
-    Parameters
-    ----------
-    points : geoarrow GeometryExtensionArray:PointType
-    crs : crs
-        output CRS
-
-    Returns
-    -------
-    geoarrow GeometryExtensionArray:PointType
-    """
-    if points.type.extension_name != "geoarrow.point":
-        raise ValueError("Requires geoarrow PointType")
-
-    transformer = Transformer.from_crs(points.type.crs, ProjCRS(crs), always_xy=True)
-    x, y = transformer.transform(*ga.point_coords(points))
-    return ga.with_crs(ga.point().from_geobuffers(None, x, y), crs)
+def xy_to_crs(x, y, in_crs, out_crs):
+    transformer = Transformer.from_crs(ProjCRS(in_crs), ProjCRS(out_crs), always_xy=True)
+    return transformer.transform(x, y)

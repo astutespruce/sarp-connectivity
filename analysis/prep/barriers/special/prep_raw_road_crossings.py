@@ -2,13 +2,10 @@ from pathlib import Path
 from time import time
 import warnings
 
-import geoarrow.pyarrow as ga
-from geoarrow.pyarrow.io import read_pyogrio_table
 import pyarrow as pa
 import pyarrow.compute as pc
 from pyarrow.dataset import dataset
 import geopandas as gp
-from geopandas.tools.hilbert_curve import _encode as encode_hilbert
 import pandas as pd
 import shapely
 from pyogrio import read_dataframe, write_dataframe, read_arrow
@@ -20,10 +17,10 @@ from analysis.constants import (
     FCODE_TO_STREAMTYPE,
     CROSSING_TYPE_TO_DOMAIN,
 )
-from analysis.lib.arrow import map_values, points_to_crs
-from analysis.lib.graph.speedups import DirectedGraph
+from analysis.lib.arrow import map_values
+from analysis.lib.geometry.points import encode_hilbert
 from analysis.lib.io import read_arrow_tables
-from analysis.prep.barriers.lib.crossings import get_crossing_code
+from analysis.prep.barriers.lib.crossings import get_crossing_code, mark_duplicates
 from analysis.prep.barriers.lib.snap import snap_to_flowlines
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 from analysis.prep.species.lib.diadromous import get_diadromous_ids
@@ -33,8 +30,8 @@ warnings.filterwarnings("ignore", category=UserWarning, message=".*Measured.*")
 SNAP_TOLERANCE = 10
 DUPLICATE_TOLERANCE = 5
 
-# deduplicate USFS points within this amount of USGS points
-USFS_USGS_TOLERANCE = 30
+# deduplicate USFS / third party points within this amount of USGS points
+NON_USGS_TOLERANCE = 30
 
 
 SOURCE_DOMAIN = {
@@ -170,7 +167,7 @@ huc4["HUC2"] = huc4.HUC4.str[:2]
 ################################################################################
 ### Read USGS road crossings
 ################################################################################
-print("Reading road crossings")
+print("Reading USGS road crossings")
 meta, usgs = read_arrow(
     usgs_gpkg,
     layer="stream_crossing_sites",
@@ -187,18 +184,17 @@ meta, usgs = read_arrow(
 usgs = usgs.group_by(usgs.column_names).aggregate([])
 
 # coords are in NAD83 geographic
-geom = shapely.from_wkb(usgs["geom"])
-lon, lat = shapely.get_coordinates(geom).astype("float32").T
-usgs_geom = gp.GeoSeries(geom, crs=meta["crs"]).to_crs(CRS)
+usgs_geom = shapely.from_wkb(usgs["geom"])
+lon, lat = shapely.get_coordinates(usgs_geom).astype("float32").T
+usgs_geom = gp.GeoSeries(usgs_geom, crs=meta["crs"]).to_crs(CRS)
 usgs = pa.Table.from_pydict(
     {
         # index is used as a lookup to take corresponding geometries later;
         # it matches the index of usgs_geom at this point in time
         "index": pa.array(np.arange(len(usgs))),
+        "CrossingCode": pa.array(get_crossing_code(lon, lat)),
         "Road": pc.fill_null(pc.utf8_trim(usgs["tiger2020_feature_names"], " "), ""),
         "River": pc.fill_null(pc.utf8_trim(usgs["nhdhr_gnis_stream_name"], " "), ""),
-        "lon": pa.array(lon),
-        "lat": pa.array(lat),
         "CrossingType": map_values(usgs["crossing_type"], USGS_CROSSING_TYPE_TO_DOMAIN, dtype="uint8"),
         "tiger2020_linearids": pc.split_pattern(pc.replace_substring(usgs["tiger2020_linearids"], " ", ""), ","),
         "stream_crossing_id": usgs["stream_crossing_id"],
@@ -284,7 +280,7 @@ usgs = (
     .combine_chunks()
 )
 # sort to realign with usgs_geom
-usgs = usgs.sort_by([("index", "ascending")])
+usgs = usgs.sort_by("index")
 del obs
 del tiger
 
@@ -329,10 +325,9 @@ lon, lat = shapely.get_coordinates(usfs_geom.to_crs("EPSG:4326").values).astype(
 usfs = pa.Table.from_pydict(
     {
         "index": np.arange(len(usfs)),
+        "CrossingCode": pa.array(get_crossing_code(lon, lat)),
         "Road": pc.fill_null(pc.utf8_title(usfs["NAME"]), ""),
         "River": pc.fill_null(pc.utf8_trim(usfs["gnis_name"], " "), ""),
-        "lon": lon,
-        "lat": lat,
         "CrossingType": np.repeat(np.uint8(CROSSING_TYPE_TO_DOMAIN["assumed culvert"]), len(usfs)),
         "BarrierOwnerType": pc.fill_null(map_values(usfs["PRIMARY_MA"], USFS_MAINTAINER_TO_OWNER, dtype="uint8"), 0),
         "Source": pa.array(np.ones((len(usfs),), dtype="uint8")),
@@ -364,10 +359,9 @@ lon, lat = shapely.get_coordinates(third_party_geom.to_crs("EPSG:4326").values).
 third_party = pa.Table.from_pydict(
     {
         "index": np.arange(len(third_party)),
+        "CrossingCode": pa.array(get_crossing_code(lon, lat)),
         "Road": pa.array(np.repeat("", len(third_party))),
         "River": pa.array(np.repeat("", len(third_party))),
-        "lon": lon,
-        "lat": lat,
         "CrossingType": np.repeat(np.uint8(CROSSING_TYPE_TO_DOMAIN["assumed culvert"]), len(third_party)),
         "BarrierOwnerType": np.ones((len(third_party),), dtype="uint8") * THIRD_PARTY_OWNER,
         "Source": np.ones((len(third_party),), dtype="uint8") * 2,
@@ -386,8 +380,7 @@ third_party = third_party.append_column(
 ################################################################################
 ### Merge crossings
 ################################################################################
-
-# make sure to select geometries to align with index order
+# NOTE: make sure to select geometries to align with index order
 geom = gp.GeoSeries(
     np.concatenate(
         [usgs_geom.take(usgs["index"]), usfs_geom.take(usfs["index"]), third_party_geom.take(third_party["index"])]
@@ -398,23 +391,13 @@ del usgs_geom
 del usfs_geom
 del third_party_geom
 
-# calculate hilbert distance (for sorting geoms)
-level = 16
-side_length = (2**level) - 1
-total_bounds = shapely.total_bounds(geom)
-x, y = shapely.get_coordinates(geom).T
-x = pc.round(pc.multiply(pc.subtract(x, total_bounds[0]), side_length / (total_bounds[2] - total_bounds[0])))
-y = pc.round(pc.multiply(pc.subtract(y, total_bounds[1]), side_length / (total_bounds[3] - total_bounds[1])))
-
 cols = [c for c in usgs.column_names if c != "index"]
 df = pa.concat_tables([usgs.select(cols), usfs.select(cols), third_party.select(cols)]).combine_chunks()
 df = pa.Table.from_pydict(
     {
         "index": pa.array(np.arange(len(df))),
-        "hilbert": encode_hilbert(level, x, y),
         **{c: df[c] for c in df.column_names},
-        "CrossingCode": pa.array(get_crossing_code(df["lon"].to_numpy(), df["lat"].to_numpy())),
-        "duplicate": pa.array(np.zeros((len(df),), dtype="bool")),
+        "hilbert": encode_hilbert(geom),
     }
 )
 del usgs
@@ -423,107 +406,208 @@ del third_party
 
 
 # Join to HUC4 (keeping HUC2) and drop any outside of the active HUC4s
-tree = shapely.STRtree(geom.values)
-left, right = tree.query(huc4.geometry.values, predicate="intersects")
+left, right = shapely.STRtree(geom.values).query(huc4.geometry.values, predicate="intersects")
 huc2_values = pa.array(huc2s)
 huc2_join = pa.Table.from_pydict(
     {
         "index": df["index"].take(right),
         "HUC2": huc4.HUC2.values.take(left),
     }
-).sort_by("index")
+)
+del left
+del right
 
-prev = len(df)
+orig_count = len(df)
 df = df.join(huc2_join, "index", join_type="inner")
-print(f"Dropped {prev - len(df):,} crossings that are outside of HUC4s")
+print(f"Dropped {orig_count - len(df):,} crossings that are outside of HUC4s")
 
 
 # Sort crossings and keep geometry in same order
-# TODO: sort by hilbert order within HUC2
-df = df.sort_by([("HUC2", "ascending"), ("dup_sort", "ascending"), ("hilbert", "ascending")])
-geom = geom.take(df["index"])
+# NOTE: sort to give bridges (5) a higher precedence
+# NOTE: use hilbert sort to keep nearby crossings close together
+df = df.sort_by(
+    [("HUC2", "ascending"), ("CrossingType", "ascending"), ("dup_sort", "ascending"), ("hilbert", "ascending")]
+).drop(["hilbert"])
+geom = geom.take(df["index"]).reset_index(drop=True)
+# set master index for all following operations based on this order
+df = df.drop(["index"]).append_column("index", pa.array(np.arange(len(df))))
 
 
-# FIXME: remove
-# tmp = gp.GeoDataFrame(df.to_pandas(), geometry=geom)
+################################################################################
+### Remove crossings that are very close (before snapping)
+################################################################################
+# NOTE: we don't bother to dedup on CrossingCode because this covers that case as well
+print("Marking duplicate crossings that are very close")
+dup_groups = mark_duplicates(geom, DUPLICATE_TOLERANCE)
+print(f"Found {pc.sum(dup_groups['duplicate']).as_py():,} duplicate road crossings before snapping\n")
+
+# NOTE: we will clear out dup_group later for groups with no dups
+df = df.join(dup_groups, "index").sort_by("index")
+del dup_groups
 
 
-############## TODO: moved from above
+################################################################################
+### Snap to flowlines
+################################################################################
+print("Snapping to flowlines")
+snapped = gp.GeoDataFrame(geom.rename("geometry"))
+snapped["Source"] = df["Source"].to_numpy()
+snapped["snapped"] = False
+snapped["snap_log"] = "not snapped"
+snapped["lineID"] = np.nan  # line to which crossing was snapped
 
-
-# # TODO: can do HUC4 join later after merge
-# left, right = shapely.STRtree(df.geometry.values).query(huc4.geometry.values, predicate="intersects")
-# huc4_join = (
-#     pd.DataFrame({"HUC4": huc4.HUC4.values.take(left)}, index=df.index.values.take(right)).groupby(level=0).HUC4.first()
-# )
-
-# df = df.join(huc4_join, how="inner").reset_index(drop=True)
-# df["HUC2"] = df.HUC4.str[:2]
-
-
-# TODO: mark these as duplicates; assign output SARPID
-# drop any USFS crossings within tolerance of USGS crossings
-# left = np.unique(
-#     shapely.STRtree(usgs.geometry.values).query(df.geometry.values, predicate="dwithin", distance=USFS_USGS_TOLERANCE)[
-#         0
-#     ]
-# )
-# print(f"Dropping {len(left)} USFS crossings within {USFS_USGS_TOLERANCE}m of USGS crossings")
-
-################
-
-# df = pd.concat([usgs, usfs, sarp_3rd_party], ignore_index=True).sort_values("dup_sort", ascending=True)
-# df["id"] = (df.index.values + CROSSINGS_ID_OFFSET).astype("uint64")
-# df = df.set_index("id", drop=False)
-
-
-# There are a bunch of crossings with identical coordinates, remove them
-# NOTE: they have different labels, but that seems like it is a result of
-# them methods used to identify the crossings (e.g., named highways, roads, etc)
-print("Removing duplicate crossings at same location...")
-orig_count = len(df)
-df = gp.GeoDataFrame(df.groupby("CrossingCode").first().reset_index(), geometry="geometry", crs=df.crs)
-print(f"Dropped {orig_count - len(df):,} duplicate road crossings")
-
-
-# add name field
-df["Name"] = ""
-df.loc[(df.River != "") & (df.Road != ""), "Name"] = df.River + " / " + df.Road
-
-
-### Remove crossings that are very close
-print("Removing nearby road crossings...")
-df = dedup_crossings(df)
-print(f"now have {len(df):,} road crossings")
-
-
-# Snap to flowlines
-df["snapped"] = False
-df["snap_log"] = "not snapped"
-df["lineID"] = np.nan  # line to which crossing was snapped
-df["snap_tolerance"] = np.uint8(SNAP_TOLERANCE)
+# NOTE: only snap non-duplicates
+to_snap = gp.GeoDataFrame(
+    geom.take(df.filter(pc.equal(pc.field("duplicate"), False))["index"]).rename("geometry")
+).join(df["HUC2"].to_pandas())
+to_snap["snap_tolerance"] = np.uint8(SNAP_TOLERANCE)
 
 snap_start = time()
-to_snap = df.copy()
-df, to_snap = snap_to_flowlines(df, to_snap)
-print(f"Snapped {df.snapped.sum():,} crossings in {time() - snap_start:.2f}s")
-
-print("---------------------------------")
-print("\nSnapping statistics")
-print(df.groupby("snap_log").size())
-print("---------------------------------\n")
-
-print("Dropping any road crossings that didn't snap")
-df = df.loc[df.snapped].copy()
+snapped = snap_to_flowlines(snapped, to_snap)[0]
+# only keep those that snapped
+snapped = snapped.loc[snapped.snapped].drop(columns=["snap_ref_id"])
+print(f"\nSnapped {len(snapped):,} crossings in {time() - snap_start:.2f}s")
 
 
-### Remove crossings that are very close after snapping
-print("Removing nearby road crossings after snapping...")
-df = dedup_crossings(df)
-print(f"now have {len(df):,} road crossings")
+### Snap non-USGS points to nearest USGS points (within tolerance)
+snapped_usgs = snapped.loc[snapped.Source == 0]
+snapped_non_usgs = snapped.loc[snapped.Source != 0]
+left, right = shapely.STRtree(snapped_usgs.geometry.values).query_nearest(
+    snapped_non_usgs.geometry.values, max_distance=NON_USGS_TOLERANCE, all_matches=False
+)
+print(f"Snapped {len(left):,} non-USGS crossings to nearest snapped USGS crossing")
+non_usgs_ix = snapped_non_usgs.index.values.take(left)
+usgs_ix = snapped_usgs.index.values.take(right)
+pairs = pd.DataFrame(
+    {
+        "orig_pt": geom.values.take(non_usgs_ix),
+        "usgs_pt": snapped.loc[usgs_ix].geometry.values,
+        "usgs_lineID": snapped.loc[usgs_ix].lineID.values,
+        "usgs_snap_log": f"snapped: within {NON_USGS_TOLERANCE}m of snapped USGS crossing",
+    },
+    index=non_usgs_ix,
+)
+pairs["usgs_snap_dist"] = shapely.distance(pairs.orig_pt, pairs.usgs_pt)
+snapped = snapped.join(pairs[["usgs_lineID", "usgs_snap_dist", "usgs_snap_log", "usgs_pt"]])
+ix = snapped.usgs_lineID.notnull()
+tmp = snapped.loc[ix]
+snapped.loc[ix, "geometry"] = tmp.usgs_pt.values
+snapped.loc[ix, "lineID"] = tmp.usgs_lineID.values
+snapped.loc[ix, "snap_dist"] = tmp.usgs_snap_dist
+snapped.loc[ix, "snap_log"] = tmp.usgs_snap_log
+
+snapped = snapped.drop(columns=["usgs_lineID", "usgs_snap_dist", "usgs_snap_log", "usgs_pt", "Source"])
+
+# switch back to pyarrow
+snapped_geom = snapped.geometry
+snapped = pa.Table.from_pandas(snapped.reset_index().drop(columns=["geometry"]))
+
+# update geom to snapped values
+geom = gp.GeoDataFrame(geom.rename("geometry")).join(snapped_geom.rename("snapped_geom"))
+ix = geom.snapped_geom.notnull()
+geom.loc[ix, "geometry"] = geom.loc[ix].snapped_geom
+geom = geom.geometry
+
+df = df.join(snapped, "index").sort_by("index")
+df = df.drop(["snapped"]).append_column("snapped", pc.fill_null(df["snapped"], False))
+
+################################################################################
+### Mark duplicate snapped crossings
+################################################################################
+print("\nMarking duplicate crossings that are very close after snapping")
+dup_groups = mark_duplicates(snapped_geom, DUPLICATE_TOLERANCE, start_group_index=pc.max(df["dup_group"]).as_py() + 1)
+print(f"Found {pc.sum(dup_groups['duplicate']).as_py():,} additional duplicates after snapping")
+
+# only retain those where there were actually duplicates
+groups_with_dups = pc.unique(dup_groups.filter(pc.field("duplicate"))["dup_group"])
+dup_groups = dup_groups.filter(pc.is_in(pc.field("dup_group"), groups_with_dups)).rename_columns(
+    {
+        "dup_group": "dup_group_snapped",
+        "index_keep": "index_keep_snapped",
+    }
+)
+
+# join in prev dup_group so these can supersede them
+dup_groups = dup_groups.append_column("prev_dup_group", df["dup_group"].take(dup_groups["index"])).drop(
+    ["index", "duplicate"]
+)
+
+df = df.join(dup_groups, "dup_group", "prev_dup_group").sort_by("index")
+
+ix = pc.is_valid(df["dup_group_snapped"])
+keep_index = pc.if_else(ix, df["index_keep_snapped"], df["index_keep"])
+df = pa.Table.from_pydict(
+    {
+        **{
+            c: df[c]
+            for c in df.column_names
+            if c not in {"dup_group", "dup_group_snapped", "index_keep", "index_keep_snapped", "duplicate"}
+        },
+        "dup_group": pc.if_else(ix, df["dup_group_snapped"], df["dup_group"]),
+        "index_keep": keep_index,
+        "duplicate": pc.not_equal(df["index"], keep_index),
+    }
+)
+
+# set dup_group to NULL if there are no duplicates in group
+groups_with_dups = pc.unique(df.filter(pc.field("duplicate"))["dup_group"])
+has_dups = pc.is_in(df["dup_group"], groups_with_dups)
+df = df.drop(["dup_group"]).append_column("dup_group", pc.if_else(has_dups, df["dup_group"], None))
+
+################################################################################
+### Try to backfill road and stream name from other duplicates, if possible
+################################################################################
+ix = pc.and_(pc.equal(df["duplicate"], False), pc.equal(df["Road"], ""))
+dup_groups = df.filter(ix)["dup_group"]
+# take the first non-empty value per group
+filled_roads = (
+    df.filter((pc.field("Road") != "") & pc.is_in(pc.field("dup_group"), dup_groups))
+    .group_by(["dup_group"], use_threads=False)
+    .aggregate([("Road", "first")])
+)
+df = df.join(filled_roads, "dup_group").sort_by("index")
+df = df.drop(["Road", "Road_first"]).append_column(
+    "Road",
+    pc.if_else(pc.and_(pc.equal(df["duplicate"], False), pc.is_valid(df["Road_first"])), df["Road_first"], df["Road"]),
+)
+del filled_roads
+
+ix = pc.and_(pc.equal(df["duplicate"], False), pc.equal(df["River"], ""))
+dup_groups = df.filter(ix)["dup_group"]
+filled_rivers = (
+    df.filter((pc.field("River") != "") & pc.is_in(pc.field("dup_group"), dup_groups))
+    .group_by(["dup_group"], use_threads=False)
+    .aggregate([("River", "first")])
+)
+df = df.join(filled_rivers, "dup_group").sort_by("index")
+df = df.drop(["River", "River_first"]).append_column(
+    "River",
+    pc.if_else(
+        pc.and_(pc.equal(df["duplicate"], False), pc.is_valid(df["River_first"])), df["River_first"], df["River"]
+    ),
+)
+del filled_rivers
 
 
-df = add_spatial_joins(df)
+# save lookup of original crossing code to final crossing code used for remainder of analysis
+df = df.append_column("CrossingCode_keep", df["CrossingCode"].take(df["index_keep"]))
+
+# convert back to geo data frame for remainder of processing
+df = gp.GeoDataFrame(df.to_pandas(), geometry=geom)
+del geom
+
+# save the raw points so that we can look up source points to final crossing points later
+df.to_feather(src_dir / "all_road_crossings.feather")
+
+print("Dropping duplicates and unsnapped crossings from later processing")
+df = (
+    df.loc[df.snapped & (~df.duplicate)]
+    .drop(columns=["index", "index_keep", "CrossingCode_keep", "duplicate", "dup_group"])
+    .copy()
+)
+print(f"Retained {len(df):,} road crossings for analysis")
+
+df = add_spatial_joins(df.drop(columns=["HUC2"]))
 
 # Cleanup HUC, state, county columns that weren't assigned
 for col in [
@@ -544,6 +628,24 @@ for col in [
 
 ### Drop any that didn't intersect HUCs or states (including those outside analysis region)
 df = df.loc[(df.HUC12 != "") & (df.State != "")].copy()
+
+
+df["id"] = (df.index.values + CROSSINGS_ID_OFFSET).astype("uint64")
+df["SARPID"] = "cr" + df.CrossingCode.str[2:]
+
+# expand source to text
+df["Source"] = df.Source.map(SOURCE_DOMAIN)
+
+# set lat / long
+lon, lat = shapely.get_coordinates(df.geometry.to_crs("EPSG:4326").values).T.astype("float32")
+df["lon"] = lon
+df["lat"] = lat
+
+
+# add name field
+df["Name"] = ""
+df.loc[(df.River != "") & (df.Road != ""), "Name"] = df.River + " / " + df.Road
+
 
 df["CoastalHUC8"] = df.CoastalHUC8.fillna(0).astype("bool")
 
