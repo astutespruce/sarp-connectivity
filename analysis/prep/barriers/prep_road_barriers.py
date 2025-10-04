@@ -197,22 +197,25 @@ df["Recon"] = df.Recon.fillna(0).astype("uint8")
 df["SARP_Score"] = df.SARP_Score.fillna(-1).astype("float32")
 
 # fix casing issues of PotentialProject
-df["PotentialProject"] = df.PotentialProject.fillna("Unassessed").str.strip().str.replace("barrier", "Barrier")
 
 # fix typo and bogus value (0, 1)
-df["PotentialProject"] = (
-    df.PotentialProject.replace("Insignficant Barrier", "Insignificant Barrier").replace("0", "").replace("1", "")
-)
-
 # Recode No => No Barrier per guidance from SARP
-df.loc[df.PotentialProject == "No", "PotentialProject"] = "No Barrier"
-
 # Recode "Removed Crossing" => No Barrier per guidance from Kat 7/26/2025
-df.loc[df.PotentialProject == "Removed Crossing", "PotentialProject"] = "No Barrier"
-
 # mark missing and a few specific codes as unassessed, per guidance from SARP
-ix = df.PotentialProject.isin(["", "Unknown", "Small Project"])
-df.loc[ix, "PotentialProject"] = "Unassessed"
+df["PotentialProject"] = (
+    df.PotentialProject.fillna("Unassessed")
+    .str.strip()
+    .str.replace("barrier", "Barrier")
+    .str.replace("Barrer", "Barrier")
+    .replace("Insignficant Barrier", "Insignificant Barrier")
+    .replace("0", "Unassessed")
+    .replace("1", "Unassessed")
+    .replace("No", "No Barrier")
+    .replace("", "Unassessed")
+    .replace("Unknown", "Unassessed")
+    .replace("Small Project", "Unassessed")
+    .replace("Dry - Skipped", "Unassessed")
+)
 
 # per guidance from Kat, anything where SARP_Score is 0 and potential project is
 # not severe barrier is not set correctly, set it to -1 (null)

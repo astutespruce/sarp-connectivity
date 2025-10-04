@@ -29,6 +29,7 @@ dependencies = [
     "uvicorn",
 ]
 
+
 [project.optional-dependencies]
 dev = [
     "geopandas",
@@ -55,5 +56,13 @@ Repository = "https://github.com/astute-spruce/sarp-connectivity"
 [tool.setuptools.packages.find]
 include = ["analysis", "api"]
 
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
 [tool.ruff]
 line-length = 120
+
+[tool.uv]
+editable = true
+package = true

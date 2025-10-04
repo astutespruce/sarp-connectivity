@@ -56,7 +56,7 @@ async def search(request: Request, query: str):
             ORDER BY length(SARPID) ASC, SARPID ASC
             LIMIT {NUM_BARRIER_SEARCH_RESULTS}""",
             params=(query,),
-        ).arrow()
+        ).to_arrow_table()
 
         # discard pandas metadata and store total count
         matches = matches.replace_schema_metadata({"count": str(total)})

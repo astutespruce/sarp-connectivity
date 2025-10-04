@@ -511,6 +511,7 @@ CROSSING_TYPE_TO_DOMAIN = {
     "bridge adequate": 5,
     "buried stream": 10,
     "culvert": 8,
+    "culvrt": 8,
     "dam": 0,  # dams should be removed from the small barriers dataset
     "ford": 6,
     "low water crossing": 6,
@@ -537,6 +538,7 @@ CROSSING_TYPE_TO_DOMAIN = {
     "assumed culvert": 99,
     # added per direction from Kat on 7/24/2025
     "temporary structure": 11,
+    "dry - skipped": 0,
 }
 
 CONSTRICTION_TO_DOMAIN = {
@@ -544,11 +546,14 @@ CONSTRICTION_TO_DOMAIN = {
     "": 0,
     "no": 0,
     "no data": 0,
+    "null": 0,
     "spans full channel & banks": 1,
     "spans only channel & banks": 1,  # TODO: verify with Kat
+    "channel": 1,
     "not constricted": 1,
     "spans only bankfull/active channel": 2,
     "spans only bankfull / active channel": 2,
+    "bankfull": 2,
     "constricted to some degree": 3,
     "minor": 4,
     "moderate": 5,
@@ -635,9 +640,10 @@ POTENTIALPROJECT_TO_SEVERITY = {
     "not scored": 0,
     "no": 8,
     "unassessed": 0,
-    "completed project": 0,  # removed from processing
-    "completed": 0,  # removed from processing
-    "past project": 0,  # removed from processing
+    "completed project": 0,  # marked as a removed barrier elsewhere
+    "completed": 0,  # marked as a removed barrier elsewhere
+    "past project": 0,  # marked as a removed barrier elsewhere
+    "removed crossing": 0,  # marked as a removed barrier elsewhere
     # Potential / proposed project both get assigned as likely barrier if SARP_Score != -1
     "potential project": 7,
     "proposed project": 7,
@@ -648,6 +654,7 @@ POTENTIALPROJECT_TO_SEVERITY = {
     "other": 0,
     "no score - missing data": 0,
     "error-delete": 0,
+    "dry - skipped": 0,
 }
 
 

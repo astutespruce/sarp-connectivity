@@ -81,6 +81,9 @@ rename_cols = {
 print("Reading dams and networks")
 dams = gp.read_feather(barriers_dir / "dams.feather").set_index("id").rename(columns=rename_cols)
 
+# cast NHDPlusID to float64 to get around ArcGIS issue reading int64 CSV columns
+dams["NHDPlusID"] = dams.NHDPlusID.astype("float64")
+
 dams["in_network_type"] = dams.primary_network
 
 # add stream order and species classes for filtering
@@ -195,6 +198,9 @@ tmp.sort_values("SARPID").drop_duplicates(subset="SARPID").reset_index(drop=True
 ### Read small barriers and associated networks
 print("Reading small barriers and networks")
 small_barriers = gp.read_feather(barriers_dir / "small_barriers.feather").set_index("id").rename(columns=rename_cols)
+
+small_barriers["NHDPlusID"] = small_barriers.NHDPlusID.astype("float64")
+
 small_barriers["in_network_type"] = small_barriers.primary_network
 small_barriers = small_barriers.loc[~(small_barriers.dropped | small_barriers.duplicate)].copy()
 
@@ -479,6 +485,9 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
 
 print("Reading waterfalls and networks")
 waterfalls = gp.read_feather(barriers_dir / "waterfalls.feather").set_index("id").rename(columns=rename_cols)
+
+waterfalls["NHDPlusID"] = waterfalls.NHDPlusID.astype("float64")
+
 waterfalls = waterfalls.loc[~(waterfalls.dropped | waterfalls.duplicate)].copy()
 
 tmp = waterfalls.copy()
@@ -580,6 +589,8 @@ tmp.sort_values(by=["SARPID", "network_type"]).reset_index(drop=True).to_feather
 # NOTE: these don't currently have network data, but share logic with above
 print("Processing road crossings")
 crossings = gp.read_feather(barriers_dir / "road_crossings.feather").set_index("id").rename(columns=rename_cols)
+
+crossings["NHDPlusID"] = crossings.NHDPlusID.astype("float64")
 
 crossings["OnNetwork"] = ~(crossings.OnLoop | crossings.offnetwork_flowline)
 

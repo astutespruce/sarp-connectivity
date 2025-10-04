@@ -35,7 +35,7 @@ async def details(
         else:
             table = network_type
 
-        record = db.sql(f"SELECT * FROM {table} WHERE SARPID=? LIMIT 1", params=(sarp_id,)).arrow()
+        record = db.sql(f"SELECT * FROM {table} WHERE SARPID=? LIMIT 1", params=(sarp_id,)).to_arrow_table()
 
     if not len(record):
         raise HTTPException(404, detail=f"record not found for SARPID: {sarp_id}")
