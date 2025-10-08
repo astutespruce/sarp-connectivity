@@ -13,12 +13,12 @@ out_dir.mkdir(exist_ok=True, parents=True)
 
 
 # full network scenarios are: "dams", "combined_barriers", "largefish_barriers", "smallfish_barriers", "road_crossings"
-scenario = "dams"
+scenario = "combined_barriers"
 mainstem = False
-ext = "fgb"
-driver = "FlatGeobuf"
-# ext = "gdb"
-# driver = "OpenFileGDB"
+# ext = "fgb"
+# driver = "FlatGeobuf"
+ext = "gdb"
+driver = "OpenFileGDB"
 
 
 # Doesn't appear to work in QGIS
@@ -32,7 +32,7 @@ groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
 export_hucs = {
     # "01",
     # "02",
-    # "03",
+    "03",
     # "04",
     # "05",
     # "06",
@@ -47,7 +47,7 @@ export_hucs = {
     # "15",
     # "16",
     # "17",
-    "18",
+    # "18",
     # "21",
 }
 
@@ -85,25 +85,25 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
         columns=[
             "networkID",
             # full functional network miles
-            "total_miles",
-            "perennial_miles",
-            "intermittent_miles",
-            "altered_miles",
-            "unaltered_miles",
-            "perennial_unaltered_miles",
-            "free_miles",
-            "free_perennial_miles",
-            "free_intermittent_miles",
-            "free_altered_miles",
-            "free_unaltered_miles",
-            "free_perennial_unaltered_miles",
-            "pct_unaltered",
-            "pct_perennial_unaltered",
-            "resilient_miles",
-            "pct_resilient",
-            "pct_cold",
-            "natfldpln",
-            "sizeclasses",
+            "fn_total_miles",
+            "fn_perennial_miles",
+            "fn_intermittent_miles",
+            "fn_altered_miles",
+            "fn_unaltered_miles",
+            "fn_perennial_unaltered_miles",
+            "fn_free_miles",
+            "fn_free_perennial_miles",
+            "fn_free_intermittent_miles",
+            "fn_free_altered_miles",
+            "fn_free_unaltered_miles",
+            "fn_free_perennial_unaltered_miles",
+            "fn_pct_unaltered",
+            "fn_pct_perennial_unaltered",
+            "fn_resilient_miles",
+            "fn_pct_resilient",
+            "fn_pct_cold",
+            "fn_natfldpln",
+            "fn_sizeclasses",
             "barrier",
             "upstream_barrier_id",
             "upstream_barrier",
@@ -111,33 +111,48 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
             "downstream_barrier_id",
             "downstream_barrier",
             "downstream_barrier_miles",
-            "invasive_network",  # true if upstream of an invasive barrier
-            "has_ej_tract",
-            "has_ej_tribal",
+            "has_downstream_invasive_barrier",  # true if upstream of an invasive barrier
+            "fn_has_ej_tract",
+            "fn_has_ej_tribal",
             # upstream mainstem
-            "total_upstream_mainstem_miles",
-            "perennial_upstream_mainstem_miles",
-            "intermittent_upstream_mainstem_miles",
-            "altered_upstream_mainstem_miles",
-            "unaltered_upstream_mainstem_miles",
-            "perennial_unaltered_upstream_mainstem_miles",
-            "pct_upstream_mainstem_unaltered",
-            "upstream_mainstem_impairment",
+            "um_total_miles",
+            "um_perennial_miles",
+            "um_intermittent_miles",
+            "um_altered_miles",
+            "um_unaltered_miles",
+            "um_perennial_unaltered_miles",
+            "um_pct_unaltered",
+            "um_has_algal_growth",
+            "um_has_cause_unknown_impaired_biota",
+            "um_has_cause_unknown_fish_kills",
+            "um_has_habitat_alterations",
+            "um_has_oxygen_depletion",
+            "um_has_temperature",
+            "um_has_hydrologic_alteration",
+            "um_sizeclasses",
             # downstream mainstem
-            "total_downstream_mainstem_miles",
-            "free_downstream_mainstem_miles",
-            "free_perennial_downstream_mainstem_miles",
-            "free_intermittent_downstream_mainstem_miles",
-            "free_altered_downstream_mainstem_miles",
-            "free_unaltered_downstream_mainstem_miles",
-            "downstream_mainstem_impairment",
+            "dm_total_miles",
+            "dm_free_miles",
+            "dm_free_perennial_miles",
+            "dm_free_intermittent_miles",
+            "dm_free_altered_miles",
+            "dm_free_unaltered_miles",
+            "dm_has_algal_growth",
+            "dm_has_cause_unknown_impaired_biota",
+            "dm_has_cause_unknown_fish_kills",
+            "dm_has_habitat_alterations",
+            "dm_has_oxygen_depletion",
+            "dm_has_temperature",
+            "dm_has_hydrologic_alteration",
             # downstream linear network miles (downstream to next barrier / outlet)
-            "total_linear_downstream_miles",
-            "free_linear_downstream_miles",
-            "free_perennial_linear_downstream_miles",
-            "free_intermittent_linear_downstream_miles",
-            "free_altered_linear_downstream_miles",
-            "free_unaltered_linear_downstream_miles",
+            "dl_total_miles",
+            "dl_free_miles",
+            "dl_free_perennial_miles",
+            "dl_free_intermittent_miles",
+            "dl_free_altered_miles",
+            "dl_free_unaltered_miles",
+            "dl_has_ej_tract",
+            "dl_has_ej_tribal",
             # downstream linear network to outlet
             "miles_to_outlet",
             "flows_to_ocean",
@@ -159,12 +174,18 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
             if col in stats.columns:
                 stats[col] = stats[col].fillna(0).astype("uint32")
 
-    for col in ["flows_to_ocean", "flows_to_great_lakes", "invasive_network", "has_ej_tract", "has_ej_tribal"]:
+    for col in [
+        "flows_to_ocean",
+        "flows_to_great_lakes",
+        "has_downstream_invasive_barrier",
+        "dl_has_ej_tract",
+        "dl_has_ej_tribal",
+    ]:
         if col in stats.columns:
             stats[col] = stats[col].astype("uint8")
 
     # natural floodplain is missing for several catchments; fill with -1
-    for col in ["natfldpln", "sizeclasses"]:
+    for col in ["fn_natfldpln", "fn_sizeclasses", "um_sizeclasses"]:
         stats[col] = stats[col].fillna(-1).astype("int8")
 
     # create output files by HUC2 based on where the segments occur
@@ -206,7 +227,7 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
         flowlines = (
             flowlines.join(segments, how="inner")
             .join(floodplains, on="NHDPlusID")
-            .join(stats[["flows_to_ocean", "flows_to_great_lakes", "invasive_network"]], on="networkID")
+            .join(stats[["flows_to_ocean", "flows_to_great_lakes", "has_downstream_invasive_barrier"]], on="networkID")
         )
 
         flowlines["km"] = flowlines["length"] / 1000.0
