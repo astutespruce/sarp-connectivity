@@ -878,7 +878,7 @@ FEASIBILITY_DOMAIN = {
     14: "Fish passage installed for conservation benefit",
     15: "Treatment complete (removal vs fishway unspecified)",
     16: "Removal or fish passage planned",
-    # not shown to user (filtered out for other reasons)S
+    # not shown to user (filtered out for other reasons)
     6: "Unknown",
     7: "Error",
     8: "Dam removed for conservation benefit",

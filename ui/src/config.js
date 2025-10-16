@@ -842,6 +842,7 @@ export const FEASIBILITYCLASS = {
   8: 'breached with full flow',
   9: 'fish passage installed',
   10: 'treatment complete (removal vs fishway unspecified)',
+  14: 'fish passage installed for conservation benefit',
   // not shown to user
   // 11: (multiple values lumped to prevent showing in filter)
 }

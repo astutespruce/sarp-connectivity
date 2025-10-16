@@ -397,6 +397,7 @@ EXCLUDE_RECON = []
 
 REMOVED_FEASIBILITY = [
     8,  # Dam removed for conservation benefit
+    14,  # Fish passage installed for conservation benefit
 ]
 
 EXCLUDE_FEASIBILITY = [
@@ -445,8 +446,8 @@ RECON_TO_FEASIBILITY = {
     19: 10,  # should be removed from analysis
     20: 5,
     21: 6,
-    22: 11,  # exclude if BarrierSeverity == No Barrier or Unknown / blank
-    23: 11,  # exclude if BarrierSeverity == No Barrier or Unknown / blank
+    22: 2,  # exclude if BarrierSeverity == No Barrier or Unknown / blank; as of 10/15/2025 now recode these as 2 (infeasible)
+    23: 2,  # exclude if BarrierSeverity == No Barrier or Unknown / blank
 }
 
 # Associated recon values
