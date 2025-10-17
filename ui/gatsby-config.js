@@ -6,7 +6,7 @@ require('dotenv').config({
 
 const { version, date } = require('./package.json')
 
-const defaultHost = `https://aquaticbarriers.org`
+const defaultHost = `https://tool.aquaticbarriers.org`
 
 module.exports = {
   siteMetadata: {
@@ -22,6 +22,7 @@ module.exports = {
     mapboxToken: process.env.GATSBY_MAPBOX_API_TOKEN,
     apiHost: process.env.GATSBY_API_HOST || defaultHost,
     tileHost: process.env.GATSBY_TILE_HOST || defaultHost,
+    naccURL: process.env.GATSBY_NACC_URL || 'https://aquaticbarriers.org',
     mailchimpConfig: {
       formURL: process.env.GATSBY_MAILCHIMP_URL,
       userID: process.env.GATSBY_MAILCHIMP_USER_ID,

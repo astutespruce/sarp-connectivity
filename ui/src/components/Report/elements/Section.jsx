@@ -13,7 +13,7 @@ const Section = ({ title, children, style, marginBottom, wrap }) => (
         marginBottom,
         padding: '6pt 12pt',
         lineHeight: 1,
-        backgroundColor: '#ebedee',
+        backgroundColor: '#dbf0ff',
       }}
     >
       {title}

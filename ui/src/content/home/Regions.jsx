@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Divider, Flex, Grid, Heading } from 'theme-ui'
+import { Box, Flex, Grid, Heading } from 'theme-ui'
 import { GatsbyImage } from 'gatsby-plugin-image'
 import { useStaticQuery, graphql } from 'gatsby'
 
@@ -103,7 +103,6 @@ const Regions = () => {
 
   return (
     <Box variant="boxes.section">
-      <Divider sx={{ mb: '4rem' }} />
       <Heading as="h2" variant="heading.section">
         Explore the inventory by region:
       </Heading>

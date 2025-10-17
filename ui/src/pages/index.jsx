@@ -1,60 +1,34 @@
 import React from 'react'
-import PropTypes from 'prop-types'
-import { graphql } from 'gatsby'
-import { Container } from 'theme-ui'
+import { Container, Divider } from 'theme-ui'
 
 import { Layout, SEO } from 'components/Layout'
-import { HeaderImage } from 'components/Image'
 
 import {
   TopSection,
-  InventorySection,
+  AboutSection,
+  AboutNACCSection,
   RegionSection,
   ToolSection,
   GetInvolvedSection,
 } from 'content/home'
 
-const IndexPage = ({ data: { headerImage } }) => (
+const IndexPage = () => (
   <Layout>
-    <HeaderImage
-      image={headerImage.childImageSharp.gatsbyImageData}
-      height="28vh"
-      minHeight="22rem"
-      title="National Aquatic Barrier Inventory & Prioritization Tool"
-      subtitle="Improve aquatic connectivity by prioritizing aquatic barriers for removal using the best
-      available data."
-    />
+    <TopSection />
 
     <Container sx={{ mt: 0 }}>
-      <TopSection />
-      <InventorySection />
+      <AboutSection />
+      <Divider sx={{ mt: '6rem' }} />
+      <AboutNACCSection />
+      <Divider sx={{ mt: '6rem' }} />
       <ToolSection />
+      <Divider sx={{ mt: '6rem' }} />
       <RegionSection />
-
+      <Divider sx={{ mt: '6rem' }} />
       <GetInvolvedSection />
     </Container>
   </Layout>
 )
-
-IndexPage.propTypes = {
-  data: PropTypes.shape({
-    headerImage: PropTypes.object.isRequired,
-  }).isRequired,
-}
-
-export const pageQuery = graphql`
-  query HomePageQuery {
-    headerImage: file(relativePath: { eq: "iStock-181890680.jpg" }) {
-      childImageSharp {
-        gatsbyImageData(
-          layout: FULL_WIDTH
-          formats: [AUTO, WEBP]
-          placeholder: BLURRED
-        )
-      }
-    }
-  }
-`
 
 export default IndexPage
 

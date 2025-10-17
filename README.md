@@ -1,6 +1,6 @@
 # National Aquatic Barrier Inventory & Prioritization Tool
 
-https://aquaticbarriers.org/
+https://tool.aquaticbarriers.org/
 
 ## About
 

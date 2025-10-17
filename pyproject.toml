@@ -50,7 +50,7 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://aquaticbarriers.org"
+Homepage = "https://tool.aquaticbarriers.org"
 Repository = "https://github.com/astute-spruce/sarp-connectivity"
 
 [tool.setuptools.packages.find]

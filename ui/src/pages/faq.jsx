@@ -1,22 +1,23 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Container, Heading, Paragraph, Text } from 'theme-ui'
+import { Box, Container, Flex, Heading, Paragraph, Text } from 'theme-ui'
 import { graphql } from 'gatsby'
+import { QuestionCircle } from '@emotion-icons/fa-regular'
 
 import { MAP_SERVICES, siteMetadata } from 'config'
 import { Layout, SEO } from 'components/Layout'
 import { Link, OutboundLink } from 'components/Link'
 import { HeaderImage } from 'components/Image'
 
-const { date, version } = siteMetadata
+const { naccURL, date, version } = siteMetadata
 
 const FAQPage = ({ data: { headerImage } }) => (
   <Layout>
     <HeaderImage
       image={headerImage.childImageSharp.gatsbyImageData}
-      title="Frequently asked questions"
-      height="20vh"
-      minHeight="18rem"
+      // title="Frequently asked questions"
+      height="18vh"
+      minHeight="16rem"
       credits={{
         author: 'Kazuend',
         url: 'https://unsplash.com/photos/cCthPLHmrzI',
@@ -26,9 +27,29 @@ const FAQPage = ({ data: { headerImage } }) => (
       sx={{
         pb: '4rem',
         '& h2': { mb: '0.5rem' },
-        '& > div + div': { mt: '3rem' },
+        '& > div + div': {
+          mt: '2rem',
+          pt: '2rem',
+          borderTop: '1px solid',
+          borderTopColor: 'grey.2',
+        },
       }}
     >
+      <Flex sx={{ gap: '1rem' }}>
+        <Box sx={{ flex: '0 0 auto', color: 'grey.8' }}>
+          <QuestionCircle size="4rem" />
+        </Box>
+        <Heading as="h1">Frequently Asked Questions</Heading>
+      </Flex>
+      <Box sx={{ mt: '1rem' }}>
+        <Paragraph variant="paragraph.large">
+          Please also see the{' '}
+          <OutboundLink to={`${naccURL}/faq/`}>FAQ page</OutboundLink> for the
+          National Aquatic Connectivity Collaborative (NACC) for general FAQs
+          about the overall effort, data sources, and the inventory.
+        </Paragraph>
+      </Box>
+
       <Box>
         <Heading as="h2">
           What is the purpose of this Inventory and Prioritization Tool?
@@ -68,109 +89,6 @@ const FAQPage = ({ data: { headerImage } }) => (
           scenarios. It is also possible to{' '}
           <Link to="/restoration">summarize accomplishments</Link> over multiple
           years, such as miles restored through barrier removal by year.
-        </Paragraph>
-      </Box>
-
-      <Box>
-        <Heading as="h2">
-          What kind of barriers does the Inventory track?
-        </Heading>
-        <Paragraph>
-          We track dams (including diversions, weirs, low head dams), assessed
-          road stream crossings, and waterfalls. We do not track beaver dams or
-          other non-structural barriers at this time, though it is possible that
-          we may track other types of barriers in the future.
-        </Paragraph>
-      </Box>
-
-      <Box>
-        <Heading as="h2">
-          What data sources are included in the Inventory?
-        </Heading>
-        <Paragraph>
-          This inventory is compiled from multiple sources at multiple scales.
-          To best leverage data sources that are regularly updated by their data
-          providers within existing efforts, we update with the best available
-          data from data providers approximately four times a year.
-          <br />
-          <br />
-          For a list of datasets included in the inventory, please see{' '}
-          <OutboundLink to="https://docs.google.com/document/d/1mUwk9rHukmY1D_NInxjdIxbBVfILD1Y8Xr-lMqjV4xU/edit?usp=sharing">
-            this link
-          </OutboundLink>
-          . If you know of a data source we have not included, please fill out{' '}
-          <OutboundLink to="https://forms.gle/5kWN3D56hSijLFrU6">
-            this form
-          </OutboundLink>{' '}
-          and we will contact you to ensure that it is included.
-        </Paragraph>
-      </Box>
-
-      <Box>
-        <Heading as="h2">How is the Inventory maintained and updated?</Heading>
-        <Paragraph>
-          The objective of this inventory is to highlight the efforts of states
-          and local partners by compiling information and readily updating it
-          from living sources of truth on a regular basis. For efforts
-          consistently maintained by partners, we have set up automatic scripts
-          to extract data approximately four times a year and check for updates
-          to incorporate into the National Inventory and Tool. For static
-          efforts, data is incorporated into the inventory when identified. We
-          readily work with our partners and technicians to edit data and
-          identify new structures using aerial maps, as well as attribute social
-          feasibility.
-          <br />
-          <br />
-          If you are interested in helping to maintain our database and
-          incorporate local relevance into its attributes using ArcGIS online,
-          please{' '}
-          <OutboundLink to="https://southeastaquatics.net/about/contact-us">
-            contact us
-          </OutboundLink>
-          .
-        </Paragraph>
-      </Box>
-
-      <Box>
-        <Heading as="h2">How do I cite the inventory?</Heading>
-        <Paragraph>
-          When downloading the data, you can find the citation within the Terms
-          of Use text file. Alternatively, if citing the inventory in general,
-          you may use the following citation:
-          <Text sx={{ mt: '1rem', mx: '2rem', bg: 'grey.1', p: '1rem' }}>
-            Southeast Aquatic Resources Partnership (SARP). 2024. Comprehensive
-            Aquatic Barrier Inventory v{version} ({date}).{' '}
-            <OutboundLink to="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act">
-              https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act
-            </OutboundLink>
-            . (downloaded {new Date().toLocaleDateString()} from{' '}
-            <OutboundLink to="https://aquaticbarriers.org">
-              https://aquaticbarriers.org
-            </OutboundLink>
-            ). SARP/USFWS.
-          </Text>
-        </Paragraph>
-      </Box>
-
-      <Box>
-        <Heading as="h2">How can I report a missing barrier?</Heading>
-        <Paragraph>
-          Our inventory is the most comprehensive aquatic barrier inventory
-          within the United States, but it is not perfect and is still lacking
-          barriers, particularly low head dams and diversion structures. If you
-          are exploring the tool and notice a missing barrier, please contact{' '}
-          <a href="mailto:kat@southeastaquatics.net">
-            kat@southeastaquatics.net
-          </a>{' '}
-          with the coordinates, or when prioritizing within the tool, scroll to
-          the bottom of the sidebar for the barrier in question and click{' '}
-          <b>Report a problem with this barrier</b>.
-          <br />
-          <br />
-          The master inventory will likely be updated fairly quickly, but it may
-          take several months for the public facing tool to reflect the new
-          barrier. If you would like to know the priority of the new barrier, we
-          can provide you with offline results via email.
         </Paragraph>
       </Box>
 
@@ -287,6 +205,27 @@ const FAQPage = ({ data: { headerImage } }) => (
       </Box>
 
       <Box>
+        <Heading as="h2">How do I cite the inventory?</Heading>
+        <Paragraph>
+          When downloading the data, you can find the citation within the Terms
+          of Use text file. Alternatively, if citing the inventory in general,
+          you may use the following citation:
+          <Text sx={{ mt: '1rem', mx: '2rem', bg: 'blue.1', p: '1rem' }}>
+            Southeast Aquatic Resources Partnership (SARP). {date.split('/')[2]}
+            . Comprehensive Aquatic Barrier Inventory v{version} ({date}).{' '}
+            <OutboundLink to="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act">
+              https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act
+            </OutboundLink>
+            . (downloaded {new Date().toLocaleDateString()} from{' '}
+            <OutboundLink to="https://tool.aquaticbarriers.org">
+              https://tool.aquaticbarriers.org
+            </OutboundLink>
+            ). SARP/USFWS.
+          </Text>
+        </Paragraph>
+      </Box>
+
+      <Box>
         <Heading as="h2">
           How can I access map services to display barriers in a GIS
           application?
@@ -317,6 +256,42 @@ const FAQPage = ({ data: { headerImage } }) => (
             crossings.
           </li>
         </Box>
+      </Box>
+
+      <Box>
+        <Heading as="h2">
+          What kind of barriers does the Inventory track?
+        </Heading>
+        <Paragraph>
+          See the{' '}
+          <OutboundLink to={`${naccURL}/faq/`}>NACC FAQ page</OutboundLink>.
+        </Paragraph>
+      </Box>
+
+      <Box>
+        <Heading as="h2">
+          What data sources are included in the Inventory?
+        </Heading>
+        <Paragraph>
+          See the{' '}
+          <OutboundLink to={`${naccURL}/faq/`}>NACC FAQ page</OutboundLink>.
+        </Paragraph>
+      </Box>
+
+      <Box>
+        <Heading as="h2">How is the Inventory maintained and updated?</Heading>
+        <Paragraph>
+          See the{' '}
+          <OutboundLink to={`${naccURL}/faq/`}>NACC FAQ page</OutboundLink>.
+        </Paragraph>
+      </Box>
+
+      <Box>
+        <Heading as="h2">How can I report a missing barrier?</Heading>
+        <Paragraph>
+          See the{' '}
+          <OutboundLink to={`${naccURL}/faq/`}>NACC FAQ page</OutboundLink>.
+        </Paragraph>
       </Box>
     </Container>
   </Layout>

@@ -60,14 +60,13 @@ const FilterGroup = ({ id, title, filters }) => {
         '&:not(:first-of-type)': {
           pt: '0.5rem',
         },
-        borderBottom: '2px solid',
+        borderBottom: '1px solid',
         borderBottomColor: 'grey.2',
       }}
     >
       <Flex
         sx={{
           justifyContent: 'space-between',
-          bg: 'grey.1',
           py: '0.5rem',
           pl: '0.15rem',
           pr: '1rem',
@@ -111,7 +110,7 @@ const FilterGroup = ({ id, title, filters }) => {
             pl: '0.25rem',
             pr: '1rem',
             borderLeft: '0.5rem solid',
-            borderLeftColor: 'grey.1',
+            borderLeftColor: 'blue.1',
           }}
         >
           {availableFilters.map((filter) => (

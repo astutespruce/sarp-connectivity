@@ -8,7 +8,7 @@ const { version: dataVersion } = siteMetadata
 
 const Contact = ({ barrierType, sarpid, sx }) => (
   <Box sx={sx}>
-    <Box sx={{ bg: 'grey.1', borderRadius: '0.5rem', p: '1rem' }}>
+    <Box sx={{ bg: 'blue.1', borderRadius: '0.5rem', p: '1rem' }}>
       <Text sx={{ fontWeight: 'bold', fontSize: 3 }}>Contact us</Text>
       <Box sx={{ mt: '0.5rem' }}>
         <Text>
