@@ -33,7 +33,70 @@ www.aquaticbarriers.org:443 {
 }
 
 
-aquaticbarriers.org {
+staging.aquaticbarriers.org {
+  log {
+    level ERROR
+  }
+
+  # common headers
+  header Strict-Transport-Security "max-age=63072000; preload"
+  header X-Frame-Options "DENY"
+  header Content-Security-Policy "default-src 'self' *.googletagmanager.com *.mapbox.com *.sentry.io; connect-src *; img-src 'unsafe-inline' * data: blob:; media-src 'unsafe-inline' *; worker-src * blob:; style-src 'unsafe-inline' *; script-src 'unsafe-inline' 'unsafe-eval' *"
+  header X-Content-Type-Options nosniff
+
+  # redirect previous paths to tool
+  # TODO: switch to 301 redirects
+  # NOTE: backend endpoints will likely fail if used directly from frontend due to CORS
+  @old_backend_paths {
+    path /api/* /downloads/* /services/*
+  }
+  redir @old_backend_paths https://tool.aquaticbarriers.org{uri} 307
+
+  # redirect page paths (note: have to include all terminal pages with and without trailing slash)
+  @old_frontend_paths {
+    path /priority /priority/ /explore /explore/ /network_methods /network_methods/ /habitat_methods /habitat_methods/ /metrics/* /regions/* /states/* /fhp/* /report/*
+  }
+  redir @old_frontend_paths https://tool.aquaticbarriers.org{uri} 307
+
+  route /* {
+    # most files can be cached indefinitely, they are rebuilt with new names each time
+    @cached_files {
+      path *.jpg *.jpeg *.png *.gif *.webp *.avif *.svg *.css *.js /_app/immutable/*
+      not path /favicon*
+    }
+    header @cached_files Cache-Control "public, max-age=31536000, immutable"
+
+    # make sure favicons are not cached too long
+    @short_cached_files {
+      path /favicon*
+    }
+    header @short_cached_files Cache-Control "public, max-age=3600"
+
+    # pages must be fetched each time
+    @no_cache {
+      path *.html / /inventory/ /teams/ /training/ /faq/
+    }
+    header @no_cache Cache-Control "public, max-age:0, must-revalidate"
+
+    encode zstd gzip
+
+    root * /var/www/nacc-home
+    file_server
+  }
+
+  # Redirect all errors to 404.html
+  handle_errors {
+      @404 {
+          expression {http.error.status_code} == 404
+      }
+      rewrite @404 /404.html
+      file_server
+  }
+}
+
+
+
+tool.aquaticbarriers.org {
   log {
     level ERROR
   }
@@ -45,7 +108,7 @@ aquaticbarriers.org {
   header X-Content-Type-Options nosniff
 
   # Set CORS
-  header Access-Control-Allow-Origin "https://aquaticbarriers.org"
+  header Access-Control-Allow-Origin "https://tool.aquaticbarriers.org"
   header Access-Control-Request-Method *
   header Access-Control-Request-Headers *
 
@@ -81,7 +144,7 @@ aquaticbarriers.org {
 
   route /* {
     # redirect teams page
-    redir /teams /regions/southeast 301
+    redir /teams https://aquaticbarriers.org/teams/ 301
 
     # most files can be cached indefinitely, they are rebuilt with new names each time
     @cached_files {

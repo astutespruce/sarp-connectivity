@@ -1,5 +1,15 @@
 # Server setup
 
+NOTE: this configuration includes deployment of this project and the
+[NACC homepage](https://github.com/astutespruce/nacc-home) to the same server.
+
+On the production server:
+
+- `aquaticbarriers.org` routes to NACC homepage, with static assets served from `/var/www/nacc-home
+- `tool.aquaticbarriers.org` routes to Prioritization Tool (this app), with static assets served from `/var/www/sarp-connectivity` and reverse proxy to services managed by this app
+
+The staging server prefixes those hostnames with `staging.`
+
 ## Server
 
 - Create an EC2 T4g.medium server based on Ubuntu 24.04 LTS (Arm64)
@@ -7,8 +17,8 @@
 - Add a second volume with 50 GB (GP3) of space for tiles
 - Create an elastic IP and assign to that instance
 
-NOTE: the same configuration is used for staging as for production, because the
-staging server is typically promoted to the staging server when ready.
+NOTE: the same overall configuration is used for staging, but staging is deployed
+to a `T4g.small` server.
 
 ### Create a 4 GB swap file
 
@@ -35,14 +45,16 @@ Add this to `/etc/fstab`: `/dev/nvme1n1 /tiles ext4 defaults,nofail`
 
 ## Setup accounts and directories
 
-The application is managed by the `app` user account.
+The applications are managed by the `app` user account.
 
 ```bash
 sudo useradd --create-home app
 sudo usermod -a -G app ubuntu
 sudo chsh -s /bin/bash app
 sudo mkdir /var/www
-sudo chown app:app /var/www
+sudo mkdir /var/www/sarp-connectivity
+sudo mkdir /var/www/nacc-home
+sudo chown -R app:app /var/www
 sudo chown app:ubuntu /tiles
 sudo chmod 774 /tiles
 sudo mkdir -p /downloads/custom
@@ -51,7 +63,7 @@ sudo chown -R app:app /downloads
 sudo chmod -R 774 /downloads
 ```
 
-## Clone the repository and setup environment files
+## Clone the Prioritization Tool repository and setup environment files
 
 ```bash
 sudo su app
@@ -89,10 +101,34 @@ GATSBY_MAILCHIMP_URL=https://mc.us19.list-manage.com/subscribe/landing-page
 GATSBY_MAILCHIMP_USER_ID=<user id>
 GATSBY_MAILCHIMP_FORM_ID=<form id>
 GATSBY_MAILCHIMP_FORM_ID2=<form id2>
-GATSBY_NACC_URL=https://aquaticbarriers.org
+GATSBY_SITE_URL=https://tool.aquaticbarriers.org  # or https://staging.tool.aquaticbarriers.org
+GATSBY_NACC_URL=https://aquaticbarriers.org  # or https://staging.aquaticbarriers.org
 ```
 
-## Grant ubuntu user write permissions to the root folder
+## Clone NACC homepage repository and setup environment files
+
+As `app` user:
+
+```bash
+cd ~
+git clone https://github.com/astutespruce/nacc-home.git
+```
+
+Create a `.env.production` in the root of the repository with the following:
+
+```bash
+PUBLIC_GOOGLE_ANALYTICS_ID=<google analytics ID>
+PUBLIC_SENTRY_DSN=<sentry DSN>
+PUBLIC_DEPLOY_ENV="production" # or staging
+PUBLIC_CONTACT_EMAIL=<contact email>
+PUBLIC_PRIORITIZATION_TOOL_URL="https://tool.aquaticbarriers.org" # or https://staging.tool.aquaticbarriers.org
+PUBLIC_TOOL_UI_DATA_PATH="/home/app/sarp-connectivity/ui/data"
+
+```
+
+## Grant ubuntu user write permissions to the repository folder
+
+NOTE: this is so that the `ubuntu` user can move API data files into the repository folder.
 
 As `ubuntu` user:
 
@@ -100,7 +136,7 @@ As `ubuntu` user:
 sudo chown -R app:ubuntu /home/app/sarp-connectivity
 ```
 
-## Install NodeJS and UI dependencies:
+## Install NodeJS:
 
 Check `.nvmrc` and use the same major version of NodeJS.
 
@@ -112,11 +148,14 @@ sudo apt-get update && sudo apt-get install -y make g++
 
 (needed to build @parcel/watch dependency)
 
-As `app` user:
+As `app` user, install `nvm`:
 
 ```bash
+cd ~
 curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
 ```
+
+## Install Prioritization Tool NodeJS dependencies:
 
 Exit and log back in as app user.
 
@@ -135,13 +174,25 @@ Build it:
 npm run deploy
 ```
 
-## Install Python dependencies
+NOTE: the build step is necessary on every update to code or data in the prioritization tool.
 
-As `ubuntu` user:
+## Install NACC home page NodeJS dependencies:
 
 ```bash
-sudo apt-get install -y python3-pip
+cd ~/nacc-home
+nvm install
+npm ci
 ```
+
+Build it:
+
+```bash
+npm run deploy
+```
+
+NOTE: the build step is necessary only on code updates to the NACC homepage app.
+
+## Install Python dependencies
 
 As `app` user:
 
