@@ -12,7 +12,7 @@ const Contact = ({ barrierType, sarpid, style }) => (
     wrap={false}
     style={{
       ...style,
-      backgroundColor: '#ebedee',
+      backgroundColor: '#dbf0ff',
       borderRadius: 6,
       padding: 12,
     }}

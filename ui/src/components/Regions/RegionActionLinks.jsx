@@ -13,7 +13,7 @@ const RegionActionLinks = ({ region }) => (
       mt: '4rem',
       py: '1rem',
       px: '1rem',
-      bg: 'grey.1',
+      bg: 'blue.1',
       borderTop: '1px solid',
       borderTopColor: 'grey.3',
       borderBottom: '1px solid',

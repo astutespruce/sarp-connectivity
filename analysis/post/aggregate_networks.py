@@ -188,7 +188,7 @@ verify_domains(tmp)
 tmp["id"] = tmp.id.astype("uint32")
 
 # add report URL
-tmp["URL"] = "https://aquaticbarriers.org/report/dams/" + tmp.SARPID
+tmp["URL"] = "https://tool.aquaticbarriers.org/report/dams/" + tmp.SARPID
 
 tmp.sort_values("SARPID").drop_duplicates(subset="SARPID").reset_index(drop=True).to_feather(api_dir / "dams.feather")
 
@@ -296,7 +296,7 @@ verify_domains(tmp)
 tmp["id"] = tmp.id.astype("uint32")
 
 # add report URL
-tmp["URL"] = "https://aquaticbarriers.org/report/combined_barriers/" + tmp.SARPID
+tmp["URL"] = "https://tool.aquaticbarriers.org/report/combined_barriers/" + tmp.SARPID
 
 tmp.sort_values("SARPID").drop_duplicates(subset="SARPID").reset_index(drop=True).to_feather(
     api_dir / "small_barriers.feather"
@@ -467,7 +467,7 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
     tmp["id"] = tmp.id.astype("uint32")
 
     # add report URL
-    tmp["URL"] = f"https://aquaticbarriers.org/report/{network_type}/" + tmp.SARPID
+    tmp["URL"] = f"https://tool.aquaticbarriers.org/report/{network_type}/" + tmp.SARPID
 
     tmp.sort_values("SARPID").drop_duplicates(subset="SARPID").reset_index(drop=True).to_feather(
         api_dir / f"{network_type}.feather"

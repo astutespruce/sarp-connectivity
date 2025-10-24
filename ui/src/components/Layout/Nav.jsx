@@ -21,6 +21,7 @@ const navLinkCSS = {
   px: '0.5rem',
   display: 'block',
   color: '#fff !important',
+  border: '1px solid transparent',
   borderRadius: '6px',
   '&:hover': {
     bg: 'blue.8',
@@ -29,7 +30,8 @@ const navLinkCSS = {
 
 const activeNavLinkCSS = {
   ...navLinkCSS,
-  bg: 'primary',
+  bg: '#FFFFFF33',
+  borderColor: '#FFF',
 }
 
 const isActivePath = (path) =>

@@ -9,7 +9,7 @@ const Credits = ({ sx }) => (
     <Flex sx={{ mt: '0.5rem', fontSize: 1 }}>
       <Box sx={{ flex: '1 1 auto' }}>
         This report was created using the{' '}
-        <a href="https://aquaticbarriers.org/">
+        <a href="https://tool.aquaticbarriers.org/">
           National Aquatic Barrier Inventory & Prioritization Tool
         </a>
         , a project of the{' '}

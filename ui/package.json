@@ -88,11 +88,11 @@
     "build": "NODE_OPTIONS=--max_old_space_size=2048 GATSBY_CPU_COUNT=1 gatsby build",
     "clean": "gatsby clean",
     "develop": "gatsby develop",
-    "install-deps": "npm ci --no-audit --legacy-peer-deps --omit=dev && npm install -g gatsby-cli@5.2 --no-audit --no-save --legacy-peer-deps && gatsby telemetry --disable",
+    "install-deps": "npm ci --no-audit --legacy-peer-deps --omit=dev && npm install -g gatsby-cli@5.15 --no-audit --no-save --legacy-peer-deps && gatsby telemetry --disable",
     "start": "npm run develop",
     "serve": "gatsby serve",
     "predeploy": "npm run build",
-    "deploy": "rm -rf /var/www/* && cp -r public/* /var/www"
+    "deploy": "rm -rf /var/www/sarp-connectivity/* && cp -r public/* /var/www/sarp-connectivity"
   },
   "repository": {
     "type": "git",

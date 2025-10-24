@@ -86,7 +86,7 @@ const StateDownloadTable = ({
               fontWeight: 'bold',
               fontSize: 1,
               th: {
-                bg: 'grey.0',
+                bg: 'blue.1',
                 borderBottom: '2px solid',
                 borderBottomColor: 'grey.3',
                 textAlign: 'left',

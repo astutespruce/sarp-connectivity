@@ -267,7 +267,7 @@ const Preview = ({ networkType, data }) => {
         <Box
           sx={{
             h3: {
-              bg: 'grey.1',
+              bg: 'blue.1',
               py: '0.5rem',
               px: '1rem',
               mb: '0.5rem',
