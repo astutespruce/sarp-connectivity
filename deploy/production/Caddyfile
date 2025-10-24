@@ -33,7 +33,7 @@ www.aquaticbarriers.org:443 {
 }
 
 
-staging.aquaticbarriers.org {
+aquaticbarriers.org {
   log {
     level ERROR
   }

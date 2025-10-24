@@ -112,6 +112,7 @@ As `app` user:
 ```bash
 cd ~
 git clone https://github.com/astutespruce/nacc-home.git
+cd nacc-home
 ```
 
 Create a `.env.production` in the root of the repository with the following:
