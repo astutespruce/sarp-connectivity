@@ -176,7 +176,7 @@ tool.aquaticbarriers.org {
     rewrite /report/largefish_barriers/* "report/largefish_barriers/[sarpid]/index.html"
     rewrite /report/smallfish_barriers/* "report/smallfish_barriers/[sarpid]/index.html"
 
-    root * /var/www
+    root * /var/www/sarp-connectivity
     file_server
   }
 
