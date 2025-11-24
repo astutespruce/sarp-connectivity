@@ -23,7 +23,6 @@ dependencies = [
     "numpy",
     "pyarrow",
     "python-dotenv",
-    "rapidfuzz",
     "redis[hiredis]<6",
     "sentry-sdk",
     "uvicorn",

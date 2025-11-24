@@ -29,8 +29,6 @@ try:
         "waterfalls": waterfalls,
     }
 
-    search_barriers = dataset(data_dir / "search_barriers.feather", format="feather")
-
     units = dataset(data_dir / "map_units.feather", format="feather")
 
     # removed dams for public API; not used internally

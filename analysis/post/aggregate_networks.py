@@ -48,6 +48,9 @@ results_dir = data_dir / "barriers/networks"
 results_dir.mkdir(exist_ok=True, parents=True)
 zip_dir = api_dir / "downloads"
 zip_dir.mkdir(exist_ok=True)
+tmp_dir = Path("/tmp/sarp")
+tmp_dir.mkdir(exist_ok=True)
+
 
 # columns for removed dams API public endpoint
 removed_dam_cols = (
@@ -644,6 +647,7 @@ tmp.sort_values("SARPID").drop_duplicates(subset="SARPID").reset_index(drop=True
 )
 
 ### Save barrier search items
+# TODO: split this into 2 tables: one by SARPID and one for searching name that drops all that are empty strings
 
 # create search key for search by name
 search_barriers["search_key"] = (
@@ -659,11 +663,11 @@ search_barriers = (
 for col in ["Name", "River", "State", "BarrierType"]:
     search_barriers[col] = search_barriers[col].astype("category")
 
-search_barriers.to_feather(api_dir / "search_barriers.feather")
+search_barriers.to_feather(tmp_dir / "search_barriers.feather")
 
 
 ################################################################################
-### Create DuckDB database for much faster barrier lookup by SARPID
+### Create DuckDB database for much faster barrier lookup by SARPID and name
 ################################################################################
 
 # NOTE:
@@ -692,9 +696,14 @@ with duckdb.connect(str(out_db)) as con:
         _ = con.execute("CREATE UNIQUE INDEX road_crossings_sarpid_index ON road_crossings (SARPID)")
 
     print("Creating seach_barriers table")
-    ds = dataset(api_dir / "search_barriers.feather", format="feather")
-    _ = con.execute("CREATE TABLE search_barriers AS SELECT * from ds")
+    ds = dataset(tmp_dir / "search_barriers.feather", format="feather")
+    _ = con.execute("CREATE TABLE search_barriers AS SELECT SARPID, Name, River, State, BarrierType, lat, lon from ds")
     _ = con.execute("CREATE UNIQUE INDEX search_barriers_sarpid_index ON search_barriers (SARPID)")
+    # create smaller table of non-empty keys for searching by name
+    _ = con.execute(
+        "CREATE TABLE search_barriers_name AS SELECT SARPID, lcase(search_key) as search_key, priority from ds where search_key != ''"
+    )
+
 
 ################################################################################
 ### Pre-create zip files for national downloads

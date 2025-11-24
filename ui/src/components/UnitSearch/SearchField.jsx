@@ -9,7 +9,7 @@ const SearchField = ({ value, placeholder, isLoading, onChange }) => {
 
   const debouncedOnChange = useDebouncedCallback((newValue) => {
     onChange(newValue)
-  }, 200)
+  }, 300)
 
   const handleChange = useCallback(
     ({ target: { value: newValue } }) => {
