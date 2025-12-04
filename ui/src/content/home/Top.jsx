@@ -1,27 +1,12 @@
 import React from 'react'
-import {
-  Box,
-  Container,
-  Flex,
-  Heading,
-  Grid,
-  Image,
-  Paragraph,
-  Text,
-  Divider,
-} from 'theme-ui'
+import { Box, Container, Flex, Heading, Grid, Image, Text } from 'theme-ui'
 
 import { siteMetadata } from 'config'
 import { useSummaryData } from 'components/Data'
-import { Link, OutboundLink } from 'components/Link'
-import { HighlightBox } from 'components/Layout'
+import { OutboundLink } from 'components/Link'
 import { formatNumber } from 'util/format'
 
 import NACCLogo from 'images/nacc_logo.svg'
-import FlockProcessDamImage from 'images/28274676694_1840f44362_o.jpg'
-import NumanaDamImage from 'images/53188100355_4ac3d174a8_o.jpg'
-import GrahamCulvertImage from 'images/54791618987_56ea39a5db_o.jpg'
-import DamRemovalTeamImage from 'images/Roaring_River_dam_removal_partners_small.jpg'
 
 const { naccURL } = siteMetadata
 
