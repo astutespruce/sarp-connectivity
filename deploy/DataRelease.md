@@ -64,7 +64,7 @@ an updated batch of barrier data.
 18. pull the latest code `git pull origin` (update any dependencies at this point, if needed)
 19. rebuild the UI: `cd ui && npm run deploy`
 20. exit the `app` user
-21. bring th services back up:
+21. bring the services back up:
     - `sudo service api start`
     - `sudo service arq start`
     - `sudo service mbtileserver start`
@@ -76,6 +76,9 @@ an updated batch of barrier data.
 24. exit the staging server
 
 Test the staging server and get Kat's approval for recent changes.
+
+Once approved, take a snapshot of that volume in AWS. Delete snapshots that are
+more than 3 versions old.
 
 ### Deploy to production server
 
@@ -102,7 +105,7 @@ Test the staging server and get Kat's approval for recent changes.
 14. pull the latest code `git pull origin` (update any dependencies at this point, if needed)
 15. rebuild the UI: `cd ui && npm run deploy`
 16. exit the `app` user
-17. bring th services back up:
+17. bring the services back up:
     - `sudo service api start`
     - `sudo service arq start`
     - `sudo service mbtileserver start`

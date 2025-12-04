@@ -394,6 +394,7 @@ DAM_FILTER_FIELDS = FILTER_FIELDS + [
     "Hazard",
     "FERCRegulated",
     "StateRegulated",
+    "FedRegulatoryAgencyGroup",
     "NRCSDam",
     "WaterRight",
     "Passability",
@@ -406,6 +407,7 @@ DAM_FILTER_FIELDS = FILTER_FIELDS + [
     "Removed",
     "CostClass",
     "IsPriority",
+    "FatalityClass",
 ]
 DAM_FILTER_FIELD_MAP = {f.lower(): f for f in DAM_FILTER_FIELDS}
 
@@ -1118,7 +1120,8 @@ FERCREGULATED_DOMAIN = {
     2: "Preliminary permit",
     3: "Pending permit",
     4: "Exempt",
-    5: "No",
+    5: "Retired",
+    6: "No",
 }
 
 STATE_REGULATED_DOMAIN = {

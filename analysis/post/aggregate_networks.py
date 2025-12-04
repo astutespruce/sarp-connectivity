@@ -97,6 +97,8 @@ for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
 dams["CostClass"] = classify_cost(dams.CostMean.fillna(-1))
 dams["AnnualFlowClass"] = classify_annual_flow(dams.AnnualFlow)
 
+dams["FatalityClass"] = (dams.Fatality > 0).fillna(0).astype("uint8")
+
 
 # export removed dams for separate API endpoint
 # NOTE: these don't have network stats for removed dams
@@ -346,6 +348,7 @@ fill_columns = [
     "FERCRegulated",
     "StateRegulated",
     "NRCSDam",
+    "FedRegulatoryAgencyGroup",
     "WaterRight",
     "Hazard",
     "Construction",
@@ -365,6 +368,7 @@ fill_columns = [
     "Width",
     "YearCompleted",
     "Fatality",
+    "FatalityClass",
     "CostClass",  # limited to dams for now
     # small barrier columns
     "Constriction",

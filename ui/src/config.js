@@ -1042,7 +1042,8 @@ export const FERC_REGULATED = {
   2: 'Preliminary permit',
   3: 'Pending permit',
   4: 'Exempt',
-  5: 'No',
+  5: 'Retired',
+  6: 'No',
 }
 
 export const STATE_REGULATED = {
@@ -1057,6 +1058,22 @@ export const NRCSDAM = {
   // 0: 'Unknown', // not used
   1: 'Yes',
   2: 'No',
+}
+
+export const FEDREGULATORYAGENCYGROUP = {
+  '-1': 'Not applicable (road-related barrier)', // small barriers only
+  0: 'Unknown / not federally regulated',
+  1: 'Bureau of Indian Affairs',
+  2: 'Bureau of Land Management',
+  3: 'Bureau of Reclamation',
+  4: 'Federal Energy Regulatory Commission',
+  5: 'Mine Safety and Health Administration',
+  6: 'National Park Service',
+  7: 'Tennessee Valley Authority',
+  8: 'US Army Corps of Engineers',
+  9: 'US Fish and Wildlife Service',
+  10: 'USDA Forest Service',
+  11: 'Other federal agency',
 }
 
 export const WATER_RIGHT = {

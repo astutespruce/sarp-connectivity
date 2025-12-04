@@ -616,10 +616,35 @@ FERCREGULATED_TO_DOMAIN = {
     3: 4,  # exemption
     4: 3,  # pending permit
     5: 2,  # preliminary permit
-    2: 5,  # not a FERC dam
+    6: 5,  # retired
+    2: 6,  # not a FERC dam
 }
 
 STATEREGULATED_TO_DOMAIN = {"": 0, "0": 0, "Yes": 1, "Y": 1, "1": 1, "No": 2, "N": 2, "2": 2}
+
+
+FEDREGULATORYAGENCY_TO_DOMAIN = {
+    "": 0,  # unknown / not federally regulated
+    "Bureau of Indian Affairs": 1,
+    "Bureau of Land Management": 2,
+    "Bureau of Reclamation": 3,
+    "Federal Energy Regulatory Commission": 4,
+    "Federal Energy Regulatory Commission, US Army Corps of Engineers": 4,
+    "Mine Safety and Health Administration": 5,
+    "National Park Service": 6,
+    "Tennessee Valley Authority": 7,
+    "US Army Corps of Engineers": 8,
+    "US Army Corps of Engineers, US Fish and Wildlife Service": 8,
+    "US Fish and Wildlife Service": 9,
+    "USDA Forest Service": 10,
+    "USDA Forest Service, Natural Resources Conservation Service": 10,
+    "DOD": 11,  # other federal / DOD
+    "Department of Energy": 11,
+    "International Boundary and Water Commission": 11,
+    "Nuclear Regulatory Commission": 11,
+    "US Air Force": 11,
+    "US Navy": 11,
+}
 
 
 # uses BarrierSeverity domain
@@ -715,7 +740,7 @@ OWNERTYPE_TO_DOMAIN = {
 
 # Map of owner type domain above to whether or not the land is
 # considered public
-OWNERTYPE_TO_PUBLIC_LAND = {1: True, 2: True, 3: True, 4: True, 5: True, 6: True, 7: True, 8: True}
+OWNERTYPE_TO_PUBLIC_LAND = {1: True, 2: True, 3: True, 4: True, 5: True, 6: True, 7: True, 8: True, 9: True, 10: True}
 
 
 # Map of NHD FCode to stream type

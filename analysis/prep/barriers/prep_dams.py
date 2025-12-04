@@ -74,6 +74,7 @@ from analysis.constants import (
     HAZARD_TO_DOMAIN,
     FERCREGULATED_TO_DOMAIN,
     STATEREGULATED_TO_DOMAIN,
+    FEDREGULATORYAGENCY_TO_DOMAIN,
     YEAR_SURVEYED_BINS,
 )
 from analysis.lib.io import read_arrow_tables
@@ -391,25 +392,38 @@ df.loc[df.FedRegulatoryAgency.isin(["1", "2"]), "FedRegulatoryAgency"] = ""
 df.loc[df.FedRegulatoryAgency == "BOR", "FedRegulatoryAgency"] = "Bureau of Reclamation"
 df.loc[df.FedRegulatoryAgency == "FERC", "FedRegulatoryAgency"] = "Federal Energy Regulatory Commission"
 df.loc[df.FedRegulatoryAgency.isin(["COE", "US Army"]), "FedRegulatoryAgency"] = "US Army Corps of Engineers"
-df.loc[df.FedRegulatoryAgency == "COE and FERC", "FedRegulatoryAgency"] = (
-    "US Army Corps of Engineers;Federal Energy Regulatory Commission"
+df.loc[df.FedRegulatoryAgency.isin(["USFS", "Forest Service", "USDA FS"]), "FedRegulatoryAgency"] = (
+    "USDA Forest Service"
 )
-
-df.loc[df.FedRegulatoryAgency.isin(["USFS", "Forest Service"]), "FedRegulatoryAgency"] = "USDA Forest Service"
 df.loc[df.FedRegulatoryAgency == "TVA", "FedRegulatoryAgency"] = "Tennessee Valley Authority"
 df.loc[df.FedRegulatoryAgency.isin(["USFWS", "Fish and Wildlife Service"]), "FedRegulatoryAgency"] = (
     "US Fish and Wildlife Service"
 )
-df.loc[df.FedRegulatoryAgency == "US Army Corps of Engineers;Fish and Wildlife Service", "FedRegulatoryAgency"] = (
-    "US Army Corps of Engineers;US Fish and Wildlife Service"
+df.loc[
+    df.FedRegulatoryAgency.isin(
+        [
+            "Federal Energy Regulatory Commission, US Army Corps of Engineers",
+            "US Army Corps of Engineers;Federal Energy Regulatory Commission",
+        ]
+    ),
+    "FedRegulatoryAgency",
+] = "Federal Energy Regulatory Commission, US Army Corps of Engineers"
+
+df.loc[
+    df.FedRegulatoryAgency.isin(
+        ["Fish and Wildlife Service, US Army", "Fish and Wildlife Service, US Army Corps of Engineers"]
+    ),
+    "FedRegulatoryAgency",
+] = "US Army Corps of Engineers, US Fish and Wildlife Service"
+df.loc[df.FedRegulatoryAgency == "Forest Service, Natural Resources Conservation Service", "FedRegulatoryAgency"] = (
+    "USDA Forest Service, Natural Resources Conservation Service"
 )
-df.loc[df.FedRegulatoryAgency == "Forest Service;Natural Resources Conservation Service", "FedRegulatoryAgency"] = (
-    "USDA Forest Service;Natural Resources Conservation Service"
-)
-df.loc[df.FedRegulatoryAgency == "US Army;Fish and Wildlife Service", "FedRegulatoryAgency"] = (
-    "US Army Corps of Engineers;US Fish and Wildlife Service"
-)
-df["FedRegulatoryAgency"] = df.FedRegulatoryAgency.str.replace(";", ", ")
+
+
+missing = [x for x in df.FedRegulatoryAgency.fillna("").unique() if x not in FEDREGULATORYAGENCY_TO_DOMAIN]
+if len(missing):
+    raise ValueError(f"Unexpected FedRegulatoryAgency values: {','.join(missing)}")
+df["FedRegulatoryAgencyGroup"] = df.FedRegulatoryAgency.fillna("").map(FEDREGULATORYAGENCY_TO_DOMAIN).astype("uint8")
 
 
 # if FedRegulatoryAgency is FERC, set FERC_Regulated per direction from Kat (3/7/2024)

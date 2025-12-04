@@ -682,8 +682,11 @@ df.loc[drop_ix, "dup_log"] = "duplicate: other barriers snapped to same road cro
 df.loc[df.id.isin(keep_ids), "dup_log"] = "kept: other barriers snapped to same road crossing point"
 
 # Exclude all records from groups that have an excluded record unless the retained one is trusted because it has a barrier severity set
+# or is a removed barrier
 trusted_keepers = df.loc[
-    df.id.isin(keep_ids) & ~(df.dropped | df.excluded) & (df.BarrierSeverity > 0) & (df.BarrierSeverity <= 7)
+    df.id.isin(keep_ids)
+    & ~(df.dropped | df.excluded)
+    & (((df.BarrierSeverity > 0) & (df.BarrierSeverity <= 7)) | df.removed)
 ].id.values
 
 exclude_groups = grouped.loc[grouped.excluded & ~(grouped.id.isin(trusted_keepers))].index
@@ -785,7 +788,10 @@ surveyed = crossings.SARPID_barrier.notnull()
 crossings.loc[surveyed & (crossings.Surveyed == 0), "Surveyed"] = np.uint8(2)
 
 # override CrossingCode if present in inventoried barrier
+crossings["CrossingCode_src"] = ""
 ix = surveyed & (crossings.CrossingCode_barrier != "")
+# only save a copy of the crossing code if it is going to be overwritten
+crossings.loc[ix, "CrossingCode_src"] = crossings.loc[ix].CrossingCode.values
 crossings.loc[ix, "CrossingCode"] = crossings.loc[ix].CrossingCode_barrier
 
 # always override with values from inventoried barrier
@@ -1080,6 +1086,7 @@ tmp["Surveyed"] = np.uint8(1)
 print(f"Merging {len(tmp):,} inventoried barriers into crossings that have no associated crossing point")
 
 crossings = pd.concat([crossings.reset_index(drop=True), tmp], ignore_index=True, sort=True)
+crossings["CrossingCode_src"] = crossings.CrossingCode_src.fillna("")
 
 # sanity check
 if crossings.groupby("SARPID").size().max() > 1:

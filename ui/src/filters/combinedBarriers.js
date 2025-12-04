@@ -30,6 +30,7 @@ import {
   FERC_REGULATED,
   STATE_REGULATED,
   NRCSDAM,
+  FEDREGULATORYAGENCYGROUP,
   WATER_RIGHT,
   BOOLEAN_FIELD,
   DOWNSTREAM_OCEAN_MILES,
@@ -83,6 +84,14 @@ export const combinedBarriers = [
           ({ name }) => name
         ),
         values: Object.keys(FISH_HABITAT_PARTNERSHIPS),
+      },
+      {
+        field: 'fatalityclass',
+        title: 'Fatalities have been recorded at dam',
+        help: 'Fatality information is only available for a small number of dams.',
+        sort: false,
+        hideEmpty: false,
+        ...getEntries(BOOLEAN_FIELD),
       },
     ],
   },
@@ -154,8 +163,28 @@ export const combinedBarriers = [
     ],
   },
   {
+    id: 'hydropower',
+    title: 'Hydropower characteristics',
+    filters: [
+      {
+        field: 'fercregulated',
+        title: 'Regulated by the Federal Energy Regulatory Commission?',
+        help: 'Note: regulatory information is only available for a small number of dams.',
+        hideMissingValues: true,
+        ...getEntries(FERC_REGULATED),
+      },
+      {
+        field: 'fedregulatoryagencygroup',
+        title: 'Federal regulatory agency',
+        help: 'Note: regulatory information is only available for a small number of dams.  Other agencies may also regulate the dam in addition to those listed above.',
+        hideMissingValues: true,
+        ...getEntries(FEDREGULATORYAGENCYGROUP),
+      },
+    ],
+  },
+  {
     id: 'regulatory',
-    title: 'Regulatory & Removal Cost',
+    title: 'Regulatory & removal cost',
     filters: [
       {
         field: 'fercregulated',
