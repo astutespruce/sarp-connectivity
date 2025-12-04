@@ -73,13 +73,14 @@ https://www2.census.gov/geo/tiger/TIGER2023/CD/ on 10/3/2024 using
 
 ### Protected areas / land ownership
 
-PAD-US v4.0 GDB version downloaded 6/4/2024 from: https://www.usgs.gov/programs/gap-analysis-project/science/pad-us-data-download
+PAD-US v4.1 GDB version downloaded 8/19/2025 from: https://www.usgs.gov/programs/gap-analysis-project/science/pad-us-data-download
 
-PAD-US v4.0 contains invalid records. To get around this, create a geopackage and
-force MultiSurface geometries to MultiPolygon:
+The original PAD-US v4.1 data contains invalid records. In order to get around
+this, first create a new geopackage and then create index on state name to make
+query faster:
 
 ```bash
-ogr2ogr source_data/ownership/pad_us4.0.gpkg source_data/ownership/PADUS4_0_Geodatabase.gdb PADUS4_0Combined_Proclamation_Marine_Fee_Designation_Easement -progress -skipfailures -nlt MultiPolygon
+ogr2ogr source_data/protected_areas/pad_us4.1.gpkg source_data/protected_areas/PADUS4_1.gdb PADUS4_1Combined_Proclamation_Marine_Fee_Designation_Easement -progress -skipfailures -nlt CONVERT_TO_LINEAR
 ```
 
 Additional areas for Hawaii were downloaded from: https://prod-histategis.opendata.arcgis.com/datasets/HiStateGIS::reserves/about

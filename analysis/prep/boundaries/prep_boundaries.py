@@ -407,19 +407,25 @@ usfs_admin["sort"] = 2
 
 # Extract protected areas
 df = read_dataframe(
-    src_dir / "pad_us4.0.gpkg",
-    layer="PADUS4_0Combined_Proclamation_Marine_Fee_Designation_Easement",
+    src_dir / "pad_us4.1.gpkg",
+    layer="PADUS4_1Combined_Proclamation_Marine_Fee_Designation_Easement",
     columns=[
         "Category",
         "Own_Type",
         "Own_Name",
         "Des_Tp",
     ],
-    # drop marine, unknown / private owner (not useful), UNK (not useful)
-    where="Category != 'Marine' AND Own_Type NOT IN ('PVT', 'UNK') AND Own_Name NOT IN ('UNK')",
+    # drop marine, and unknown owner (not useful)
+    where="Category != 'Marine' AND Own_Type != 'UNK' AND Own_Name != 'UNK'",
     use_arrow=True,
 ).to_crs(CRS)
 df["sort"] = 3
+
+# mark easements to keep separate from other private conservation lands
+ix = df.Category == "Easement"
+df.loc[ix, "Own_Type"] = "Easement"
+df.loc[ix, "Own_Name"] = "Easement"
+
 
 # select those that are within the boundary
 df = df.take(shapely.STRtree(df.geometry.values).query(bnd, predicate="intersects"))
@@ -443,6 +449,7 @@ df["otype"] = df.Own_Name.map(
         "CNTY": "Local Land",
         "DOD": "Department of Defense",
         "DOE": "Federal Land",
+        "Easement": "Easement",
         "FWS": "US Fish and Wildlife Service",
         "JNT": "Joint Ownership",
         "NGO": "NGO",
