@@ -26,10 +26,12 @@ const focalBarrierTypeOptions = [
   { value: 'combined_barriers', label: 'both' },
 ]
 
-const systemOptions = Object.entries(SYSTEMS).map(([value, label]) => ({
-  value,
-  label,
-}))
+const systemOptions = Object.entries(SYSTEMS)
+  .filter(([key]) => key === 'ADM' || key === 'HUC')
+  .map(([value, label]) => ({
+    value,
+    label,
+  }))
 
 const ExplorePage = ({ location }) => {
   const queryClient = useQueryClient()
