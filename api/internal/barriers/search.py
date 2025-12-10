@@ -66,8 +66,8 @@ async def search(request: Request, query: str):
 
         sql_query = f"""WITH hits AS (
             SELECT SARPID, priority, search_key,
-                jaccard(search_key, '{query}') as similarity,
-                instr(search_key, '{query}') AS ipos,
+                jaccard(search_key, ?) as similarity,
+                instr(search_key, ?) AS ipos,
                 length(search_key) as len,
                 row_number() over (ORDER BY similarity DESC, len ASC, ipos ASC, priority ASC) as ix
                 FROM search_barriers_name
@@ -80,7 +80,18 @@ async def search(request: Request, query: str):
             ON (search_barriers.SARPID = hits.SARPID)
             ORDER BY ix
         """
-        matches = db.sql(sql_query, params=(f"%{query.replace(' ', '%')}%",)).to_arrow_table().combine_chunks()
+        matches = (
+            db.sql(
+                sql_query,
+                params=(
+                    query,
+                    query,
+                    f"%{query.replace(' ', '%')}%",
+                ),
+            )
+            .to_arrow_table()
+            .combine_chunks()
+        )
 
         log.info(f"query by name: {time() - start}s")
 
