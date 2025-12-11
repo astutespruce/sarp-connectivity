@@ -37,14 +37,14 @@ an updated batch of barrier data.
 
 ### Deploy to staging server
 
-1. in the AWS console, attach the `transfer - tiles2` volume to the staging server as `/dev/sdf`
+1. in the AWS console, attach the `transfer - data2` volume to the staging server as `/dev/sdf`
 2. ssh to the staging server
 3. run `lsblk` to determine what device that was mounted at, e.g., /dev/nvme2n1
-4. mount that as `/tiles2`: `sudo mount /dev/nvme2n1 /tiles2`
-5. delete all contents from that volume: `sudo rm -rf /tiles2/*`
+4. mount that as `/data2`: `sudo mount /dev/nvme2n1 /data2`
+5. delete all contents from that volume: `sudo rm -rf /data2/*`
 6. exit the staging server
-7. use `rsync` from the local workstation to transfer the contents of the local `tiles` directory to `/tiles2` on the server
-8. use `rsync` from the local workstation to transfer the contents of the local `data/api` directory to `/tiles2/api` on the server
+7. use `rsync` from the local workstation to transfer the contents of the local `tiles` directory to `/data2/tiles` on the server
+8. use `rsync` from the local workstation to transfer the contents of the local `data/api` directory to `/data2/api` on the server
 9. ssh to the staging server
 10. stop services:
 
@@ -52,55 +52,8 @@ an updated batch of barrier data.
     - `sudo service arq stop`
     - `sudo service mbtileserver stop`
 
-11. delete all contents of `/tiles`: `sudo rm -rf /tiles/*`
-12. delete all contents of the home data directory: `sudo rm -rf /home/app/sarp-connectivity/data/api/*`
-13. delete all contents of the download directories:
-    - `sudo rm -rf /downloads/national/*`
-    - `sudo rm -rf /downloads/custom/*`
-14. copy latest data to the tiles directory: `sudo cp -aR /tiles2/* /tiles/`
-15. copy the API data to the home directory: `sudo cp -a /tiles2/api/*.feather /home/app/sarp-connectivity/data/api`, `sudo cp -a /tiles2/api/*.db /home/app/sarp-connectivity/data/api`
-16. copy the national download zip files to the downloads directory: `sudo cp -a /tiles2/api/downloads/* /downloads/national/`
-17. as the `app` user: `sudo su app`
-18. pull the latest code `git pull origin` (update any dependencies at this point, if needed)
-19. rebuild the UI: `cd ui && npm run deploy`
-20. exit the `app` user
-21. bring the services back up:
-    - `sudo service api start`
-    - `sudo service arq start`
-    - `sudo service mbtileserver start`
-22. make sure they all came up properly
-    - `sudo service api status`
-    - `sudo service arq status`
-    - `sudo service mbtileserver status`
-23. unmount the transfer volume: `sudo umount /tiles2`
-24. exit the staging server
-
-Test the staging server and get Kat's approval for recent changes.
-
-Once approved, take a snapshot of that volume in AWS. Delete snapshots that are
-more than 3 versions old.
-
-### Deploy to production server
-
-1. in the AWS console, detach the `transfer - tiles2` volume from the the staging server and attach to the production server as `/dev/sdf`
-2. ssh to the production server
-3. run `lsblk` to determine what device that was mounted at, e.g., /dev/nvme2n1
-4. mount that as `/tiles2`: `sudo mount /dev/nvme2n1 /tiles2`
-5. use google analytics to verify that server is not actively being used; avoid any meeting times indicated by Kat. Generally try to do this in the evening Pacific time.
-6. stop services:
-
-   - `sudo service api stop`
-   - `sudo service arq stop`
-   - `sudo service mbtileserver stop`
-
-7. delete all contents of `/tiles`: `sudo rm -rf /tiles/*`
-8. delete all contents of the home data directory: `sudo rm -rf /home/app/sarp-connectivity/data/api/*`
-9. delete all contents of the download directories:
-   - `sudo rm -rf /downloads/national/*`
-   - `sudo rm -rf /downloads/custom/*`
-10. copy latest data to the tiles directory: `sudo cp -aR /tiles2/* /tiles/`
-11. copy the API data to the home directory: `sudo cp -a /tiles2/api/*.feather /home/app/sarp-connectivity/data/api`, `sudo cp -a /tiles2/api/*.db /home/app/sarp-connectivity/data/api`
-12. copy the national download zip files to the downlods directory: `sudo cp -a /tiles2/api/downloads/* /downloads/national/`
+11. delete all contents of `/data`: `sudo rm -rf /data/*`
+12. copy latest data to the `/data` directory: `sudo cp -aR /data2/* /data/`
 13. as the `app` user: `sudo su app`
 14. pull the latest code `git pull origin` (update any dependencies at this point, if needed)
 15. rebuild the UI: `cd ui && npm run deploy`
@@ -113,8 +66,44 @@ more than 3 versions old.
     - `sudo service api status`
     - `sudo service arq status`
     - `sudo service mbtileserver status`
-19. unmount the transfer volume: `sudo umount /tiles2`
-20. in the AWS console, detach the `transfer - tiles2` volume from the the production server and attach to the staging server as `/dev/sdf`
+19. unmount the transfer volume: `sudo umount /data2`
+20. exit the staging server
+
+Test the staging server and get Kat's approval for recent changes.
+
+Once approved, take a snapshot of that volume in AWS. Delete snapshots that are
+more than 3 versions old.
+
+### Deploy to production server
+
+1. in the AWS console, detach the `transfer - data2` volume from the the staging server and attach to the production server as `/dev/sdf`
+2. ssh to the production server
+3. run `lsblk` to determine what device that was mounted at, e.g., /dev/nvme2n1
+4. mount that as `/data2`: `sudo mount /dev/nvme2n1 /data2`
+5. use google analytics to verify that server is not actively being used; avoid any meeting times indicated by Kat. Generally try to do this in the evening Pacific time.
+6. stop services:
+
+   - `sudo service api stop`
+   - `sudo service arq stop`
+   - `sudo service mbtileserver stop`
+
+7. delete all contents of `/data`: `sudo rm -rf /data/*`
+8. delete all contents of the custom download directory: `sudo rm -rf /downloads/custom/*`
+9. copy latest data to the data directory: `sudo cp -aR /data2/* /data/`
+10. as the `app` user: `sudo su app`
+11. pull the latest code `git pull origin` (update any dependencies at this point, if needed)
+12. rebuild the UI: `cd ui && npm run deploy`
+13. exit the `app` user
+14. bring the services back up:
+    - `sudo service api start`
+    - `sudo service arq start`
+    - `sudo service mbtileserver start`
+15. make sure they all came up properly
+    - `sudo service api status`
+    - `sudo service arq status`
+    - `sudo service mbtileserver status`
+16. unmount the transfer volume: `sudo umount /data2`
+17. in the AWS console, detach the `transfer - data2` volume from the the production server and attach to the staging server as `/dev/sdf`
 
 ## Other data release activities
 

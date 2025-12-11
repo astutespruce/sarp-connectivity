@@ -117,11 +117,19 @@ tool.aquaticbarriers.org {
       reverse_proxy localhost:8000
   }
 
-  route /downloads/* {
+  route /downloads/national/* {
     header Cache-Control "no-cache"
     header Content-Disposition attachment
-    uri strip_prefix /downloads
-    root * /downloads
+    uri strip_prefix /downloads/national
+    root * /data/api/downloads
+    file_server
+  }
+
+  route /downloads/custom/* {
+    header Cache-Control "no-cache"
+    header Content-Disposition attachment
+    uri strip_prefix /downloads/custom
+    root * /downloads/custom
     file_server
   }
 

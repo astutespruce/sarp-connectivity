@@ -7,6 +7,7 @@ On the production server:
 
 - `aquaticbarriers.org` routes to NACC homepage, with static assets served from `/var/www/nacc-home
 - `tool.aquaticbarriers.org` routes to Prioritization Tool (this app), with static assets served from `/var/www/sarp-connectivity` and reverse proxy to services managed by this app
+- `training.aquaticbarriers.org` routes to the NACC Training Portal with static assets served from `/var/www/nacc-training`.
 
 The staging server prefixes those hostnames with `staging.`
 
@@ -37,11 +38,11 @@ se `lsblk` to list volumes; it may be listed as `nvme1n1`
 
 ```bash
 sudo mkfs -t ext4 /dev/nvme1n1
-sudo mkdir /tiles
-sudo mount /dev/nvme1n1 /tiles/
+sudo mkdir /data
+sudo mount /dev/nvme1n1 /data/
 ```
 
-Add this to `/etc/fstab`: `/dev/nvme1n1 /tiles ext4 defaults,nofail`
+Add this to `/etc/fstab`: `/dev/nvme1n1 /data ext4 defaults,nofail`
 
 ## Setup accounts and directories
 
@@ -54,11 +55,11 @@ sudo chsh -s /bin/bash app
 sudo mkdir /var/www
 sudo mkdir /var/www/sarp-connectivity
 sudo mkdir /var/www/nacc-home
+sudo mkdir /var/www/nacc-training
 sudo chown -R app:app /var/www
-sudo chown app:ubuntu /tiles
-sudo chmod 774 /tiles
+sudo chown app:ubuntu /data
+sudo chmod 774 /data
 sudo mkdir -p /downloads/custom
-sudo mkdir -p /downloads/national
 sudo chown -R app:app /downloads
 sudo chmod -R 774 /downloads
 ```
@@ -87,6 +88,7 @@ SENTRY_DSN=<sentry DSN>
 ALLOWED_ORIGINS=<domain of tool>
 API_ROOT_PATH=/api/v1
 CUSTOM_DOWNLOAD_DIR=/downloads/custom
+API_DATA_PATH=/data/api
 ```
 
 Create a `ui/.env.production` file with the following:
@@ -127,9 +129,45 @@ PUBLIC_TOOL_UI_DATA_PATH="/home/app/sarp-connectivity/ui/data"
 
 ```
 
+## Clone NACC Training Portal repository and setup environment files
+
+NOTE: the NACC Training Portal repository is currently private, which requires additional steps below.
+
+As `app` user:
+
+Create a deploy key for `mpatlas-platform` and `mpatlas-frontend` as described in the [docs](https://developer.github.com/v3/guides/managing-deploy-keys/#deploy-keys):
+
+```bash
+sudo su app
+cd ~
+ssh-keygen -t rsa -b 4096
+cat ~/.ssh/id_rsa.pub
+```
+
+Add this deploy key to the repository in Github
+
 ## Grant ubuntu user write permissions to the repository folder
 
 NOTE: this is so that the `ubuntu` user can move API data files into the repository folder.
+
+```bash
+cd ~
+git clone git@github.com:astutespruce/nacc-training.git
+cd nacc-training
+```
+
+Create a `.env.production` file with the following:
+
+```bash
+PUBLIC_GOOGLE_ANALYTICS_ID=<google analytics ID>
+PUBLIC_SENTRY_DSN=<sentry DSN>
+PUBLIC_DEPLOY_ENV="production" # or staging
+PUBLIC_NACC_HOME_URL=https://aquaticbarriers.org # or https://staging.aquaticbarriers.org
+PUBLIC_API_HOST=TODO:
+PUBLIC_API_PATH="/api/v1"
+PUBLIC_CONTACT_EMAIL=<contact email: person that should be contacted for general support>
+PUBLIC_ADMIN_EMAIL=<admin email: person that should be contacted for login / site issues>
+```
 
 As `ubuntu` user:
 
@@ -193,6 +231,24 @@ npm run deploy
 
 NOTE: the build step is necessary only on code updates to the NACC homepage app.
 
+## Install NACC Training Portal NodeJS dependencies:
+
+as `app` user:
+
+```bash
+cd ~/nacc-training
+nvm install
+npm ci
+```
+
+Build it:
+
+```bash
+npm run deploy
+```
+
+NOTE: the build step is necessary only on code updates to the NACC Training Portal.
+
 ## Install Python dependencies
 
 As `app` user:
@@ -220,7 +276,7 @@ sudo mv mbtileserver_v0.11.0_linux_arm64 /usr/bin/mbtileserver
 Verify it starts up properly (error about no tiles is OK):
 
 ```bash
-mbtileserver -d /tiles -p 8001
+mbtileserver -d /data/tiles -p 8001
 ```
 
 Setup and enable service (will be restarted after uploading tiles):

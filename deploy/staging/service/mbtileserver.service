@@ -12,8 +12,8 @@ RestartSec=60
 User=app
 Group=app
 
-WorkingDirectory=/tiles
-ExecStart=/usr/bin/mbtileserver -d /tiles -p 8000
+WorkingDirectory=/data/tiles
+ExecStart=/usr/bin/mbtileserver -d /data/tiles -p 8000
 ExecReload=/bin/kill -USR1 $MAINPID
 
 [Install]

@@ -81,11 +81,19 @@ staging.tool.aquaticbarriers.org {
       reverse_proxy localhost:8000
   }
 
-  route /downloads/* {
+  route /downloads/national/* {
     header Cache-Control "no-cache"
     header Content-Disposition attachment
-    uri strip_prefix /downloads
-    root * /downloads
+    uri strip_prefix /downloads/national
+    root * /data/api/downloads
+    file_server
+  }
+
+  route /downloads/custom/* {
+    header Cache-Control "no-cache"
+    header Content-Disposition attachment
+    uri strip_prefix /downloads/custom
+    root * /downloads/custom
     file_server
   }
 
@@ -142,6 +150,53 @@ staging.tool.aquaticbarriers.org {
 
 
     root * /var/www/sarp-connectivity
+    file_server
+  }
+
+  # Redirect all errors to 404.html
+  handle_errors {
+      @404 {
+          expression {http.error.status_code} == 404
+      }
+      rewrite @404 /404.html
+      file_server
+  }
+}
+
+staging.training.aquaticbarriers.org {
+  log {
+    level ERROR
+  }
+
+  # common headers
+  header Strict-Transport-Security "max-age=63072000; preload"
+  header X-Frame-Options "DENY"
+  header Content-Security-Policy "default-src 'self' *.googletagmanager.com *.mapbox.com *.sentry.io; connect-src *; img-src 'unsafe-inline' * data: blob:; media-src 'unsafe-inline' *; worker-src * blob:; style-src 'unsafe-inline' *; script-src 'unsafe-inline' 'unsafe-eval' *"
+  header X-Content-Type-Options nosniff
+
+  route /* {
+    # most files can be cached indefinitely, they are rebuilt with new names each time
+    @cached_files {
+      path *.jpg *.jpeg *.png *.gif *.webp *.avif *.svg *.css *.js /_app/immutable/*
+      not path /favicon*
+    }
+    header @cached_files Cache-Control "public, max-age=31536000, immutable"
+
+    # make sure favicons are not cached too long
+    @short_cached_files {
+      path /favicon*
+    }
+    header @short_cached_files Cache-Control "public, max-age=3600"
+
+    # pages must be fetched each time
+    @no_cache {
+      path *.html / /training/ /faq/ /help/ /trainings/
+    }
+    header @no_cache Cache-Control "public, max-age:0, must-revalidate"
+
+    encode zstd gzip
+
+    root * /var/www/nacc-training
     file_server
   }
 

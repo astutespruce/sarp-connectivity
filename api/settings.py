@@ -20,6 +20,9 @@ SENTRY_DSN = os.getenv("SENTRY_DSN", None)
 API_ROOT_PATH = os.getenv("API_ROOT_PATH", None)
 MAX_DOWNLOAD_JOBS = int(os.getenv("MAX_JOBS", 1))
 
+API_DATA_PATH = Path(os.getenv("API_DATA_PATH", "data/api"))
+
+
 # if in local development, API will provide download endpoints for national and
 # custom download; otherwise these are handled via Caddy
 PROVIDE_DOWNLOAD_ENDPOINTS = bool(os.getenv("PROVIDE_DOWNLOAD_ENDPOINTS"))

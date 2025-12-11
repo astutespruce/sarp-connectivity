@@ -3,9 +3,8 @@
 from fastapi import APIRouter
 from fastapi.requests import Request
 from fastapi.responses import FileResponse
-from api.data import data_dir
 from api.logger import log_request
-from api.settings import CUSTOM_DOWNLOAD_DIR
+from api.settings import API_DATA_PATH, CUSTOM_DOWNLOAD_DIR
 
 
 router = APIRouter()
@@ -22,7 +21,7 @@ async def get_national_csv_zip(request: Request, filename: str):
     """
     log_request(request)
 
-    path = data_dir / "downloads" / filename
+    path = API_DATA_PATH / "downloads" / filename
 
     return FileResponse(path, media_type="application/zip", filename=filename)
 
