@@ -125,8 +125,16 @@
 		@apply text-link underline visited:text-link;
 	}
 
+	p {
+		@apply text-lg leading-snug;
+	}
+
 	hr {
 		@apply my-12 border-grey-3;
+	}
+
+	hr.divider {
+		@apply border-blue-8 border-b-8 sm:my-24;
 	}
 
 	h1,
@@ -137,7 +145,7 @@
 	}
 
 	figure figcaption {
-		@apply text-sm italic;
+		@apply text-xs text-muted-foreground mt-1 leading-tight;
 	}
 }
 
