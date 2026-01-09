@@ -10,9 +10,17 @@ dotEnvConfig({ path: `.env.${process.env.NODE_ENV}` })
 
 export default defineConfig({
 	plugins: [tailwindcss(), enhancedImages(), sveltekit()],
+	resolve: {
+		alias: {
+			$data: path.resolve(__dirname, './data')
+		}
+	},
 	server: {
 		fs: {
-			allow: [path.resolve(__dirname, './package.json')]
+			allow: [
+				path.resolve(__dirname, './package.json'),
+				path.resolve(__dirname, './data')
+			]
 		}
 	}
 })

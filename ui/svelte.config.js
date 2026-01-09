@@ -9,11 +9,11 @@ dotEnvConfig({ path: `.env.${process.env.NODE_ENV}` })
 const config = {
 	extensions: ['.svelte', '.md'],
 	preprocess: [vitePreprocess()],
-	compilerOptions: {
-		experimental: {
-			async: true
-		}
-	},
+	// compilerOptions: {
+	// 	experimental: {
+	// 		async: true
+	// 	}
+	// },
 
 	kit: {
 		adapter: adapter({
@@ -22,10 +22,10 @@ const config = {
 			fallback: '404.html',
 			precompress: false,
 			strict: true
-		})
-	},
-	alias: {
-		$data: '../data'
+		}),
+		alias: {
+			$content: './src/content'
+		}
 	}
 }
 

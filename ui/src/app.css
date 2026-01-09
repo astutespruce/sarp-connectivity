@@ -147,6 +147,10 @@
 	figure figcaption {
 		@apply text-xs text-muted-foreground mt-1 leading-tight;
 	}
+
+	blockquote {
+		@apply p-4 bg-blue-1/50 rounded-md;
+	}
 }
 
 @utility container {
