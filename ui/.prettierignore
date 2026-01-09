@@ -1,4 +1,9 @@
-.cache
-package.json
+# Package Managers
 package-lock.json
-public
+pnpm-lock.yaml
+yarn.lock
+bun.lock
+bun.lockb
+
+# Miscellaneous
+/static/
