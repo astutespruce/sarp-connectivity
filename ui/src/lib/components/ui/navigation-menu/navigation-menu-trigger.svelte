@@ -1,13 +1,13 @@
 <script lang="ts" module>
 	// style overrides: change accent to white/20, change to ring-white
-	// add gap-2
+	// add gap-2 text-lg
 	// remove bg-background text-accent usage text-sm
 	// change chevron to size-5
 	import { cn } from '$lib/utils.js'
 	import { tv } from 'tailwind-variants'
 
 	export const navigationMenuTriggerStyle = tv({
-		base: 'text-white hover:bg-white/20 focus:bg-white/20 data-[state=open]:hover:bg-white/20 data-[state=open]:focus:bg-white/20 data-[state=open]:bg-white/10 data-[state=open]:ring-white data-[state=open]:ring-2 focus-visible:ring-white group inline-flex h-9 w-max items-center justify-center rounded-md p-2 font-medium transition-[color,box-shadow] outline-none focus-visible:ring-[2px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 gap-2'
+		base: 'text-white text-lg hover:bg-white/20 focus:bg-white/20 data-[state=open]:hover:bg-white/20 data-[state=open]:focus:bg-white/20 data-[state=open]:bg-white/10 data-[state=open]:ring-white data-[state=open]:ring-2 focus-visible:ring-white group inline-flex h-9 w-max items-center justify-center rounded-md p-2 font-medium transition-[color,box-shadow] outline-none focus-visible:ring-[2px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 gap-2'
 	})
 </script>
 

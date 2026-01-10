@@ -15,10 +15,8 @@
 	<enhanced:img src="$lib/assets/images/kazuend-cCthPLHmrzI-unsplash.jpg" alt="" />
 </HeaderImage>
 
-<div class="container mt-8 pb-16">
-	<h1
-		class="text-3xl md:text-4xl lg:text-5xl pt-2 pb-8 flex items-center gap-4 border-b border-b-grey-2"
-	>
+<div class=" page-content">
+	<h1 class="page-header">
 		<FAQIcon class="size-14 text-grey-8" />
 
 		Frequently Asked Questions
@@ -83,7 +81,7 @@
 				For this reason, we calculate and use four metrics for each barrier:
 			</p>
 
-			<ul class="list-disc list-outside pl-8 [&>li+li]:mt-2 mt-2">
+			<ul class="mt-2">
 				<li>Miles restored by the potential removal of the structure</li>
 				<li>
 					Percent natural land cover within the floodplain of the structure&apos;s upstream network
@@ -96,7 +94,7 @@
 				<br />
 				These four metrics can be combined into three scenarios:
 			</p>
-			<ul class="list-disc list-outside pl-8 [&>li+li]:mt-2 mt-2">
+			<ul class="mt-2">
 				<li>network length</li>
 				<li>watershed condition</li>
 				<li>combined network lenght and watershed condition</li>
@@ -211,7 +209,7 @@
 				following connectivity analysis map services into your GIS tool of choice:
 			</p>
 
-			<ul class="list-disc list-outside pl-8 [&>li+li]:mt-2 mt-2">
+			<ul class="mt-2">
 				<li>
 					<a href={MAP_SERVICES.dams} target="_blank" rel="external">Dams</a> based on networks that are
 					cut by dams and waterfalls.
