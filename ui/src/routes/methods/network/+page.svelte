@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths'
 	import { Alert } from '$lib/components/alert'
-	import { HighlightBox } from '$lib/components/elements'
 	import { HeaderImage } from '$lib/components/image'
 	import { CONTACT_EMAIL, SITE_NAME } from '$lib/env'
 </script>
@@ -18,7 +17,7 @@
 </HeaderImage>
 
 <div class="page-content">
-	<h1>Network Analysis Methods</h1>
+	<h1>Network analysis methods</h1>
 
 	<p class="mt-8">
 		Aquatic barriers were analyzed using the
@@ -41,13 +40,13 @@
 
 	<hr />
 
-	<h2 class="mt-12">Aquatic Network Preparation</h2>
+	<h2 class="mt-12">Aquatic network preparation</h2>
 
 	<ol class="mt-2">
 		<li>
-			All coastline reaches were first removed from the NHDPlusHR flowlines dataset.
-			&quot;Loops&quot; were retained for purposes of snapping waterfalls and barriers below, but
-			barriers that snapped to these loops were excluded from the network connectivity analysis.
+			All coastline reaches were first removed from the NHDPlusHR flowlines dataset. "Loops" were
+			retained for purposes of snapping waterfalls and barriers below, but barriers that snapped to
+			these loops were excluded from the network connectivity analysis.
 		</li>
 		<li>
 			All isolated pipelines or pipelines &gt;250 meters were removed from the flowlines dataset.
@@ -67,7 +66,7 @@
 
 	<hr />
 
-	<h2>Methods for Waterfalls</h2>
+	<h2>Methods for waterfalls</h2>
 	<p class="mt-2">
 		Waterfalls are used to define natural breaks within the aquatic network. All waterfalls included
 		in this analysis were considered "hard" breaks to the aquatic network, which prevent upstream or
@@ -92,7 +91,7 @@
 
 	<hr />
 
-	<h2>Methods for Dams</h2>
+	<h2>Methods for dams</h2>
 
 	<p class="mt-2">
 		The location of dams were compiled by SARP from a variety of data providers, including the
@@ -129,8 +128,8 @@
 		</li>
 		<li>
 			For each waterbody extracted above, the downstream-most point(s) on any intersecting flowlines
-			were extracted and used as reference points for snapping dams. These are called &quot;drain
-			points&quot; below.
+			were extracted and used as reference points for snapping dams. These are called "drain points"
+			below.
 		</li>
 		<li>
 			Estimated dams based on a previous analysis by SARP using smaller waterbodies and flowlines
@@ -182,10 +181,10 @@
 			functional network.
 		</li>
 		<li>
-			Metrics for <a href={resolve('/metrics/length/')}>network length</a>,
-			<a href={resolve('/metrics/complexity/')}>network complexity</a>,
-			<a href={resolve('/metrics/unaltered/')}>percent unaltered</a>, and
-			<a href={resolve('/metrics/landcover/')}>natural landcover</a> were calculated based on these functional
+			Metrics for <a href={resolve('/methods/length/')}>network length</a>,
+			<a href={resolve('/methods/complexity/')}>network complexity</a>,
+			<a href={resolve('/methods/unaltered/')}>percent unaltered</a>, and
+			<a href={resolve('/methods/landcover/')}>natural landcover</a> were calculated based on these functional
 			networks.
 		</li>
 	</ol>
@@ -203,7 +202,7 @@
 
 	<hr />
 
-	<h2>Methods for Road-Related Barriers</h2>
+	<h2>Methods for road-related barriers</h2>
 
 	<p class="mt-2">
 		Only road-related barriers that have been formally assessed for impacts to aquatic organisms
@@ -230,10 +229,10 @@
 			upstream functional network.
 		</li>
 		<li>
-			Metrics for <a href={resolve('/metrics/length/')}>network length</a>,
-			<a href={resolve('/metrics/complexity/')}>network complexity</a>,
-			<a href={resolve('/metrics/unaltered/')}>percent unaltered</a>, and
-			<a href={resolve('/metrics/landcover/')}>natural landcover</a> were calculated based on these functional
+			Metrics for <a href={resolve('/methods/length/')}>network length</a>,
+			<a href={resolve('/methods/complexity/')}>network complexity</a>,
+			<a href={resolve('/methods/unaltered/')}>percent unaltered</a>, and
+			<a href={resolve('/methods/landcover/')}>natural landcover</a> were calculated based on these functional
 			networks.
 		</li>
 	</ol>

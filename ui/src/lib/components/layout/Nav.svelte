@@ -46,7 +46,7 @@
 				Learn more
 			</Trigger>
 			<Content>
-				<div class="w-[400px] p-2">
+				<div class="w-[320px] p-2">
 					<LearnMoreNav />
 				</div>
 			</Content>

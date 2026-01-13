@@ -104,7 +104,7 @@
 					on the aquatic network.
 					<br />
 					<br />
-					<a href={resolve('/network_methods')}> Read more about network analysis methods </a>.
+					<a href={resolve('/methods/network/')}> Read more about network analysis methods </a>.
 				</p>
 				<Alert title="Warning" class="mt-12">
 					<p class="text-base">
@@ -144,7 +144,7 @@
 				aquatic habitat for a wider variety of organisms and better support dispersal and migration.
 				<br />
 				<br />
-				<a href={resolve('/metrics/length/')}>Read more...</a>
+				<a href={resolve('/methods/length/')}>Read more...</a>
 			</HighlightBox>
 
 			<HighlightBox title="Network complexity" icon={NetworkComplexityIcon}>
@@ -153,7 +153,7 @@
 				size classes, such as small streams, small rivers, and large rivers, would contribute a more
 				complex connected aquatic network if it was removed.
 				<br />
-				<a href={resolve('/metrics/complexity/')}>Read more...</a>
+				<a href={resolve('/methods/complexity/')}>Read more...</a>
 			</HighlightBox>
 
 			<HighlightBox title="Channel alteration" icon={ChannelAlterationIcon}>
@@ -161,7 +161,7 @@
 				ditches. These represent areas where the hydrography, flow, and water quality may be highly
 				altered compared to natural conditions.
 				<br />
-				<a href={resolve('/metrics/unaltered/')}>Read more...</a>
+				<a href={resolve('/methods/unaltered/')}>Read more...</a>
 			</HighlightBox>
 
 			<HighlightBox title="Natural landcover" icon={NaturalLandcoverIcon}>
@@ -170,7 +170,7 @@
 				natural landcover in their floodplain are more likely to have higher quality aquatic
 				habitat.
 				<br />
-				<a href={resolve('/metrics/landcover/')}>Read more...</a>
+				<a href={resolve('/methods/landcover/')}>Read more...</a>
 			</HighlightBox>
 		</div>
 	</div>
@@ -190,7 +190,7 @@
 				Aquatic barriers prioritized according to network connectivity are driven exclusively on the
 				total amount of functional aquatic network that would be reconnected if a given dam was
 				removed. This is driven by the&nbsp;
-				<a href={resolve('/metrics/length')}>network length</a> metric. No consideration is given to other
+				<a href={resolve('/methods/length')}>network length</a> metric. No consideration is given to other
 				characteristics that measure the quality and condition of those networks.
 			</HighlightBox>
 
@@ -198,9 +198,9 @@
 				Aquatic barriers prioritized according to watershed condition are driven by metrics related
 				to the overall quality of the aquatic network that would be reconnected if a given dam was
 				removed. It is based on a combination of&nbsp;
-				<a href={resolve('/metrics/complexity')}>network complexity</a>,
-				<a href={resolve('/metrics/unaltered')}>percent unaltered</a>, and
-				<a href={resolve('/metrics/landcover')}>floodplain natural landcover</a>. Each of these
+				<a href={resolve('/methods/complexity')}>network complexity</a>,
+				<a href={resolve('/methods/unaltered')}>percent unaltered</a>, and
+				<a href={resolve('/methods/landcover')}>floodplain natural landcover</a>. Each of these
 				metrics is weighted equally.
 			</HighlightBox>
 		</div>

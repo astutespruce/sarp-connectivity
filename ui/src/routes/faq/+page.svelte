@@ -115,7 +115,7 @@
 				<br />
 				<br />
 				More information about how barriers are prioritized can be found
-				<a href={resolve('/scoring_methods/')}>here</a>.
+				<a href={resolve('/methods/scoring/')}>here</a>.
 			</p>
 		</div>
 

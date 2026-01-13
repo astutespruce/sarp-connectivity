@@ -6,7 +6,7 @@
 </script>
 
 <svelte:head>
-	<title>Species habitat network methods | {SITE_NAME}</title>
+	<title>Aquatic species habitat network methods | {SITE_NAME}</title>
 </svelte:head>
 
 <HeaderImage
@@ -17,7 +17,7 @@
 </HeaderImage>
 
 <div class="page-content">
-	<h1>Aquatic Species Habitat Methods</h1>
+	<h1>Aquatic species habitat network methods</h1>
 	<p class="mt-8">
 		Instream habitat data for key species and species groups were compiled from regional partners
 		and associated with the
@@ -29,7 +29,7 @@
 			National Hydrography Dataset - High Resolution Plus
 		</a>
 		(NHDPlusHR) dataset from the U.S. Geological Survey, which is used to
-		<a href={resolve('/network_methods/')}>create the aquatic networks</a> used in this tool. Our
+		<a href={resolve('/methods/network/')}>create the aquatic networks</a> used in this tool. Our
 		overall goal is to estimate the amount of species-level habitat that could be gained by removing
 		or mitgating a specific barrier based on the best available species data and standardized
 		aquatic network data.
