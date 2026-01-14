@@ -57,7 +57,7 @@ sudo mkdir /var/www/sarp-connectivity
 sudo mkdir /var/www/nacc-home
 sudo mkdir /var/www/nacc-training
 sudo chown -R app:app /var/www
-sudo chown app:ubuntu /data
+sudo chown -R app:ubuntu /data
 sudo chmod 774 /data
 sudo mkdir -p /downloads/custom
 sudo chown -R app:app /downloads

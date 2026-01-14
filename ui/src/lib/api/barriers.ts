@@ -1,13 +1,31 @@
+import { tableFromIPC } from '@uwdata/flechette'
+
+import { API_HOST } from '$lib/env'
+import { captureException } from '$lib/util/log'
+import type { SummaryUnits, Filters } from '$lib/types'
+
+import { pollJob } from './job'
+import type { ProgressCallback } from './job'
+import { fetchFeather } from './request'
+
+type APIQueryParams = {
+	summaryUnits: SummaryUnits
+	filters: Filters
+	includeUnranked?: boolean | null
+	sort?: string | null
+	customRank?: boolean
+}
+
 /**
  * Converts units and filters into query parameters for API requests
  */
 const apiQueryParams = ({
 	summaryUnits = {},
 	filters = {},
-	includeUnranked = false,
-	sort = null,
-	customRank = false
-}) => {
+	includeUnranked,
+	sort,
+	customRank
+}: APIQueryParams) => {
 	let query = Object.entries(summaryUnits)
 		.map(([key, values]) => `${key}=${values.join(',')}`)
 		.join('&')
@@ -33,8 +51,8 @@ const apiQueryParams = ({
 /**
  * Fetch and parse Feather data from API for dams or small barriers
  */
-export const fetchBarrierInfo = async (barrierType, summaryUnits) => {
-	const url = `${apiHost}/api/v1/internal/${barrierType}/query?${apiQueryParams({
+export const fetchBarrierInfo = async (barrierType: string, summaryUnits) => {
+	const url = `${API_HOST}/api/v1/internal/${barrierType}/query?${apiQueryParams({
 		summaryUnits
 	})}`
 
@@ -45,7 +63,7 @@ export const fetchBarrierInfo = async (barrierType, summaryUnits) => {
  * Fetch and parse Feather data from API for dams or small barriers
  */
 export const fetchBarrierRanks = async (barrierType, summaryUnits, filters) => {
-	const url = `${apiHost}/api/v1/internal/${barrierType}/rank?${apiQueryParams({
+	const url = `${API_HOST}/api/v1/internal/${barrierType}/rank?${apiQueryParams({
 		summaryUnits,
 		filters
 	})}`
@@ -81,7 +99,7 @@ export const fetchBarrierRanks = async (barrierType, summaryUnits, filters) => {
 }
 
 export const fetchBarrierDetails = async (networkType, sarpid) => {
-	const url = `${apiHost}/api/v1/internal/${networkType}/details/${sarpid}`
+	const url = `${API_HOST}/api/v1/internal/${networkType}/details/${sarpid}`
 
 	const response = await fetch(url)
 	if (response.status === 404) {
@@ -93,7 +111,7 @@ export const fetchBarrierDetails = async (networkType, sarpid) => {
 }
 
 export const searchBarriers = async (query) => {
-	const url = `${apiHost}/api/v1/internal/barriers/search?query=${query}`
+	const url = `${API_HOST}/api/v1/internal/barriers/search?query=${query}`
 
 	try {
 		const response = await fetch(url)
@@ -115,24 +133,35 @@ export const searchBarriers = async (query) => {
 	}
 }
 
-export const getDownloadURL = async (
-	{ barrierType, summaryUnits, filters, includeUnranked = null, sort = null, customRank = false },
+type GetDownloadURLParams = APIQueryParams & {
+	barrierType: string
+}
+
+type GetDownloadURL = (
+	params: GetDownloadURLParams,
+	onProgress: ProgressCallback | null
+) => Promise<{
+	error?: string | null
+	url?: string | null
+}>
+
+export const getDownloadURL: GetDownloadURL = async (
+	{
+		barrierType,
+		summaryUnits,
+		filters,
+		includeUnranked = null,
+		sort = null,
+		customRank = false
+	}: GetDownloadURLParams,
 	onProgress = null
 ) => {
 	const params = {
 		summaryUnits,
-		filters
-	}
-
-	if (includeUnranked !== null) {
-		params.includeUnranked = includeUnranked
-	}
-
-	if (sort !== null) {
-		params.sort = sort
-	}
-	if (customRank) {
-		params.customRank = customRank
+		filters,
+		includeUnranked: includeUnranked !== null ? includeUnranked : undefined,
+		sort: sort !== null ? sort : undefined,
+		customRank: customRank || undefined
 	}
 
 	if (onProgress) {
@@ -144,7 +173,7 @@ export const getDownloadURL = async (
 	}
 
 	const response = await fetch(
-		`${apiHost}/api/v1/internal/${barrierType}/csv?${apiQueryParams(params)}`,
+		`${API_HOST}/api/v1/internal/${barrierType}/csv?${apiQueryParams(params)}`,
 		{
 			method: 'POST'
 		}
@@ -155,7 +184,7 @@ export const getDownloadURL = async (
 		try {
 			const { detail } = JSON.parse(error)
 			error = detail
-		} catch (ex) {
+		} catch {
 			// don't do anything here
 		}
 
@@ -163,11 +192,9 @@ export const getDownloadURL = async (
 
 		if (response.status === 500) {
 			// this happens if redis is offline on the server
-			console.error('server error for download request', error)
-			captureException('server error for download request', error)
+			captureException(`server error for download request: ${error}`)
 		} else {
-			console.error('unhandled download request error', error)
-			captureException('unhandled download request error', error)
+			captureException(`unhandled download request error: ${error}`)
 		}
 		return {
 			error
@@ -186,9 +213,10 @@ export const getDownloadURL = async (
 			})
 		}
 
-		return { url: `${apiHost}${path}` }
+		return { url: `${API_HOST}${path}` }
 	}
 
 	const result = await pollJob(job, onProgress)
+
 	return result
 }

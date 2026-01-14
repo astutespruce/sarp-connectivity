@@ -1,6 +1,8 @@
 <script lang="ts">
 	import DownloadIcon from '@lucide/svelte/icons/download'
 	import LoadingIcon from '@lucide/svelte/icons/loader-circle'
+	import { onMount } from 'svelte'
+	import { v4 as uuid } from 'uuid'
 
 	import { resolve } from '$app/paths'
 	import { Alert } from '$lib/components/alert'
@@ -10,9 +12,28 @@
 	import { Label } from '$lib/components/ui/label'
 	import { Progress } from '$lib/components/ui/progress'
 
-	import { CONTACT_EMAIL } from '$lib/env'
+	import { getDownloadURL } from '$lib/api'
+	import type { ProgressCallback } from '$lib/api'
+	import { CONTACT_EMAIL, API_HOST } from '$lib/env'
+	import { trackDownload } from '$lib/util/analytics'
 	import { cn } from '$lib/utils'
 	import { barrierTypeLabels } from '$lib/config/constants'
+
+	type Status = {
+		inProgress: boolean
+		progress: number
+		progressMessage?: string | null
+		error?: string | null
+	}
+
+	const initialStatus: Status = {
+		inProgress: false,
+		progress: 0,
+		progressMessage: null,
+		error: null
+	}
+
+	let checkboxId: string | undefined = $state(undefined)
 
 	let {
 		open = $bindable(false),
@@ -28,27 +49,101 @@
 	)
 
 	let includeUnranked = $derived(initialIncludeUnranked)
-
-	type Status = {
-		inProgress: boolean
-		progress: number
-		progressMessage?: string | null
-		error?: string | null
-	}
-
-	let status: Status = $state({
-		inProgress: false,
-		progress: 0,
-		progressMessage: null,
-		error: null
-	})
-
+	let status: Status = $state(initialStatus)
 	let downloadURL: string | null = $state(null)
 
-	const handleClose = () => (open = false)
+	onMount(() => {
+		// set unique checkbox ID
+		checkboxId = uuid()
+	})
 
-	const handleSubmit = () => {
-		// TODO: implement
+	$effect(() => {
+		open
+
+		// clear status on both open / close
+		status = initialStatus
+		downloadURL = null
+		includeUnranked = initialIncludeUnranked
+	})
+
+	const handleClose = () => {
+		open = false
+	}
+
+	const onProgress: ProgressCallback = ({
+		inProgress = true,
+		progress = 0,
+		message: progressMessage = null
+	}) => {
+		status = {
+			inProgress,
+			progress,
+			progressMessage,
+			error: null
+		}
+	}
+
+	const handleDownload = async () => {
+		const { summaryUnits, filters, scenario } = config
+
+		let url = null
+
+		if (summaryUnits) {
+			const formattedIds = Object.entries(summaryUnits)
+				.map(([key, values]) => `${key}: ${(values as string[]).join(',')}`)
+				.join(';')
+
+			trackDownload({
+				barrierType,
+				unitType: 'selected area',
+				details: `ids: [${formattedIds}], filters: ${
+					filters ? Object.keys(filters) : 'none'
+				}, scenario: ${scenario}, include unranked: ${includeUnranked}`
+			})
+
+			// NOTE: this doesn't complete until the background job is completed
+			const { url: customDownloadURL = null, error: requestError } = await getDownloadURL(
+				{
+					barrierType,
+					summaryUnits,
+					filters,
+					includeUnranked: barrierType !== 'road_crossings' ? includeUnranked : null,
+					sort: scenario ? scenario.toUpperCase() : null,
+					customRank
+				},
+				onProgress
+			)
+
+			if (requestError || customDownloadURL === null) {
+				status = {
+					error: requestError,
+					progress: 0,
+					progressMessage: null,
+					inProgress: false
+				}
+
+				return
+			}
+
+			url = customDownloadURL
+		} else {
+			// download pre-created national zip file
+			trackDownload({ barrierType, unitType: 'national', details: {} })
+			url = `${API_HOST}/downloads/national/${barrierType}.zip`
+		}
+
+		console.log('got download url:', url)
+
+		status = {
+			inProgress: false,
+			progress: 100,
+			progressMessage: 'All done',
+			error: null
+		}
+		downloadURL = url
+
+		// update window.location.href to avoid getting blocked by popup blockers
+		window.location.href = url!
 	}
 </script>
 
@@ -98,12 +193,12 @@
 		{:else}
 			{#if showOptions && barrierType !== 'road_crossings'}
 				<div class="flex gap-2 items-center">
-					<Checkbox id="includeUnranked" bind:checked={includeUnranked} />
-					<Label for="includeUnranked" class="font-bold text-lg"
+					<Checkbox id={checkboxId} bind:checked={includeUnranked} />
+					<Label for={checkboxId} class="font-bold text-lg"
 						>Include unranked {barrierTypeLabel}?</Label
 					>
 				</div>
-				<div class="text-muted-foreground ml-7 -mt-4 mb-2">
+				<div class="text-muted-foreground text-sm ml-7 -mt-4 mb-2">
 					This will include {barrierTypeLabel} within your selected geographic area that were not prioritized
 					in the analysis. These include any
 					{barrierTypeLabel} that were not located on the aquatic network
@@ -138,14 +233,14 @@
 				<Button variant="secondary" onclick={handleClose}>Cancel</Button>
 
 				{#if !status.error}
-					<Button onclick={handleSubmit} disabled={status.inProgress}>
+					<Button onclick={handleDownload} disabled={status.inProgress}>
 						{#if status.inProgress}
 							<LoadingIcon class="size-5 motion-safe:animate-spin" />
 						{:else}
 							<DownloadIcon class="size-5" />
 						{/if}
 
-						Download</Button
+						Download {barrierTypeLabel}</Button
 					>
 				{/if}
 			{/if}

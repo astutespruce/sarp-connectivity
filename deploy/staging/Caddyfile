@@ -19,7 +19,7 @@ staging.aquaticbarriers.org {
 
   # redirect page paths (note: have to include all terminal pages with and without trailing slash)
   @old_frontend_paths {
-    path /priority /priority/ /explore /explore/ /network_methods /network_methods/ /habitat_methods /habitat_methods/ /metrics/* /regions/* /states/* /fhp/* /report/*
+    path /priority/ /explore/ /methods/* /regions/* /states/* /fhp/* /report/*
   }
   redir @old_frontend_paths https://staging.tool.aquaticbarriers.org{uri} 307
 
@@ -134,7 +134,7 @@ staging.tool.aquaticbarriers.org {
 
     # page-data, html, and site root must be fetched each time
     @no_cache {
-      path *.html *.webmanifest */page-data/* / /priority /explore /network_methods /habitat_methods /metrics/* /regions/* /states/* /fhp/* /report/*
+      path *.html *.webmanifest */page-data/* / /priority/ /explore/ /methods/* /regions/* /states/* /fhp/* /report/*
     }
     header @no_cache Cache-Control "public, max-age:0, must-revalidate"
 

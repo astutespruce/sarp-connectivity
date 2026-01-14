@@ -3,6 +3,7 @@
 	import { zod4Client } from 'sveltekit-superforms/adapters'
 	import { zod4 } from 'sveltekit-superforms/adapters'
 	import { z } from 'zod'
+	import { v4 as uuid } from 'uuid'
 	import LoadingIcon from '@lucide/svelte/icons/loader-circle'
 
 	import { CONTACT_EMAIL, MAILCHIMP_FORM } from '$lib/env'
@@ -23,6 +24,14 @@
 	import { saveToStorage } from '$lib/util/dom'
 	import { captureException } from '$lib/util/log'
 
+	type UserInfoData = {
+		email: string
+		firstName: string
+		lastName: string
+		organization: string
+		use: string
+	}
+
 	// lookup of local form fields to Mailchimp API form fields
 	const mailchimpFieldMap = {
 		email: 'EMAIL',
@@ -33,16 +42,7 @@
 	}
 
 	let { open = $bindable(true), onContinue } = $props()
-
 	let hasError = $state(false)
-
-	type UserInfoData = {
-		email: string
-		firstName: string
-		lastName: string
-		organization: string
-		use: string
-	}
 
 	const submitUserInfo = async (data: UserInfoData) => {
 		// Mailchimp doesn't have CORS support, so we have to use JSONP to submit form data.
@@ -73,32 +73,35 @@
 				return { error }
 			}
 
-			// FIXME: enable
-			// saveToStorage('downloadForm', data)
+			saveToStorage('downloadForm', data)
 
 			return { error: null }
 		} catch (ex) {
-			captureException(ex)
+			captureException(ex as Error | string)
 			return { error: ex }
 		}
 	}
 
-	// FIXME: remove defaults
 	const schema = z.object({
-		email: z.email().default('bcward@astutespruce.com'),
-		firstName: z.string().default('Brendan'),
-		lastName: z.string().default('Ward'),
-		organization: z.string().default('Astute Spruce, LLC'),
-		use: z.string().default('Testing')
+		email: z.email(),
+		firstName: z.string().min(1, 'first name is required'),
+		lastName: z.string().min(1, 'last name is required'),
+		organization: z.string().min(1, 'organization is required'),
+		use: z
+			.string()
+			.min(1, 'this field is required')
+			.refine((use) => use.trim().length > 0, 'this field must not be empty')
 	})
 
 	const form = superForm(defaults(zod4(schema)), {
+		id: uuid(),
 		SPA: true,
 		validators: zod4Client(schema),
 		onUpdate: async function ({ form }) {
 			if (form.valid) {
 				const { data } = form
 				const { error = null } = await submitUserInfo(data)
+
 				if (error) {
 					hasError = true
 				} else {
@@ -159,25 +162,25 @@
 											<Input {...props} bind:value={$formData.email} />
 										{/snippet}
 									</Control>
-									<FieldErrors />
+									<FieldErrors class="-mt-1 italic" />
 								</Field>
-								<Field {form} name="firstName" class="mt-4">
+								<Field {form} name="firstName" class="mt-6">
 									<Control>
 										{#snippet children({ props })}
 											<Label class="font-bold">First name</Label>
 											<Input {...props} bind:value={$formData.firstName} />
 										{/snippet}
 									</Control>
-									<FieldErrors />
+									<FieldErrors class="-mt-1 italic" />
 								</Field>
-								<Field {form} name="lastName" class="mt-4">
+								<Field {form} name="lastName" class="mt-6">
 									<Control>
 										{#snippet children({ props })}
 											<Label class="font-bold">Last name</Label>
 											<Input {...props} bind:value={$formData.lastName} />
 										{/snippet}
 									</Control>
-									<FieldErrors />
+									<FieldErrors class="-mt-1 italic" />
 								</Field>
 							</div>
 
@@ -186,10 +189,10 @@
 									<Control>
 										{#snippet children({ props })}
 											<Label class="font-bold">How will you use the data?</Label>
-											<Textarea {...props} bind:value={$formData.use} class="min-h-46" />
+											<Textarea {...props} bind:value={$formData.use} class="min-h-48" />
 										{/snippet}
 									</Control>
-									<FieldErrors />
+									<FieldErrors class="-mt-1 italic" />
 								</Field>
 							</div>
 						</div>
@@ -200,7 +203,7 @@
 									<Input {...props} bind:value={$formData.organization} />
 								{/snippet}
 							</Control>
-							<FieldErrors />
+							<FieldErrors class="-mt-1 italic" />
 						</Field>
 					</div>
 				</div>

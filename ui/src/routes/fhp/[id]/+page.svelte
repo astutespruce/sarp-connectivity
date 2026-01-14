@@ -16,9 +16,12 @@
 	import { Chart } from '$lib/components/restoration'
 	import type { MetricOptionValue } from '$lib/components/restoration/types'
 
-	const downloadConfig = { scenario: 'NCWC', layer: 'FishHabitatPartnership' }
-
 	const { params, data } = $props()
+	const downloadConfig = $derived({
+		scenario: 'NCWC',
+		layer: 'FishHabitatPartnership',
+		summaryUnits: { fishhabitatpartnership: [params.id] }
+	})
 
 	let metric: MetricOptionValue = $state('gainmiles')
 
@@ -83,12 +86,20 @@
 				label="dams"
 				barrierType="dams"
 				disabled={fhpData.dams === 0}
-				config={{
-					...downloadConfig,
-					summaryUnits: { fishhabitatpartnership: [params.id] }
-				}}
+				config={downloadConfig}
 			/>
-			<div>TODO: download small barriers</div>
+			<Downloader
+				label="barriers"
+				barrierType="small_barriers"
+				disabled={fhpData.totalSmallBarriers === 0}
+				config={downloadConfig}
+			/>
+			<Downloader
+				label="road crossings"
+				barrierType="road_crossings"
+				disabled={fhpData.totalRoadCrossings === 0}
+				config={downloadConfig}
+			/>
 		</div>
 
 		<div class="grid sm:grid-cols-[2fr_1fr] gap-8">

@@ -5,7 +5,18 @@ const pollInterval = 1000 // milliseconds; 1 second
 const jobTimeout = 600000 // milliseconds; 10 minutes
 const failedFetchLimit = 5
 
-export const pollJob = async (jobId: string, onProgress = null) => {
+export type ProgressCallbackParams = {
+	status: string
+	inProgress: boolean
+	progress: number
+	queuePosition?: number
+	elapsedTime?: number
+	message?: string
+}
+
+export type ProgressCallback = (params: ProgressCallbackParams) => void
+
+export const pollJob = async (jobId: string, onProgress: ProgressCallback | null = null) => {
 	let time = 0
 	let failedRequests = 0
 
@@ -16,7 +27,7 @@ export const pollJob = async (jobId: string, onProgress = null) => {
 			response = await fetch(`${API_HOST}/api/v1/internal/downloads/status/${jobId}`, {
 				cache: 'no-cache'
 			})
-		} catch (ex) {
+		} catch {
 			failedRequests += 1
 
 			// sleep and try again
@@ -24,14 +35,12 @@ export const pollJob = async (jobId: string, onProgress = null) => {
 				setTimeout(r, pollInterval)
 			})
 			time += pollInterval
-			/* eslint-disable-next-line no-continue */
 			continue
 		}
 
 		if (response.status === 500) {
 			const error = await response.text()
-			console.error('server error for download job', error)
-			captureException('server error for download job', error)
+			captureException(`server error for download job: ${error}`)
 			return {
 				error: 'server error'
 			}
@@ -49,7 +58,7 @@ export const pollJob = async (jobId: string, onProgress = null) => {
 		} = json
 
 		if (response.status !== 200 || status === 'failed') {
-			captureException('Download job failed', json)
+			captureException(`Download job failed: ${JSON.stringify(json)}`)
 			if (error) {
 				return { error }
 			}

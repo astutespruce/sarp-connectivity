@@ -21,10 +21,8 @@
 	} = $props()
 
 	let isUserInfoPopupOpen: boolean = $state(false)
-	// FIXME:
-	let isDownloadPopupOpen: boolean = $state(true)
-	// FIXME:
-	let needUserInfo: boolean = $state(false)
+	let isDownloadPopupOpen: boolean = $state(false)
+	let needUserInfo: boolean = $state(true)
 
 	const barrierTypeLabel = $derived(
 		barrierTypeLabels[barrierType as keyof typeof barrierTypeLabels]
