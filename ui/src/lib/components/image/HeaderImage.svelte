@@ -4,7 +4,12 @@
 	const { author = null, url = null, children, class: className = null } = $props()
 </script>
 
-<div class={cn('max-h-64 overflow-hidden relative', className)}>
+<div
+	class={cn(
+		'max-h-64 overflow-hidden relative flex flex-col items-center justify-center',
+		className
+	)}
+>
 	{@render children()}
 
 	{#if author}

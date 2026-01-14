@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { resolve } from '$app/paths'
 	import NACCLogo from '$lib/assets/images/nacc_logo.svg'
-	import { CONTACT_EMAIL, NACC_HOME_URL, SITE_NAME } from '$lib/env'
+	import { SITE_NAME } from '$lib/env'
 
 	import { About, AboutNACC, GetInvolved, HowToUse, Regions, Top } from '$content/home'
 </script>

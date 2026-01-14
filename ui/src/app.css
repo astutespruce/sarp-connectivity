@@ -151,6 +151,39 @@
 	blockquote {
 		@apply p-4 bg-blue-1/50 rounded-md;
 	}
+
+	.page-content {
+		@apply container mt-8 pb-16;
+
+		h1 {
+			@apply text-3xl md:text-4xl lg:text-5xl pt-2 pb-8 flex items-center gap-4 border-b border-b-grey-2;
+		}
+		h2 {
+			@apply text-2xl md:text-3xl;
+		}
+
+		h3 {
+			@apply text-xl md:text-2xl;
+		}
+
+		ul {
+			@apply list-disc list-outside pl-8;
+			li + li {
+				@apply mt-2;
+			}
+		}
+
+		ol {
+			@apply list-decimal list-outside pl-8;
+			li + li {
+				@apply mt-2;
+			}
+		}
+	}
+
+	.step {
+		@apply flex justify-center items-center flex-none rounded-full size-10 font-bold bg-black text-white text-lg;
+	}
 }
 
 @utility container {

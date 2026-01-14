@@ -1,6 +1,4 @@
 <script lang="ts">
-	import ExploreIcon from '@lucide/svelte/icons/chart-column'
-	import LearnMoreIcon from '@lucide/svelte/icons/info'
 	import PrioritizeIcon from '@lucide/svelte/icons/search-check'
 	import SurveyIcon from '@lucide/svelte/icons/pencil-ruler'
 
@@ -16,10 +14,13 @@
 	const isActivePath = (path: string) => browser && page.url.pathname.endsWith(path)
 </script>
 
-<Root class="flex-none pr-1 hidden lg:block" viewport={false}>
+<Root class="flex-none hidden lg:block" viewport={false}>
 	<List>
 		<Item>
-			<Trigger><ExploreIcon class="size-5 text-white" /> Explore & Download</Trigger>
+			<Trigger>
+				<!-- <ExploreIcon class="size-5 text-white" />  -->
+				Explore & Download
+			</Trigger>
 			<Content>
 				<div class="w-[600px]">
 					<ExploreNav />
@@ -42,7 +43,7 @@
 
 		<Item>
 			<Trigger>
-				<LearnMoreIcon class="size-5 text-white" />
+				<!-- <LearnMoreIcon class="size-5 text-white" /> -->
 				Learn more
 			</Trigger>
 			<Content>

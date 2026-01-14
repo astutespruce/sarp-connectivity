@@ -33,7 +33,10 @@ export const saveToStorage = (key: string, data: any) => {
 
 export const getFromStorage = (key: string) => {
 	if (browser && typeof localStorage !== 'undefined') {
-		return JSON.parse(localStorage.getItem(key) || '')
+		const rawValue = localStorage.getItem(key)
+		if (rawValue) {
+			return JSON.parse(rawValue)
+		}
 	}
 	return null
 }

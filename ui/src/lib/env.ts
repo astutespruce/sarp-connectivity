@@ -9,3 +9,11 @@ export const NACC_HOME_URL = env.PUBLIC_NACC_URL || 'https://aquaticbarriers.org
 export const API_HOST = env.PUBLIC_API_HOST || ''
 
 export const SITE_NAME = 'National Aquatic Barrier Inventory & Prioritization Tool'
+
+// Mailchimp form used for submitting user info for download
+export const MAILCHIMP_FORM = {
+	url: env.PUBLIC_MAILCHIMP_URL,
+	userId: env.PUBLIC_MAILCHIMP_USER_ID,
+	formId1: env.PUBLIC_MAILCHIMP_FORM_ID,
+	formId2: env.PUBLIC_MAILCHIMP_FORM_ID2
+}

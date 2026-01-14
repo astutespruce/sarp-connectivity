@@ -63,3 +63,6 @@ export const toCamelCase = (value: string) => {
 
 export const pluralize = (word: string, count: number, suffix = 's') =>
 	count === 1 ? word : `${word}${suffix}`
+
+export const singularOrPlural = (singular: string, plural: string, count: number) =>
+	count === 1 ? singular : plural

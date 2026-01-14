@@ -18,8 +18,9 @@
 		</div>
 		<div>
 			<a href={resolve('/')} class=" no-underline text-white">
-				<div class="hidden md:block text-xl leading-tight">
-					Aquatic Barrier Inventory <br />& Prioritization Tool
+				<div class="italic text-sm leading-tight">National Aquatic Connectivity Collaborative</div>
+				<div class="hidden md:block text-2xl leading-none">
+					Barrier Inventory & Prioritization Tool
 				</div>
 				<div class="md:hidden text-lg leading-none">Aquatic Barrier Tool</div>
 			</a>
