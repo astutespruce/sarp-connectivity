@@ -32,7 +32,7 @@ export const load = async ({ params }) => {
 		: null
 
 	const { default: map } = await import(
-		`$lib/assets/images/maps/fhp/${params.id}.png?as=picture&w=500;250&format=avif;webp;png`
+		`$lib/assets/images/maps/fhp/${params.id}.png?as=picture&w=500&format=avif;webp;jpeg`
 	)
 
 	return {

@@ -38,6 +38,7 @@
 	let {
 		open = $bindable(false),
 		barrierType,
+		areaName,
 		config,
 		customRank,
 		includeUnranked: initialIncludeUnranked,
@@ -152,8 +153,12 @@
 		<Dialog.Header class="border-b-4 border-b-blue-9 pb-1">
 			<Dialog.Title class="text-xl sm:text-2xl"
 				>Download {customRank ? 'prioritized' : ''}
-				{barrierTypeLabels[barrierType as keyof typeof barrierTypeLabels]}</Dialog.Title
-			>
+				{barrierTypeLabels[barrierType as keyof typeof barrierTypeLabels]}
+
+				{#if areaName}
+					in {areaName}
+				{/if}
+			</Dialog.Title>
 		</Dialog.Header>
 
 		{#if status.error}

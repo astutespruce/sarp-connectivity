@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query'
+
 	import { afterNavigate } from '$app/navigation'
 
 	import { Analytics, Footer, Header } from '$lib/components/layout'
@@ -6,6 +8,8 @@
 	import '../app.css'
 
 	let { children } = $props()
+
+	const queryClient = new QueryClient()
 
 	// reset scroll of content node on navigate
 	let contentNode: Element | null = $state(null)
@@ -18,11 +22,13 @@
 
 <Analytics />
 
-<div class="flex flex-col h-full w-full overflow-none">
-	<Header />
+<QueryClientProvider client={queryClient}>
+	<div class="flex flex-col h-full w-full overflow-none">
+		<Header />
 
-	<div bind:this={contentNode} class="h-full w-full flex-auto overflow-auto">
-		{@render children()}
+		<div bind:this={contentNode} class="h-full w-full flex-auto overflow-auto">
+			{@render children()}
+		</div>
+		<Footer />
 	</div>
-	<Footer />
-</div>
+</QueryClientProvider>

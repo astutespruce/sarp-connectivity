@@ -29,7 +29,7 @@ export const fetchUnitDetails = async (layer: string, id: string | number) => {
 			removedBarriersByYear
 		}
 	} catch (err) {
-		captureException(err)
+		captureException(err as Error | string)
 
 		throw err
 	}
@@ -52,13 +52,13 @@ export const searchUnits = async (layers: string[], query: string) => {
 			remaining: parseInt(data.schema?.metadata?.get('count') || '0', 10) - data.numRows
 		}
 	} catch (err) {
-		captureException(err)
+		captureException(err as Error | string)
 
 		throw err
 	}
 }
 
-export const fetchUnitList = async (layer, ids) => {
+export const fetchUnitList = async (layer: string, ids: string[]) => {
 	const url = `${API_HOST}/api/v1/internal/units/${layer}/list?id=${ids.join(',')}`
 
 	try {
@@ -70,9 +70,9 @@ export const fetchUnitList = async (layer, ids) => {
 		const bytes = new Uint8Array(await response.arrayBuffer())
 		const data = await tableFromIPC(bytes)
 
-		return data.toArray().map((row) => toCamelCaseFields(row))
+		return data.toArray().map((row) => camelcaseKeys(row))
 	} catch (err) {
-		captureException(err)
+		captureException(err as Error | string)
 
 		throw err
 	}

@@ -3,10 +3,10 @@
 	import LoadingIcon from '@lucide/svelte/icons/loader-circle'
 
 	import { resolve } from '$app/paths'
-	import { CONTACT_EMAIL, SITE_NAME } from '$lib/env'
+	import { SITE_NAME } from '$lib/env'
 	import { fetchUnitDetails } from '$lib/api'
 
-	import { Alert } from '$lib/components/alert'
+	import { PageLoadingError } from '$lib/components/layout'
 	import {
 		ActionBar,
 		BarrierStats,
@@ -53,22 +53,14 @@
 	</div>
 
 	{#if statsRequest.error}
-		<Alert title="Oh no!" class="text-lg mt-8">
-			<p class="text-lg">
-				We're sorry, there was an unexpected error loading this page. Please reload this page in
-				your browser.
-				<br /><br />
-				If that doesn't fix the problem, please <a href={`mailto:${CONTACT_EMAIL}`}>contact us</a> to
-				let us know!
-			</p>
-		</Alert>
+		<PageLoadingError />
 	{:else if statsRequest.isLoading}
 		<div class="flex justify-center items-center gap-4 text-xl text-muted-foreground mt-12">
 			<LoadingIcon class="size-12 motion-safe:animate-spin" />
 			Loading...
 		</div>
 	{:else if statsRequest.isSuccess}
-		<DownloadBar {stats} config={downloadConfig} />
+		<DownloadBar {stats} config={downloadConfig} areaName={data.name} />
 
 		<BarrierStats areaName={data.name} map={data.map} {stats} />
 

@@ -4,6 +4,7 @@
 
 	import { resolve } from '$app/paths'
 	import { REGIONS } from '$lib/config/constants'
+	import { cn } from '$lib/utils'
 
 	const regions = Object.values(REGIONS)
 		.sort(({ order: a }, { order: b }) => (a < b ? -1 : 1))
@@ -48,7 +49,11 @@
 		<div class="font-bold">Explore barriers by region:</div>
 		<ul class="pl-7 sm:pl-4 sm:mt-4">
 			{#each regions as region (region.url)}
-				<li class="not-first: mt-2 sm:mt-3">
+				<li
+					class={cn('mt-2 sm:mt-3', {
+						'sm:pt-3 sm:border-t sm:border-t-grey-2': region.id === 'fhp'
+					})}
+				>
 					<a href={resolve(region.url)} class="block leading-snug">
 						{region.label}
 					</a>

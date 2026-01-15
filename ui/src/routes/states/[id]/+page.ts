@@ -32,13 +32,12 @@ export const load = async ({ params }) => {
 				.map(([path, img]) => [path.split('/').slice(-1)[0], img])
 				.filter(([filename]) => dataProviderFilenames.has(filename as string))
 		)
-		console.log('logos', logos)
 
 		dataProviders = dataProviders.map(({ logo, ...rest }) => ({ ...rest, logo: logos[logo] }))
 	}
 
 	const { default: map } = await import(
-		`$lib/assets/images/maps/states/${params.id}.png?as=picture&w=500;250&format=avif;webp;png`
+		`$lib/assets/images/maps/states/${params.id}.png?as=picture&w=500&format=avif;webp;png`
 	)
 
 	return {

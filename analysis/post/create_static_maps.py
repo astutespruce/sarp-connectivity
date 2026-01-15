@@ -133,7 +133,7 @@ STYLE = {
 }
 
 
-out_dir = Path("ui/src/images/maps")
+out_dir = Path("ui/src/lib/assets/images/maps")
 out_dir.mkdir(exist_ok=True)
 region_dir = out_dir / "regions"
 region_dir.mkdir(exist_ok=True)

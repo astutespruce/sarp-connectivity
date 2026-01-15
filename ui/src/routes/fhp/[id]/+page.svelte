@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { createQuery } from '@tanstack/svelte-query'
 	import LoadingIcon from '@lucide/svelte/icons/loader-circle'
-	import { CONTACT_EMAIL, SITE_NAME } from '$lib/env'
+	import { SITE_NAME } from '$lib/env'
 	import { fetchUnitDetails } from '$lib/api'
 
-	import { Alert } from '$lib/components/alert'
+	import { PageLoadingError } from '$lib/components/layout'
 	import {
 		ActionBar,
 		BarrierStats,
@@ -13,6 +13,9 @@
 	} from '$lib/components/unitSummaryPage'
 
 	const { params, data } = $props()
+
+	const areaName = $derived(`the ${data.name} boundary`)
+
 	const downloadConfig = $derived({
 		scenario: 'NCWC',
 		layer: 'FishHabitatPartnership',
@@ -49,22 +52,14 @@
 	</div>
 
 	{#if statsRequest.error}
-		<Alert title="Oh no!" class="text-lg mt-8">
-			<p class="text-lg">
-				We're sorry, there was an unexpected error loading this page. Please reload this page in
-				your browser.
-				<br /><br />
-				If that doesn't fix the problem, please <a href={`mailto:${CONTACT_EMAIL}`}>contact us</a> to
-				let us know!
-			</p>
-		</Alert>
+		<PageLoadingError />
 	{:else if statsRequest.isLoading}
 		<div class="flex justify-center items-center gap-4 text-xl text-muted-foreground mt-12">
 			<LoadingIcon class="size-12 motion-safe:animate-spin" />
 			Loading...
 		</div>
 	{:else if statsRequest.isSuccess}
-		<DownloadBar {stats} config={downloadConfig} />
+		<DownloadBar {stats} config={downloadConfig} {areaName} />
 
 		<div class="grid sm:grid-cols-[2fr_1fr] gap-8">
 			{#if data.description}
@@ -99,7 +94,7 @@
 
 		<hr class="divider my-12" />
 
-		<BarrierStats areaName={data.name} map={data.map} {stats} />
+		<BarrierStats {areaName} map={data.map} {stats} />
 
 		<ActionBar
 			exploreURL={`/explore/?fishhabitatpartnership=${params.id}`}

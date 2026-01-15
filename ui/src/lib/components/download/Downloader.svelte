@@ -9,15 +9,18 @@
 
 	import DownloadPopup from './DownloadPopup.svelte'
 	import UserInfoPopup from './UserInfoPopup.svelte'
+	import { cn } from '$lib/utils'
 
 	const {
 		barrierType,
+		areaName = null,
 		config,
 		customRank = false,
 		label,
 		disabled,
 		showOptions = true,
-		includeUnranked = false
+		includeUnranked = false,
+		triggerClass = null
 	} = $props()
 
 	let isUserInfoPopupOpen: boolean = $state(false)
@@ -55,7 +58,7 @@
 	}
 </script>
 
-<Button {disabled} onclick={show}>
+<Button {disabled} onclick={show} class={cn('', triggerClass)}>
 	<DownloadIcon class="size-5" />
 	{label || `Download ${barrierTypeLabel}`}
 </Button>
@@ -66,6 +69,7 @@
 	<DownloadPopup
 		bind:open={isDownloadPopupOpen}
 		{barrierType}
+		{areaName}
 		{config}
 		{includeUnranked}
 		{customRank}
