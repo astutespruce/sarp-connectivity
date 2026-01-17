@@ -1,8 +1,11 @@
+import { error as handleError } from '@sveltejs/kit'
 import { tableFromIPC } from '@uwdata/flechette'
 
 import { API_HOST } from '$lib/env'
+import { SPECIES_HABITAT_FIELDS, barrierNameWhenUnknown } from '$lib/config/constants'
 import { captureException } from '$lib/util/log'
-import type { SummaryUnits, Filters } from '$lib/types'
+import type { SummaryUnits, Filters } from '$lib/config/types'
+import { isEmptyString } from '$lib/util/string'
 
 import { pollJob } from './job'
 import type { ProgressCallback } from './job'
@@ -15,6 +18,21 @@ type APIQueryParams = {
 	sort?: string | null
 	customRank?: boolean
 }
+
+/**
+ * Extract habitat fields into a data structure per species
+ */
+const extractHabitat = (data: object) =>
+	Object.entries(SPECIES_HABITAT_FIELDS)
+		.map(([key, { label, source, limit }]) => ({
+			key,
+			label,
+			source,
+			limit,
+			upstreammiles: data[`${key}upstreammiles` as keyof typeof data] || 0,
+			downstreammiles: data[`free${key}downstreammiles` as keyof typeof data] || 0
+		}))
+		.filter(({ upstreammiles, downstreammiles }) => upstreammiles + downstreammiles > 0)
 
 /**
  * Converts units and filters into query parameters for API requests
@@ -98,7 +116,7 @@ export const fetchBarrierRanks = async (barrierType, summaryUnits, filters) => {
 	}
 }
 
-export const fetchBarrierDetails = async (networkType, sarpid) => {
+export const fetchBarrierDetails = async (networkType: string, sarpid: string) => {
 	const url = `${API_HOST}/api/v1/internal/${networkType}/details/${sarpid}`
 
 	const response = await fetch(url)
@@ -107,10 +125,29 @@ export const fetchBarrierDetails = async (networkType, sarpid) => {
 	}
 
 	const data = await response.json()
+
+	// backfill missing barriertype when originating from data with a single barrier type
+	if (!data.barriertype) {
+		data.barriertype = networkType
+	}
+	// lots of places expect this camelcase, so alias it
+	data.barrierType = data.barriertype
+
+	// backfill empty name
+	if (isEmptyString(data.name)) {
+		data.name =
+			barrierNameWhenUnknown[data.barriertype as keyof typeof barrierNameWhenUnknown] ||
+			'Unknown name'
+	}
+
+	if (data.hasnetwork) {
+		data.habitat = extractHabitat(data)
+	}
+
 	return data
 }
 
-export const searchBarriers = async (query) => {
+export const searchBarriers = async (query: string) => {
 	const url = `${API_HOST}/api/v1/internal/barriers/search?query=${query}`
 
 	try {
@@ -124,10 +161,10 @@ export const searchBarriers = async (query) => {
 
 		return {
 			results: data.toArray(),
-			remaining: parseInt(data.schema.metadata.get('count'), 10) - data.numRows
+			remaining: parseInt(data.schema!.metadata!.get('count')!, 10) - data.numRows
 		}
 	} catch (err) {
-		captureException(err)
+		captureException(err as Error | string)
 
 		throw err
 	}

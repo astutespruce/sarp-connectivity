@@ -1,6 +1,7 @@
+import type { BarrierTypePlural, NetworkType } from './types'
 export { version as dataVersion, date as dataDate } from '../../../package.json'
 
-export const barrierTypeLabels = {
+export const barrierTypeLabels: { [key in NetworkType]: string } = {
 	dams: 'dams',
 	small_barriers: 'road-related barriers',
 	road_crossings: 'road/stream crossings',
@@ -10,14 +11,14 @@ export const barrierTypeLabels = {
 	smallfish_barriers: 'dams & road-related barriers'
 }
 
-export const barrierTypeLabelSingular = {
+export const barrierTypeLabelSingular: { [key in BarrierTypePlural]: string } = {
 	dams: 'dam',
 	small_barriers: 'road-related barrier',
 	road_crossings: 'road/stream crossing',
 	waterfalls: 'waterfall'
 }
 
-export const barrierNameWhenUnknown = {
+export const barrierNameWhenUnknown: { [key in BarrierTypePlural]: string } = {
 	dams: 'Dam (unknown name)',
 	small_barriers: 'Road-related barrier (unknown name)',
 	road_crossings: 'Road / stream crossing',
@@ -105,7 +106,7 @@ export const pointLegends = {
 	// included for ranking based on filters / primary barrier in summary view
 
 	included: {
-		getSymbol: (barrierType) => {
+		getSymbol: (barrierType: NetworkType) => {
 			if (
 				barrierType === 'combined_barriers' ||
 				barrierType === 'largefish_barriers' ||
@@ -136,12 +137,12 @@ export const pointLegends = {
 				borderWidth: 1
 			}
 		},
-		getLabel: (barrierTypeLabel) => `${barrierTypeLabel} included in prioritization`
+		getLabel: (barrierTypeLabel: string) => `${barrierTypeLabel} included in prioritization`
 	},
 
 	// excluded from ranking based on filters
 	excluded: {
-		getSymbol: (barrierType) => {
+		getSymbol: (barrierType: NetworkType) => {
 			if (
 				barrierType === 'combined_barriers' ||
 				barrierType === 'largefish_barriers' ||
@@ -172,10 +173,10 @@ export const pointLegends = {
 				borderWidth: 1
 			}
 		},
-		getLabel: (barrierTypeLabel) => `${barrierTypeLabel} not included in prioritization`
+		getLabel: (barrierTypeLabel: string) => `${barrierTypeLabel} not included in prioritization`
 	},
 	topRank: {
-		getSymbol: (barrierType) => {
+		getSymbol: (barrierType: NetworkType) => {
 			if (
 				barrierType === 'combined_barriers' ||
 				barrierType === 'largefish_barriers' ||
@@ -205,10 +206,11 @@ export const pointLegends = {
 				borderWidth: 1
 			}
 		},
-		getLabel: (barrierTypeLabel, tierLabel) => `top-ranked ${barrierTypeLabel} (${tierLabel})`
+		getLabel: (barrierTypeLabel: string, tierLabel: string) =>
+			`top-ranked ${barrierTypeLabel} (${tierLabel})`
 	},
 	lowerRank: {
-		getSymbol: (barrierType) => {
+		getSymbol: (barrierType: NetworkType) => {
 			if (
 				barrierType === 'combined_barriers' ||
 				barrierType === 'largefish_barriers' ||
@@ -240,14 +242,15 @@ export const pointLegends = {
 				borderWidth: 1
 			}
 		},
-		getLabel: (barrierTypeLabel, tierLabel) => `lower-ranked ${barrierTypeLabel} (${tierLabel})`
+		getLabel: (barrierTypeLabel: string, tierLabel: string) =>
+			`lower-ranked ${barrierTypeLabel} (${tierLabel})`
 	},
 
 	// only show >= minZoom for layers
 	unrankedBarriers: [
 		{
 			id: 'removed',
-			getSymbol: (barrierType) => {
+			getSymbol: (barrierType: NetworkType) => {
 				if (
 					barrierType === 'combined_barriers' ||
 					barrierType === 'largefish_barriers' ||
@@ -277,7 +280,7 @@ export const pointLegends = {
 					borderWidth: 0.5
 				}
 			},
-			getLabel: (barrierTypeLabel) => `${barrierTypeLabel} removed for conservation`
+			getLabel: (barrierTypeLabel: string) => `${barrierTypeLabel} removed for conservation`
 		},
 		{
 			id: 'minorBarrier',
@@ -291,7 +294,7 @@ export const pointLegends = {
 		},
 		{
 			id: 'nonBarrier',
-			getSymbol: (barrierType) => {
+			getSymbol: (barrierType: NetworkType) => {
 				if (
 					barrierType === 'combined_barriers' ||
 					barrierType === 'largefish_barriers' ||
@@ -325,7 +328,7 @@ export const pointLegends = {
 		},
 		{
 			id: 'invasive',
-			getSymbol: (barrierType) => {
+			getSymbol: (barrierType: NetworkType) => {
 				if (
 					barrierType === 'combined_barriers' ||
 					barrierType === 'largefish_barriers' ||
@@ -355,12 +358,12 @@ export const pointLegends = {
 					borderWidth: 0.5
 				}
 			},
-			getLabel: (barrierTypeLabel) =>
+			getLabel: (barrierTypeLabel: string) =>
 				`${barrierTypeLabel} that prevent movement of invasive species`
 		},
 		{
 			id: 'default',
-			getSymbol: (barrierType) => {
+			getSymbol: (barrierType: NetworkType) => {
 				if (
 					barrierType === 'combined_barriers' ||
 					barrierType === 'largefish_barriers' ||
@@ -390,7 +393,7 @@ export const pointLegends = {
 					borderWidth: 1
 				}
 			},
-			getLabel: (barrierTypeLabel) => `${barrierTypeLabel} not available for prioritization`
+			getLabel: (barrierTypeLabel: string) => `${barrierTypeLabel} not available for prioritization`
 		}
 	],
 
@@ -638,7 +641,7 @@ export const ANALYSIS_STATES = [
 export const STATE_DATA_PROVIDERS = {
 	CA: [
 		{
-			key: 'ca',
+			id: 'ca',
 			description:
 				'The <a href="https://www.cafishpassageforum.org/" target="_blank">California Fish Passage Forum </a>and the <a href="https://www.psmfc.org/" target="_blank">Pacific States Marine Fisheries Commission</a> have developed and maintain a barrier inventory for the state of California, called the <a href="https://www.calfish.org/ProgramsData/HabitatandBarriers/CaliforniaFishPassageAssessmentDatabase.aspx">California Fish Passage Assessment Database</a> (PAD). The PAD is an ongoing map-based inventory of known and potential barriers to anadromous fish in California, compiled and maintained through a cooperative interagency agreement. It compiles currently available fish passage information from many different sources, allows past and future barrier assessments to be standardized and stored in one place, and enables the analysis of cumulative effects of passage barriers in the context of overall watershed health.  This dataset is the primary dataset used within this tool for the state of California.',
 			logo: 'cfpf_logo.png',
@@ -647,7 +650,7 @@ export const STATE_DATA_PROVIDERS = {
 	],
 	HI: [
 		{
-			key: 'cwrm',
+			id: 'cwrm',
 			description:
 				'Points of Diversion Data provided by the <a href="https://dlnr.hawaii.gov/cwrm/" target="_blank">Commission on Water Resource Management</a>, Department of Land and Natural Resources, State of Hawaii',
 			logo: 'hi_cwrm_logo.png',
@@ -656,7 +659,7 @@ export const STATE_DATA_PROVIDERS = {
 	],
 	ID: [
 		{
-			key: 'idfg',
+			id: 'idfg',
 			description:
 				'Records describing dams and road-related barriers within Idaho include those maintained by the <a href="https://idfg.idaho.gov/data/fisheries/resources" target="_blank">Idaho Department of Fish and Game</a>.',
 			logo: 'idfg_logo.png',
@@ -665,7 +668,7 @@ export const STATE_DATA_PROVIDERS = {
 	],
 	MT: [
 		{
-			key: 'mtfwp',
+			id: 'mtfwp',
 			description:
 				'Records describing dams and road-related barriers within Montana include those maintained by the <a href="https://fwp.mt.gov/" target="_blank">Montana Department of Fish, Wildlife, and Parks</a>.',
 			logo: 'mtfwp_logo.svg',
@@ -674,7 +677,7 @@ export const STATE_DATA_PROVIDERS = {
 	],
 	OR: [
 		{
-			key: 'odfw',
+			id: 'odfw',
 			description:
 				'Records describing dams and road-related barriers within Oregon include those maintained by the <a href="https://www.dfw.state.or.us/fish/passage/inventories.asp" target="_blank"> Oregon Department of Fish and Wildlife</a>.',
 			logo: 'odfw_logo.svg',
@@ -683,7 +686,7 @@ export const STATE_DATA_PROVIDERS = {
 	],
 	UT: [
 		{
-			key: 'utdwr',
+			id: 'utdwr',
 			description:
 				'Records describing dams and road-related barriers within Utah include those maintained by the <a href="https://wildlifemigration.utah.gov/fish-and-amphibians/barriers/" target="_blank">Utah Barrier Assessment Inventory Tool</a>.',
 			logo: 'utdwr_logo.svg',
@@ -692,7 +695,7 @@ export const STATE_DATA_PROVIDERS = {
 	],
 	WA: [
 		{
-			key: 'wdfw',
+			id: 'wdfw',
 			description:
 				'Records describing dams and road-related barriers within Washington State include those maintained by the <a href="https://wdfw.wa.gov/species-habitats/habitat-recovery/fish-passage" target="_blank">Washington State Department of Fish and Wildlife, Fish Passage Division</a>. For more information about specific structures, please visit the <a href="https://geodataservices.wdfw.wa.gov/hp/fishpassage/index.html" target="_blank">fish passage web map</a>.',
 			logo: 'wdfw_logo.svg',
@@ -701,7 +704,7 @@ export const STATE_DATA_PROVIDERS = {
 	],
 	WY: [
 		{
-			key: 'wygfd',
+			id: 'wygfd',
 			description:
 				'Information on aquatic barriers in Wyoming is a product of the <a href="https://wgfd.wyo.gov/habitat/aquatic-habitat" target="_blank">Wyoming Game & Fish Department</a>, including field data collection in coordination with the Southeast Aquatic Resources Partnership.',
 			logo: 'wygfd_logo.png',
@@ -1683,7 +1686,13 @@ export const YEAR_SURVEYED_BINS = {
 	9: '2025'
 }
 
-export const SPECIES_HABITAT_FIELDS = {
+type SPECIES_HABITAT_FIELD = {
+	label: string
+	source: string
+	limit?: string
+}
+
+export const SPECIES_HABITAT_FIELDS: { [key: string]: SPECIES_HABITAT_FIELD } = {
 	// StreamNet
 	bonnevillecutthroattrouthabitat: {
 		label: 'Bonneville cutthroat trout',

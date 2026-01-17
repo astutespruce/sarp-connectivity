@@ -2,7 +2,6 @@
 	import { resolve } from '$app/paths'
 
 	import { REGIONS } from '$lib/config/constants'
-	import { id } from 'zod/locales'
 
 	const mapImages = import.meta.glob('$lib/assets/images/maps/regions/*.png', {
 		eager: true,

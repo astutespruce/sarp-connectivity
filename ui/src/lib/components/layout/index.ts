@@ -1,6 +1,7 @@
 import Analytics from './Analytics.svelte'
 import Footer from './Footer.svelte'
 import Header from './Header.svelte'
+import NotFoundPage from './NotFoundPage.svelte'
 import PageLoadingError from './PageLoadingError.svelte'
 
-export { Analytics, Footer, Header, PageLoadingError }
+export { Analytics, Footer, Header, NotFoundPage, PageLoadingError }
