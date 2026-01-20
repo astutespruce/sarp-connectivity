@@ -11,6 +11,7 @@ export const API_HOST = env.PUBLIC_API_HOST || ''
 export const TILE_HOST = env.PUBLIC_TILE_HOST || ''
 
 export const SITE_NAME = 'National Aquatic Barrier Inventory & Prioritization Tool'
+export const SITE_URL = env.PUBLIC_SITE_URL || 'https://tool.aquaticbarriers.org'
 
 // Mailchimp form used for submitting user info for download
 export const MAILCHIMP_FORM = {

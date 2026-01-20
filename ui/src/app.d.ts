@@ -1,3 +1,5 @@
+import type { Map } from 'mapbox-gl'
+
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
 declare global {
@@ -18,6 +20,9 @@ declare global {
 		Sentry: {
 			captureException: (any) => void
 		}
+
+		// map is dynamically added to window on map pages
+		map: Map | undefined
 	}
 }
 

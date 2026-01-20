@@ -108,7 +108,10 @@
 	</div>
 {/snippet}
 
-<div class="absolute z-1 flex gap-2 items-center group" style="bottom:{bottom};left:{left}">
+<div
+	class="absolute z-1 flex gap-2 items-center group print:hidden"
+	style="bottom:{bottom};left:{left}"
+>
 	{@render basemapButton(nextBasemap)}
 
 	{#each options.filter(({ id }) => id !== nextBasemap.id) as altBasemap (altBasemap.id)}

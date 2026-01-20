@@ -20,8 +20,6 @@
 	const pageTitle = $derived(
 		data && data.name ? `Barrier report for ${data.name}` : 'Barrier report'
 	)
-
-	$inspect('data', data).with(console.log)
 </script>
 
 <svelte:head>

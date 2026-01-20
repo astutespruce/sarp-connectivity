@@ -27,11 +27,15 @@
 	{/if}
 {/snippet}
 
-<div class="text-sm [&>div+div]:mt-0.75">
+<div
+	class={cn('text-sm', {
+		'grid grid-cols-2': entries.length >= 6
+	})}
+>
 	{#each entries as entry, i (entry.label)}
-		<div class="flex gap-2 leading-tight">
+		<div class="flex gap-2 leading-tight not-first:mt-0.75">
 			<div
-				class={cn('flex-none flex gap-0.5 w-3 basis-4 items-center', {
+				class={cn('flex-none flex gap-0.5 w-3 basis-4 items-center ', {
 					'basis-7': haveSymbols,
 					'items-baseline': entry.symbols
 				})}

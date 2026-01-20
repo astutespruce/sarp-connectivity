@@ -184,6 +184,77 @@
 	.step {
 		@apply flex justify-center items-center flex-none rounded-full size-10 font-bold bg-black text-white text-lg;
 	}
+
+	.report-container {
+		@apply container;
+
+		h3 {
+			@apply text-2xl py-2 px-4 mb-2 bg-grey-1/75;
+		}
+
+		section {
+			@apply break-inside-avoid mt-24 print:mt-8;
+		}
+
+		table {
+			@apply w-full text-sm;
+			thead {
+				@apply font-bold border-b-2 border-b-grey-2 text-left;
+				th {
+					@apply pb-1 not-last-of-type:pr-6;
+				}
+				th + th {
+					@apply text-right;
+				}
+			}
+			tbody {
+				tr + tr {
+					@apply border-t border-t-grey-1;
+				}
+				td {
+					@apply not-last-of-type:pr-6 py-1;
+				}
+				td + td {
+					@apply text-right;
+				}
+			}
+		}
+
+		.report-entries {
+			& > div {
+				@apply px-2 leading-snug text-sm not-first-of-type:mt-2 not-first-of-type:pt-1 not-first-of-type:border-t not-first-of-type:border-t-grey-1;
+			}
+		}
+	}
+
+	@media print {
+		@page :first {
+			counter-set: page 0;
+		}
+		@page {
+			size: letter portrait;
+			margin: 0.25in 0.25in 0.5in 0.25in;
+			@top-right {
+				content: '';
+			}
+			@bottom-right {
+				@apply text-muted-foreground text-xs;
+				counter-increment: page;
+				content: 'Page ' counter(page);
+			}
+			@bottom-left {
+				@apply text-muted-foreground text-xs;
+				/* dynamically set print footer; this is added to the html element in the root layout */
+				content: var(--print-footer);
+			}
+		}
+		body {
+			margin: 0;
+			height: auto;
+			print-color-adjust: exact !important;
+			background: #fff;
+		}
+	}
 }
 
 @utility container {

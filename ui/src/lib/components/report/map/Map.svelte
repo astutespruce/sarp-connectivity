@@ -323,7 +323,7 @@
 
 <div class="flex gap-8 mt-2">
 	<!-- locator map is 2in -->
-	<div class="relative w-[142pt] h-[142pt] border border-grey-4 mt-2">
+	<div class="relative w-[142pt] h-[142pt] border border-grey-4 mt-2 flex-none">
 		<div
 			bind:this={locatorMapNode}
 			class="w-full h-full print:hidden [&_.mapboxgl-ctrl-logo]:hidden!"

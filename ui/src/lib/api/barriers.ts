@@ -24,13 +24,13 @@ type APIQueryParams = {
  */
 const extractHabitat = (data: object) =>
 	Object.entries(SPECIES_HABITAT_FIELDS)
-		.map(([key, { label, source, limit }]) => ({
-			key,
+		.map(([id, { label, source, limit }]) => ({
+			id,
 			label,
 			source,
 			limit,
-			upstreammiles: data[`${key}upstreammiles` as keyof typeof data] || 0,
-			downstreammiles: data[`free${key}downstreammiles` as keyof typeof data] || 0
+			upstreammiles: data[`${id}upstreammiles` as keyof typeof data] || 0,
+			downstreammiles: data[`free${id}downstreammiles` as keyof typeof data] || 0
 		}))
 		.filter(({ upstreammiles, downstreammiles }) => upstreammiles + downstreammiles > 0)
 
