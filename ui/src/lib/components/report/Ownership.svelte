@@ -55,7 +55,7 @@
 </script>
 
 <section>
-	<h3>Ownership & construction information</h3>
+	<h2>Ownership & construction information</h2>
 
 	<div class="grid sm:grid-cols-2 sm:gap-4">
 		<div class="report-entries">

@@ -29,7 +29,7 @@
 
 <div
 	class={cn('text-sm', {
-		'grid grid-cols-2': entries.length >= 6
+		'grid sm:grid-cols-2': entries.length >= 6
 	})}
 >
 	{#each entries as entry, i (entry.label)}

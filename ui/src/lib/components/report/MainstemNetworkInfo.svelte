@@ -76,7 +76,7 @@
 </script>
 
 <section>
-	<h3>Mainstem network information</h3>
+	<h2>Mainstem network information</h2>
 	<div class="text-xs text-muted-foreground">
 		Upstream mainstem networks include the stream reaches upstream that are the same stream order as
 		the one associated with this barrier (excludes smaller tributaries) with at least 1 square mile

@@ -78,7 +78,7 @@
 </script>
 
 <section>
-	<h3>Functional network information</h3>
+	<h2>Functional network information</h2>
 
 	{#if excluded}
 		<div class="text-sm">

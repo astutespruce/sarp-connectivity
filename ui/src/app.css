@@ -186,14 +186,14 @@
 	}
 
 	.report-container {
-		@apply container;
+		@apply container max-w-188 print:max-w-full pt-4 sm:pt-8 pb-8 print:pt-0;
 
-		h3 {
-			@apply text-2xl py-2 px-4 mb-2 bg-grey-1/75;
+		h2 {
+			@apply text-xl py-1.5 px-4 -mx-4 mb-2 bg-grey-1/75;
 		}
 
 		section {
-			@apply break-inside-avoid mt-24 print:mt-8;
+			@apply break-inside-avoid mt-12 sm:mt-24 print:mt-8;
 		}
 
 		table {
@@ -222,7 +222,7 @@
 
 		.report-entries {
 			& > div {
-				@apply px-2 leading-snug text-sm not-first-of-type:mt-2 not-first-of-type:pt-1 not-first-of-type:border-t not-first-of-type:border-t-grey-1;
+				@apply leading-snug text-sm not-first-of-type:mt-2 not-first-of-type:pt-1 not-first-of-type:border-t not-first-of-type:border-t-grey-1;
 			}
 		}
 	}

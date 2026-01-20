@@ -2,11 +2,10 @@
 	import WarningIcon from '@lucide/svelte/icons/triangle-alert'
 
 	import { CONTACT_EMAIL } from '$lib/env'
-	import { attachmentKeywords, dataVersion } from '$lib/config/constants'
+	import { dataVersion } from '$lib/config/constants'
 	import { isEmptyString } from '$lib/util/string'
 
 	const {
-		barrierType,
 		sarpid,
 		nidfederalid,
 		nidid,
@@ -15,32 +14,12 @@
 		partnerid,
 		sourcelink,
 		nearestusgscrossingid,
-		attachments: rawAttachments,
 		estimated
 	} = $props()
-
-	const attachments = $derived.by(() => {
-		if (isEmptyString(rawAttachments)) {
-			return []
-		}
-
-		const [prefix, parts] = rawAttachments.split('|')
-		return parts
-			.split(',')
-			.sort((a: string, b: string) =>
-				attachmentKeywords.indexOf(a.split(':')[0]) < attachmentKeywords.indexOf(b.split(':')[0])
-					? -1
-					: 1
-			)
-			.map((part: string) => {
-				const [keyword, partId] = part.split(':')
-				return { keyword, url: `${prefix}/${partId}` }
-			})
-	})
 </script>
 
 <section>
-	<h3>Data sources</h3>
+	<h2>Data sources</h2>
 	<div class="report-entries">
 		<div>
 			SARP ID: {sarpid} (data version: {dataVersion})
@@ -137,35 +116,6 @@
 					</a>.
 				</div>
 			{/if}
-		{/if}
-
-		{#if barrierType === 'small_barriers' && attachments.length > 0}
-			<div>
-				<div class="flex gap-2 items-baseline">
-					<div class="font-bold text-lg">Barrier survey photos:</div>
-					<div class="text-xs">(click for full size)</div>
-				</div>
-				<div class={`grid sm:grid-cols-${Math.min(3, attachments.length)} gap-4 mt-2`}>
-					{#each attachments as attachment (attachment.url)}
-						<a
-							href={attachment.url}
-							target="_blank"
-							rel="external"
-							class="flex flex-col overflow-hidden items-center min-w-50"
-						>
-							<img
-								src={attachment.url}
-								alt={attachment.keyword}
-								class="w-full border border-grey-7 hover:border-link"
-							/>
-
-							<div class="text-xs text-muted-foreground text-center">
-								{attachment.keyword}
-							</div>
-						</a>
-					{/each}
-				</div>
-			</div>
 		{/if}
 
 		{#if estimated}

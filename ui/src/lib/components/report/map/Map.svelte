@@ -292,17 +292,16 @@
 	}
 </script>
 
-<!-- width=538pt (7.5in once border is added), height=396pt (5.5in) -->
-<div class="relative w-[538pt] h-132 z-1 border border-grey-4 mt-2">
+<div class="relative z-1 border border-grey-4 mt-2 overflow-hidden">
 	<div
 		bind:this={mapNode}
-		class="w-full h-full print:hidden [&_.mapboxgl-ctrl-logo]:hidden! [&_.mapboxgl-ctrl-attrib]:hidden!"
+		class="w-full sm:w-188 h-132 print:hidden [&_.mapboxgl-ctrl-logo]:hidden! [&_.mapboxgl-ctrl-attrib]:hidden!"
 	></div>
 	{#if isLoaded}
 		<BasemapSelector {map} bottom="10px" size="40px" onUpdate={handleUpdateBasemap} />
 	{/if}
 
-	<img bind:this={imageNode} class="hidden print:block relative z-1" alt="map" />
+	<img bind:this={imageNode} class="hidden print:block relative z-1 h-132" alt="map" />
 
 	{#if scalebarLabel}
 		<div
@@ -321,15 +320,14 @@
 	</div>
 </div>
 
-<div class="flex gap-8 mt-2">
-	<!-- locator map is 2in -->
-	<div class="relative w-[142pt] h-[142pt] border border-grey-4 mt-2 flex-none">
+<div class="flex flex-wrap sm:flex-nowrap gap-8 mt-2">
+	<div class="size-50 relative border border-grey-4 mt-2 flex-none">
 		<div
 			bind:this={locatorMapNode}
 			class="w-full h-full print:hidden [&_.mapboxgl-ctrl-logo]:hidden!"
 		></div>
 
-		<img bind:this={locatorImageNode} class="hidden print:block relative z-1" alt="locator map" />
+		<img bind:this={locatorImageNode} class="hidden print:block z-1" alt="locator map" />
 	</div>
 
 	<Legend {networkType} {name} {visibleLayers} />

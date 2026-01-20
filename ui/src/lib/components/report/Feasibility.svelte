@@ -4,7 +4,7 @@
 </script>
 
 <section>
-	<h3>Feasibility & conservation benefit</h3>
+	<h2>Feasibility & conservation benefit</h2>
 
 	<div class="report-entries">
 		<div>

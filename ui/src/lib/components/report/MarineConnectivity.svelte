@@ -18,7 +18,7 @@
 </script>
 
 <section>
-	<h3>Marine connectivity</h3>
+	<h2>Marine connectivity</h2>
 
 	<div
 		class={`grid sm:grid-cols-${numCols} gap-4 mt-4 leading-snug sm:[&>div]:py-2 sm:[&>div+div]:border-l sm:[&>div+div]:border-l-grey-2 sm:[&>div+div]:pl-4`}

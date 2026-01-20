@@ -55,7 +55,7 @@
 </script>
 
 <div class="leading-tight">
-	<h1 class="font-bold text-2xl sm:text-3xl">{name}</h1>
+	<h1 class="font-bold text-xl sm:text-[1.75rem] leading-tight">{name}</h1>
 	{#if removed}
 		<div class="flex items-center gap-2 mt-1 mb-4">
 			<RemovedBarrierIcon class="text-blue-8 size-5" />
@@ -71,24 +71,24 @@
 		</div>
 	{/if}
 
-	<div class="flex text-muted-foreground justify-between gap-8 mt-1">
+	<div class="flex flex-wrap text-muted-foreground justify-between gap-2 sm:gap-8 mt-2">
 		<div class="flex-auto">
 			Barrier type: {barrierTypeLabel}
 		</div>
 
 		{#if yearsurveyed !== 0}
 			<div class="flex-none">
-				surveyed in {yearsurveyed}
+				Surveyed in {yearsurveyed}
 				{resurveyed !== 0 ? ' (resurveyed)' : null}
 			</div>
 		{/if}
 	</div>
 
-	<div class="flex justify-between gap-8 mt-1 text-muted-foreground">
+	<div class="flex flex-wrap justify-between gap-2 sm:gap-8 mt-4 text-muted-foreground">
 		<div class="flex-auto">
 			{county} County, {STATES[state as keyof typeof STATES]}
 		</div>
-		<div class="flex-none text-sm">
+		<div class="flex-none">
 			Located at {formatNumber(lat, 5)}
 			&deg; N / {formatNumber(lon, 5)}
 			&deg; E

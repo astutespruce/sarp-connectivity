@@ -20,7 +20,7 @@
 </script>
 
 <section>
-	<h3>Landscape context</h3>
+	<h2>Landscape context</h2>
 
 	<div class="report-entries">
 		{#if cold}
@@ -61,10 +61,12 @@
 		{/if}
 
 		{#if ejtract || ejtribal}
-			Climate and environmental justice:
-			{ejtract ? 'within a disadvantaged census tract' : null}
-			{ejtract && ejtribal ? ', ' : null}
-			{ejtribal ? 'within a tribal community' : null}
+			<div>
+				Climate and environmental justice:
+				{ejtract ? 'within a disadvantaged census tract' : null}
+				{ejtract && ejtribal ? ', ' : null}
+				{ejtribal ? 'within a tribal community' : null}
+			</div>
 		{/if}
 
 		{#if nativeterritories}

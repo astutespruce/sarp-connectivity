@@ -7,26 +7,27 @@
 </script>
 
 <section>
-	<div class="bg-grey-1/50 rounded-md p-4 text-sm">
-		<div class="font-bold text-lg">Contact us</div>
-		<div class="mt-2">
-			If you see an issue with the details for this barrier, please
-			<a
-				href={`mailto:${CONTACT_EMAIL}?subject=Problem with National Aquatic Barrier Inventory for ${
-					barrierType === 'dams' ? 'dam' : 'road-related barrier'
-				}: ${sarpid} (data version: ${dataVersion})&body=I found the following problem with the Inventory for this barrier:`}
-			>
-				let us know!
-			</a>
-			<br />
-			<br />
-			If you would like more information about this barrier or the aquatic connectivity analysis results
-			presented above, please
-			<a href={`mailto:${CONTACT_EMAIL}`}>contact us</a>.
-		</div>
+	<h2>Contact us</h2>
+
+	<div class="text-sm">
+		If you see an issue with the details for this barrier, please
+		<a
+			href={`mailto:${CONTACT_EMAIL}?subject=Problem with National Aquatic Barrier Inventory for ${
+				barrierType === 'dams' ? 'dam' : 'road-related barrier'
+			}: ${sarpid} (data version: ${dataVersion})&body=I found the following problem with the Inventory for this barrier:`}
+		>
+			let us know!
+		</a>
+		<br />
+		<br />
+		If you would like more information about this barrier or the aquatic connectivity analysis results
+		presented above, please
+		<a href={`mailto:${CONTACT_EMAIL}`}>contact us</a>.
 	</div>
 
-	<div class="grid sm:grid-cols-[1fr_200px] gap-8 mt-8">
+	<hr />
+
+	<div class="grid sm:grid-cols-[1fr_180px] gap-8 mt-12">
 		<div class="text-xs">
 			This report was created on {new Date().toLocaleDateString()} using the
 			<a href={SITE_URL} target="_blank" rel="external">

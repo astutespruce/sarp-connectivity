@@ -39,7 +39,7 @@
 </script>
 
 <section>
-	<h3>Location within the aquatic network</h3>
+	<h2>Location within the aquatic network</h2>
 
 	<div class="report-entries">
 		<div>

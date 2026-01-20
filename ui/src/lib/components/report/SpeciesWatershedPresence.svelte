@@ -9,7 +9,7 @@
 </script>
 
 <section>
-	<h3>Species information for this subwatershed</h3>
+	<h2>Species information for this subwatershed</h2>
 
 	<div class="text-sm">
 		Data sources in the subwatershed containing this
@@ -30,7 +30,7 @@
 		</div>
 	</div>
 
-	<div class="mt-6">
+	<div class="mt-6 text-sm">
 		{#if trout}This subwatershed includes recorded observations of {troutSpp.join(
 				troutSpp.length === 2 ? ' and ' : ', '
 			)}.
@@ -40,7 +40,7 @@
 	</div>
 
 	{#if salmonidesu}
-		<div class="mt-6">
+		<div class="mt-6 text-sm">
 			This subwatershed falls within the following salmon Evolutionarily Significant Units (ESU) /
 			steelhead trout Discrete Population Segments (DPS):
 			<ul class="list-disc list-outside mt-1 pl-8">

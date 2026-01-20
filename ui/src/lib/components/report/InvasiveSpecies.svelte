@@ -7,7 +7,7 @@
 </script>
 
 <section>
-	<h3>Invasive species management</h3>
+	<h2>Invasive species management</h2>
 
 	<div>
 		{#if invasive}

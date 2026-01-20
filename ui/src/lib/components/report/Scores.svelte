@@ -34,7 +34,7 @@
 </script>
 
 <section>
-	<h3>Connectivity ranks</h3>
+	<h2>Connectivity ranks</h2>
 
 	{#if invasive}
 		This {barrierTypeLabel} was excluded from prioritization because it provides an ecological benefit

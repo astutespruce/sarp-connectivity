@@ -11,7 +11,7 @@
 </script>
 
 <section>
-	<h3>Species habitat information for this network</h3>
+	<h2>Species habitat information for this network</h2>
 
 	<table cellpadding="0" cellspacing="0" class="mt-4">
 		<thead>

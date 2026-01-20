@@ -19,6 +19,7 @@
 	import Scores from './Scores.svelte'
 	import SpeciesHabitat from './SpeciesHabitat.svelte'
 	import SpeciesWatershedPresence from './SpeciesWatershedPresence.svelte'
+	import SurveyPhotos from './SurveyPhotos.svelte'
 
 	const { networkType, data } = $props()
 
@@ -29,8 +30,8 @@
 	console.log('data', data)
 </script>
 
-<div class="report-container max-w-180 pt-8 pb-8 print:pt-0">
-	<div class="flex gap-8 justify-between border-b border-b-grey-1 pb-4 mb-4 print:hidden">
+<div class="report-container">
+	<div class="hidden sm:flex gap-8 justify-between border-b border-b-grey-1 pb-4 mb-4 print:hidden">
 		<div class="text-muted-foreground text-xs flex-auto">
 			Use the map below to define the extent and basemap you want visible in your report. Use the <b
 				>Print/Save PDF</b
@@ -83,6 +84,10 @@
 	{/if}
 
 	<IDInfo {...data} />
+
+	{#if data.barrierType === 'small_barriers' && data.attachments.length > 0}
+		<SurveyPhotos {...data} />
+	{/if}
 
 	<Footer {...data} />
 </div>
