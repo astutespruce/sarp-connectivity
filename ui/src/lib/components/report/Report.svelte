@@ -27,11 +27,15 @@
 </svelte:head>
 
 {#if dataRequest.error}
-	<PageLoadingError />
+	<div class="container">
+		<PageLoadingError />
+	</div>
 {:else if dataRequest.isLoading}
-	<div class="flex justify-center items-center gap-4 text-xl text-muted-foreground mt-12">
-		<LoadingIcon class="size-12 motion-safe:animate-spin" />
-		Loading...
+	<div class="container">
+		<div class="flex justify-center items-center gap-4 text-xl text-muted-foreground mt-16">
+			<LoadingIcon class="size-12 motion-safe:animate-spin" />
+			Loading...
+		</div>
 	</div>
 {:else if dataRequest.isSuccess}
 	{#if data}

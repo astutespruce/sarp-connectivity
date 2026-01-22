@@ -3,25 +3,25 @@ export { version as dataVersion, date as dataDate } from '../../../package.json'
 
 export const barrierTypeLabels: { [key in NetworkType]: string } = {
 	dams: 'dams',
-	small_barriers: 'road-related barriers',
-	road_crossings: 'road/stream crossings',
+	small_barriers: 'surveyed road/stream crossings',
+	road_crossings: 'unsurveyed road/stream crossings',
 	waterfalls: 'waterfalls',
-	combined_barriers: 'dams & road-related barriers',
-	largefish_barriers: 'dams & road-related barriers',
-	smallfish_barriers: 'dams & road-related barriers'
+	combined_barriers: 'dams & surveyed road/stream crossings',
+	largefish_barriers: 'dams & surveyed road/stream crossings',
+	smallfish_barriers: 'dams & surveyed road/stream crossings'
 }
 
 export const barrierTypeLabelSingular: { [key in BarrierTypePlural]: string } = {
 	dams: 'dam',
-	small_barriers: 'road-related barrier',
-	road_crossings: 'road/stream crossing',
+	small_barriers: 'surveyed road/stream crossing',
+	road_crossings: 'unsurveyed road/stream crossing',
 	waterfalls: 'waterfall'
 }
 
 export const barrierNameWhenUnknown: { [key in BarrierTypePlural]: string } = {
 	dams: 'Dam (unknown name)',
-	small_barriers: 'Road-related barrier (unknown name)',
-	road_crossings: 'Road / stream crossing',
+	small_barriers: 'Surveyed road / stream crossing (unknown name)',
+	road_crossings: 'Unsurveyed road / stream crossing',
 	waterfalls: 'Waterfall (unknown name)'
 }
 
@@ -661,7 +661,7 @@ export const STATE_DATA_PROVIDERS = {
 		{
 			id: 'idfg',
 			description:
-				'Records describing dams and road-related barriers within Idaho include those maintained by the <a href="https://idfg.idaho.gov/data/fisheries/resources" target="_blank">Idaho Department of Fish and Game</a>.',
+				'Records describing dams and surveyed road/stream crossings within Idaho include those maintained by the <a href="https://idfg.idaho.gov/data/fisheries/resources" target="_blank">Idaho Department of Fish and Game</a>.',
 			logo: 'idfg_logo.png',
 			logoWidth: '64px'
 		}
@@ -670,7 +670,7 @@ export const STATE_DATA_PROVIDERS = {
 		{
 			id: 'mtfwp',
 			description:
-				'Records describing dams and road-related barriers within Montana include those maintained by the <a href="https://fwp.mt.gov/" target="_blank">Montana Department of Fish, Wildlife, and Parks</a>.',
+				'Records describing dams and surveyed road/stream crossings within Montana include those maintained by the <a href="https://fwp.mt.gov/" target="_blank">Montana Department of Fish, Wildlife, and Parks</a>.',
 			logo: 'mtfwp_logo.svg',
 			logoWidth: '80px'
 		}
@@ -679,7 +679,7 @@ export const STATE_DATA_PROVIDERS = {
 		{
 			id: 'odfw',
 			description:
-				'Records describing dams and road-related barriers within Oregon include those maintained by the <a href="https://www.dfw.state.or.us/fish/passage/inventories.asp" target="_blank"> Oregon Department of Fish and Wildlife</a>.',
+				'Records describing dams and surveyed road/stream crossings within Oregon include those maintained by the <a href="https://www.dfw.state.or.us/fish/passage/inventories.asp" target="_blank"> Oregon Department of Fish and Wildlife</a>.',
 			logo: 'odfw_logo.svg',
 			logoWidth: '240px'
 		}
@@ -688,7 +688,7 @@ export const STATE_DATA_PROVIDERS = {
 		{
 			id: 'utdwr',
 			description:
-				'Records describing dams and road-related barriers within Utah include those maintained by the <a href="https://wildlifemigration.utah.gov/fish-and-amphibians/barriers/" target="_blank">Utah Barrier Assessment Inventory Tool</a>.',
+				'Records describing dams and surveyed road/stream crossings within Utah include those maintained by the <a href="https://wildlifemigration.utah.gov/fish-and-amphibians/barriers/" target="_blank">Utah Barrier Assessment Inventory Tool</a>.',
 			logo: 'utdwr_logo.svg',
 			logoWidth: '300px'
 		}
@@ -697,7 +697,7 @@ export const STATE_DATA_PROVIDERS = {
 		{
 			id: 'wdfw',
 			description:
-				'Records describing dams and road-related barriers within Washington State include those maintained by the <a href="https://wdfw.wa.gov/species-habitats/habitat-recovery/fish-passage" target="_blank">Washington State Department of Fish and Wildlife, Fish Passage Division</a>. For more information about specific structures, please visit the <a href="https://geodataservices.wdfw.wa.gov/hp/fishpassage/index.html" target="_blank">fish passage web map</a>.',
+				'Records describing dams and surveyed road/stream crossings within Washington State include those maintained by the <a href="https://wdfw.wa.gov/species-habitats/habitat-recovery/fish-passage" target="_blank">Washington State Department of Fish and Wildlife, Fish Passage Division</a>. For more information about specific structures, please visit the <a href="https://geodataservices.wdfw.wa.gov/hp/fishpassage/index.html" target="_blank">fish passage web map</a>.',
 			logo: 'wdfw_logo.svg',
 			logoWidth: '240px'
 		}
@@ -919,11 +919,11 @@ export const DOWNSTREAM_OCEAN_DAMS_DOMAIN = {
 
 export const DOWNSTREAM_OCEAN_SMALL_BARRIERS_DOMAIN = {
 	0: 'not on an aquatic network known to flow into the ocean',
-	1: 'no dams or road-related barriers',
+	1: 'no dams or surveyed road/stream crossings',
 	2: '1 dam or road-related barrier',
-	3: '2-4 dams or road-related barriers',
-	4: '5-9 dams or road-related barriers',
-	5: '>= 10 dams or road-related barriers'
+	3: '2-4 dams or surveyed road/stream crossings',
+	4: '5-9 dams or surveyed road/stream crossings',
+	5: '>= 10 dams or surveyed road/stream crossings'
 }
 
 export const CROSSING_TYPE = {
@@ -1849,3 +1849,5 @@ export const attachmentKeywords = [
 	'optional1',
 	'optional2'
 ]
+
+export const METRICS = ['nc', 'wc', 'ncwc', 'pnc', 'pwc', 'pncwc', 'mnc', 'mwc', 'mncwc']
