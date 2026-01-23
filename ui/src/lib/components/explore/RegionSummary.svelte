@@ -3,31 +3,29 @@
 
 	import { resolve } from '$app/paths'
 	import { MAP_SERVICES, barrierTypeLabels } from '$lib/config/constants'
-	import { formatNumber, pluralize, singularOrPlural } from '$lib/util/format'
+	import type { BarrierTypePlural } from '$lib/config/types'
+	import { formatNumber } from '$lib/util/format'
 	import { Downloader } from '$lib/components/download'
-	import { formatNumber } from 'util/format'
+	import { Search } from '$lib/components/unitsearch'
 	import { cn } from '$lib/utils'
-
-	import { Search } from '$lib/components/sidebar/unit'
-	import { BarrierTypePlural } from '$lib/config/types'
 
 	const {
 		barrierType,
-		region,
-		url,
-		urlLabel,
+		region = null,
+		url = null,
+		urlLabel = null,
 		name,
-		dams,
-		reconDams,
-		rankedDams,
-		removedDams,
-		removedDamsGainMiles,
-		totalSmallBarriers,
-		smallBarriers,
-		rankedSmallBarriers,
-		removedSmallBarriers,
-		removedSmallBarriersGainMiles,
-		unsurveyedRoadCrossings,
+		dams = 0,
+		reconDams = 0,
+		rankedDams = 0,
+		removedDams = 0,
+		removedDamsGainMiles = 0,
+		totalSmallBarriers = 0,
+		smallBarriers = 0,
+		rankedSmallBarriers = 0,
+		removedSmallBarriers = 0,
+		removedSmallBarriersGainMiles = 0,
+		unsurveyedRoadCrossings = 0,
 		system,
 		onSelectUnit
 	} = $props()

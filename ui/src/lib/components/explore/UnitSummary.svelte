@@ -9,10 +9,10 @@
 	import { formatNumber, pluralize, singularOrPlural } from '$lib/util/format'
 	import { Downloader } from '$lib/components/download'
 	import { layers } from '$lib/components/explore/layers'
+	import { Search } from '$lib/components/unitsearch'
 	import { cn } from '$lib/utils'
 
-	import ListItem from './ListItem.svelte'
-	import Search from './Search.svelte'
+	import ListItem from './UnitListItem.svelte'
 
 	type SummaryUnit = {
 		id: string

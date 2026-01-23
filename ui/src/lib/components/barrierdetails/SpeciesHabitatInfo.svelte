@@ -3,11 +3,10 @@
 	import { barrierTypeLabelSingular } from '$lib/config/constants'
 	import { ExpandableParagraph } from '$lib/components/text'
 	import { InfoTooltip } from '$lib/components/tooltip'
-	import { cn } from '$lib/utils'
 	import { formatNumber } from '$lib/util/format'
 
 	import Entry from './Entry.svelte'
-	import { BarrierTypePlural } from '$lib/config/types'
+	import type { BarrierTypePlural } from '$lib/config/types'
 
 	const { barrierType, diadromoushabitat, habitat } = $props()
 </script>

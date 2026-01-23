@@ -126,8 +126,8 @@ export const mapToDataURL = async (map: MapboxGLMapType) =>
  * @returns
  */
 export const getHighlightExpr = (
-	defaultExpr: string | ExpressionSpecification,
-	highlightExpr: string | ExpressionSpecification
+	defaultExpr: string | number | ExpressionSpecification,
+	highlightExpr: string | number | ExpressionSpecification
 ) => ['case', ['boolean', ['feature-state', 'highlight'], false], highlightExpr, defaultExpr]
 
 /**

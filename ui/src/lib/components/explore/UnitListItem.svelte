@@ -33,7 +33,7 @@
 			case 'small_barriers': {
 				return {
 					count: totalSmallBarriers,
-					countMessage: `${formatNumber(totalSmallBarriers)} assessed road/stream ${pluralize(
+					countMessage: `${formatNumber(totalSmallBarriers)} surveyed road/stream ${pluralize(
 						'crossing',
 						totalSmallBarriers
 					)} (out of ${formatNumber(totalRoadBarriers)} total ${pluralize(
@@ -47,7 +47,7 @@
 					count: dams + totalSmallBarriers,
 					countMessage: `${formatNumber(dams)} ${pluralize('dam', dams)} and ${formatNumber(
 						totalSmallBarriers
-					)} assessed road/stream ${pluralize(
+					)} surveyed road/stream ${pluralize(
 						'crossing',
 						totalSmallBarriers
 					)} (out of ${formatNumber(totalRoadBarriers)} total ${pluralize(

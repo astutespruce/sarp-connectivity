@@ -4,6 +4,7 @@
 	// add no-underline to default
 	// remove text-sm from base
 	// change background on secondary to bg-foreground
+	// remove hover background on ghost, change to hover:text-foreground
 
 	import { cn, type WithElementRef } from '$lib/utils.js'
 	import type { HTMLAnchorAttributes, HTMLButtonAttributes } from 'svelte/elements'
@@ -19,7 +20,7 @@
 				outline:
 					'bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 border',
 				secondary: 'bg-foreground text-primary-foreground shadow-xs hover:bg-muted-foreground/70',
-				ghost: 'hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50',
+				ghost: 'hover:text-foreground',
 				link: 'text-primary underline-offset-4 hover:underline',
 				header:
 					'bg-transparent text-lg text-white no-underline hover:bg-primary/90 focus-visible:ring-white'
