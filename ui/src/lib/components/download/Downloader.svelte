@@ -14,10 +14,10 @@
 	const {
 		barrierType,
 		areaName = null,
-		config,
+		config = {},
 		customRank = false,
 		label,
-		disabled,
+		disabled = false,
 		showOptions = true,
 		includeUnranked = false,
 		triggerClass = null

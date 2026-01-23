@@ -35,8 +35,9 @@
 	{#each entries as entry, i (entry.label)}
 		<div class="flex gap-2 leading-tight not-first:mt-0.75">
 			<div
-				class={cn('flex-none flex gap-0.5 w-3 basis-4 items-center ', {
+				class={cn('flex-none flex gap-0.5 w-3 basis-4 items-start', {
 					'basis-7': haveSymbols,
+					'items-center': entry.type === 'line',
 					'items-baseline': entry.symbols
 				})}
 			>

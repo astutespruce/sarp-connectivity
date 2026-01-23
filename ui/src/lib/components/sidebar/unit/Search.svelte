@@ -22,7 +22,14 @@
 	}
 	type ResponseData = { results: SearchResult[]; remaining: number }
 
-	const { barrierType, system, layer, ignoreIds = null, showCount = false, onSelect } = $props()
+	const {
+		barrierType,
+		system,
+		layer = null,
+		ignoreIds = null,
+		showCount = false,
+		onSelect
+	} = $props()
 
 	let query = $state('')
 	let debouncedQuery = $state('')
@@ -147,6 +154,7 @@
 						{barrierType}
 						{...result}
 						{showID}
+						{showCount}
 						disabled={ignoreIds && ignoreIds.has(result.id)}
 						focused={i === activeIndex}
 						onClick={() => handleSelect(result)}

@@ -1,3 +1,4 @@
 import Search from './Search.svelte'
+import Summary from './Summary.svelte'
 
-export { Search }
+export { Search, Summary }

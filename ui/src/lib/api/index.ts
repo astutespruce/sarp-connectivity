@@ -2,7 +2,14 @@ import { fetchBarrierDetails, getDownloadURL } from './barriers'
 import type { ProgressCallback, ProgressCallbackParams } from './job'
 
 import { fetchJSONP } from './request'
-import { fetchUnitDetails, fetchUnitList } from './units'
+import { fetchUnitDetails, fetchUnitList, searchUnits } from './units'
 
-export { fetchBarrierDetails, getDownloadURL, fetchJSONP, fetchUnitDetails, fetchUnitList }
+export {
+	fetchBarrierDetails,
+	getDownloadURL,
+	fetchJSONP,
+	fetchUnitDetails,
+	fetchUnitList,
+	searchUnits
+}
 export type { ProgressCallback, ProgressCallbackParams }

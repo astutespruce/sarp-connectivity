@@ -18,6 +18,7 @@
 	import { trackDownload } from '$lib/util/analytics'
 	import { cn } from '$lib/utils'
 	import { barrierTypeLabels } from '$lib/config/constants'
+	import type { BarrierTypePlural } from '$lib/config/types'
 
 	type Status = {
 		inProgress: boolean
@@ -39,15 +40,13 @@
 		open = $bindable(false),
 		barrierType,
 		areaName,
-		config,
-		customRank,
-		includeUnranked: initialIncludeUnranked,
-		showOptions
+		config = {},
+		customRank = false,
+		includeUnranked: initialIncludeUnranked = false,
+		showOptions = true
 	} = $props()
 
-	const barrierTypeLabel = $derived(
-		barrierTypeLabels[barrierType as keyof typeof barrierTypeLabels]
-	)
+	const barrierTypeLabel = $derived(barrierTypeLabels[barrierType as BarrierTypePlural])
 
 	let includeUnranked = $derived(initialIncludeUnranked)
 	let status: Status = $state(initialStatus)
@@ -85,7 +84,7 @@
 	}
 
 	const handleDownload = async () => {
-		const { summaryUnits, filters, scenario } = config
+		const { summaryUnits = null, filters = null, scenario = null } = config
 
 		let url = null
 
