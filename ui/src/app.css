@@ -181,6 +181,36 @@
 		}
 	}
 
+	.sidebar-barrier-details {
+		h2 {
+			@apply text-xl font-bold;
+		}
+
+		table {
+			@apply w-full text-sm;
+			thead {
+				@apply font-bold border-b-2 border-b-grey-2 text-left;
+				th {
+					@apply pb-1 not-last-of-type:pr-4;
+				}
+				th + th {
+					@apply text-right;
+				}
+			}
+			tbody {
+				tr + tr {
+					@apply border-t border-t-grey-1;
+				}
+				td {
+					@apply not-last-of-type:pr-4 py-1;
+				}
+				td + td {
+					@apply text-right;
+				}
+			}
+		}
+	}
+
 	.step {
 		@apply flex justify-center items-center flex-none rounded-full size-10 font-bold bg-black text-white text-lg;
 	}

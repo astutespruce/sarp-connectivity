@@ -41,7 +41,7 @@
 		})
 	)
 
-	const { map, size = '64px', bottom = '24px', left = '10px', onUpdate = null } = $props()
+	const { map, size = '50px', bottom = '32px', left = '10px', onUpdate = null } = $props()
 
 	let basemap = $state(options[0])
 
@@ -83,25 +83,34 @@
 	const nextBasemap = $derived(options.filter(({ id }) => id !== basemap.id)[0])
 </script>
 
-{#snippet basemapButton(basemap: Basemap, secondary = false)}
+{#snippet basemapButton(basemap: Basemap, isCurrent = false, isNext = false)}
 	<div
-		class="flex-none flex flex-col gap-1 items-center cursor-pointer"
+		class={cn(
+			'flex-none flex-col gap-1 items-center cursor-pointer hidden group-hover/basemaps:flex group-focus-within/basemaps:flex group/basemap',
+			{
+				flex: isNext
+			}
+		)}
 		style="flex-basis:calc({size} + 0.5rem);"
 	>
 		<div
-			class="text-[0.65rem] text-center bg-white/50 text-shadow-sm invisible group-hover:visible group-focus-within:visible p-1"
+			class={cn(
+				'invisible text-[0.65rem] text-center p-1 group-hover/basemaps:visible group-focus-within/basemaps:visible',
+				{ 'font-bold': isCurrent }
+			)}
 		>
 			{basemap.id.split('-')[0]}
 		</div>
 		<Button
 			class={cn(
-				'rounded-full overflow-hidden border-white shadow-lg shadow-grey-8 ring-1 ring-grey-4 p-0 focus-visible:ring-accent hover:ring-accent',
-				{ 'hidden group-hover:block group-focus-within:block': secondary }
+				'rounded-full overflow-hidden border-white shadow-lg shadow-grey-8 ring-1 focus-visible:ring-2 hover:ring-2 ring-grey-4 p-0 focus-visible:ring-accent hover:ring-accent',
+				{ 'ring-2 ring-grey-9': isCurrent }
 			)}
 			style="width:{size};height:{size};"
 			onclick={() => {
 				handleBasemapClick(basemap)
 			}}
+			tabindex={0}
 		>
 			<img src={basemap.src} class="w-full h-full" alt={`${basemap.id} basemap button`} />
 		</Button>
@@ -109,12 +118,10 @@
 {/snippet}
 
 <div
-	class="absolute z-1 flex gap-2 items-center group print:hidden"
+	class="absolute z-10000 flex gap-2 items-center group/basemaps print:hidden hover:bg-white focus-within:bg-white focus-within:border-grey-5 p p-2 -m-2 border border-transparent hover:border-grey-5 rounded"
 	style="bottom:{bottom};left:{left}"
 >
-	{@render basemapButton(nextBasemap)}
-
-	{#each options.filter(({ id }) => id !== nextBasemap.id) as altBasemap (altBasemap.id)}
-		{@render basemapButton(altBasemap, true)}
+	{#each options as option (option.id)}
+		{@render basemapButton(option, option.id === basemap.id, option.id === nextBasemap.id)}
 	{/each}
 </div>

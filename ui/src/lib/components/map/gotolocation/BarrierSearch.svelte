@@ -15,8 +15,8 @@
 		state: string
 		river: string | null
 		barriertype: string
-		latitude: number
-		longitude: number
+		lat: number
+		lon: number
 	}
 	type ResponseData = { results: SearchResult[]; remaining: number }
 
@@ -44,7 +44,6 @@
 		}
 
 		timeout = setTimeout(() => {
-			console.log('set debounced to', value)
 			debouncedQuery = value
 		}, TIMEOUT)
 	})
@@ -63,7 +62,8 @@
 
 	const { results = [], remaining = 0 } = $derived(searchRequest.data || {}) as ResponseData
 
-	const handleKeyDown = ({ key }) => {
+	const handleKeyDown = (event) => {
+		const { key } = event
 		if (key === 'Escape') {
 			value = ''
 			return
@@ -72,6 +72,8 @@
 			return
 		}
 		if (key === 'ArrowUp') {
+			event.stopPropagation()
+			event.preventDefault()
 			if (activeIndex === null) {
 				activeIndex = results.length - 1
 			} else {
@@ -82,6 +84,8 @@
 				activeIndex = nextIndex
 			}
 		} else if (key === 'ArrowDown') {
+			event.stopPropagation()
+			event.preventDefault()
 			if (activeIndex === null) {
 				activeIndex = 0
 			} else {
@@ -97,7 +101,8 @@
 	const handleSelect = (barrier: SearchResult, index: number) => {
 		selectedId = barrier.sarpid
 		activeIndex = index
-		onSubmit({ latitude: barrier.latitude, longitude: barrier.longitude })
+		const { lat: latitude, lon: longitude } = barrier
+		onSubmit({ latitude, longitude })
 	}
 </script>
 
@@ -118,7 +123,7 @@
 		</div>
 	{:else if searchRequest.isSuccess}
 		{#if results && results.length > 0}
-			<div class="mt-2 -mx-1.75 max-h-[50vh] overflow-y-auto">
+			<div class="pt-2 -mx-1.75 max-h-[50vh] overflow-y-auto">
 				<div class="px-1.75">
 					{#each results as barrier, i (barrier.sarpid)}
 						{#if i > 0}

@@ -71,7 +71,8 @@
 
 	const results: PlaceResult[] | undefined = $derived(searchRequest.data)
 
-	const handleKeyDown = ({ key }) => {
+	const handleKeyDown = (event) => {
+		const { key } = event
 		if (key === 'Escape') {
 			value = ''
 			return
@@ -79,7 +80,10 @@
 		if (!(results && results.length > 0)) {
 			return
 		}
+
 		if (key === 'ArrowUp') {
+			event.stopPropagation()
+			event.preventDefault()
 			if (activeIndex === null) {
 				activeIndex = results.length - 1
 			} else {
@@ -90,6 +94,8 @@
 				activeIndex = nextIndex
 			}
 		} else if (key === 'ArrowDown') {
+			event.stopPropagation()
+			event.preventDefault()
 			if (activeIndex === null) {
 				activeIndex = 0
 			} else {
@@ -120,7 +126,7 @@
 		</div>
 	{:else if searchRequest.isSuccess}
 		{#if results && results.length > 0}
-			<div class="mt-2 -mx-1.75 max-h-[50vh] overflow-y-auto">
+			<div class="pt-2 -mx-1.75 max-h-[50vh] overflow-y-auto">
 				<div class="px-1.75">
 					{#each results as place, i (place.id)}
 						{#if i > 0}

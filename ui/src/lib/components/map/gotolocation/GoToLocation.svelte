@@ -1,5 +1,7 @@
 <script lang="ts">
 	import SearchIcon from '@lucide/svelte/icons/search'
+	import { Marker as MapboxGLMarker } from 'mapbox-gl'
+	import type { Marker } from 'mapbox-gl'
 
 	import { Button } from '$lib/components/ui/button'
 	import { truncate } from '$lib/util/format'
@@ -18,6 +20,8 @@
 		{ id: 'latlon', label: 'lat/lon' }
 	]
 
+	const { map } = $props()
+
 	let isOpen = $state(false)
 	let view: ViewOption = $state(viewOptions[0].id)
 
@@ -27,6 +31,8 @@
 	let placenameNode: HTMLElement | null = $state(null)
 	let latLonValue = $state('')
 	let latLonNode: HTMLElement | null = $state(null)
+	let marker: Marker | null = $state(null)
+	let location: Location | null = $state(null)
 
 	// clear out search values on chaneg of view
 	$effect(() => {
@@ -35,6 +41,7 @@
 		latLonValue = ''
 		placenameQuery = ''
 		barrierQuery = ''
+		marker = null
 	})
 
 	// focus on input node when open and when change between views
@@ -62,6 +69,36 @@
 		}
 	})
 
+	// reset location on change of queries
+	$effect(() => {
+		barrierQuery
+		placenameQuery
+		latLonValue
+
+		location = null
+	})
+
+	$effect(() => {
+		if (!map) {
+			return
+		}
+
+		if (location === null) {
+			if (marker) {
+				marker.remove()
+				marker = null
+			}
+		} else {
+			const { latitude, longitude } = location
+			map.jumpTo({ center: [longitude, latitude], zoom: 14 })
+			if (!marker) {
+				marker = new MapboxGLMarker().setLngLat([longitude, latitude]).addTo(map)
+			} else {
+				marker.setLngLat([longitude, latitude])
+			}
+		}
+	})
+
 	const handleToggleOpen = () => {
 		isOpen = !isOpen
 	}
@@ -69,14 +106,13 @@
 	const handleKeyDown = ({ key }) => {
 		if (key === 'Escape') {
 			isOpen = false
-
-			// TODO: unset location?
 		}
 	}
 
-	const handleSetLocation = (location: Location) => {
-		// TODO: set map location
+	const handleSetLocation = (nextLocation: Location) => {
 		isOpen = false
+
+		location = nextLocation
 	}
 </script>
 
@@ -91,9 +127,10 @@
 ></div>
 
 <Button
+	tabindex={0}
 	variant="outline"
 	class={cn(
-		'block invisible opacity-0 transition-opacity absolute leading-none bg-white z-2001 top-3 right-2.5 rounded-lg p-1.75 hover:grey-0 border-[#AAA] w-32 h-10',
+		'block invisible opacity-0 transition-opacity absolute leading-none bg-white z-2001 top-3 right-2 rounded-md p-1.75 hover:grey-0 w-32 h-10 border-grey-2',
 		{ 'visible opacity-100': !isOpen }
 	)}
 	title="Show map search options"
@@ -119,7 +156,7 @@
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <div
 	class={cn(
-		'invisible transition-opacity opacity-0 absolute leading-none bg-white z-2001 top-3 right-2.5 p-1.75 rounded-lg hover:grey-0 border border-text-foreground shadow-lg w-75 overflow-hidden',
+		'invisible transition-opacity opacity-0 absolute leading-none bg-white z-2001 top-3 right-2 p-1.75 rounded-lg hover:grey-0 border border-text-foreground shadow-lg w-75 overflow-hidden',
 		{ 'visible opacity-100': isOpen }
 	)}
 	onkeydown={handleKeyDown}

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte'
-	import { Map as MapboxGLMap, NavigationControl, ScaleControl } from 'mapbox-gl'
-	import type { Map as MapboxGLMapType, SourceSpecification, LayerSpecification } from 'mapbox-gl'
+	import { Map as MapboxGLMap, NavigationControl } from 'mapbox-gl'
+	import type { Map as SourceSpecification, LayerSpecification } from 'mapbox-gl'
 	import 'mapbox-gl/dist/mapbox-gl.css'
 
 	import { MAPBOX_TOKEN } from '$lib/env'
@@ -12,11 +12,14 @@
 	import Coords from './Coords.svelte'
 	import { GoToLocation } from './gotolocation'
 
-	const { bounds = mapConfig.bounds, children, onCreateMap, children = null } = $props()
+	let {
+		map = $bindable(),
+		bounds = mapConfig.bounds,
+		onCreateMap = null,
+		children = null
+	} = $props()
 
 	let mapNode: HTMLElement
-	let map: MapboxGLMapType | undefined = $state()
-	let basemapId = $state(mapConfig.styleID)
 	let isLoaded = $state(false)
 
 	onMount(() => {
@@ -60,7 +63,9 @@
 				})
 			})
 
-			onCreateMap(map)
+			if (onCreateMap) {
+				onCreateMap(map)
+			}
 
 			isLoaded = true
 		})
@@ -73,15 +78,16 @@
 	})
 </script>
 
-<div class="relative flex-auto h-full z-1 [&_.mapboxgl-ctrl-top-right]:t-[46px]">
+<div class="relative flex-auto h-full z-1 [&_.mapboxgl-ctrl-top-right]:mt-12!">
 	<div bind:this={mapNode} class="h-full w-full"></div>
 
-	{#if map}
-		<BasemapSelector {map} />
-		<Coords {map} />
+	{#if isLoaded}
 		<GoToLocation {map} />
+		<BasemapSelector {map} />
+
 		{#if children}
 			{@render children()}
 		{/if}
+		<Coords {map} />
 	{/if}
 </div>

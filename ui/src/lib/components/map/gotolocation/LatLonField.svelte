@@ -38,12 +38,9 @@
 			return
 		}
 
-		onSubmit({
-			latitude,
-			longitude,
-			// set a timestamp to force it to load again if user selects same coords
-			timestamp: new Date().getTime()
-		})
+		console.log('submit coords')
+
+		onSubmit({ latitude, longitude })
 	}
 
 	const reset = () => {
@@ -70,7 +67,7 @@
 		bind:ref
 		placeholder="Enter latitude, longitude"
 		invalid={!isValid}
-		onKeyDown={handleKeyDown}
+		onkeydown={handleKeyDown}
 	/>
 
 	<Button
