@@ -56,8 +56,9 @@
 		})
 		window.map = map
 
-		map.addControl(new NavigationControl(), 'top-right')
+		map.addControl(new NavigationControl({ showCompass: false }), 'top-right')
 		map.addControl(new ScaleControl({ unit: 'imperial' }), 'bottom-right')
+		map.dragRotate.disable()
 
 		locatorMap = new MapboxGLMap({
 			container: locatorMapNode,

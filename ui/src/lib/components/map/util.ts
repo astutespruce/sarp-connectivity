@@ -12,7 +12,7 @@ import { isEmptyString } from '$lib/util/string'
  * @param {float} padding - proportion of calculated zoom level to zoom out by, to pad the bounds
  */
 export const getCenterAndZoom = (
-	mapNode: HTMLDivElement,
+	mapNode: HTMLElement,
 	bounds: [number, number, number, number],
 	padding: number = 0
 ) => {

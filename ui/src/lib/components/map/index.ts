@@ -19,6 +19,8 @@ import {
 } from './util'
 
 import { networkLayers } from './layers'
+import { Legend } from './legend'
+import Map from './Map.svelte'
 
 export {
 	BasemapSelector,
@@ -41,5 +43,7 @@ export {
 	getInMapUnitsExpr,
 	getBarrierTooltip,
 	getBitFromBitsetExpr,
-	networkLayers
+	networkLayers,
+	Map,
+	Legend
 }
