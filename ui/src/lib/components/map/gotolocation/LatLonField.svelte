@@ -5,7 +5,7 @@
 	import { Button } from '$lib/components/ui/button'
 	import { parseLatLon } from './parser'
 
-	let { value = $bindable(''), ref = $bindable(), onSubmit } = $props()
+	let { value = $bindable(''), ref = $bindable(null), onSubmit } = $props()
 
 	let latitude: number | null = $state(null)
 	let longitude: number | null = $state(null)

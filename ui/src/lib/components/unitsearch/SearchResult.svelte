@@ -190,7 +190,7 @@
 	variant="ghost"
 	{disabled}
 	onclick={onClick}
-	class={cn('block text-left h-auto m-0 p-1 w-full', {
+	class={cn('block text-left h-auto m-0 p-1 w-full rounded-none', {
 		'hover:bg-grey-0': !disabled,
 		'italic text-muted-foreground': disabled
 	})}

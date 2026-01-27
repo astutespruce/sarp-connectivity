@@ -181,10 +181,10 @@
 
 <div class="flex flex-col h-full">
 	<div
-		class="flex py-4 pl-4 pr-2 justify-center items-start border-b border-b-grey-4 bg-grey-0 leading-tight"
+		class="flex py-3 pb-4 pl-4 pr-2 justify-center items-start border-b border-b-grey-4 bg-grey-1/50 leading-tight"
 	>
 		<div class="flex flex-auto">
-			<h2>
+			<h2 class="text-xl">
 				{title}
 				{#if subtitle}
 					<div class="font-normal">{subtitle}</div>
@@ -198,13 +198,18 @@
 		</div>
 
 		<div class="flex flex-none flex-col justify-between items-end h-full">
-			<Button onclick={onReset} aria-label={`unselect ${title}`}>
+			<Button
+				variant="ghost"
+				onclick={onReset}
+				aria-label={`unselect ${title}`}
+				class="p-0! h-auto rounded-full text-muted-foreground hover:text-foreground"
+			>
 				<CloseIcon class="size-5" />
 			</Button>
 			{#if summaryUnits.length === 1 && summaryUnits[0].bbox}
 				<Button
 					variant="link"
-					class="text-sm"
+					class="p-0! h-auto text-sm mt-1"
 					onclick={handleZoomBounds}
 					aria-label={`zoom to ${title} on the map`}>zoom to</Button
 				>
@@ -212,100 +217,99 @@
 		</div>
 	</div>
 
-	<div
-		bind:this={contentNode}
-		class="p-4 flex-auto h-full overflow-y-auto [&_ul]:list-outside [&_ul]:list-disc [&_ul]:pl-4"
-	>
+	<div bind:this={contentNode} class="px-4 pt-2 pb-8 flex-auto h-full overflow-y-auto">
 		{#if summaryUnits.length === 1 && layer === 'State'}
-			<a href={resolve(`/states/${id}`, { id })} class="block">
+			<a href={resolve(`/states/${id}`, { id })} class="flex gap-2 items-end pb-4">
 				view state page for more information
 				<ChevronsRightIcon class="size-5" />
 			</a>
 		{/if}
 
-		<p>
-			{singularOrPlural('This area contains', 'These areas contain', summaryUnits.length)}:
-		</p>
+		<div class="[&_ul]:pl-5 [&_ul>li]:leading-snug [&_ul>li+li]:mt-2">
+			<p class="pb-2">
+				{singularOrPlural('This area contains', 'These areas contain', summaryUnits.length)}:
+			</p>
 
-		{#if barrierType === 'dams' || barrierType === 'combined_barriers'}
-			{#if stats.dams > 0}
-				<p>
-					<b>{stats.dams}</b> inventoried {pluralize('dam', stats.dams)} including:
-				</p>
-				<ul class="mt-2">
-					<li>
-						<b>{formatNumber(stats.rankedDams, 0)}</b> that
-						{stats.rankedDams === 1 ? 'was ' : 'were '} analyzed for impacts to aquatic connectivity in
-						this tool
-					</li>
-					{#if stats.removedDams > 0}
+			{#if barrierType === 'dams' || barrierType === 'combined_barriers'}
+				{#if stats.dams > 0}
+					<p>
+						<b>{formatNumber(stats.dams)}</b> inventoried {pluralize('dam', stats.dams)}, including:
+					</p>
+					<ul class="mt-2">
 						<li>
-							<b>{formatNumber(stats.removedDams, 0)}</b> that have been removed or mitigated,
-							gaining
-							<b>{formatNumber(stats.removedDamsGainMiles)} miles</b> of reconnected rivers and streams
+							<b>{formatNumber(stats.rankedDams, 0)}</b> that
+							{stats.rankedDams === 1 ? 'was ' : 'were '} analyzed for impacts to aquatic connectivity
+							in this tool
 						</li>
-					{/if}
-				</ul>
-			{:else}
-				<p class="mt-2">
-					<b>0</b> inventoried dams
-				</p>
+						{#if stats.removedDams > 0}
+							<li>
+								<b>{formatNumber(stats.removedDams, 0)}</b> that have been removed or mitigated,
+								gaining
+								<b>{formatNumber(stats.removedDamsGainMiles)} miles</b> of reconnected rivers and streams
+							</li>
+						{/if}
+					</ul>
+				{:else}
+					<p class="mt-2">
+						<b>0</b> inventoried dams
+					</p>
+				{/if}
 			{/if}
-		{/if}
 
-		{#if barrierType === 'small_barriers' || barrierType === 'combined_barriers'}
-			{#if stats.totalRoadBarriers > 0}
-				<p class={cn('mt-2', { 'mt-6': barrierType === 'combined_barriers' })}>
-					<b>{formatNumber(stats.totalRoadBarriers, 0)}</b> or more road/stream crossings (potential aquatic
-					barriers), including:
-				</p>
-				<ul class="mt-2">
-					<li>
-						<b>
-							{formatNumber(stats.totalSmallBarriers - stats.removedSmallBarriers, 0)}
-						</b>
-						that
-						{stats.totalSmallBarriers - stats.removedSmallBarriers === 1 ? 'has ' : 'have '}
-						been surveyed for impacts to aquatic organisms.
-					</li>
-					<li>
-						<b>
-							{formatNumber(stats.smallBarriers - stats.removedSmallBarriers, 0)}
-						</b>
-						that
-						{stats.smallBarriers - stats.removedSmallBarriers === 1 ? 'is' : 'are'}
-						likely to impact aquatic organisms
-					</li>
-					<li>
-						<b>{formatNumber(stats.rankedSmallBarriers, 0)}</b> that
-						{stats.rankedSmallBarriers === 1 ? 'was ' : 'were '} analyzed for impacts to aquatic connectivity
-						in this tool
-					</li>
-					{#if stats.removedSmallBarriers > 0}
+			{#if barrierType === 'small_barriers' || barrierType === 'combined_barriers'}
+				{#if stats.totalRoadBarriers > 0}
+					<p class={cn('mt-2', { 'mt-6': barrierType === 'combined_barriers' })}>
+						<b>{formatNumber(stats.totalRoadBarriers, 0)}</b> or more road/stream crossings (potential
+						aquatic barriers), including:
+					</p>
+					<ul class="mt-2">
 						<li>
-							<b>{formatNumber(stats.removedSmallBarriers, 0)}</b> that have been removed or
-							mitigated, gaining
-							<b>{formatNumber(stats.removedSmallBarriersGainMiles)} miles</b>
-							of reconnected rivers and streams
+							<b>
+								{formatNumber(stats.totalSmallBarriers - stats.removedSmallBarriers, 0)}
+							</b>
+							that
+							{stats.totalSmallBarriers - stats.removedSmallBarriers === 1 ? 'has ' : 'have '}
+							been surveyed for impacts to aquatic organisms.
 						</li>
-					{/if}
-					<li>
+						<li>
+							<b>
+								{formatNumber(stats.smallBarriers - stats.removedSmallBarriers, 0)}
+							</b>
+							that
+							{stats.smallBarriers - stats.removedSmallBarriers === 1 ? 'is' : 'are'}
+							likely to impact aquatic organisms
+						</li>
+						<li>
+							<b>{formatNumber(stats.rankedSmallBarriers, 0)}</b> that
+							{stats.rankedSmallBarriers === 1 ? 'was ' : 'were '} analyzed for impacts to aquatic connectivity
+							in this tool
+						</li>
+						{#if stats.removedSmallBarriers > 0}
+							<li>
+								<b>{formatNumber(stats.removedSmallBarriers, 0)}</b> that have been removed or
+								mitigated, gaining
+								<b>{formatNumber(stats.removedSmallBarriersGainMiles)} miles</b>
+								of reconnected rivers and streams
+							</li>
+						{/if}
+						<li>
+							<b>{formatNumber(stats.unsurveyedRoadCrossings, 0)}</b> that have not yet been surveyed
+						</li>
+					</ul>
+				{:else}
+					<p class="mt-2">
 						<b>{formatNumber(stats.unsurveyedRoadCrossings, 0)}</b> that have not yet been surveyed
-					</li>
-				</ul>
-			{:else}
-				<p class="mt-2">
-					<b>{formatNumber(stats.unsurveyedRoadCrossings, 0)}</b> that have not yet been surveyed
-				</p>
+					</p>
+				{/if}
 			{/if}
-		{/if}
 
-		{#if summaryUnits.length > 1}
-			<div
-				class="mt-8 mb-2 -mx-4 px-4 py-1 bg-grey-0 border-t border-t-grey-2 border-b border-b-grey-2"
-			>
-				<b>Selected areas:</b>
-				<ul class="pl-0 list-none">
+			{#if summaryUnits.length > 1}
+				<div
+					class="mt-8 bg-grey-1/50 py-1 px-4 -mx-4 border-t border-t-grey-2 border-b border-b-grey-2"
+				>
+					<b>Selected areas:</b>
+				</div>
+				<ul class="pl-0! list-none">
 					{#each summaryUnits as unit (unit.id)}
 						<ListItem
 							{barrierType}
@@ -319,29 +323,27 @@
 						/>
 					{/each}
 				</ul>
-			</div>
-		{/if}
-
-		<div
-			class={cn('-mx-4 px-4  border-b-2 border-b-grey-2', {
-				'mt-8 border-t-2 border-t-grey-2': summaryUnits.length === 1
-			})}
-		>
-			<div class="text-sm text-muted-foreground mt-2 pb-6">
-				Select {summaryUnits.length > 0 ? 'additional' : ''}
-				{system === 'ADM' ? 'states / counties' : 'hydrologic units'} by clicking on them on the map or
-				searching by name. You can then download data for all selected areas.
-			</div>
-
-			<Search
-				{barrierType}
-				{system}
-				ignoreIds={summaryUnits && summaryUnits.length > 0
-					? new Set(summaryUnits.map(({ id: unitId }: SummaryUnit) => unitId))
-					: null}
-				onSelect={onSelectUnit}
-			/>
+			{/if}
 		</div>
+
+		<hr class="my-6" />
+
+		<div class="text-sm text-muted-foreground mt-2 pb-6">
+			Select {summaryUnits.length > 0 ? 'additional' : ''}
+			{system === 'ADM' ? 'states / counties' : 'hydrologic units'} by clicking on them on the map or
+			searching by name. You can then download data for all selected areas.
+		</div>
+
+		<Search
+			{barrierType}
+			{system}
+			ignoreIds={summaryUnits && summaryUnits.length > 0
+				? new Set(summaryUnits.map(({ id: unitId }: SummaryUnit) => unitId))
+				: null}
+			onSelect={onSelectUnit}
+		/>
+
+		<hr />
 
 		{#if barrierType === 'dams'}
 			<div class="text-sm text-muted-foreground">
@@ -396,7 +398,7 @@
 
 	<div
 		class={cn(
-			'flex gap-4 items-center flex-none pt-2 px-1 pb-1 border-t border-t-grey-4 bg-grey-0',
+			'flex gap-4 items-center flex-none pt-2 pb-4 px-2 border-t border-t-grey-4 bg-grey-1/50',
 			{ 'flex-wrap': barrierType === 'small_barriers' }
 		)}
 	>
@@ -414,6 +416,7 @@
 					disabled={stats.dams === 0}
 					showOptions={false}
 					includeUnranked
+					triggerClass="text-sm h-auto py-1.5 px-2!"
 				/>
 			{:else if barrierType === 'small_barriers'}
 				<Downloader
@@ -423,6 +426,7 @@
 					disabled={stats.totalSmallBarriers === 0}
 					showOptions={false}
 					includeUnranked
+					triggerClass="text-sm h-auto py-1.5 px-2!"
 				/>
 
 				<Downloader
@@ -434,6 +438,7 @@
 					disabled={stats.totalRoadCrossings === 0}
 					showOptions={false}
 					includeUnranked
+					triggerClass="text-sm h-auto py-1.5 px-2!"
 				/>
 			{:else if barrierType === 'combined_barriers'}
 				<Downloader
@@ -443,6 +448,7 @@
 					disabled={stats.dams + stats.totalSmallBarriers === 0}
 					showOptions={false}
 					includeUnranked
+					triggerClass="text-sm h-auto py-1.5 px-2!"
 				/>
 			{/if}
 		</div>

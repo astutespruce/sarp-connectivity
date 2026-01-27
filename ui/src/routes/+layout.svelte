@@ -36,9 +36,9 @@
 	<div class="flex flex-col h-full w-full overflow-none print:h-auto">
 		<Header />
 
-		<div bind:this={contentNode} class="h-full w-full flex-auto overflow-auto print:h-auto">
+		<main bind:this={contentNode} class="h-full w-full flex-auto overflow-auto print:h-auto">
 			{@render children()}
-		</div>
+		</main>
 		<Footer />
 	</div>
 </QueryClientProvider>

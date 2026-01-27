@@ -130,7 +130,7 @@
 	tabindex={0}
 	variant="outline"
 	class={cn(
-		'block invisible opacity-0 transition-opacity absolute leading-none bg-white z-2001 top-3 right-2 rounded-md p-1.75 hover:grey-0 w-32 h-10 border-grey-2',
+		'block invisible opacity-0 transition-opacity absolute leading-none bg-white z-2001 top-2 right-2 rounded-md p-1.75 hover:grey-0 w-36 h-11 border-grey-2 border-2',
 		{ 'visible opacity-100': !isOpen }
 	)}
 	title="Show map search options"
@@ -142,13 +142,13 @@
 	>
 		<SearchIcon class="size-4" />
 		{#if view === 'barrier'}
-			{truncate(barrierQuery || 'Search for', 10)}
+			{truncate(barrierQuery || 'Search for...', 14)}
 		{:else if view === 'placename'}
-			{truncate(placenameQuery || 'Search for', 10)}
+			{truncate(placenameQuery || 'Search for...', 14)}
 		{:else if view === 'latlon'}
-			{truncate(latLonValue || 'Go to', 10)}
+			{truncate(latLonValue || 'Go to...', 14)}
 		{:else}
-			Search by...
+			Search for...
 		{/if}
 	</div>
 </Button>
@@ -156,7 +156,7 @@
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <div
 	class={cn(
-		'invisible transition-opacity opacity-0 absolute leading-none bg-white z-2001 top-3 right-2 p-1.75 rounded-lg hover:grey-0 border border-text-foreground shadow-lg w-75 overflow-hidden',
+		'invisible transition-opacity opacity-0 absolute leading-none bg-white z-2001 top-3 right-2 p-1.75 rounded-lg hover:grey-0 border border-text-foreground shadow-lg shadow-grey-8 w-75 overflow-hidden',
 		{ 'visible opacity-100': isOpen }
 	)}
 	onkeydown={handleKeyDown}

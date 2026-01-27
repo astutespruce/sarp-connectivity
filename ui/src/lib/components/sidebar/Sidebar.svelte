@@ -6,7 +6,7 @@
 
 <div
 	class={cn(
-		'flex flex-col flex-none border-r border-r-grey-8 h-full overflow-x-hidden overflow-y-hidden',
+		'flex flex-col flex-none border-r border-r-grey-8 h-full overflow-x-hidden overflow-y-hidden w-full sm:w-108',
 		{
 			'overflow-y-auto': allowScroll
 		}

@@ -2,7 +2,7 @@
 	import ChevronsRightIcon from '@lucide/svelte/icons/chevrons-right'
 
 	import { resolve } from '$app/paths'
-	import { MAP_SERVICES, barrierTypeLabels } from '$lib/config/constants'
+	import { MAP_SERVICES, shortBarrierTypeLabels } from '$lib/config/constants'
 	import type { BarrierTypePlural } from '$lib/config/types'
 	import { formatNumber } from '$lib/util/format'
 	import { Downloader } from '$lib/components/download'
@@ -12,8 +12,7 @@
 	const {
 		barrierType,
 		region = null,
-		url = null,
-		urlLabel = null,
+		type,
 		name,
 		dams = 0,
 		reconDams = 0,
@@ -29,6 +28,33 @@
 		system,
 		onSelectUnit
 	} = $props()
+
+	const { url, urlLabel }: { url?: string; urlLabel?: string } = $derived.by(() => {
+		switch (type) {
+			case 'Region': {
+				if (region === 'total') {
+					return {}
+				}
+				return {
+					url: resolve(`/regions/${region}/`, { id: region }),
+					urlLabel: 'view region page for more information'
+				}
+			}
+			case 'FishHabitatPartnership': {
+				return {
+					url: resolve(`/fhp/${region}/`, { id: region }),
+					urlLabel: 'view the Fish Habitat Partnership page for more information'
+				}
+			}
+			case 'State': {
+				return {
+					url: resolve(`/states/${region}/`, { id: region }),
+					urlLabel: 'view state page for more information'
+				}
+			}
+		}
+		return {}
+	})
 
 	const unrankedDams = $derived(dams - rankedDams)
 	const unrankedBarriers = $derived(smallBarriers - rankedSmallBarriers)
@@ -49,23 +75,23 @@
 <div class="flex flex-col h-full">
 	<div
 		bind:this={contentNode}
-		class="pt-2 pb-1 px-1 flex-auto overflow-y-auto h-full [&_ul]:list-outside [&_ul]:list-disc [&_ul]:pl-4"
+		class="pt-4 pb-8 px-4 flex-auto overflow-y-auto h-full [&_ul]:list-outside [&_ul]:list-disc [&_ul]:pl-5 [&_ul>li+li]:mt-2 [&_ul>li]:leading-snug"
 	>
 		{#if url}
-			<a href={resolve(url)} class="block">
+			<a href={url} class="block">
 				{urlLabel}
 				<ChevronsRightIcon class="size-5" />
 			</a>
 		{/if}
 
-		<p class="text-lg">
+		<div class="text-2xl leading-tight">
 			Across {name}, there are:
-		</p>
+		</div>
 
 		{#if barrierType === 'dams' || barrierType === 'combined_barriers'}
-			<p class="mt-2">
+			<div class="mt-2">
 				<b>{formatNumber(dams, 0)}</b> inventoried dams, including:
-			</p>
+			</div>
 			<ul class="mt-2">
 				<li>
 					<b>{formatNumber(reconDams)}</b> that have been reconned for social feasibility of removal
@@ -85,21 +111,21 @@
 		{/if}
 
 		{#if barrierType === 'small_barriers' || barrierType === 'combined_barriers'}
-			<p class={cn('mt-2', { 'mt-6': barrierType === 'combined_barriers' })}>
+			<div class={cn('mt-2', { 'mt-6': barrierType === 'combined_barriers' })}>
 				<b>{formatNumber(totalRoadBarriers, 0)}</b> or more road/stream crossings (potential aquatic barriers),
 				including:
-			</p>
+			</div>
 
 			<ul class="mt-2">
 				<li>
 					<b>
 						{formatNumber(totalSmallBarriers - removedSmallBarriers, 0)}
 					</b>
-					that have been assessed for impacts to aquatic organisms
+					that have been surveyed for impacts to aquatic organisms
 				</li>
 				<li>
 					<b>{formatNumber(smallBarriers - removedSmallBarriers, 0)}</b>
-					that have been assessed so far that are likely to impact aquatic organisms
+					surveyed crossings are likely to impact aquatic organisms
 				</li>
 				<li>
 					<b>{formatNumber(rankedSmallBarriers, 0)}</b> that have been analyzed for their impacts to aquatic
@@ -118,7 +144,7 @@
 			</ul>
 		{/if}
 
-		<hr />
+		<hr class="my-6" />
 
 		<div class="text-sm mt-2 pb-6 text-muted-foreground">
 			Select {system === 'ADM' ? 'states / counties' : 'hydrologic units'}
@@ -168,7 +194,7 @@
 				To access an ArcGIS map service of a recent version of these barriers and associated
 				connectivity results,
 				<a href={MAP_SERVICES[barrierType as keyof typeof MAP_SERVICES]}> click here </a>.
-				<div class="text-sm text-muted-foreground">
+				<div class="text-sm mt-2 text-muted-foreground">
 					Note: may not match the exact version available for download in this tool
 				</div>
 			</div>
@@ -178,7 +204,7 @@
 	{#if !region}
 		<div
 			class={cn(
-				'flex gap-4 items-center flex-none pt-2 px-1 pb-1 border-t border-t-grey-4 bg-grey-0',
+				'flex gap-4 items-center flex-none pt-2 pb-4 px-2 border-t border-t-grey-4 bg-grey-1/50',
 				{ 'flex-wrap': barrierType === 'small_barriers' }
 			)}
 		>
@@ -190,15 +216,17 @@
 			>
 				<Downloader
 					{barrierType}
-					label={barrierTypeLabels[barrierType as BarrierTypePlural]}
+					label={shortBarrierTypeLabels[barrierType as BarrierTypePlural]}
 					showOptions={false}
+					triggerClass="text-sm h-auto py-1.5 px-2!"
 				/>
 
 				{#if barrierType === 'small_barriers'}
 					<Downloader
 						barrierType="road_crossings"
-						label={barrierTypeLabels.road_crossings}
+						label={shortBarrierTypeLabels.road_crossings}
 						showOptions={false}
+						triggerClass="text-sm h-auto py-1.5 px-2!"
 					/>
 				{/if}
 			</div>

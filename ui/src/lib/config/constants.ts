@@ -11,6 +11,16 @@ export const barrierTypeLabels: { [key in NetworkType]: string } = {
 	smallfish_barriers: 'dams & surveyed road/stream crossings'
 }
 
+export const shortBarrierTypeLabels: { [key in NetworkType]: string } = {
+	dams: 'dams',
+	small_barriers: 'surveyed crossings',
+	road_crossings: 'unsurveyed crossings',
+	waterfalls: 'waterfalls',
+	combined_barriers: 'dams & surveyed crossings',
+	largefish_barriers: 'dams & surveyed crossings',
+	smallfish_barriers: 'dams & surveyed crossings'
+}
+
 export const barrierTypeLabelSingular: { [key in BarrierTypePlural]: string } = {
 	dams: 'dam',
 	small_barriers: 'surveyed road/stream crossing',

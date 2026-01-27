@@ -66,3 +66,11 @@ export const pluralize = (word: string, count: number, suffix = 's') =>
 
 export const singularOrPlural = (singular: string, plural: string, count: number) =>
 	count === 1 ? singular : plural
+
+export const truncate = (text: string, length: number) => {
+	if (text.length <= length) {
+		return text
+	}
+
+	return `${text.slice(0, length - 3)}...`
+}

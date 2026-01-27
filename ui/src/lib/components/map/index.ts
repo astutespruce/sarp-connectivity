@@ -21,6 +21,7 @@ import {
 import { networkLayers } from './layers'
 import { Legend } from './legend'
 import Map from './Map.svelte'
+import TopBar from './TopBar.svelte'
 
 export {
 	BasemapSelector,
@@ -45,5 +46,6 @@ export {
 	getBitFromBitsetExpr,
 	networkLayers,
 	Map,
-	Legend
+	Legend,
+	TopBar
 }

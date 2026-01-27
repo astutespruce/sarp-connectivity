@@ -51,7 +51,7 @@ export const unionBounds = (bounds1: number[], bounds2: number[]) => {
  * @param {Array} a
  * @param {Array} b
  */
-const flatzip = (a: number[], b: number[]) => {
+const flatzip = (a: number[] | string[], b: number[] | string[]) => {
 	if (a.length !== b.length) {
 		throw new Error('arrays must be equal to use zip')
 	}
@@ -59,12 +59,11 @@ const flatzip = (a: number[], b: number[]) => {
 	return a.reduce((prev, v, i) => prev.concat([v, b[i]]), [])
 }
 
-export const interpolateExpr = (fieldExpr: string[], domain: number[], range: number[]) => [
-	'interpolate',
-	['linear'],
-	fieldExpr,
-	...flatzip(domain, range)
-]
+export const interpolateExpr = (
+	fieldExpr: string[],
+	domain: number[] | string[],
+	range: number[] | string[]
+) => ['interpolate', ['linear'], fieldExpr, ...flatzip(domain, range)]
 
 type Record = {
 	[key: string]: string | number | object
@@ -207,7 +206,7 @@ export const highlightRemovedNetwork = (
 
 export const setBarrierHighlight = (
 	map: MapboxGLMapType,
-	feature: FeatureSelector,
+	feature: FeatureSelector | null,
 	highlight: boolean
 ) => {
 	if (!feature) {

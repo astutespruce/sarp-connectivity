@@ -3,7 +3,7 @@
 </script>
 
 <div
-	class="flex items-center p-2 absolute top-0 z-1000 l-3 bg-white text-sm shadow-md rounded-b-md [&_button]:lowercase [&:button]:py-1 [&:button]:px-2"
+	class="flex items-center gap-2 p-2 absolute top-0 z-10 left-3 bg-white text-xs shadow-sm shadow-grey-7 rounded-b-md"
 >
 	{@render children()}
 </div>

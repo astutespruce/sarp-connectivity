@@ -10,7 +10,7 @@
 		value = $bindable(''),
 		isLoading = false,
 		invalid = false,
-		ref = $bindable(),
+		ref = $bindable(null),
 		...rest
 	} = $props()
 </script>

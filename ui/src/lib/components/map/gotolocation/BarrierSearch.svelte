@@ -23,7 +23,7 @@
 	const TIMEOUT = 250 // ms
 	const MIN_QUERY_LENGTH = 3
 
-	let { value = $bindable(''), ref = $bindable(), onSubmit } = $props()
+	let { value = $bindable(''), ref = $bindable(null), onSubmit } = $props()
 
 	let debouncedQuery = $state(value)
 	let activeIndex: number | null = $state(null)

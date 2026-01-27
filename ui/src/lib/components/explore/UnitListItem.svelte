@@ -61,7 +61,7 @@
 </script>
 
 <li
-	class="gird grid-cols-[1fr_3.5fr] gap-4 -mx-4 px-4 py-2 not-first-of-type:border-t not-first-of-type:border-t-grey-1 last-of-type:border-b last-of-type:border-b-grey-1"
+	class="grid grid-cols-[3.5fr_1fr] gap-4 py-2 not-first-of-type:border-t not-first-of-type:border-t-grey-1 mt-2"
 >
 	<div>
 		<div
@@ -70,16 +70,14 @@
 				'italic text-muted-foreground': count === 0 || ignore
 			})}
 		>
-			{name}
+			{name}{layer === 'County' ? ', ' : ''}
 
 			{#if layer === 'State'}
 				<span class="font-normal text-xs text-muted-foreground">
-					(
-					<a href={resolve(`/states/${id}`, { id })}> view state details </a>
-					)</span
+					(<a href={resolve(`/states/${id}`, { id })}>view state details</a>)</span
 				>
 			{:else if layer === 'County'}
-				, {STATE_FIPS[id.slice(0, 2) as keyof typeof STATE_FIPS]}
+				{STATE_FIPS[id.slice(0, 2) as keyof typeof STATE_FIPS]}
 			{/if}
 		</div>
 
@@ -89,7 +87,7 @@
 			</div>
 		{/if}
 
-		<div class="text xs text-muted-foreground">
+		<div class="text-xs text-muted-foreground">
 			{countMessage}
 			{#if ignore}
 				(already counted in larger selected area)
@@ -101,17 +99,17 @@
 		<Button
 			variant="ghost"
 			onclick={() => onDelete(unit)}
-			class="p-0 flex-none"
+			class="p-0! h-auto flex-none text-muted-foreground hover:text-foreground"
 			aria-label={`remove ${name} from list`}
 		>
-			<CloseIcon class="size-4" />
+			<CloseIcon class="size-5" />
 		</Button>
 
 		{#if bbox}
 			<Button
 				variant="link"
 				onclick={() => onZoomBounds(bbox)}
-				class="p-0 text-xs"
+				class="p-0! text-xs h-auto mt-1"
 				aria-label={`zoom to ${name} on the map`}
 			>
 				zoom to
