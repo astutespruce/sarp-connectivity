@@ -1,9 +1,8 @@
 <script lang="ts">
-    imoport {resolve} from '$app/paths'
+	import { resolve } from '$app/paths'
 	import { SALMONID_ESU, TROUT, barrierTypeLabelSingular } from '$lib/config/constants'
 	import type { BarrierTypePlural } from '$lib/config/types'
-	import { formatNumber } from '$lib/util/format'
-    import {cn} from '$lib/utils'
+	import { cn } from '$lib/utils'
 
 	import Entry from './Entry.svelte'
 

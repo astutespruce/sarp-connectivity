@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { summaryStats } from '$lib/config/summaryStats'
-	import { ExplorePage } from '$lib/components/explore'
+	import { RestorationPage } from '$lib/components/restoration'
 
 	const coreData = {
 		id: 'total',
@@ -9,4 +9,4 @@
 	}
 </script>
 
-<ExplorePage name={coreData.name} type="Region" details={{ ...coreData, ...summaryStats }} />
+<RestorationPage name={coreData.name} type="Region" details={{ ...coreData, ...summaryStats }} />

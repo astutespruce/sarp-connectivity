@@ -94,8 +94,8 @@
 
 {#if max > 0}
 	<div class="flex items-center text-xs mt-2">
-		<div class="pr-3 text-right basis-26">year removed</div>
-		<div class="flex gap-2 items-center border-l border-l-grey-2 pl-2">
+		<div class="pr-2 text-right basis-26">year removed</div>
+		<div class="flex gap-1 items-center border-l border-l-grey-2 pl-2">
 			<div class="flex-auto">show:</div>
 			{#each metrics as metricOption, i (metricOption.id)}
 				{#if i > 0}
@@ -103,7 +103,7 @@
 				{/if}
 				<Button
 					variant="link"
-					class={cn('flex-none no-underline hover:no-underline text-foreground py-0 px-0 h-7', {
+					class={cn('flex-none no-underline hover:no-underline text-foreground p-0! h-7', {
 						'font-bold text-accent ': metricOption.id === metric,
 						'hover:text-accent': metricOption.id !== metric
 					})}
@@ -119,11 +119,11 @@
 
 	<div
 		class="border-b border-b-grey-2 border-t border-t-grey-2"
-		style={`margin-right: ${formatNumber(max).length + 2}em`}
+		style={`padding-right: ${formatNumber(max).length * 0.8 + 2}em`}
 	>
 		{#each entries as entry (entry.label)}
 			<div class="flex items-center leading-none group">
-				<div class="text-right pr-3 basis-26 text-sm group-first:pt-1.5 group-last:pb-2.5">
+				<div class="text-right pr-2 basis-26 text-sm group-first:pt-1.5 group-last:pb-2.5">
 					{entry.label}
 				</div>
 				<div

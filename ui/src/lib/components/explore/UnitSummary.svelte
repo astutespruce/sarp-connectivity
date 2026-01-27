@@ -5,7 +5,7 @@
 
 	import { resolve } from '$app/paths'
 	import { Button } from '$lib/components/ui/button'
-	import { STATE_FIPS, STATES, barrierTypeLabels } from '$lib/config/constants'
+	import { STATE_FIPS, STATES, shortBarrierTypeLabels } from '$lib/config/constants'
 	import { formatNumber, pluralize, singularOrPlural } from '$lib/util/format'
 	import { Downloader } from '$lib/components/download'
 	import { layers } from '$lib/components/explore/layers'
@@ -181,7 +181,7 @@
 
 <div class="flex flex-col h-full">
 	<div
-		class="flex py-3 pb-4 pl-4 pr-2 justify-center items-start border-b border-b-grey-4 bg-grey-1/50 leading-tight"
+		class="flex pt-3 pb-4 pl-4 pr-2 justify-center items-start border-b border-b-grey-4 bg-grey-1/50 leading-tight"
 	>
 		<div class="flex flex-auto">
 			<h2 class="text-xl">
@@ -226,15 +226,15 @@
 		{/if}
 
 		<div class="[&_ul]:pl-5 [&_ul>li]:leading-snug [&_ul>li+li]:mt-2">
-			<p class="pb-2">
+			<div class="pb-2">
 				{singularOrPlural('This area contains', 'These areas contain', summaryUnits.length)}:
-			</p>
+			</div>
 
 			{#if barrierType === 'dams' || barrierType === 'combined_barriers'}
 				{#if stats.dams > 0}
-					<p>
+					<div>
 						<b>{formatNumber(stats.dams)}</b> inventoried {pluralize('dam', stats.dams)}, including:
-					</p>
+					</div>
 					<ul class="mt-2">
 						<li>
 							<b>{formatNumber(stats.rankedDams, 0)}</b> that
@@ -250,18 +250,18 @@
 						{/if}
 					</ul>
 				{:else}
-					<p class="mt-2">
+					<div class="mt-2">
 						<b>0</b> inventoried dams
-					</p>
+					</div>
 				{/if}
 			{/if}
 
 			{#if barrierType === 'small_barriers' || barrierType === 'combined_barriers'}
 				{#if stats.totalRoadBarriers > 0}
-					<p class={cn('mt-2', { 'mt-6': barrierType === 'combined_barriers' })}>
+					<div class={cn('mt-2', { 'mt-6': barrierType === 'combined_barriers' })}>
 						<b>{formatNumber(stats.totalRoadBarriers, 0)}</b> or more road/stream crossings (potential
 						aquatic barriers), including:
-					</p>
+					</div>
 					<ul class="mt-2">
 						<li>
 							<b>
@@ -297,9 +297,9 @@
 						</li>
 					</ul>
 				{:else}
-					<p class="mt-2">
+					<div class="mt-2">
 						<b>{formatNumber(stats.unsurveyedRoadCrossings, 0)}</b> that have not yet been surveyed
-					</p>
+					</div>
 				{/if}
 			{/if}
 
@@ -347,9 +347,9 @@
 
 		{#if barrierType === 'dams'}
 			<div class="text-sm text-muted-foreground">
-				Note: These statistics are based on <i>inventoried</i> dams. Because the inventory is
-				incomplete in many areas, areas with a high number of dams may simply represent areas that
-				have a more complete inventory.
+				Note: These statistics are based on inventoried dams. Because the inventory is incomplete in
+				many areas, areas with a high number of dams may simply represent areas that have a more
+				complete inventory.
 				{#if stats.unrankedDams > 0}
 					<br />
 					<br />
@@ -362,13 +362,12 @@
 			</div>
 		{:else if barrierType === 'small_barriers'}
 			<div class="text-sm text-muted-foreground">
-				Note: These statistics are based on <i>inventoried</i> road-related barriers that have been
-				assessed for impacts to aquatic organisms. Because the inventory is incomplete in many
-				areas, areas with a high number of barriers may simply represent areas that have a more
-				complete inventory.
+				Note: These statistics are based on surveyed crossings that have been assessed for impacts
+				to aquatic organisms. Because the inventory is incomplete in many areas, areas with a high
+				number of barriers may simply represent areas that have a more complete inventory.
 				{#if stats.unrankedBarriers}
-					{formatNumber(stats.unrankedBarriers, 0)} road-related
-					{pluralize('barrier', stats.unrankedBarriers)}
+					{formatNumber(stats.unrankedBarriers, 0)} surveyed
+					{pluralize('crossing', stats.unrankedBarriers)}
 					{stats.unrankedBarriers === 1 ? 'was' : 'were'} not analyzed because
 					{stats.unrankedBarriers === 1 ? 'it was' : 'they were'} not on the aquatic network or could
 					not be correctly located on the network
@@ -376,9 +375,9 @@
 			</div>
 		{:else if barrierType === 'combined_barriers'}
 			<div class="text-sm text-muted-foreground">
-				Note: These statistics are based on <i>inventoried</i> dams and road-related barriers that
-				have been assessed for impacts to aquatic organisms. Because the inventory is incomplete in
-				many areas, areas with a high number of barriers may simply represent areas that have a more
+				Note: These statistics are based on inventoried dams and surveyed crossings that have been
+				assessed for impacts to aquatic organisms. Because the inventory is incomplete in many
+				areas, areas with a high number of barriers may simply represent areas that have a more
 				complete inventory.
 				{#if stats.unrankedDams > 0 || stats.unrankedBarriers > 0}
 					<br />
@@ -386,7 +385,7 @@
 					{stats.unrankedDams > 0 ? `${formatNumber(stats.unrankedDams, 0)} dams` : null}
 					{stats.unrankedDams > 0 && stats.unrankedBarriers > 0 ? ' and ' : null}
 					{stats.unrankedBarriers > 0
-						? `${formatNumber(stats.unrankedBarriers, 0)} road-related barriers`
+						? `${formatNumber(stats.unrankedBarriers, 0)} surveyed crossings`
 						: null}
 					{stats.unrankedDams + stats.unrankedBarriers === 1 ? 'was' : 'were'} not analyzed because
 					{stats.unrankedDams + stats.unrankedBarriers === 1 ? 'it was' : 'they were'}
@@ -411,7 +410,7 @@
 			{#if barrierType === 'dams'}
 				<Downloader
 					barrierType="dams"
-					label={barrierTypeLabels.dams}
+					label={shortBarrierTypeLabels.dams}
 					config={downloadConfig}
 					disabled={stats.dams === 0}
 					showOptions={false}
@@ -421,7 +420,7 @@
 			{:else if barrierType === 'small_barriers'}
 				<Downloader
 					barrierType="small_barriers"
-					label={barrierTypeLabels.small_barriers}
+					label={shortBarrierTypeLabels.small_barriers}
 					config={downloadConfig}
 					disabled={stats.totalSmallBarriers === 0}
 					showOptions={false}
@@ -431,7 +430,7 @@
 
 				<Downloader
 					barrierType="road_crossings"
-					label={barrierTypeLabels.road_crossings}
+					label={shortBarrierTypeLabels.road_crossings}
 					config={{
 						summaryUnits: summaryUnitsForDownload
 					}}
@@ -443,7 +442,7 @@
 			{:else if barrierType === 'combined_barriers'}
 				<Downloader
 					barrierType="combined_barriers"
-					label={barrierTypeLabels.combined_barriers}
+					label={shortBarrierTypeLabels.combined_barriers}
 					config={downloadConfig}
 					disabled={stats.dams + stats.totalSmallBarriers === 0}
 					showOptions={false}

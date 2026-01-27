@@ -11,16 +11,31 @@
 	import { Alert } from '$lib/components/alert'
 	import { BarrierDetails } from '$lib/components/barrierdetails'
 	import { Root as ButtonGroup } from '$lib/components/ui/button-group'
-	import { Map, RegionSummary, UnitSummary } from '$lib/components/explore'
+	import { Map, RegionSummary, UnitSummary } from '$lib/components/restoration'
 	import type { FocalBarrierType } from '$lib/config/types'
 	import { Legend, TopBar } from '$lib/components/map'
 	import { Sidebar } from '$lib/components/sidebar'
 	import { SYSTEMS } from '$lib/config/constants'
 	import { captureException } from '$lib/util/log'
+	import { extractYearRemovedStats } from '$lib/util/stats'
 	import { cn } from '$lib/utils'
+	import type { MetricOptionValue } from './types'
 
 	type System = 'ADM' | 'HUC'
 	type Status = { isLoading: boolean; error: string | null }
+	type SummaryUnit = {
+		layer: string
+		id: string
+		removedBarriersByYear: {
+			label: string
+			dams: number
+			damsNoNetwork: number
+			damsGainMiles: number
+			smallBarriers: number
+			smallBarriersNoNetwork: number
+			smallBarriersGainMiles: number
+		}[]
+	}
 
 	const focalBarrierTypeOptions: { value: FocalBarrierType; label: string }[] = [
 		{ value: 'dams', label: 'dams' },
@@ -39,16 +54,14 @@
 
 	const { id = null, name, type, details } = $props()
 
-	// FIXME: remove
-	$inspect('incoming', id, name, type, details).with(console.log)
-
 	let map: MapboxGLMapType | undefined = $state()
 	let system: System = $derived(
 		type === 'Region' || type === 'State' || type === 'FishHabitatPartnership' ? 'ADM' : 'HUC'
 	)
+	let metric: MetricOptionValue = $state('gainmiles')
 	let focalBarrierType: FocalBarrierType = $state('dams')
 	let summaryUnitIds: SvelteSet<string> = new SvelteSet()
-	let summaryUnits: { layer: string; id: string }[] = $state([])
+	let summaryUnits: SummaryUnit[] = $state([])
 	let unitStatus: Status = $state({ isLoading: false, error: null })
 	let selectedBarrier = $state(null)
 	let barrierStatus: Status = $state({ isLoading: false, error: null })
@@ -80,7 +93,11 @@
 				{
 					layer,
 					id: selectedId,
-					...preFetchedUnitData
+					...preFetchedUnitData,
+					removedBarriersByYear: extractYearRemovedStats(
+						preFetchedUnitData.removedDamsByYear,
+						preFetchedUnitData.removedSmallBarriersByYear
+					)
 				}
 			]
 			unitStatus = { isLoading: false, error: null }
@@ -140,7 +157,7 @@
 </script>
 
 <svelte:head>
-	<title>Explore & download barriers | {SITE_NAME}</title>
+	<title>Restoring aquatic connectivity | {SITE_NAME}</title>
 </svelte:head>
 
 <div class="flex gap-0 w-full h-full">
@@ -166,10 +183,14 @@
 			<UnitSummary
 				barrierType={focalBarrierType}
 				{system}
+				{metric}
 				{summaryUnits}
 				onSelectUnit={handleSelectUnit}
 				onReset={handleReset}
 				onZoomBounds={handleZoomBounds}
+				onChangeMetric={(newMetric: MetricOptionValue) => {
+					metric = newMetric
+				}}
 			/>
 		{:else}
 			<RegionSummary
@@ -177,7 +198,11 @@
 				region={id}
 				{...details}
 				{system}
+				{metric}
 				onSelectUnit={handleSelectUnit}
+				onChangeMetric={(newMetric: MetricOptionValue) => {
+					metric = newMetric
+				}}
 			/>
 		{/if}
 	</Sidebar>

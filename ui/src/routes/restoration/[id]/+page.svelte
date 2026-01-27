@@ -3,7 +3,7 @@
 	import { createQuery } from '@tanstack/svelte-query'
 
 	import { fetchUnitDetails } from '$lib/api'
-	import { ExplorePage } from '$lib/components/explore'
+	import { RestorationPage } from '$lib/components/restoration'
 	import { NotFoundPage, PageLoadingError } from '$lib/components/layout'
 
 	const { data } = $props()
@@ -27,7 +27,7 @@
 	</div>
 {:else if dataRequest.isSuccess}
 	{#if dataRequest.data}
-		<ExplorePage id={data.id} name={data.name} type={data.type} details={dataRequest.data} />
+		<RestorationPage id={data.id} name={data.name} type={data.type} details={dataRequest.data} />
 	{:else}
 		<NotFoundPage />
 	{/if}

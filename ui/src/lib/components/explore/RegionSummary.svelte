@@ -11,6 +11,7 @@
 
 	const {
 		barrierType,
+		system,
 		region = null,
 		type,
 		name,
@@ -25,7 +26,7 @@
 		removedSmallBarriers = 0,
 		removedSmallBarriersGainMiles = 0,
 		unsurveyedRoadCrossings = 0,
-		system,
+
 		onSelectUnit
 	} = $props()
 

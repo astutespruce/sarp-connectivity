@@ -6,6 +6,9 @@ export type NetworkType =
 	| 'largefish_barriers'
 	| 'smallfish_barriers'
 
+// used for explore / restoration pages
+export type FocalBarrierType = 'dams' | 'small_barriers' | 'combined_barriers'
+
 export type SummaryUnits = {
 	[key: string]: (string | number)[]
 }
