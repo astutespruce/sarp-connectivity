@@ -209,7 +209,7 @@
 
 {#if costmean > 0}
 	<Entry label="Estimated cost of removal">
-		<div class="leading-relaxed,">
+		<div class="leading-relaxed">
 			average: ${formatNumber(costmean)}
 			<br />
 			range: ${formatNumber(costlower)} - ${formatNumber(costupper)}

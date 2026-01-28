@@ -8,7 +8,7 @@
 	import { STATE_FIPS, STATES, shortBarrierTypeLabels } from '$lib/config/constants'
 	import { formatNumber, pluralize, singularOrPlural } from '$lib/util/format'
 	import { Downloader } from '$lib/components/download'
-	import { layers } from '$lib/components/explore/layers'
+	import { summaryUnitLayers } from '$lib/components/explore/layers'
 	import { Search } from '$lib/components/unitsearch'
 	import { cn } from '$lib/utils'
 
@@ -43,7 +43,9 @@
 				}
 				default: {
 					// all remaining HUC cases
-					const [{ title: layerTitle }] = layers.filter(({ id: lyrID }) => lyrID === layer)
+					const [{ title: layerTitle }] = summaryUnitLayers.filter(
+						({ id: lyrID }) => lyrID === layer
+					)
 					return {
 						title: name,
 						subtitle: layerTitle,

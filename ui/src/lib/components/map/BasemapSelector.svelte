@@ -64,7 +64,12 @@
 		})
 	})
 
-	const handleBasemapClick = (newBasemap: Basemap) => {
+	const handleBasemapClick = (newBasemap: Basemap, { target }: Event) => {
+		const buttonNode = target.parentNode
+		if (buttonNode) {
+			buttonNode.blur()
+		}
+
 		if (newBasemap.id === basemap.id) return
 
 		basemap.layers.forEach((layer) => {
@@ -79,16 +84,14 @@
 			onUpdate(newBasemap.id)
 		}
 	}
-
-	const nextBasemap = $derived(options.filter(({ id }) => id !== basemap.id)[0])
 </script>
 
-{#snippet basemapButton(basemap: Basemap, isCurrent = false, isNext = false)}
+{#snippet basemapButton(basemap: Basemap, isCurrent = false)}
 	<div
 		class={cn(
 			'flex-none flex-col gap-1 items-center cursor-pointer hidden group-hover/basemaps:flex group-focus-within/basemaps:flex group/basemap',
 			{
-				flex: isNext
+				flex: isCurrent
 			}
 		)}
 		style="flex-basis:calc({size} + 0.5rem);"
@@ -104,11 +107,14 @@
 		<Button
 			class={cn(
 				'rounded-full overflow-hidden border-white shadow-lg shadow-grey-8 ring-1 focus-visible:ring-2 hover:ring-2 ring-grey-4 p-0 focus-visible:ring-accent hover:ring-accent',
-				{ 'ring-2 ring-grey-9': isCurrent }
+				{
+					'ring-2 ring-white group-hover/basemaps:ring-foreground group-focus-within/basemaps:ring-foreground':
+						isCurrent
+				}
 			)}
 			style="width:{size};height:{size};"
-			onclick={() => {
-				handleBasemapClick(basemap)
+			onclick={(e) => {
+				handleBasemapClick(basemap, e)
 			}}
 			tabindex={0}
 		>
@@ -122,6 +128,6 @@
 	style="bottom:{bottom};left:{left}"
 >
 	{#each options as option (option.id)}
-		{@render basemapButton(option, option.id === basemap.id, option.id === nextBasemap.id)}
+		{@render basemapButton(option, option.id === basemap.id)}
 	{/each}
 </div>

@@ -1,7 +1,7 @@
 import { pointColors } from '$lib/config/constants'
 import { getHighlightExpr } from '$lib/components/map'
 
-export const layers = [
+export const summaryUnitLayers = [
 	{
 		id: 'HUC2',
 		system: 'HUC',
@@ -287,7 +287,7 @@ export const layers = [
 
 export const flowlineLegend = {}
 
-export const removedPointLayer = {
+export const removedBarrierPointLayer = {
 	// id: '' // provided by specific layer
 	// source: "" // provided by specific layer
 	// 'source-layer': '', // provided by specific layer

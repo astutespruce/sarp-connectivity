@@ -8,7 +8,7 @@
 	import { STATE_FIPS, STATES, shortBarrierTypeLabels } from '$lib/config/constants'
 	import { formatNumber, pluralize, singularOrPlural } from '$lib/util/format'
 	import { Downloader } from '$lib/components/download'
-	import { layers } from '$lib/components/explore/layers'
+	import { summaryUnitLayers } from '$lib/components/explore/layers'
 	import { Search } from '$lib/components/unitsearch'
 	import { cn } from '$lib/utils'
 
@@ -45,7 +45,7 @@
 	const {
 		title = null,
 		subtitle = null,
-		idline = null,
+		idInfo = null,
 		ignoreIds = new Set()
 	} = $derived.by(() => {
 		if (summaryUnits.length === 1) {
@@ -59,15 +59,17 @@
 					return { title: name, subtitle: STATE_FIPS[id.slice(0, 2) as keyof typeof STATE_FIPS] }
 				}
 				case 'HUC2': {
-					return { title: name, idline: `${layer}: ${id}` }
+					return { title: name, idInfo: `${layer}: ${id}` }
 				}
 				default: {
 					// all remaining HUC cases
-					const [{ title: layerTitle }] = layers.filter(({ id: lyrID }) => lyrID === layer)
+					const [{ title: layerTitle }] = laysummaryUnitLayersers.filter(
+						({ id: lyrID }) => lyrID === layer
+					)
 					return {
 						title: name,
 						subtitle: layerTitle,
-						idline: `${layer}: ${id}`
+						idInfo: `${layer}: ${id}`
 					}
 				}
 			}
@@ -201,15 +203,16 @@
 		<div class="flex flex-auto">
 			<h2 class="text-xl">
 				{title}
-				{#if subtitle}
-					<div class="font-normal">{subtitle}</div>
+				{#if subtitle && idInfo}
+					<div class="font-normal text-[1rem]">
+						{subtitle} <span class="text-muted text-sm">({idInfo})</span>
+					</div>
+				{:else if subtitle}
+					<div class="font-normal text-[1rem]">{subtitle}</div>
+				{:else if idInfo}
+					<div class="text-muted text-sm">{idInfo}</div>
 				{/if}
 			</h2>
-			{#if idline}
-				<div class="text-muted-foreground">
-					{idline}
-				</div>
-			{/if}
 		</div>
 
 		<div class="flex flex-none flex-col justify-between items-end h-full">
@@ -265,7 +268,7 @@
 			{/if}
 
 			{#if barrierType === 'small_barriers' || barrierType === 'combined_barriers'}
-				<div class={cn('mt-2', { 'mt-6': barrierType === 'combined_barriers' })}>
+				<div class={cn({ 'mt-6': barrierType === 'combined_barriers' })}>
 					{#if stats.removedSmallBarriers > 0}
 						<b>{formatNumber(stats.removedSmallBarriers, 0)}</b>
 						surveyed road/stream {pluralize('crossing', stats.removedSmallBarriers)} that

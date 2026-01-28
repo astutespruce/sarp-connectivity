@@ -26,7 +26,7 @@
 					Explore and download barriers
 				</a>
 			</div>
-			<p class="text-muted-foreground pl-7 leading-tight text-sm mt-2">
+			<p class="pl-7 leading-tight text-sm mt-2">
 				You can explore summary statistics for different areas like watersheds, states, counties,
 				and more. Once you have selected your area of interest, you can download barriers in that
 				area. You can also explore all barriers on the map to learn more.
@@ -39,7 +39,7 @@
 					Explore restoration progress</a
 				>
 			</div>
-			<p class="text-muted-foreground pl-7 leading-tight text-sm mt-2">
+			<p class="pl-7 leading-tight text-sm mt-2">
 				You can explore removed and mitigated barriers on the map and view summary statistics of
 				restoration progress over time for various areas.
 			</p>

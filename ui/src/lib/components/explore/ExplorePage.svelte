@@ -57,8 +57,6 @@
 	let unitStatus: Status = $state({ isLoading: false, error: null })
 	let selectedBarrier = $state.raw(null)
 
-	$inspect('status of selected barrier', selectedBarrier)
-
 	const handleSetSystem = (newSystem: System) => {
 		system = newSystem
 		summaryUnitIds.clear()

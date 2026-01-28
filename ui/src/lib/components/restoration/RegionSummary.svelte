@@ -22,7 +22,7 @@
 		barrierType,
 		system,
 		metric,
-		region = null,
+		id,
 		type,
 		name,
 		dams = 0,
@@ -39,23 +39,23 @@
 	const { url, urlLabel }: { url?: string; urlLabel?: string } = $derived.by(() => {
 		switch (type) {
 			case 'Region': {
-				if (region === 'total') {
+				if (id === 'total') {
 					return {}
 				}
 				return {
-					url: resolve(`/regions/${region}/`, { id: region }),
+					url: resolve(`/regions/${id}/`, { id }),
 					urlLabel: 'view region page for more information'
 				}
 			}
 			case 'FishHabitatPartnership': {
 				return {
-					url: resolve(`/fhp/${region}/`, { id: region }),
+					url: resolve(`/fhp/${id}/`, { id }),
 					urlLabel: 'view the Fish Habitat Partnership page for more information'
 				}
 			}
 			case 'State': {
 				return {
-					url: resolve(`/states/${region}/`, { id: region }),
+					url: resolve(`/states/${id}/`, { id }),
 					urlLabel: 'view state page for more information'
 				}
 			}
@@ -176,7 +176,8 @@
 			upstream that were removed in the same year as a given barrier.
 		</div>
 	</div>
-	{#if !region}
+
+	{#if id === 'total'}
 		<div
 			class="flex gap-4 items-center flex-none pt-2 pb-4 px-2 border-t border-t-grey-4 bg-grey-1/50"
 		>

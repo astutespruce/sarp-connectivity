@@ -3,7 +3,7 @@
 import { pointColors } from '$lib/config/constants'
 import { getHighlightExpr } from '$lib/components/map'
 
-export const layers = [
+export const summaryUnitLayers = [
 	{
 		id: 'HUC2',
 		system: 'HUC',

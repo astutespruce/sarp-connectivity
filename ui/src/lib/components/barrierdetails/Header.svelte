@@ -36,7 +36,7 @@
 				{name}
 			</div>
 			{#if removed}
-				<div class="flex gap-1 items-center mb-1">
+				<div class="flex gap-1 items-center my-1">
 					<div class="flex gap-2 items-center">
 						<RemovedBarrierIcon class="text-blue-8 size-5" />
 					</div>

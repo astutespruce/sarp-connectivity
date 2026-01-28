@@ -126,6 +126,11 @@ export const fetchBarrierDetails = async (networkType: string, sarpid: string) =
 
 	const data = await response.json()
 
+	// add camelCase barrier type
+	if (data.barriertype && !data.barrierType) {
+		data.barrierType = data.barriertype
+	}
+
 	// backfill empty name
 	if (isEmptyString(data.name)) {
 		data.name =

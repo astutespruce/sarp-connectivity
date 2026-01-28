@@ -15,18 +15,7 @@
 	import { shortBarrierTypeLabels, pointLegends, SUMMARY_UNIT_COLORS } from '$lib/config/constants'
 	import type { BarrierTypePlural, FocalBarrierType } from '$lib/config/types'
 	import { isEqual } from '$lib/util/data'
-	import {
-		summaryUnitLayers,
-		waterfallsLayer,
-		damsSecondaryLayer,
-		roadCrossingsLayer,
-		rankedPointLayer,
-		unrankedPointLayer,
-		removedBarrierPointLayer,
-		otherBarrierPointLayer,
-		regionMask,
-		regionBoundary
-	} from './layers'
+	import { summaryUnitLayers, removedBarrierPointLayer, regionMask, regionBoundary } from './layers'
 
 	const barrierTypes: FocalBarrierType[] = ['dams', 'small_barriers', 'combined_barriers']
 
@@ -90,7 +79,7 @@
 			paint: {
 				'line-opacity': 1,
 				'line-width': outline.paint['line-width'],
-				'line-color': '#CC99A8' // last color of COUNT_COLORS, then lightened several shades
+				'line-color': SUMMARY_UNIT_COLORS.Greens[7][3]
 			}
 		})
 
@@ -118,48 +107,12 @@
 	// Add network layers
 	layers.push(...networkLayers)
 
-	// Add barrier point layers
-	layers.push(...[waterfallsLayer, damsSecondaryLayer, roadCrossingsLayer])
-
 	barrierTypes.forEach((t) => {
-		// off network barriers
-		layers.push({
-			id: `other_${t}`,
-			source: t,
-			'source-layer': `other_${t}`,
-			...otherBarrierPointLayer,
-			layout: {
-				visibility: 'none'
-			}
-		})
-
 		layers.push({
 			id: `removed_${t}`,
 			source: t,
 			'source-layer': `removed_${t}`,
 			...removedBarrierPointLayer,
-			layout: {
-				visibility: 'none'
-			}
-		})
-
-		// on-network but unranked barriers
-		layers.push({
-			id: `unranked_${t}`,
-			source: t,
-			'source-layer': `unranked_${t}`,
-			...unrankedPointLayer, // TODO: dedicated styling
-			layout: {
-				visibility: 'none'
-			}
-		})
-
-		// on-network ranked barriers
-		layers.push({
-			id: `ranked_${t}`,
-			source: t,
-			'source-layer': `ranked_${t}`,
-			...rankedPointLayer,
 			layout: {
 				visibility: 'none'
 			}
@@ -195,12 +148,7 @@
 			zoom = map.getZoom()
 		})
 
-		const pointLayers = []
-		barrierTypes.forEach((t) => {
-			pointLayers.push(...[`ranked_${t}`, `unranked_${t}`, `removed_${t}`, `other_${t}`])
-		})
-		pointLayers.push(...['dams-secondary', 'road-crossings', 'waterfalls'])
-
+		const pointLayers = barrierTypes.map((t) => `removed_${t}`)
 		const clickLayers = pointLayers.concat(summaryUnitLayers.map(({ id }) => `${id}-fill`))
 
 		// add hover and tooltip to point layers
@@ -329,8 +277,8 @@
 		// update renderer and filter on all layers
 		const fieldExpr =
 			focalBarrierType === 'combined_barriers'
-				? ['+', ['get', 'dams'], ['get', 'small_barriers']]
-				: ['get', focalBarrierType]
+				? ['+', ['get', 'removed_dams'], ['get', 'removed_small_barriers']]
+				: ['get', `removed_${focalBarrierType}`]
 
 		// update layer visibility and rendering
 
@@ -343,7 +291,7 @@
 				if (lyrSystem === system) {
 					// NOTE: only update the visible layers, otherwise map gets hung up and doesn't return to idle
 					const colors =
-						SUMMARY_UNIT_COLORS.YlOrRed[bins.length as keyof typeof SUMMARY_UNIT_COLORS.YlOrRed]
+						SUMMARY_UNIT_COLORS.Greens[bins.length as keyof typeof SUMMARY_UNIT_COLORS.Greens]
 					map.setPaintProperty(`${id}-fill`, 'fill-color', [
 						'match',
 						fieldExpr,
@@ -362,23 +310,8 @@
 	const updateBarrierTypeVisibility = () => {
 		barrierTypes.forEach((t) => {
 			const visibility = focalBarrierType === t ? 'visible' : 'none'
-			map.setLayoutProperty(`ranked_${t}`, 'visibility', visibility)
-			map.setLayoutProperty(`unranked_${t}`, 'visibility', visibility)
 			map.setLayoutProperty(`removed_${t}`, 'visibility', visibility)
-			map.setLayoutProperty(`other_${t}`, 'visibility', visibility)
 		})
-
-		// dams-secondary is only relevant for small barriers
-		map.setLayoutProperty(
-			'dams-secondary',
-			'visibility',
-			focalBarrierType === 'small_barriers' ? 'visible' : 'none'
-		)
-		map.setLayoutProperty(
-			'road-crossings',
-			'visibility',
-			focalBarrierType !== 'dams' ? 'visible' : 'none'
-		)
 
 		clearNetworkHighlight()
 	}
@@ -485,8 +418,8 @@
 		} = layer
 		// flip the order of colors and bins since we are displaying from top to bottom
 		// add opacity to color
-		const colors = SUMMARY_UNIT_COLORS.YlOrRed[
-			bins.length as keyof typeof SUMMARY_UNIT_COLORS.YlOrRed
+		const colors = SUMMARY_UNIT_COLORS.Greens[
+			bins.length as keyof typeof SUMMARY_UNIT_COLORS.Greens
 		]
 			.map((c) => `${c}4d`)
 			.reverse()
@@ -515,37 +448,12 @@
 		})
 
 		const circles = []
-		if (map.getZoom() >= 12) {
-			const { included: primary, unrankedBarriers, other } = pointLegends
+		if (map && map.getZoom() >= 8) {
+			const { unrankedBarriers } = pointLegends
+			const removedLegend = unrankedBarriers.filter(({ id }) => id === 'removed')[0]
 			circles.push({
-				id: 'primary',
-				...primary.getSymbol(focalBarrierType),
-				label: primary.getLabel(barrierTypeLabel)
-			})
-
-			unrankedBarriers
-				.filter(
-					({ id }) =>
-						// don't show minor barriers for dams view
-						id !== 'minorBarrier' || focalBarrierType !== 'dams'
-				)
-				.forEach(({ id, getSymbol, getLabel }) => {
-					circles.push({
-						id,
-						...getSymbol(focalBarrierType),
-						label: getLabel(barrierTypeLabel)
-					})
-				})
-
-			other.forEach(({ id, getSymbol, getLabel }) => {
-				if (id === 'dams-secondary' && focalBarrierType !== 'small_barriers') {
-					return
-				}
-				circles.push({
-					id,
-					...getSymbol(),
-					label: getLabel()
-				})
+				...removedLegend.getSymbol(focalBarrierType),
+				label: removedLegend.getLabel(barrierTypeLabel)
 			})
 		}
 

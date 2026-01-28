@@ -15,7 +15,15 @@
 		queryFn: async () => fetchBarrierDetails(networkType, sarpid)
 	}))
 
-	const data = $derived(dataRequest.data)
+	// default barrierType to the network type unless combined_barriers / etc (which returns barriertype)
+	// because we only show barriers of that network type
+	const data = $derived.by(() => {
+		const rawData = dataRequest.data
+		if (!rawData) {
+			return rawData
+		}
+		return { ...rawData, barrierType: rawData.barriertype || networkType }
+	})
 
 	const pageTitle = $derived(
 		data && data.name ? `Barrier report for ${data.name}` : 'Barrier report'
