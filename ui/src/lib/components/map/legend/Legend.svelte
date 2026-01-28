@@ -25,7 +25,7 @@
 {#if hasElements || footnote}
 	{#if isOpen}
 		<div
-			class="absolute right-2.5 bottom-6 text-sm px-4 pt-1 pb-2 bg-white hover:bg-white text-foreground border border-grey-5 rounded-md shadow-grey-6 shadow-lg max-w-48"
+			class="absolute right-2.5 bottom-6 text-sm px-4 pt-1 pb-2 bg-white hover:bg-white text-foreground border border-grey-5 rounded-md shadow-grey-6 shadow-lg max-w-[16rem]"
 		>
 			<Button
 				variant="ghost"
@@ -59,7 +59,7 @@
 								{#each patch.entries as entry (`${entry.label}-${entry.color}`)}
 									<div class="flex gap-2 group">
 										<div
-											class="h-4 w-5 flex-none border-grey-5 border-t-none border-l border-r border-b group-first-of-type:rounded-t-sm group-last-of-type:rounded-b-sm"
+											class="ml-1 h-4 w-5 flex-none border-grey-5 border-t-none border-l border-r border-b group-first-of-type:rounded-t-sm group-last-of-type:rounded-b-sm group-first-of-type:border-t"
 											style="background-color:{entry.color}"
 										></div>
 										<div class="text-xs leading-none text-foreground">{entry.label}</div>
@@ -81,7 +81,7 @@
 						<div
 							class="flex items-start pt-2 not-first:border-t not-first:border-t-grey-1 not-first:mt-1 gap-2"
 						>
-							<div class="flex flex-none items-baseline">
+							<div class="flex flex-none items-baseline min-w-5">
 								{#if circle.symbols && circle.symbols.length > 0}
 									{#each circle.symbols as symbol, i (`${symbol.color}-${symbol.borderColor}-${i}`)}
 										<Circle {...symbol} />
@@ -108,7 +108,7 @@
 						>
 							<div
 								class="flex-none w-5 h-2"
-								style="border-bottom-width:{line.lineWidth * 2 ||
+								style="border-bottom-color:{line.color}; border-bottom-width:{line.lineWidth * 2 ||
 									2}px; border-bottom-style:{line.lineStyle || 'solid'};"
 							></div>
 							<div class="text-xs leading-none text-foreground">{line.label}</div>

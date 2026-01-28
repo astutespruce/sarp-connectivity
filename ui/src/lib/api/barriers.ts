@@ -126,13 +126,6 @@ export const fetchBarrierDetails = async (networkType: string, sarpid: string) =
 
 	const data = await response.json()
 
-	// backfill missing barriertype when originating from data with a single barrier type
-	if (!data.barriertype) {
-		data.barriertype = networkType
-	}
-	// lots of places expect this camelcase, so alias it
-	data.barrierType = data.barriertype
-
 	// backfill empty name
 	if (isEmptyString(data.name)) {
 		data.name =

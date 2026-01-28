@@ -35,6 +35,8 @@
 </script>
 
 <Section title="Location">
+	<Entry label="Barrier type">waterfall</Entry>
+
 	<LocationInfo {...data} />
 
 	{#if !isEmptyString(falltype)}

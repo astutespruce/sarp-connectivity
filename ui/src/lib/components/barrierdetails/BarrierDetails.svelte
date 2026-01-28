@@ -15,6 +15,7 @@
 	import SurveyedCrossing from './SurveyedCrossing.svelte'
 	import UnsurveyedCrossing from './UnsurveyedCrossing.svelte'
 	import Waterfall from './Waterfall.svelte'
+	import { cn } from '$lib/utils'
 
 	type Score = { score: number; tier: number }
 	type Scores = {
@@ -23,18 +24,26 @@
 		custom?: { [key: string]: Score }
 	}
 
+	// IMPORTANT: due to rendering lags, this component appears to render even when
+	// data prop is null (should not render due to #if in parent)
 	const { data: coreData, onClose } = $props()
+
 	let view: 'details' | 'scores' = $state('details')
 
-	// this is packed for tile data
-	const [sarpid] = $derived(coreData.sarpidname.split('|'))
+	// SARPID is packed for tile data
+	const sarpid = $derived(coreData ? coreData.sarpidname.split('|')[0] : null)
 
 	const dataRequest = createQuery(() => ({
 		queryKey: ['barrier-details', coreData.networkType, sarpid],
-		queryFn: async () => fetchBarrierDetails(coreData.networkType, sarpid)
+		queryFn: async () => fetchBarrierDetails(coreData.networkType, sarpid),
+		enabled: sarpid !== null
 	}))
 
 	const data = $derived({ ...coreData, ...dataRequest.data })
+
+	const hasTabs = $derived(
+		data.ranked && (data.barrierType !== 'waterfalls' || data.barrierType === 'road_crossings')
+	)
 
 	const scores = $derived.by(() => {
 		const tierToPercent = (tier: number) => (100 * (19 - (tier - 1))) / 20
@@ -99,19 +108,22 @@
 		return out
 	})
 
-	$inspect('show barrier details: ', sarpid, data)
+	$inspect('selectedBarrier', sarpid, data.barrierType, data)
 </script>
 
 <!-- data request null indicates 404 type error -->
 
 {#if dataRequest.isSuccess && dataRequest.data}
-	<div class="flex flex-col">
+	<div class="flex flex-col h-full">
 		<Header {...data} {onClose} />
 
-		{#if data.ranked}
-			<div class="flex gap-0">
+		{#if hasTabs}
+			<div class="grid grid-cols-2 gap-0 bg-blue-1 flex-none border-t-4 border-t-blue-2">
 				<Button
 					variant="ghost"
+					class={cn('rounded-none', {
+						'bg-white font-bold': view === 'details'
+					})}
 					onclick={() => {
 						view = 'details'
 					}}
@@ -120,6 +132,7 @@
 				</Button>
 				<Button
 					variant="ghost"
+					class={cn('rounded-none', { 'bg-white font-bold': view === 'scores' })}
 					onclick={() => {
 						view = 'scores'
 					}}>Connectivity ranks</Button
@@ -128,7 +141,12 @@
 		{/if}
 
 		{#if view === 'details'}
-			<div class="sidebar-barrier-details flex-auto">
+			<div
+				class={cn('sidebar-barrier-details flex-auto overflow-auto h-full', {
+					'pt-4': hasTabs,
+					'border-t-2 border-t-blue-8': !hasTabs
+				})}
+			>
 				{#if data.barrierType === 'dams'}
 					<Dam {data} />
 				{:else if data.barrierType === 'small_barriers'}
@@ -148,7 +166,7 @@
 {:else if dataRequest.isLoading}
 	<div class="container">
 		<div class="flex justify-center items-center gap-4 text-xl text-muted-foreground mt-16">
-			<LoadingIcon class="size-12 motion-safe:animate-spin" />
+			<LoadingIcon class="size-8 motion-safe:animate-spin" />
 			Loading...
 		</div>
 	</div>

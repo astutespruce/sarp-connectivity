@@ -1,7 +1,7 @@
 <script lang="ts">
 	import ChevronsRightIcon from '@lucide/svelte/icons/chevrons-right'
 	import CloseIcon from '@lucide/svelte/icons/circle-x'
-	import { SvelteSet as Set } from 'svelte/reactivity'
+	import { SvelteSet } from 'svelte/reactivity'
 
 	import { resolve } from '$app/paths'
 	import { Button } from '$lib/components/ui/button'
@@ -25,8 +25,8 @@
 	const {
 		title = null,
 		subtitle = null,
-		idline = null,
-		ignoreIds = new Set()
+		idInfo = null,
+		ignoreIds = new SvelteSet()
 	} = $derived.by(() => {
 		if (summaryUnits.length === 1) {
 			switch (layer) {
@@ -39,7 +39,7 @@
 					return { title: name, subtitle: STATE_FIPS[id.slice(0, 2) as keyof typeof STATE_FIPS] }
 				}
 				case 'HUC2': {
-					return { title: name, idline: `${layer}: ${id}` }
+					return { title: name, idInfo: `${layer}: ${id}` }
 				}
 				default: {
 					// all remaining HUC cases
@@ -47,14 +47,14 @@
 					return {
 						title: name,
 						subtitle: layerTitle,
-						idline: `${layer}: ${id}`
+						idInfo: `${layer}: ${id}`
 					}
 				}
 			}
 		}
 
 		// mark items to ignore
-		const existingIds: Set<string> = new Set()
+		const existingIds: SvelteSet<string> = new SvelteSet()
 		if (system === 'ADM') {
 			const statesPresent = new Set(
 				(summaryUnits as SummaryUnit[])
@@ -183,18 +183,19 @@
 	<div
 		class="flex pt-3 pb-4 pl-4 pr-2 justify-center items-start border-b border-b-grey-4 bg-grey-1/50 leading-tight"
 	>
-		<div class="flex flex-auto">
+		<div class="flex-auto">
 			<h2 class="text-xl">
 				{title}
-				{#if subtitle}
-					<div class="font-normal">{subtitle}</div>
+				{#if subtitle && idInfo}
+					<div class="font-normal text-[1rem]">
+						{subtitle} <span class="text-muted text-sm">({idInfo})</span>
+					</div>
+				{:else if subtitle}
+					<div class="font-normal text-[1rem]">{subtitle}</div>
+				{:else if idInfo}
+					<div class="text-muted text-sm">{idInfo}</div>
 				{/if}
 			</h2>
-			{#if idline}
-				<div class="text-muted-foreground">
-					{idline}
-				</div>
-			{/if}
 		</div>
 
 		<div class="flex flex-none flex-col justify-between items-end h-full">
@@ -258,7 +259,7 @@
 
 			{#if barrierType === 'small_barriers' || barrierType === 'combined_barriers'}
 				{#if stats.totalRoadBarriers > 0}
-					<div class={cn('mt-2', { 'mt-6': barrierType === 'combined_barriers' })}>
+					<div class={cn({ 'mt-6': barrierType === 'combined_barriers' })}>
 						<b>{formatNumber(stats.totalRoadBarriers, 0)}</b> or more road/stream crossings (potential
 						aquatic barriers), including:
 					</div>

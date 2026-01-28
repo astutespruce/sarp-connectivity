@@ -3,6 +3,8 @@
 	import { barrierTypeLabels } from '$lib/config/constants'
 	import type { BarrierTypePlural } from '$lib/config/types'
 	import { Button } from '$lib/components/ui/button'
+	import { Root as ButtonGroup } from '$lib/components/ui/button-group'
+	import { cn } from '$lib/utils'
 
 	import ScoresList from './ScoresList.svelte'
 
@@ -36,35 +38,41 @@
 	let view: TabId | undefined = $derived(availableTabs.length > 0 ? availableTabs[0].id : undefined)
 </script>
 
-{#if availableTabs.length > 0}
-	<div>
-		<div class="text-xs text-muted-foreground text-center">
-			Tiers range from 20 (lowest) to 1 (highest).
+<div class="h-full overflow-auto pb-8">
+	{#if availableTabs.length > 0}
+		<div>
+			{#if availableTabs.length > 1}
+				<div class="mx-2 mt-4 font-bold">
+					Compared to other
+					{barrierTypeLabels[networkType as BarrierTypePlural]} in the
+				</div>
+
+				<ButtonGroup class="mx-2 mt-1">
+					{#each availableTabs as tab (tab.id)}
+						<Button
+							variant="ghost"
+							onclick={() => {
+								view = tab.id
+							}}
+							class={cn(' h-auto px-4 py-0.5! not-first:ml-0.5', {
+								' bg-primary text-white border-b-transparent hover:text-white hover:bg-primary/90':
+									view === tab.id,
+								'bg-blue-1 hover:bg-blue-2 text-muted-foreground': view !== tab.id
+							})}>{tab.label}</Button
+						>
+					{/each}
+				</ButtonGroup>
+			{/if}
+
+			<ScoresList {...scores[view!]} />
 		</div>
-
-		{#if availableTabs.length > 1}
-			<div>
-				Compared to other {barrierTypeLabels[networkType as BarrierTypePlural]} in the
-				{tabLabels[view!]}
-			</div>
-			<div class="flex">
-				{#each availableTabs as tab (tab.id)}
-					<Button
-						variant="ghost"
-						onclick={() => {
-							view = tab.id
-						}}>{tab.label}</Button
-					>
-				{/each}
-			</div>
-		{/if}
-
-		<ScoresList {...scores[view!]} />
-	</div>
-{:else}
-	State-level ranks are not available for this network type because there are not yet sufficient
-	assessed road-related barriers at the state level for all states. Instead, you can <a
-		href={resolve('/priority/')}>prioritize</a
-	>
-	barriers to calculate ranks for a selected area.
-{/if}
+	{:else}
+		<div class="mx-2 mt-4 text-muted-foreground text-sm">
+			State-level ranks are not available for this network type because there are not yet sufficient
+			assessed road-related barriers at the state level for all states. Instead, you can <a
+				href={resolve('/priority/')}>prioritize</a
+			>
+			barriers to calculate ranks for a selected area.
+		</div>
+	{/if}
+</div>

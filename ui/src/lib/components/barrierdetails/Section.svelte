@@ -2,10 +2,10 @@
 	const { title, children } = $props()
 </script>
 
-<section class="not-first-of-type:mt-1">
-	<h2 class="text-lg py-1 px-2 bg-grey-1 font-bold">{title}</h2>
+<section class="pb-8">
+	<h2 class="text-xl py-1 px-2 bg-blue-8 font-normal text-white border-b-2 border-b-blue-9">
+		{title}
+	</h2>
 
-	<div class="mt-2">
-		{@render children()}
-	</div>
+	{@render children()}
 </section>

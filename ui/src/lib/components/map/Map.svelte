@@ -1,29 +1,32 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte'
 	import { Map as MapboxGLMap, NavigationControl } from 'mapbox-gl'
-	import type { Map as SourceSpecification, LayerSpecification } from 'mapbox-gl'
+	import type { MapboxGLMapType, SourceSpecification, LayerSpecification } from 'mapbox-gl'
 	import 'mapbox-gl/dist/mapbox-gl.css'
 
 	import { MAPBOX_TOKEN } from '$lib/env'
 
-	import { mapConfig, sources, basemapLayers } from './config'
+	import { mapConfig, sources as initSources, basemapLayers } from './config'
 	import { getCenterAndZoom } from './util'
 	import BasemapSelector from './BasemapSelector.svelte'
 	import Coords from './Coords.svelte'
 	import { GoToLocation } from './gotolocation'
 
 	let {
-		map = $bindable(),
+		map: mapRef = $bindable(),
 		bounds = mapConfig.bounds,
+		sources = {},
+		layers = [],
 		onCreateMap = null,
 		children = null
 	} = $props()
 
+	let map: MapboxGLMapType | undefined = $state.raw()
 	let mapNode: HTMLElement
 	let isLoaded = $state(false)
 
 	onMount(() => {
-		const { center, zoom } = getCenterAndZoom(mapNode, bounds, 0.1)
+		const { center, zoom } = getCenterAndZoom(mapNode, bounds)
 		const { styleID, minZoom, maxZoom, projection } = mapConfig
 
 		map = new MapboxGLMap({
@@ -42,18 +45,20 @@
 		map.dragRotate.disable()
 
 		map.on('load', () => {
-			if (!map) {
-				return
-			}
-
 			// add sources
-			Object.entries(sources).forEach(([id, source]) => {
+			Object.entries(initSources).forEach(([id, source]) => {
 				map!.addSource(id, source as SourceSpecification)
 			})
 
+			if (sources) {
+				Object.entries(sources).forEach(([id, source]) => {
+					map!.addSource(id, source as SourceSpecification)
+				})
+			}
+
 			// add basemap sources and layers
-			Object.values(basemapLayers).forEach((layers) => {
-				layers.forEach(({ id, source, ...rest }) => {
+			Object.values(basemapLayers).forEach((layersInBasemap) => {
+				layersInBasemap.forEach(({ id, source, ...rest }) => {
 					map!.addSource(id, source as SourceSpecification)
 					map!.addLayer({
 						...rest,
@@ -63,11 +68,20 @@
 				})
 			})
 
-			if (onCreateMap) {
-				onCreateMap(map)
+			if (layers) {
+				layers.forEach((layer) => {
+					map!.addLayer(layer)
+				})
 			}
 
 			isLoaded = true
+
+			// only set the reference when map is fully loaded
+			mapRef = map
+
+			if (onCreateMap) {
+				onCreateMap(map)
+			}
 		})
 	})
 
@@ -82,12 +96,12 @@
 	<div bind:this={mapNode} class="h-full w-full"></div>
 
 	{#if isLoaded}
-		<GoToLocation {map} />
-		<BasemapSelector {map} />
-
 		{#if children}
 			{@render children()}
 		{/if}
+
+		<GoToLocation {map} />
+		<BasemapSelector {map} />
 		<Coords {map} />
 	{/if}
 </div>

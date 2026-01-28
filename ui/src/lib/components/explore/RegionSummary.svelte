@@ -1,5 +1,6 @@
 <script lang="ts">
 	import ChevronsRightIcon from '@lucide/svelte/icons/chevrons-right'
+	import { SvelteSet } from 'svelte/reactivity'
 
 	import { resolve } from '$app/paths'
 	import { MAP_SERVICES, shortBarrierTypeLabels } from '$lib/config/constants'
@@ -12,7 +13,7 @@
 	const {
 		barrierType,
 		system,
-		region = null,
+		id,
 		type,
 		name,
 		dams = 0,
@@ -26,30 +27,31 @@
 		removedSmallBarriers = 0,
 		removedSmallBarriersGainMiles = 0,
 		unsurveyedRoadCrossings = 0,
-
 		onSelectUnit
 	} = $props()
+
+	const ignoreIds = $derived(new SvelteSet([id]))
 
 	const { url, urlLabel }: { url?: string; urlLabel?: string } = $derived.by(() => {
 		switch (type) {
 			case 'Region': {
-				if (region === 'total') {
+				if (id === 'total') {
 					return {}
 				}
 				return {
-					url: resolve(`/regions/${region}/`, { id: region }),
+					url: resolve(`/regions/${id}/`, { id }),
 					urlLabel: 'view region page for more information'
 				}
 			}
 			case 'FishHabitatPartnership': {
 				return {
-					url: resolve(`/fhp/${region}/`, { id: region }),
+					url: resolve(`/fhp/${id}/`, { id }),
 					urlLabel: 'view the Fish Habitat Partnership page for more information'
 				}
 			}
 			case 'State': {
 				return {
-					url: resolve(`/states/${region}/`, { id: region }),
+					url: resolve(`/states/${id}/`, { id }),
 					urlLabel: 'view state page for more information'
 				}
 			}
@@ -153,7 +155,7 @@
 			areas.
 		</div>
 
-		<Search {barrierType} {system} onSelect={onSelectUnit} />
+		<Search {barrierType} {system} onSelect={onSelectUnit} {ignoreIds} />
 
 		<hr />
 
@@ -190,7 +192,7 @@
 			</div>
 		{/if}
 
-		{#if !region}
+		{#if id === 'total'}
 			<div class="mt-8">
 				To access an ArcGIS map service of a recent version of these barriers and associated
 				connectivity results,
@@ -202,7 +204,7 @@
 		{/if}
 	</div>
 
-	{#if !region}
+	{#if id === 'total'}
 		<div
 			class={cn(
 				'flex gap-4 items-center flex-none pt-2 pb-4 px-2 border-t border-t-grey-4 bg-grey-1/50',

@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { NACC_HOME_URL } from '$lib/env'
 
+	import NFHPLogo from '$lib/assets/images/nfhp_logo.svg'
+	import SARPLogo from '$lib/assets/images/sarp_logo.png'
 	import USFWSLogo from '$lib/assets/images/usfws_logo.svg'
 	import USFSLogo from '$lib/assets/images/usfs_logo.svg'
 	import TNCLogo from '$lib/assets/images/tnc_logo.svg'
@@ -28,11 +30,23 @@
 	</b>
 	(NACC), which is a national effort to build a community of practice of resource management partners
 	working together to identify aquatic barriers, prioritize these barriers for removal or mitigation,
-	and implement barrier removal projects across political boundaries.
+	and implement barrier removal projects across political boundaries. The NACC is coordinated by the
+	<a href="https://www.fishhabitat.org/" target="_blank" rel="external"
+		>National Fish Habitat Partnership</a
+	>
+	(NFHP) and works together with other fish habitat partnerships and organizations across the country.
 	<br />
 	<br />
-	At the national scale, the National Aquatic Barrier Inventory and Prioritization Tool is made possible
-	by funding from the
+	At the national scale, the National Aquatic Barrier Inventory and Prioritization Tool was originated
+	by the
+	<a
+		href="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act"
+		target="_blank"
+		rel="external"
+	>
+		Southeast Aquatic Resources Partnership</a
+	>
+	(SARP) and is made possible by funding from the
 	<a href="https://www.fws.gov/program/national-fish-passage" target="_blank" rel="external">
 		U.S. Fish and Wildlife Service
 	</a>,
@@ -47,14 +61,18 @@
 	<a href="https://www.nature.org/" target="_blank" rel="external"> The Nature Conservancy </a>,
 	<a href="https://www.tu.org/" target="_blank" rel="external">Trout Unlimited</a>, and state
 	wildlife grant funding from Florida and Texas. This effort would not be possible without the
-	collaboration of our partners from numerous state, federal, and non profit organizations as well
-	as the
-	<a href="https://www.fishhabitat.org/" target="_blank" rel="external">
-		National Fish Habitat Partnership
-	</a>.
+	collaboration of our partners from numerous state, federal, and non profit organizations.
 </p>
 
 <div class="flex mt-8 gap-4 flex-wrap items-center justify-between">
+	<div class="flex flex-col gap-2">
+		<a href="https://www.fishhabitat.org/" class="block" target="_blank" rel="external">
+			<img src={NFHPLogo} alt="NFHP logo" class="w-40" />
+		</a>
+		<a href="https://southeastaquatics.net" class="block" target="_blank" rel="external">
+			<img src={SARPLogo} alt="SARP logo" class="w-35" /></a
+		>
+	</div>
 	<a
 		href="https://www.fws.gov/program/national-fish-passage"
 		class="block"
@@ -84,17 +102,10 @@
 <div class="grid sm:grid-cols-[2fr_1fr] gap-8 mt-16">
 	<p>
 		This inventory is a growing and living database of dams, culverts, and other road crossings that
-		spans all 50 states, Puerto Rico, and the US Virgin Islands, compiled by
-		<a
-			href="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act"
-			target="_blank"
-			rel="external"
-		>
-			Southeast Aquatic Resources Partnership
-		</a>
-		(SARP) with the generous support from many partners and funders. It integrates existing datasets from
-		local, state, and federal partners with data collected from ongoing field surveys and local knowledge
-		of specific structures.
+		spans all 50 states, Puerto Rico, and the US Virgin Islands, compiled by SARP with the generous
+		support from many partners and funders. It integrates existing datasets from local, state, and
+		federal partners with data collected from ongoing field surveys and local knowledge of specific
+		structures.
 	</p>
 	<figure>
 		<enhanced:img src="$lib/assets/images/28274676694_1840f44362_o.jpg" alt="Flock Process dam" />

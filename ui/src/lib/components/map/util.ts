@@ -1,5 +1,5 @@
 import { viewport } from '@placemarkio/geo-viewport'
-import type { Map as MapboxGLMapType, ExpressionSpecification, FeatureSelector } from 'mapbox-gl'
+import type { MapboxGLMapType, ExpressionSpecification, FeatureSelector } from 'mapbox-gl'
 
 import { barrierTypeLabelSingular, barrierNameWhenUnknown } from '$lib/config/constants'
 import type { BarrierTypePlural } from '$lib/config/types'
@@ -330,3 +330,21 @@ export const getBitFromBitsetExpr = (field: string, bitPos: number) => [
 	['floor', ['/', ['get', field], ['^', 2, bitPos]]],
 	2
 ]
+
+/**
+ * Run callback function when map is idle, which may be immediately.
+ * NOTE: this returns silently if map is not set
+ */
+export const runOnceOnIdle = (map: MapboxGLMapType | undefined | null, callback: () => void) => {
+	if (!map) {
+		return
+	}
+
+	if (map.idle()) {
+		callback()
+	} else {
+		map.once('idle', () => {
+			callback()
+		})
+	}
+}

@@ -15,7 +15,8 @@ import {
 	getInMapUnitsExpr,
 	getBarrierTooltip,
 	getBitFromBitsetExpr,
-	getHighlightExpr
+	getHighlightExpr,
+	runOnceOnIdle
 } from './util'
 
 import { networkLayers } from './layers'
@@ -38,6 +39,7 @@ export {
 	highlightNetwork,
 	setBarrierHighlight,
 	getHighlightExpr,
+	runOnceOnIdle,
 	getInArrayExpr,
 	getInStringExpr,
 	getNotInStringExpr,

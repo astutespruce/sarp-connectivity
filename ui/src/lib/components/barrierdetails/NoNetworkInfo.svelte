@@ -5,7 +5,14 @@
 
 	import Entry from './Entry.svelte'
 
-	const { barrierType, networkType, snapped, excluded, in_network_type, onloop } = $props()
+	const {
+		barrierType,
+		networkType,
+		snapped = 0,
+		excluded = 0,
+		in_network_type = false,
+		onloop = false
+	} = $props()
 
 	const typeLabel = $derived(barrierTypeLabelSingular[barrierType as BarrierTypePlural])
 </script>

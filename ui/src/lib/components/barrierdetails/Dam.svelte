@@ -1,7 +1,4 @@
 <script lang="ts">
-	import EmailIcon from '@lucide/svelte/icons/mail'
-	import WarningIcon from '@lucide/svelte/icons/triangle-alert'
-
 	import { CONTACT_EMAIL } from '$lib/env'
 	import {
 		HAZARD,
@@ -33,29 +30,29 @@
 	const {
 		barrierType,
 		sarpid,
-		condition,
-		construction,
-		diversion,
-		estimated,
-		feasibilityclass,
-		flowstoocean,
-		habitat,
-		hasnetwork,
-		hazard,
-		height,
-		invasive,
-		lowheaddam,
-		milestooutlet,
-		passability,
-		passagefacility,
-		purpose,
-		recon,
-		removed,
-		totalmainstemupstreammiles,
-		totalmainstemdownstreammiles,
-		yearcompleted,
-		yearremoved,
-		invasivenetwork
+		condition = null,
+		construction = null,
+		diversion = null,
+		estimated = false,
+		feasibilityclass = null,
+		flowstoocean = false,
+		habitat = [],
+		hasnetwork = false,
+		hazard = null,
+		height = null,
+		invasive = null,
+		lowheaddam = null,
+		milestooutlet = null,
+		passability = null,
+		passagefacility = null,
+		purpose = null,
+		recon = null,
+		removed = null,
+		totalmainstemupstreammiles = 0,
+		totalmainstemdownstreammiles = 0,
+		yearcompleted = null,
+		yearremoved = null,
+		invasivenetwork = false
 	} = $derived(data)
 
 	const barrierTypeLabel = $derived.by(() => {
@@ -89,21 +86,18 @@
 	})
 </script>
 
-<Section title="Location">
+<Section title="Location information">
 	<Entry label="Barrier type">
 		{barrierTypeLabel}
 
 		{#if estimated}
-			<div class="flex mt-2 gap-1">
-				<WarningIcon class="size-4" />
-				<div class="text-xs text-muted-foreground">
-					Dam is estimated from other data sources and may be incorrect; please
-					<a
-						href={`mailto:${CONTACT_EMAIL}subject=Problem with Estimated Dam ${sarpid} (data version: ${dataVersion})`}
-					>
-						let us know
-					</a>
-				</div>
+			<div class="text-muted-foreground mt-4">
+				This dam is estimated from other data sources and may be incorrect; please
+				<a
+					href={`mailto:${CONTACT_EMAIL}subject=Problem with Estimated Dam ${sarpid} (data version: ${dataVersion})`}
+				>
+					let us know
+				</a>
 			</div>
 		{/if}
 	</Entry>
@@ -184,7 +178,7 @@
 		</Section>
 	{/if}
 
-	{#if flowstoocean && milestooutlet < 500}
+	{#if flowstoocean && milestooutlet !== null && milestooutlet < 500}
 		<Section title="Marine connectivity">
 			<DiadromousInfo {...data} />
 		</Section>
@@ -205,22 +199,22 @@
 	<Section title="Feasibility & conservation benefit">
 		<Entry label="Feasibility" isUnknown={feasibilityclass <= 1}>
 			{FEASIBILITYCLASS[feasibilityclass as keyof typeof FEASIBILITYCLASS]}
-			<br />
-			<a
-				href={`mailto:${CONTACT_EMAIL}?subject=Update feasibility for dam: ${sarpid} (data version: ${dataVersion})&body=The feasibility of this barrier should be: %0D%0A%0D%0A(choose one of the following options)%0D%0A%0D%0A${Object.entries(
-					FEASIBILITYCLASS
-				)
-					.filter(([key]) => parseInt(key, 10) >= 1)
-					.map(([_, value]) => value)
-					.join('%0D%0A')})`}
-				target="_blank"
-				rel="external"
-			>
-				<div class="flex gap-1 items-center text-xs">
-					<EmailIcon class="size-4" />
-					submit {feasibilityclass > 1 ? 'new' : null} feasibility
-				</div>
-			</a>
+
+			<div class="text-muted-foreground not-italic mt-4">
+				Do you have information on the feasibility of removing / mitigating this barrier?
+				<a
+					href={`mailto:${CONTACT_EMAIL}?subject=Update feasibility for dam: ${sarpid} (data version: ${dataVersion})&body=The feasibility of this barrier should be: %0D%0A%0D%0A(choose one of the following options)%0D%0A%0D%0A${Object.entries(
+						FEASIBILITYCLASS
+					)
+						.filter(([key]) => parseInt(key, 10) >= 1)
+						.map(([_, value]) => value)
+						.join('%0D%0A')})`}
+					target="_blank"
+					rel="external"
+				>
+					Please submit {feasibilityclass > 1 ? 'new' : null} feasibility information
+				</a>.
+			</div>
 		</Entry>
 
 		{#if recon > 0}
@@ -229,23 +223,6 @@
 	</Section>
 {/if}
 
-{#if hasnetwork && invasive && invasivenetwork === 1}
-	<Section title="Invasive species management">
-		<Entry>
-			{#if invasive}
-				This {barrierTypeLabel} is identified as a beneficial to restricting the movement of invasive
-				species and is not ranked.
-			{:else if invasivenetwork === 1}
-				Upstream of a barrier identified as a beneficial to restricting the movement of invasive
-				species.
-			{/if}
-		</Entry>
-	</Section>
-{/if}
-
 <Section title="Other information">
 	<IDInfo {...data} />
-
-	<!-- TODO: only show for small barriers if attachments.length>0
-	<SurveyPhotos {...data} /> -->
 </Section>

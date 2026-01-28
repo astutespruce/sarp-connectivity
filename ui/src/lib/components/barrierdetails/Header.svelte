@@ -29,24 +29,28 @@
 	} = $props()
 </script>
 
-<div class="py-2 px-2 border-b-4 border-b-blue-2">
-	<div class="flex justify-between">
+<div class="py-2 px-2">
+	<div class="flex justify-between gap-3 items-start">
 		<div class="flex-auto">
-			<div class="text-lg font-bold">
+			<div class="text-xl font-bold leading-tight">
 				{name}
 			</div>
 			{#if removed}
-				<div class="flex mt-1 gap-2 items-center">
-					<RemovedBarrierIcon class="text-blue-8 size-5" />
-				</div>
-				{#if yearremoved && yearremoved !== 0}
-					<div class="text-sm font-bold">Removed / mitigated in {yearremoved}</div>
-				{:else}
-					<div class="font-bold font-sm">
-						Removed / mitigated
-						<span class="text-xs font-normal">(year unknown)</span>
+				<div class="flex gap-1 items-center mb-1">
+					<div class="flex gap-2 items-center">
+						<RemovedBarrierIcon class="text-blue-8 size-5" />
 					</div>
-				{/if}
+					{#if yearremoved && yearremoved !== 0}
+						<div class="text-sm font-bold text-muted-foreground">
+							Removed / mitigated in {yearremoved}
+						</div>
+					{:else}
+						<div class="font-bold font-sm text-muted-foreground">
+							Removed / mitigated
+							<span class="text-xs font-normal">(year unknown)</span>
+						</div>
+					{/if}
+				</div>
 			{:else if isPriority}
 				<div class="flex items-center gap-2 mt-1">
 					<PriorityBarrierIcon class="text-blue-8 size-5" />
@@ -67,12 +71,12 @@
 		<Button
 			variant="ghost"
 			onclick={onClose}
-			class="p-0 flex-none"
-			aria-label="close barrier details"><CloseIcon class="size-5" /></Button
+			class="p-0! flex-none h-auto rounded-full text-muted-foreground hover:text-foreground"
+			aria-label="close barrier details"><CloseIcon class="size-6" /></Button
 		>
 	</div>
 
-	<div class="flex text-muted-foreground text-sm">
+	<div class="flex text-muted-foreground text-sm mt-1">
 		<div class="flex-auto">
 			{!isEmptyString(state) ? `${county} County, ${STATES[state as keyof typeof STATES]}` : ''}
 		</div>
@@ -90,12 +94,10 @@
 				{ id: sarpid }
 			)}
 			target="_blank"
-			class="block mt-6"
+			class="flex items-center gap-2 mt-4 text-base no-underline hover:underline"
 		>
-			<div class="flex items-baseline">
-				<ReportIcon class="size-5" />
-				<div>Create PDF report</div>
-			</div>
+			<ReportIcon class="size-5" />
+			<div>Create PDF report</div>
 		</a>
 	{/if}
 </div>

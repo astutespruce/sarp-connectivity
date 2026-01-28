@@ -23,84 +23,88 @@
 	import { isEmptyString } from '$lib/util/string'
 
 	const {
-		annualflow,
+		annualflow = null,
 		barrierType,
-		river,
+		river = null,
 		huc12,
 		basin,
 		subwatershed,
-		congressionaldistrict,
-		ownertype,
-		barrierownertype,
-		fercregulated,
-		stateregulated,
-		nrcsdam,
-		fedregulatoryagency,
-		waterright,
-		costlower,
-		costmean,
-		costupper,
-		ejtract,
-		ejtribal,
-		fishhabitatpartnership,
-		nativeterritories,
-		intermittent,
-		canal,
-		storagevolume,
-		streamorder,
-		streamsizeclass,
-		waterbodysizeclass,
-		waterbodyacres,
-		wilderness,
-		wildscenicriver,
-		yearsurveyed,
-		resurveyed,
-		fatality,
-		cold,
-		resilience,
-		brooktroutportfolio
+		congressionaldistrict = null,
+		ownertype = null,
+		barrierownertype = null,
+		fercregulated = null,
+		stateregulated = null,
+		nrcsdam = null,
+		fedregulatoryagency = null,
+		waterright = null,
+		costlower = null,
+		costmean = null,
+		costupper = null,
+		ejtract = null,
+		ejtribal = null,
+		fishhabitatpartnership = null,
+		nativeterritories = null,
+		intermittent = null,
+		canal = null,
+		storagevolume = null,
+		streamorder = null,
+		streamsizeclass = null,
+		waterbodysizeclass = null,
+		waterbodyacres = null,
+		wilderness = null,
+		wildscenicriver = null,
+		yearsurveyed = null,
+		resurveyed = null,
+		fatality = null,
+		cold = null,
+		resilience = null,
+		brooktroutportfolio = null,
+		hasnetwork = false,
+		invasivenetwork = null,
+		invasive = null
 	} = $props()
 
 	const barrierTypeLabel = $derived(barrierTypeLabelSingular[barrierType as BarrierTypePlural])
 </script>
 
-{#if yearsurveyed !== 0}
+{#if yearsurveyed !== null && yearsurveyed !== 0}
 	<Entry label="Year surveyed">
 		{yearsurveyed}
 		{resurveyed !== 0 ? ' (resurveyed)' : null}
 	</Entry>
 {/if}
 
-<Entry>
+<Entry label="Watershed">
 	{#if !(isEmptyString(river) && river?.toLowerCase() === 'unknown' && river?.toLowerCase() === 'unnamed')}
 		On {river} in
 	{:else}
 		Within
 	{/if}
 	{subwatershed} Subwatershed, {basin} Subbasin
-	<div class="text-xs text-muted-foreground">
-		(HUC12: {huc12})
+	<br />
+	<div class="mt-2">
+		HUC12: {huc12}
 	</div>
 </Entry>
 
 {#if wildscenicriver}
-	<Entry>
+	<Entry label="Wild & Scenic River status">
 		{WILDSCENIC_RIVER_LONG_LABELS[wildscenicriver as keyof typeof WILDSCENIC_RIVER_LONG_LABELS]}
 	</Entry>
 {/if}
 
 {#if wilderness}
-	<Entry>Within a designated wilderness area</Entry>
+	<Entry label="Wilderness status">Within a designated wilderness area</Entry>
 {/if}
 
 {#if intermittent === 1}
-	<Entry>
+	<Entry label="Stream permanence">
 		This {barrierTypeLabel} is on an intermittent reach
 	</Entry>
 {/if}
 
 {#if canal === 1}
-	<Entry>This {barrierTypeLabel} is on canal or ditch</Entry>
+	<Entry label="Canal / ditch position">This {barrierTypeLabel} is on canal or ditch</Entry>
 {/if}
 
 {#if storagevolume !== null}
@@ -110,7 +114,7 @@
 {/if}
 
 {#if waterbodysizeclass > 0}
-	<Entry>
+	<Entry label="Related waterbody">
 		This {barrierTypeLabel} is associated with a
 		{WATERBODY_SIZECLASS[waterbodysizeclass as keyof typeof WATERBODY_SIZECLASS]
 			.split(' (')[0]
@@ -127,13 +131,9 @@
 
 {#if streamsizeclass}
 	<Entry label="Stream size class">
-		{STREAM_SIZECLASS[streamsizeclass as keyof typeof STREAM_SIZECLASS]}
-		<br />
-		<div class="text-xs">
-			(drainage area: {STREAM_SIZECLASS_DRAINAGE_AREA[
-				streamsizeclass as keyof typeof STREAM_SIZECLASS_DRAINAGE_AREA
-			]})
-		</div>
+		{STREAM_SIZECLASS[streamsizeclass as keyof typeof STREAM_SIZECLASS]} ({STREAM_SIZECLASS_DRAINAGE_AREA[
+			streamsizeclass as keyof typeof STREAM_SIZECLASS_DRAINAGE_AREA
+		]})
 	</Entry>
 {/if}
 
@@ -153,7 +153,7 @@
 	</Entry>
 {/if}
 
-{#if fercregulated > 0}
+{#if fercregulated !== null && fercregulated > 0}
 	<Entry
 		label="Regulated by the Federal Energy Regulatory Commission"
 		isUnknown={fercregulated === 0}
@@ -173,7 +173,7 @@
 {/if}
 
 {#if nrcsdam === 1}
-	<Entry>This is a NRCS flood control dam</Entry>
+	<Entry label="NRCS flood control dam status">This is a NRCS flood control dam</Entry>
 {/if}
 
 {#if waterright > 0}
@@ -182,12 +182,24 @@
 	</Entry>
 {/if}
 
+{#if hasnetwork && invasive && invasivenetwork === 1}
+	<Entry label="Invasive species management">
+		{#if invasive}
+			This {barrierTypeLabel} is identified as a beneficial to restricting the movement of invasive species
+			and is not ranked for removal or mitigation.
+		{:else if invasivenetwork === 1}
+			Upstream of a barrier identified as a beneficial to restricting the movement of invasive
+			species.
+		{/if}
+	</Entry>
+{/if}
+
 {#if fatality > 0}
 	<Entry label="Number of fatalities recorded">
 		{formatNumber(fatality)}
 
 		<div class="text-xs text-muted-foreground mt-2">
-			based on data provided by
+			Based on data provided by
 			<a href="https://krcproject.groups.et.byu.net/browse.php" target="_blank" rel="external">
 				Fatalities at Submerged Hydraulic Jumps
 			</a>
@@ -197,11 +209,14 @@
 
 {#if costmean > 0}
 	<Entry label="Estimated cost of removal">
-		${formatNumber(costmean)} (average)
-		<br /> (${formatNumber(costlower)} - ${formatNumber(costupper)})
+		<div class="leading-relaxed,">
+			average: ${formatNumber(costmean)}
+			<br />
+			range: ${formatNumber(costlower)} - ${formatNumber(costupper)}
+		</div>
 
-		<div class="text-xs text-muted-foreground mt-2">
-			costs are modeled based on dam characteristics (Jumani et. al. in prep) and are a veryrough
+		<div class="text-xs text-muted-foreground mt-4">
+			Costs are modeled based on dam characteristics (Jumani et. al. in prep) and are a veryrough
 			estimate only; please use with caution
 		</div>
 	</Entry>
@@ -211,8 +226,8 @@
 	<Entry label="Ability of the watershed to maintain cold water habitat">
 		{TNC_COLDWATER_STATUS[cold as keyof typeof TNC_COLDWATER_STATUS]}
 
-		<div class="text-xs text-muted-foreground mt-2">
-			based on The Nature Conservancy's cold water temperature score where this barrier occurs (TNC;
+		<div class="text-xs text-muted-foreground mt-4">
+			Based on The Nature Conservancy's cold water temperature score where this barrier occurs (TNC;
 			March 2024).
 		</div>
 	</Entry>
@@ -221,19 +236,19 @@
 {#if resilience}
 	<Entry label="Freshwater resilience">
 		{TNC_RESILIENCE[resilience as keyof typeof TNC_RESILIENCE]}
+		<div class="text-xs text-muted-foreground mt-4">
+			Based on the The Nature Conservancy's freshwater resilience category of the watershed where
+			this barrier occurs (v0.44).
+		</div>
 	</Entry>
-	<div class="text-xs text-muted-foreground mt-2">
-		based on the The Nature Conservancy's freshwater resilience category of the watershed where this
-		barrier occurs (v0.44).
-	</div>
 {/if}
 
 {#if brooktroutportfolio}
 	<Entry label="Eastern brook trout conservation portfolio">
 		{TU_BROOK_TROUT_PORTFOLIO[brooktroutportfolio as keyof typeof TU_BROOK_TROUT_PORTFOLIO]}
 
-		<div class="text-xs text-muted-foreground mt-2">
-			based on the
+		<div class="text-xs text-muted-foreground mt-4">
+			Based on the
 			<a
 				href="https://www.tu.org/science/conservation-planning-and-assessment/conservation-portfolio/"
 				target="_blank"
@@ -256,19 +271,17 @@
 
 {#if fishhabitatpartnership}
 	<Entry label="Fish Habitat Partnerships working in this area">
-		<div class="ml-4">
-			{#each fishhabitatpartnership.split(',') as fhp, i (fhp)}
-				{#if i > 0},
-				{/if}
-				<a
-					href={FISH_HABITAT_PARTNERSHIPS[fhp as keyof typeof FISH_HABITAT_PARTNERSHIPS].url}
-					target="_blank"
-					rel="external"
-				>
-					{FISH_HABITAT_PARTNERSHIPS[fhp as keyof typeof FISH_HABITAT_PARTNERSHIPS].name}
-				</a>
-			{/each}
-		</div>
+		{#each fishhabitatpartnership.split(',') as fhp, i (fhp)}
+			{#if i > 0},
+			{/if}
+			<a
+				href={FISH_HABITAT_PARTNERSHIPS[fhp as keyof typeof FISH_HABITAT_PARTNERSHIPS].url}
+				target="_blank"
+				rel="external"
+			>
+				{FISH_HABITAT_PARTNERSHIPS[fhp as keyof typeof FISH_HABITAT_PARTNERSHIPS].name}
+			</a>
+		{/each}
 	</Entry>
 {/if}
 
@@ -276,8 +289,8 @@
 	<Entry label="Within the following native territories">
 		<div class="ml">
 			{nativeterritories}
-			<div class="text-xs text-muted-foreground mt2">
-				based on data provided by
+			<div class="text-xs text-muted-foreground mt-2">
+				Based on data provided by
 				<a href="https://native-land.ca/" target="_blank" rel="external">Native Land Digital</a>
 			</div>
 		</div>
@@ -288,6 +301,6 @@
 	<Entry label="Congressional district">
 		{STATES[congressionaldistrict.slice(0, 2) as keyof typeof STATES]} Congressional District
 		{congressionaldistrict.slice(2)}
-		<span class="text-xs text-muted-foreground"> (118th congress) </span>
+		<span class="text-xs text-muted-foreground"> (119th congress) </span>
 	</Entry>
 {/if}

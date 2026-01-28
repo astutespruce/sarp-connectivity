@@ -20,7 +20,7 @@
 		</span>
 	{/if}
 
-	<Button variant="link" onclick={toggle}>
+	<Button variant="link" onclick={toggle} class="text-left p-0! h-auto">
 		Show {isOpen ? 'less' : 'more'}...
 	</Button>
 </div>

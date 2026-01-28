@@ -13,14 +13,21 @@
 	import { Root as ButtonGroup } from '$lib/components/ui/button-group'
 	import { Map, RegionSummary, UnitSummary } from '$lib/components/explore'
 	import type { FocalBarrierType } from '$lib/config/types'
-	import { Legend, TopBar } from '$lib/components/map'
+	import { TopBar } from '$lib/components/map'
 	import { Sidebar } from '$lib/components/sidebar'
 	import { SYSTEMS } from '$lib/config/constants'
 	import { captureException } from '$lib/util/log'
 	import { cn } from '$lib/utils'
 
 	type System = 'ADM' | 'HUC'
-	type Status = { isLoading: boolean; error: string | null }
+	type Status = {
+		isLoading: boolean
+		error: string | null
+	}
+	type SummaryUnit = {
+		layer: string
+		id: string
+	}
 
 	const focalBarrierTypeOptions: { value: FocalBarrierType; label: string }[] = [
 		{ value: 'dams', label: 'dams' },
@@ -37,21 +44,30 @@
 
 	const queryClient = new QueryClient()
 
-	const { id = null, name, type, details } = $props()
+	const { type, data: regionData } = $props()
 
-	// FIXME: remove
-	$inspect('incoming', id, name, type, details).with(console.log)
+	let map: MapboxGLMapType | undefined = $state.raw()
 
-	let map: MapboxGLMapType | undefined = $state()
 	let system: System = $derived(
 		type === 'Region' || type === 'State' || type === 'FishHabitatPartnership' ? 'ADM' : 'HUC'
 	)
 	let focalBarrierType: FocalBarrierType = $state('dams')
 	let summaryUnitIds: SvelteSet<string> = new SvelteSet()
-	let summaryUnits: { layer: string; id: string }[] = $state([])
+	let summaryUnits: SummaryUnit[] = $state([])
 	let unitStatus: Status = $state({ isLoading: false, error: null })
-	let selectedBarrier = $state(null)
-	let barrierStatus: Status = $state({ isLoading: false, error: null })
+	let selectedBarrier = $state.raw(null)
+
+	$inspect('status of selected barrier', selectedBarrier)
+
+	const handleSetSystem = (newSystem: System) => {
+		system = newSystem
+		summaryUnitIds.clear()
+		summaryUnits = []
+		unitStatus = {
+			isLoading: false,
+			error: null
+		}
+	}
 
 	const handleSelectUnit = async ({
 		layer,
@@ -61,6 +77,8 @@
 		layer: string
 		id: string
 	}) => {
+		selectedBarrier = null
+
 		if (summaryUnitIds.has(selectedId)) {
 			// remove it
 			summaryUnitIds.delete(selectedId)
@@ -109,9 +127,8 @@
 		}
 	}
 
-	// TODO: implement
 	const handleSelectBarrier = (feature) => {
-		selectedBarrier: feature
+		selectedBarrier = feature
 		summaryUnitIds.clear()
 		summaryUnits = []
 	}
@@ -124,7 +141,6 @@
 		summaryUnitIds.clear()
 		summaryUnits = []
 		selectedBarrier = null
-		// bounds = null // FIXME: where is this getting set?
 		unitStatus = {
 			isLoading: false,
 			error: null
@@ -160,7 +176,7 @@
 				<LoadingIcon class="size-8 motion-safe:animate-spin" />
 				Loading...
 			</div>
-		{:else if selectedBarrier !== null}
+		{:else if selectedBarrier}
 			<BarrierDetails data={selectedBarrier} onClose={handleBarrierDetailsClose} />
 		{:else if summaryUnits.length > 0}
 			<UnitSummary
@@ -174,15 +190,22 @@
 		{:else}
 			<RegionSummary
 				barrierType={focalBarrierType}
-				region={id}
-				{...details}
+				{...regionData}
 				{system}
 				onSelectUnit={handleSelectUnit}
 			/>
 		{/if}
 	</Sidebar>
-	<!-- <Map {map} region="" focalBarrierType="dams" system="ADM"> -->
-	<div class="relative h-full w-full flex-auto">
+	<Map
+		bind:map
+		region={regionData}
+		{focalBarrierType}
+		{system}
+		{summaryUnits}
+		{selectedBarrier}
+		onSelectUnit={handleSelectUnit}
+		onSelectBarrier={handleSelectBarrier}
+	>
 		<TopBar>
 			<div class="flex-none">Show networks for:</div>
 
@@ -208,18 +231,11 @@
 							'bg-blue-1 hover:bg-blue-2 text-foreground': option.value !== system
 						})}
 						onclick={() => {
-							system = option.value
+							handleSetSystem(option.value)
 						}}>{option.label}</Button
 					>
 				{/each}
 			</ButtonGroup>
-
-			{#if summaryUnits.length === 0}
-				<div class="ml-1 text-muted-foreground leading-none max-w-40">
-					Click on a summary unit for more information
-				</div>
-			{/if}
 		</TopBar>
-		<!-- </Map> -->
-	</div>
+	</Map>
 </div>

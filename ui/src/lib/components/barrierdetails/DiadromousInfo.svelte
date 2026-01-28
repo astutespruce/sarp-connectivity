@@ -5,15 +5,15 @@
 
 	const {
 		barrierType,
-		milestooutlet,
-		totaldownstreamdams,
-		totaldownstreamsmallbarriers,
-		totaldownstreamwaterfalls
+		milestooutlet = 0,
+		totaldownstreamdams = 0,
+		totaldownstreamsmallbarriers = 0,
+		totaldownstreamwaterfalls = 0
 	} = $props()
 </script>
 
 <Entry label="Miles downstream to the ocean">
-	{formatNumber(milestooutlet)}
+	{formatNumber(milestooutlet)} miles
 </Entry>
 
 {#if totaldownstreamdams !== null && totaldownstreamdams >= 0}

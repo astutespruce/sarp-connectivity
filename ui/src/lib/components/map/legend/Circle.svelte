@@ -4,10 +4,7 @@
 	const center = $derived(width / 2)
 </script>
 
-<div
-	class="flex items-center justify-start flex-none not-first-of-type:-ml-1.25"
-	style="width:{width}px;"
->
+<div class="flex items-center justify-start flex-none" style="width:{width}px;">
 	<svg style="width:{width}px; height:{width}px;">
 		<circle
 			cx={center}

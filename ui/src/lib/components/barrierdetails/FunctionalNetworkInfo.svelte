@@ -12,38 +12,38 @@
 	const {
 		barrierType,
 		networkType,
-		totalupstreammiles,
-		perennialupstreammiles,
-		alteredupstreammiles,
-		unalteredupstreammiles,
-		resilientupstreammiles,
-		coldupstreammiles,
-		freedownstreammiles,
-		freeperennialdownstreammiles,
-		freealtereddownstreammiles,
-		freeunaltereddownstreammiles,
-		freeresilientdownstreammiles,
-		freecolddownstreammiles,
-		percentresilient,
-		percentcold,
-		sizeclasses,
-		landcover,
-		invasive,
-		unranked,
-		removed,
-		flowstoocean,
-		flowstogreatlakes,
-		totaldownstreamdams,
-		totaldownstreamsmallbarriers,
-		totaldownstreamwaterfalls,
-		unalteredwaterbodyacres,
-		unalteredwetlandacres,
-		upstreambarrier,
-		upstreambarriersarpid,
-		upstreambarriermiles,
-		downstreambarrier,
-		downstreambarriersarpid,
-		downstreambarriermiles
+		totalupstreammiles = 0,
+		perennialupstreammiles = 0,
+		alteredupstreammiles = 0,
+		unalteredupstreammiles = 0,
+		resilientupstreammiles = 0,
+		coldupstreammiles = 0,
+		freedownstreammiles = 0,
+		freeperennialdownstreammiles = 0,
+		freealtereddownstreammiles = 0,
+		freeunaltereddownstreammiles = 0,
+		freeresilientdownstreammiles = 0,
+		freecolddownstreammiles = 0,
+		percentresilient = 0,
+		percentcold = 0,
+		sizeclasses = 0,
+		landcover = 0,
+		invasive = false,
+		unranked = false,
+		removed = false,
+		flowstoocean = 0,
+		flowstogreatlakes = 0,
+		totaldownstreamdams = 0,
+		totaldownstreamsmallbarriers = 0,
+		totaldownstreamwaterfalls = 0,
+		unalteredwaterbodyacres = 0,
+		unalteredwetlandacres = 0,
+		upstreambarrier = null,
+		upstreambarriersarpid = null,
+		upstreambarriermiles = null,
+		downstreambarrier = null,
+		downstreambarriersarpid = null,
+		downstreambarriermiles = null
 	} = $props()
 
 	const barrierTypeLabel = $derived(barrierTypeLabelSingular[barrierType as BarrierTypePlural])
@@ -79,14 +79,37 @@
 	const percentUnaltered = $derived(
 		totalupstreammiles ? (100 * unalteredupstreammiles) / totalupstreammiles : 0
 	)
+
+	const networkStatsNote = $derived.by(() => {
+		let note = `Statistics are based on aquatic networks cut by ${networkType === 'dams' ? 'waterfalls and dams' : 'waterfalls, dams, and road-related barriers'}`
+
+		if (networkType === 'largefish_barriers') {
+			note += ' based on their passability for large-bodied fish'
+		} else if (networkType === 'smallfish_barriers') {
+			note += ' based on their passability for small-bodied fish'
+		}
+
+		if (removed) {
+			note += `, including any that were present at the time this
+                ${barrierTypeLabel} was removed, with the exception of those
+                directly upstream that were removed in the same year as this barrier.
+                All barriers removed prior to 2000 or where the year they were
+                removed was unknown were lumped together for this analysis`
+		}
+
+		return note + '.'
+	})
 </script>
 
-<div class="text-xs text-muted-foreground mx-2">
+<ExpandableParagraph
+	snippet="Functional networks are the full upstream dendritic network..."
+	class="text-xs text-muted-foreground mt-2  mb-4 mx-2"
+>
 	Functional networks are the full upstream dendritic network to the upstream-most points on the
 	network or upstream barriers. The downstream network is the upstream functional network of the
 	next barrier immediately downstream or downstream-most point on that network, and includes any
 	tributaries up to their upstream-most points or other barriers.
-</div>
+</ExpandableParagraph>
 
 <table cellpadding="0" cellspacing="0">
 	<thead>
@@ -95,14 +118,13 @@
 			<th>Upstream</th>
 			<th
 				>Downstream
-				<div class="text-xs text-muted-foreground">free-flowing miles only</div>
+				<div class="text-xs text-muted-foreground font-normal">free-flowing <br /> miles only</div>
 			</th>
 		</tr>
 	</thead>
 	<tbody>
 		<tr>
 			<td>
-				Total miles
 				<InfoTooltip title="Total miles">
 					Total miles upstream is the sum of all river and stream lengths in the upstream functional
 					network.
@@ -122,7 +144,6 @@
 
 		<tr>
 			<td>
-				Perennial miles
 				<InfoTooltip title="Perennial miles">
 					Total perennial miles upstream is the sum of all perennial reach lengths in the upstream
 					functional network. Perennial reaches are all those that are not specifically identified
@@ -143,7 +164,6 @@
 
 		<tr>
 			<td>
-				Intermittent miles
 				<InfoTooltip title="Ephemeral / intermittent miles">
 					Total ephemeral and intermittent miles upstream is the sum of all ephemeral and
 					intermittent reach lengths in the upstream functional network.
@@ -160,7 +180,6 @@
 
 		<tr>
 			<td>
-				Altered miles
 				<InfoTooltip title="Altered miles">
 					Total altered miles upstream is the sum of all reach lengths specifically identified as
 					altered (canal / ditch, within reservoir, or other channel alteration).
@@ -176,7 +195,6 @@
 
 		<tr>
 			<td>
-				Unaltered miles
 				<InfoTooltip title="Unaltered miles">
 					Total unaltered miles upstream is the sum of all reach lengths not specifically identified
 					as altered (canal / ditch, within reservoir, or other channel alteration).
@@ -192,7 +210,6 @@
 
 		<tr>
 			<td>
-				Resilient miles
 				<InfoTooltip title="Resilient miles">
 					Total resilient miles upstream is the sum of all reach lengths that are within watersheds
 					with above average or greater freshwater resilience within The Nature Conservancy&apos;s
@@ -210,7 +227,6 @@
 
 		<tr>
 			<td>
-				Coldwater habitat miles
 				<InfoTooltip title="Coldwater habitat miles">
 					Total coldwater habitat miles upstream is the sum of all reach lengths that are within
 					watersheds with slighly above average or greater cold temperature scores within The Nature
@@ -229,15 +245,13 @@
 		{#if barrierType !== 'waterfalls'}
 			<tr class="border-t-2 border-t-grey-4">
 				<td>
-					<b>Total miles gained</b>
 					<InfoTooltip title="Total miles gained">
 						The total miles that {removed ? 'were' : 'could be'} gained by removing this barrier is the
 						lesser of the upstream or downstream total functional network miles.
 					</InfoTooltip>
 				</td>
 				<td class={cn('invisible', { 'visible font-bold': gainMilesSide === 'upstream' })}>
-					{formatNumber(totalupstreammiles, 2, true)}
-					{#if alwaysUseUpstream}<sup>*</sup>{/if}
+					{formatNumber(totalupstreammiles, 2, true)}{#if alwaysUseUpstream}<sup>*</sup>{/if}
 				</td>
 				<td class={cn('invisible', { 'visible font-bold': gainMilesSide === 'downstream' })}>
 					{formatNumber(freedownstreammiles, 2, true)}
@@ -246,7 +260,6 @@
 
 			<tr>
 				<td>
-					<b>Perennial miles gained</b>
 					<InfoTooltip title="Perennial miles gained">
 						The total perennial miles that
 						{removed ? 'were' : 'could be'} gained by removing this barrier is the lesser of the upstream
@@ -254,8 +267,7 @@
 					</InfoTooltip>
 				</td>
 				<td class={cn({ 'font-bold': perennialGainMilesSide === 'upstream' })}>
-					{formatNumber(perennialupstreammiles, 2, true)}
-					{#if alwaysUseUpstream}<sup>*</sup>{/if}
+					{formatNumber(perennialupstreammiles, 2, true)}{#if alwaysUseUpstream}<sup>*</sup>{/if}
 				</td>
 				<td class={cn({ 'font-bold': perennialGainMilesSide === 'downstream' })}>
 					{formatNumber(freeperennialdownstreammiles, 2, true)}
@@ -265,9 +277,9 @@
 	</tbody>
 </table>
 
-<div class="text-xs text-muted-foreground mt-8">
+<div class="text-xs text-muted-foreground mt-4 mx-2">
 	{#if barrierType !== 'waterfalls' && alwaysUseUpstream}
-		<sup>*</sup>upstream miles are used because the downstream network flows into the {flowstogreatlakes ===
+		<sup>*</sup>Upstream miles are used because the downstream network flows into the {flowstogreatlakes ===
 		1
 			? 'Great Lakes'
 			: 'ocean'}
@@ -276,34 +288,20 @@
 		<br />
 	{/if}
 
-	Note: statistics are based on aquatic networks cut by
-	{networkType === 'dams' ? 'waterfalls and dams' : 'waterfalls, dams, and road-related barriers'}
-	{networkType === 'largefish_barriers'
-		? ' based on their passability for large-bodied fish'
-		: null}
-	{networkType === 'smallfish_barriers'
-		? ' based on their passability for small-bodied fish'
-		: null}
-	{removed
-		? `, including any that were present at the time this
-                ${barrierTypeLabel} was removed, with the exception of those
-                directly upstream that were removed in the same year as this barrier.
-                All barriers removed prior to 2000 or where the year they were
-                removed was unknown were lumped together for this analysis`
-		: null}.
+	{networkStatsNote}
 </div>
 
 {#if totalupstreammiles > 0}
 	<Entry label="Percent of the upstream network in unaltered stream channels">
-		<b>{formatPercent(percentUnaltered)}%</b>
+		{formatPercent(percentUnaltered)}%
 	</Entry>
 
 	<Entry label="Percent of the upstream network in resilient watersheds">
-		<b>{formatPercent(percentresilient)}%</b>
+		{formatPercent(percentresilient)}%
 	</Entry>
 
 	<Entry label="Percent of the upstream network in coldwater habitat watersheds">
-		<b>{formatPercent(percentcold)}%</b>
+		{formatPercent(percentcold)}%
 	</Entry>
 {/if}
 
@@ -314,72 +312,71 @@
 				removed ? 'were' : 'could be'
 			} gained by removing this barrier`}
 >
-	<div class={cn({ 'font-bold': sizeclasses > 0 })}>
-		{sizeclasses}
-	</div>
+	{sizeclasses}
 </Entry>
 
 <Entry label="Percent of upstream floodplain composed of natural landcover">
-	<b>{formatNumber(landcover, 0)}%</b>
+	{formatNumber(landcover, 0)}%
 </Entry>
 
 <Entry label="Total area of unaltered lakes and ponds">
-	<div class={cn({ 'font-bold': unalteredwaterbodyacres > 0 })}>
-		{formatNumber(unalteredwaterbodyacres)} acres
-	</div>
+	{formatNumber(unalteredwaterbodyacres)} acres
+
 	<ExpandableParagraph
-		snippet="Note: this metric is based on all unaltered lakes and ponds that
+		snippet="Based on all unaltered lakes and ponds that
             intersect any stream reach in the upstream functional network..."
-		class="text-xs text-muted-foreground mt-2"
+		class="text-xs text-muted-foreground mt-4"
 	>
-		Note: this metric is based on all unaltered lakes and ponds that intersect any stream reach in
-		the upstream functional network, and exclude any specifically marked by their data provider as
-		altered as well as any that are associated with dams in this inventory.
+		Based on all unaltered lakes and ponds that intersect any stream reach in the upstream
+		functional network, and exclude any specifically marked by their data provider as altered as
+		well as any that are associated with dams in this inventory.
 	</ExpandableParagraph>
 </Entry>
 
 <Entry label="Total area of unaltered freshwater wetlands">
-	<div class={cn({ 'font-bold': unalteredwetlandacres > 0 })}>
-		{formatNumber(unalteredwetlandacres)} acres
-	</div>
+	{formatNumber(unalteredwetlandacres)} acres
 
 	<ExpandableParagraph
-		snippet="Note: this metric is based on all unaltered freshwater wetlands that
+		snippet="Based on all unaltered freshwater wetlands that
             intersect any stream reach in the upstream functional network."
-		class="text-xs text-muted-foreground mt-2"
+		class="text-xs text-muted-foreground mt-4"
 	>
-		Note: this metric is based on all unaltered freshwater wetlands that intersect any stream reach
-		in the upstream functional network. Wetlands are derived from the National Wetlands Inventory
-		(freshwater scrub-shrub, freshwater forested, freshwater emergent) and NHD (swamp/marsh) and
-		exclude any specifically marked by their data provider as altered.
+		Based on all unaltered freshwater wetlands that intersect any stream reach in the upstream
+		functional network. Wetlands are derived from the National Wetlands Inventory (freshwater
+		scrub-shrub, freshwater forested, freshwater emergent) and NHD (swamp/marsh) and exclude any
+		specifically marked by their data provider as altered.
 	</ExpandableParagraph>
 </Entry>
 
 {#if upstreambarrier}
 	<Entry label="Nearest upstream barrier">
-		{barrierTypeLabelSingular[`${upstreambarrier}s` as BarrierTypePlural]}
-		<br />
-		id: {upstreambarriersarpid}
-		<br />
-		{formatNumber(upstreambarriermiles)} miles upstream
+		<div class="leading-relaxed">
+			{barrierTypeLabelSingular[`${upstreambarrier}s` as BarrierTypePlural]}
+
+			(id: {upstreambarriersarpid})
+			<br />
+			distance: {formatNumber(upstreambarriermiles)} miles upstream
+		</div>
 	</Entry>
 {/if}
 
 {#if downstreambarrier}
 	<Entry label="Downstream barrier">
-		{barrierTypeLabelSingular[`${downstreambarrier}s` as BarrierTypePlural]}
-		<br />
-		id: {downstreambarriersarpid}
-		<br />
-		{formatNumber(downstreambarriermiles)} miles downstream
+		<div class="leading-relaxed">
+			{barrierTypeLabelSingular[`${downstreambarrier}s` as BarrierTypePlural]}
+
+			id: {downstreambarriersarpid}
+			<br />
+			distance: {formatNumber(downstreambarriermiles)} miles downstream
+		</div>
 	</Entry>
 {/if}
 
 {#if unranked && !invasive}
 	<Entry>
 		<div class="text-xs text-muted-foreground">
-			Note: this {barrierTypeLabel} excluded from ranking based on field reconnaissance, manual review
-			of aerial imagery, or other information about this {barrierTypeLabel}.
+			This {barrierTypeLabel} excluded from ranking based on field reconnaissance, manual review of aerial
+			imagery, or other information about this {barrierTypeLabel}.
 		</div>
 	</Entry>
 {/if}

@@ -6,10 +6,23 @@
 
 	import Entry from './Entry.svelte'
 
-	const { barrierType, tespp, regionalsgcnspp, statesgcnspp, trout, salmonidesu } = $props()
+	const {
+		barrierType,
+		tespp = 0,
+		regionalsgcnspp = 0,
+		statesgcnspp = 0,
+		trout = 0,
+		salmonidesu = null
+	} = $props()
 
 	const typeLabel = $derived(barrierTypeLabelSingular[barrierType as BarrierTypePlural])
 </script>
+
+<div class="text-xs text-muted-foreground mx-2 mt-2">
+	Note: species information is very incomplete and is limited to the subwatershed level. These
+	species may or may not be directly impacted by this {typeLabel}.
+	<a href={resolve('/methods/sgcn/')} target="_blank"> Read more. </a>
+</div>
 
 {#if tespp + regionalsgcnspp + statesgcnspp > 0 || trout || salmonidesu}
 	<Entry label="Number of federally-listed threatened and endangered aquatic species">
@@ -50,7 +63,7 @@
 		<Entry
 			label="Salmon Evolutionarily Significant Units / Steelhead trout Discrete Population Segments present"
 		>
-			<ul class="list-disc list-outside pl-8 [&>li+li]:mt-1">
+			<ul class="list-disc list-outside pl-4 [&>li+li]:mt-1">
 				{#each salmonidesu.split(',') as code (code)}
 					<li>{SALMONID_ESU[code as keyof typeof SALMONID_ESU]}</li>
 				{/each}
@@ -65,11 +78,3 @@
 		trout DPS.
 	</div>
 {/if}
-
-<Entry>
-	<div class="text-xs text-muted-foreground">
-		Note: species information is very incomplete and is limited to the subwatershed level. These
-		species may or may not be directly impacted by this {typeLabel}.
-		<a href={resolve('/methods/sgcn/')} target="_blank"> Read more. </a>
-	</div>
-</Entry>

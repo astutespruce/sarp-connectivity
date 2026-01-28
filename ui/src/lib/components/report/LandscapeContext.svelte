@@ -81,7 +81,7 @@
 
 		{#if congressionaldistrict}
 			<div>
-				Congressional district (118th congress):
+				Congressional district (119th congress):
 				{STATES[congressionaldistrict.slice(0, 2) as keyof typeof STATES]} Congressional District
 				{congressionaldistrict.slice(2)}
 			</div>
