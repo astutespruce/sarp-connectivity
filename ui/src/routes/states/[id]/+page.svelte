@@ -41,11 +41,11 @@
 		</h1>
 		<div>
 			Part of
-			{#each data.regions as region, i (region.url)}
+			{#each data.regions as region, i (region.id)}
 				{#if i > 0}
 					,
 				{/if}
-				<a href={resolve(region.url)}>
+				<a href={resolve(`/regions/${region.id}`)}>
 					{region.name} region
 				</a>
 			{/each}
@@ -65,8 +65,8 @@
 		<BarrierStats areaName={data.name} map={data.map} {stats} />
 
 		<ActionBar
-			exploreURL={`/explore/?state=${params.id}`}
-			restorationURL={`/restoration/?state=${params.id}`}
+			exploreURL={`/explore/${params.id}/`}
+			restorationURL={`/restoration/${params.id}/`}
 			prioritizeURL="/priority/"
 		/>
 

@@ -1,5 +1,5 @@
 import { viewport } from '@placemarkio/geo-viewport'
-import type { MapboxGLMapType, ExpressionSpecification, FeatureSelector } from 'mapbox-gl'
+import type { Map as MapboxGLMapType, ExpressionSpecification, FeatureSelector } from 'mapbox-gl'
 
 import { barrierTypeLabelSingular, barrierNameWhenUnknown } from '$lib/config/constants'
 import type { BarrierTypePlural } from '$lib/config/types'

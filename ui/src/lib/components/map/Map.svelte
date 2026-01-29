@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte'
 	import { Map as MapboxGLMap, NavigationControl } from 'mapbox-gl'
-	import type { MapboxGLMapType, SourceSpecification, LayerSpecification } from 'mapbox-gl'
+	import type { Map as MapboxGLMapType, SourceSpecification, LayerSpecification } from 'mapbox-gl'
 	import 'mapbox-gl/dist/mapbox-gl.css'
 
 	import { MAPBOX_TOKEN } from '$lib/env'
@@ -26,7 +26,7 @@
 	let isLoaded = $state(false)
 
 	onMount(() => {
-		const { center, zoom } = getCenterAndZoom(mapNode, bounds)
+		const { center, zoom } = getCenterAndZoom(mapNode, bounds, 0.05)
 		const { styleID, minZoom, maxZoom, projection } = mapConfig
 
 		map = new MapboxGLMap({

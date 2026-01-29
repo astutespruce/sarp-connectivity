@@ -129,7 +129,8 @@
 				isOpen = true
 			}}
 			title="Click to show legend"
-			class="absolute right-2.5 bottom-6 text-sm py-2 bg-white hover:bg-white text-foreground border border-grey-2 font-bold"
+			class="absolute right-2.5 bottom-6 text-sm py-2 bg-white hover:bg-white text-foreground border-none font-bold"
+			style="box-shadow:0 0 0 2px #0000001a"
 		>
 			Legend
 		</Button>

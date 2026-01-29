@@ -97,8 +97,8 @@
 		<BarrierStats {areaName} map={data.map} {stats} />
 
 		<ActionBar
-			exploreURL={`/explore/?fishhabitatpartnership=${params.id}`}
-			restorationURL={`/restoration/?fishhabitatpartnership=${params.id}`}
+			exploreURL={`/explore/${params.id}/`}
+			restorationURL={`/restoration/${params.id}/`}
 			prioritizeURL="/priority/"
 		/>
 

@@ -5,5 +5,10 @@
 
 <ExplorePage
 	type="Region"
-	data={{ id: 'total', name: 'the full analysis region', layer: 'boundary', ...summaryStats }}
+	data={{
+		id: 'total',
+		name: 'the full analysis region',
+		boundaryLayer: 'boundary',
+		...summaryStats
+	}}
 />

@@ -46,6 +46,8 @@
 
 	const { type, data: regionData } = $props()
 
+	$inspect('incoming region data', regionData)
+
 	let map: MapboxGLMapType | undefined = $state.raw()
 
 	let system: System = $derived(

@@ -27,7 +27,7 @@
 	</div>
 {:else if dataRequest.isSuccess}
 	{#if dataRequest.data}
-		<ExplorePage type={data.type} data={dataRequest.data} />
+		<ExplorePage type={data.type} data={{ ...dataRequest.data, ...data }} />
 	{:else}
 		<NotFoundPage />
 	{/if}

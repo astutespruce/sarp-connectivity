@@ -20,7 +20,7 @@
 	const areaName = $derived(`the ${data.name} region`)
 
 	const statsRequest = createQuery(() => ({
-		queryKey: ['Region', params.id],
+		queryKey: ['region-stats', params.id],
 		queryFn: async () => {
 			const [regionStats, stateStats] = await Promise.all([
 				fetchUnitDetails('Region', params.id),
@@ -62,8 +62,8 @@
 		<BarrierStats {areaName} map={data.map} stats={stats!.region} />
 
 		<ActionBar
-			exploreURL={`/explore/?region=${params.id}`}
-			restorationURL={`/restoration/?region=${params.id}`}
+			exploreURL={`/explore/${params.id}/`}
+			restorationURL={`/restoration/${params.id}/`}
 			prioritizeURL="/priority/"
 		/>
 

@@ -191,7 +191,7 @@
 			thead {
 				@apply font-bold border-b-2 border-b-grey-2 text-left;
 				th {
-					@apply pb-1 not-last-of-type:pr-4;
+					@apply pb-1 not-last-of-type:pr-6 first-of-type:pl-2 last-of-type:pr-2 align-bottom;
 				}
 				th + th {
 					@apply text-right;
@@ -202,7 +202,7 @@
 					@apply border-t border-t-grey-1;
 				}
 				td {
-					@apply not-last-of-type:pr-4 py-1;
+					@apply not-last-of-type:pr-6 py-1 first-of-type:pl-2 last-of-type:pr-2;
 				}
 				td + td {
 					@apply text-right;

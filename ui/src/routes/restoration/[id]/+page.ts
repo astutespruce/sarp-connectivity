@@ -8,7 +8,8 @@ export const load = ({ params }) => {
 		return {
 			id: params.id.toUpperCase(),
 			name: stateName,
-			type: 'State'
+			type: 'State',
+			boundaryLayer: 'State'
 		}
 	}
 
@@ -16,8 +17,9 @@ export const load = ({ params }) => {
 	if (region) {
 		return {
 			id: params.id,
-			name: `the ${region.name}`,
-			type: 'Region'
+			name: `the ${region.name} boundary`,
+			type: 'Region',
+			boundaryLayer: 'boundary'
 		}
 	}
 
@@ -27,7 +29,8 @@ export const load = ({ params }) => {
 		return {
 			id: params.id.toUpperCase(),
 			name: `the ${fhp.name}`,
-			type: 'FishHabitatPartnership'
+			type: 'FishHabitatPartnership',
+			boundaryLayer: 'fhp_boundary'
 		}
 	}
 

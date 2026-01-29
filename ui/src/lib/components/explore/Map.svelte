@@ -174,7 +174,7 @@
 	})
 	layers.push({
 		...regionBoundary,
-		'source-layer': region.layer,
+		'source-layer': region.boundaryLayer,
 		filter: ['==', 'id', region.id]
 	})
 

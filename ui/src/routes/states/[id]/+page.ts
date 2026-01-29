@@ -11,7 +11,9 @@ export const load = async ({ params }) => {
 		error(404, `State ${params.id} not found`)
 	}
 
-	const regions = Object.values(REGIONS).filter(({ states }) => states.indexOf(params.id) !== -1)
+	const regions = Object.entries(REGIONS)
+		.map(([id, rest]) => ({ id, ...rest }))
+		.filter(({ states }) => states.indexOf(params.id) !== -1)
 	const team = CONNECTIVITY_TEAMS[params.id as keyof typeof CONNECTIVITY_TEAMS]
 
 	let dataProviders = STATE_DATA_PROVIDERS[params.id as keyof typeof STATE_DATA_PROVIDERS] || []

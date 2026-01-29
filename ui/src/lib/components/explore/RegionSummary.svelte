@@ -46,7 +46,7 @@
 			case 'FishHabitatPartnership': {
 				return {
 					url: resolve(`/fhp/${id}/`, { id }),
-					urlLabel: 'view the Fish Habitat Partnership page for more information'
+					urlLabel: 'view the FHP page for more information'
 				}
 			}
 			case 'State': {
@@ -78,16 +78,16 @@
 <div class="flex flex-col h-full">
 	<div
 		bind:this={contentNode}
-		class="pt-4 pb-8 px-4 flex-auto overflow-y-auto h-full [&_ul]:list-outside [&_ul]:list-disc [&_ul]:pl-5 [&_ul>li+li]:mt-2 [&_ul>li]:leading-snug"
+		class="pt-2 pb-8 px-4 flex-auto overflow-y-auto h-full [&_ul]:list-outside [&_ul]:list-disc [&_ul]:pl-5 [&_ul>li+li]:mt-2 [&_ul>li]:leading-snug"
 	>
 		{#if url}
-			<a href={url} class="block">
+			<a href={url} class="flex gap-1 items-end mb-4">
 				{urlLabel}
 				<ChevronsRightIcon class="size-5" />
 			</a>
 		{/if}
 
-		<div class="text-2xl leading-tight">
+		<div class="text-2xl leading-tight mb-4">
 			Across {name}, there are:
 		</div>
 

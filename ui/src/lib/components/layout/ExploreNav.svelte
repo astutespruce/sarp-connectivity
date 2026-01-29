@@ -6,15 +6,9 @@
 	import { REGIONS } from '$lib/config/constants'
 	import { cn } from '$lib/utils'
 
-	const regions = Object.values(REGIONS)
+	const regions = Object.entries(REGIONS)
+		.map(([id, { name: label, order }]) => ({ id, label, order }))
 		.sort(({ order: a }, { order: b }) => (a < b ? -1 : 1))
-		.map(({ name: label, url }) => ({ id: url, label, url }))
-
-	regions.push({
-		id: 'fhp',
-		label: 'Fish Habitat Partnerships',
-		url: '/fhp/'
-	})
 </script>
 
 <div class="grid sm:grid-cols-2 gap-6 sm:p-2">
@@ -48,17 +42,17 @@
 	<div class=" sm:border-l sm:border-l-grey-2 sm:pl-6">
 		<div class="font-bold">Explore barriers by region:</div>
 		<ul class="pl-7 sm:pl-4 sm:mt-4">
-			{#each regions as region (region.url)}
-				<li
-					class={cn('mt-2 sm:mt-3', {
-						'sm:pt-3 sm:border-t sm:border-t-grey-2': region.id === 'fhp'
-					})}
-				>
-					<a href={resolve(region.url)} class="block leading-snug">
+			{#each regions as region (region.id)}
+				<li class="mt-2 sm:mt-3">
+					<a href={resolve(`/regions/${region.id}`)} class="block leading-snug">
 						{region.label}
 					</a>
 				</li>
 			{/each}
+
+			<li class="mt-2 sm:mt-3 sm:pt-3 sm:border-t sm:border-t-grey-2">
+				<a href={resolve(`/fhp/`)} class="block leading-snug">Fish Habitat Partnerships</a>
+			</li>
 		</ul>
 	</div>
 </div>
