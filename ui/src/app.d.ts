@@ -1,4 +1,5 @@
 import type { Map } from 'mapbox-gl'
+import { Crossfilter } from '$lib/components/filter'
 
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
@@ -23,6 +24,9 @@ declare global {
 
 		// map is dynamically added to window on map pages
 		map: Map | undefined
+
+		// crossfilter is dynamically added to window on priority / survey pages
+		crossfilter: Crossfilter | undefined
 	}
 }
 

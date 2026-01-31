@@ -21,6 +21,7 @@
 
 	const {
 		networkType,
+		title = null,
 		crossfilter,
 		maxAllowed = Infinity,
 		nextStepLabel,
@@ -76,7 +77,7 @@
 
 		<div class="flex justify-between items-baseline">
 			<h2 class="flex-auto text-2xl leading-none">
-				Filter {barrierTypeLabel}
+				{title || `Filter ${barrierTypeLabel}`}
 			</h2>
 
 			<Button

@@ -96,12 +96,7 @@
 	</div>
 
 	<div class="flex flex-col justify-between items-end h-full">
-		<Button
-			variant="ghost"
-			onclick={() => onDelete(unit)}
-			class="p-0! h-auto flex-none text-muted-foreground hover:text-foreground"
-			aria-label={`remove ${name} from list`}
-		>
+		<Button variant="close" onclick={() => onDelete(unit)} aria-label={`remove ${name} from list`}>
 			<CloseIcon class="size-5" />
 		</Button>
 

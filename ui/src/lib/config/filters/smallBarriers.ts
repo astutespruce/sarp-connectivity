@@ -1,71 +1,50 @@
 import {
-	HEIGHT,
-	PURPOSE,
-	FEASIBILITYCLASS,
 	RARESPP,
 	TROUT,
 	SALMONID_ESU,
 	SALMONID_ESU_COUNT,
-	STREAMORDER,
 	INTERMITTENT,
 	CANAL,
 	GAINMILES,
 	MAINSTEM_GAINMILES,
 	ANNUAL_FLOW,
-	HAZARD,
-	CONDITION,
-	PASSABILITY,
-	LOWHEAD_DAM,
-	YEARCOMPLETED,
+	SMALL_BARRIER_SEVERITY_FILTER_BINS,
 	CROSSING_TYPE,
-	ROAD_TYPE,
 	CONSTRICTION,
-	WATERBODY_SIZECLASS,
+	ROAD_TYPE,
+	STREAMORDER,
 	PERCENT_UNALTERED,
 	PERCENT_RESILIENT,
 	PERCENT_COLD,
 	PASSAGEFACILITY_CLASS,
+	CONDITION,
 	OWNERTYPE,
 	BARRIEROWNERTYPE,
-	FERC_REGULATED,
-	STATE_REGULATED,
-	NRCSDAM,
-	FEDREGULATORYAGENCYGROUP,
-	WATER_RIGHT,
 	BOOLEAN_FIELD,
 	DOWNSTREAM_OCEAN_MILES,
 	DOWNSTREAM_OCEAN_SMALL_BARRIERS_DOMAIN,
 	DISADVANTAGED_COMMUNITY,
 	INVASIVE_NETWORK,
 	FISH_HABITAT_PARTNERSHIPS,
-	COST_CLASS,
 	UNALTERED_WATERBODY_CLASS,
 	UNALTERED_WETLAND_CLASS,
 	DIADROMOUS_HABITAT,
 	WILDSCENIC_RIVER,
 	YEAR_SURVEYED_BINS,
 	EPA_CAUSE_CODES
-} from 'config'
+} from '$lib/config/constants'
 
 import { getEntries, hasDiadromousData } from './common'
 
-// Each filter needs to have a dimension above that matches the key here
-export const combinedBarriers = [
+export const smallBarriers = [
 	{
 		id: 'social_benefits',
 		title: 'Social Benefits & Partners',
 		filters: [
 			{
-				field: 'feasibilityclass',
-				title: 'Dam feasibility & conservation benefit',
-				help: 'Note: feasibility is based on further reconnaissance to evaluate individual barriers. Values are provided only for those that have been evaluated. There may be more feasible or infeasible dams than are indicated above.',
-				hideMissingValues: true,
-				...getEntries(FEASIBILITYCLASS)
-			},
-			{
 				field: 'disadvantagedcommunity',
 				title: 'Climate and environmental justice',
-				help: 'Within a disadvantaged community as defined by the Climate and Environmental Justice Screening tool.  These include overburdened and underserved Census tracts and American Indian and Alaska Native areas as defined by the Census.', // TODO:,
+				help: 'Within a disadvantaged community as defined by the Climate and Environmental Justice Screening tool.  These include overburdened and underserved Census tracts and American Indian and Alaska Native areas as defined by the Census.',
 				sort: false,
 				hideIfEmpty: true,
 				isArray: true,
@@ -82,14 +61,6 @@ export const combinedBarriers = [
 				isArray: true,
 				labels: Object.values(FISH_HABITAT_PARTNERSHIPS).map(({ name }) => name),
 				values: Object.keys(FISH_HABITAT_PARTNERSHIPS)
-			},
-			{
-				field: 'fatalityclass',
-				title: 'Fatalities have been recorded at dam',
-				help: 'Fatality information is only available for a small number of dams.',
-				sort: false,
-				hideEmpty: false,
-				...getEntries(BOOLEAN_FIELD)
 			}
 		]
 	},
@@ -98,13 +69,12 @@ export const combinedBarriers = [
 		title: 'Conservation benefits',
 		filters: [
 			{
-				field: 'passability',
-				title: 'Passability',
-				sort: false,
-				hideMissingValues: true,
-				help: 'Note: passability information is only available for a small number of dams. Not all data sources recorded this information. Partial passability includes any dam or road related barrier where some passability was indicated using a barrier assessment protocol.',
-				...getEntries(PASSABILITY)
+				field: 'barrierseverity',
+				title: 'Barrier Severity',
+				sort: true,
+				...getEntries(SMALL_BARRIER_SEVERITY_FILTER_BINS)
 			},
+
 			{
 				field: 'gainmilesclass',
 				title: 'Miles gained',
@@ -161,143 +131,39 @@ export const combinedBarriers = [
 		]
 	},
 	{
-		id: 'hydropower',
-		title: 'Hydropower characteristics',
-		filters: [
-			{
-				field: 'fercregulated',
-				title: 'Regulated by the Federal Energy Regulatory Commission?',
-				help: 'Note: regulatory information is only available for a small number of dams.',
-				hideMissingValues: true,
-				...getEntries(FERC_REGULATED)
-			},
-			{
-				field: 'fedregulatoryagencygroup',
-				title: 'Federal regulatory agency',
-				help: 'Note: regulatory information is only available for a small number of dams.  Other agencies may also regulate the dam in addition to those listed above.',
-				hideMissingValues: true,
-				...getEntries(FEDREGULATORYAGENCYGROUP)
-			}
-		]
-	},
-	{
-		id: 'regulatory',
-		title: 'Regulatory & removal cost',
-		filters: [
-			{
-				field: 'fercregulated',
-				title: 'Regulated by the Federal Energy Regulatory Commission?',
-				help: 'Note: regulatory information is only available for a small number of dams.',
-				hideMissingValues: true,
-				...getEntries(FERC_REGULATED)
-			},
-			{
-				field: 'stateregulated',
-				title: 'State regulated dam?',
-				help: 'Note: regulatory information is only available for a small number of dams.',
-				hideMissingValues: true,
-				...getEntries(STATE_REGULATED)
-			},
-			{
-				field: 'nrcsdam',
-				title: 'NRCS flood control dam?',
-				...getEntries(NRCSDAM, (v) => v > 0)
-			},
-			{
-				field: 'waterright',
-				title: 'Has an associated water right?',
-				help: 'Note: water right information is only available for a small number of dams.',
-				...getEntries(WATER_RIGHT)
-			},
-			{
-				field: 'costclass',
-				title: 'Estimated cost of dam removal',
-				help: 'Note: estimated removal cost is modeled based on dam characteristics and is only available for a small number of dams.  Filter is based on the average estimated cost, but estimated costs may have a wide range so please use this with caution.  Source: Jumani et. al. (in prep).',
-				...getEntries(COST_CLASS)
-			}
-		]
-	},
-	{
 		id: 'structure',
-		title: 'General characteristics',
+		title: 'Road-related barrier characteristics',
 		filters: [
+			{
+				field: 'crossingtype',
+				title: 'Crossing type',
+				sort: true,
+				...getEntries(CROSSING_TYPE, (v) => v >= 0 && v <= 10)
+			},
+			{
+				field: 'roadtype',
+				title: 'Road type',
+				sort: true,
+				...getEntries(ROAD_TYPE, (v) => v >= 0)
+			},
+			{
+				field: 'constriction',
+				title: 'Type of constriction',
+				...getEntries(CONSTRICTION, (v) => v >= 0)
+			},
 			{
 				field: 'condition',
-				title: 'Condition',
-				sort: false,
-				hideMissingValues: true,
-				help: 'Note: condition information is only available for a small number of dams and road-related barriers.  Not all data sources recorded this information.',
-				...getEntries(CONDITION)
+				title: 'Barrier condition',
+				sort: true,
+				...getEntries(CONDITION, (v) => v <= 4)
 			},
 			{
 				field: 'passagefacilityclass',
 				title: 'Does it have a fish passage facility?',
 				sort: false,
 				hideMissingValues: false,
-				help: 'Note: fish passage facility information is only available for a small number of dams and road-related barriers.  Not all data sources recorded this information.',
-				...getEntries(PASSAGEFACILITY_CLASS)
-			}
-		]
-	},
-	{
-		id: 'structure_dams',
-		title: 'Dam characteristics',
-		filters: [
-			{
-				field: 'heightclass',
-				title: 'Dam height',
-				help: 'Note: height information is only available for a small number of dams.  Not all data sources recorded this information.',
-				...getEntries(HEIGHT)
-			},
-			{
-				field: 'hazard',
-				title: 'Hazard rating',
-				help: 'Note: hazard rating information is only available for a small number of dams.  Not all data sources recorded this information.',
-				...getEntries(HAZARD)
-			},
-			{
-				field: 'purpose',
-				title: 'Dam purpose',
-				sort: false,
-				hideMissingValues: true,
-				help: 'Note: purpose information is only available for a small number of dams.  Not all data sources recorded this information.',
-				...getEntries(PURPOSE)
-			},
-			{
-				field: 'yearcompletedclass',
-				title: 'Dam age',
-				help: 'Note: dam age is based on year completed information that is only available for a small number of dams.  Not all data sources recorded this information.',
-				...getEntries(YEARCOMPLETED)
-			},
-			{
-				field: 'lowheaddam',
-				title: 'Is it a lowhead dam?',
-				sort: false,
-				help: 'Note: lowhead dam status is only available for a small number of dams.  Not all data sources recorded this information.  Likely lowhead dams are those specifically marked as run-of-river dams with a height <= 15 ft.',
-				...getEntries(LOWHEAD_DAM)
-			}
-		]
-	},
-	{
-		id: 'structure_small_barriers',
-		title: 'Road-related barrier characteristics',
-		filters: [
-			{
-				field: 'crossingtype',
-				title: 'Crossing type',
-				sort: false,
-				...getEntries(CROSSING_TYPE, (v) => v <= 10)
-			},
-			{
-				field: 'roadtype',
-				title: 'Road type',
-				sort: false,
-				...getEntries(ROAD_TYPE)
-			},
-			{
-				field: 'constriction',
-				title: 'Type of constriction',
-				...getEntries(CONSTRICTION)
+				help: 'Note: fish passage facility information is only available for a small number of road-related barriers.  Not all data sources recorded this information.',
+				...getEntries(PASSAGEFACILITY_CLASS, (v) => v > 0)
 			},
 			{
 				field: 'yearsurveyedclass',
@@ -326,8 +192,7 @@ export const combinedBarriers = [
 			},
 			{
 				field: 'intermittent',
-				title: 'Located on an intermittent / ephemeral stream',
-				sort: false,
+				title: 'Located on an Intermittent / Ephemeral Stream',
 				help: 'Note: intermittent / ephemeral status is assigned in the underlying NHD data and is not consistently assigned for all stream reaches.  Non-intermittent reaches may have perennial flow or be assigned to a different stream reach type which precludes intermittent / ephemeral status.',
 				...getEntries(INTERMITTENT)
 			},
@@ -344,13 +209,6 @@ export const combinedBarriers = [
 				sort: false,
 				help: 'Note: annual flow rate is estimated at the downstream endpoint of the stream reach to which this barrier snapped and is not available for all reaches within the underlying NHD data.',
 				...getEntries(ANNUAL_FLOW)
-			},
-			{
-				field: 'waterbodysizeclass',
-				title: 'Size of associated pond or lake',
-				sort: false,
-				help: 'Note: dams are associated with ponds or lakes extracted from NHD and the National Wetlands Inventory (NWI) if they spatially overlap; the associated pond or lake is not necessarily a result of an impoundment created by the dam.  Many small lakes and ponds are not present in NHD and NWI.',
-				...getEntries(WATERBODY_SIZECLASS)
 			},
 			{
 				field: 'unalteredwaterbodyclass',
@@ -473,17 +331,17 @@ export const combinedBarriers = [
 		filters: [
 			{
 				field: 'tesppclass',
-				title: 'Number of federally-listed Threatened & Endangered Species',
+				title: 'Number of Federally-Listed Threatened and Endangered Species',
 				hideMissingValues: true,
-				help: 'Note: This information is based on occurrences of one or more federally- threatened or endangered aquatic species within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
+				help: 'Note: This information is based on occurrences of one or more federally-listed threatened or endangered aquatic species within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
 				url: '/methods/sgcn/',
 				...getEntries(RARESPP)
 			},
 			{
 				field: 'statesgcnsppclass',
-				title: 'Number of state-listed Species of Greatest Conservation Need',
+				title: 'Number of State-listed Species of Greatest Conservation Need (SGCN)',
 				hideMissingValues: true,
-				help: 'Note: This information is based on occurrences within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
+				help: 'Note: This information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
 				url: '/methods/sgcn/',
 				...getEntries(RARESPP)
 			},
@@ -502,9 +360,9 @@ export const combinedBarriers = [
 				field: 'salmonidesucount',
 				title:
 					'Number of salmon Evolutionarily Significant Units / Steelhead trout Discrete Population Segments',
-				help: 'This information is based on the presence of salmon Evolutionarily Significant Units (ESU) or steelhead trout Discrete Population Segments (DPS) within the same watershed as the dam, as provided by NOAA at the subwatershed level. These species may or may not be impacted by this dam.',
+				help: 'This information is based on the presence of salmon Evolutionarily Significant Units (ESU) or steelhead trout Discrete Population Segments (DPS) within the same watershed as the barrier, as provided by NOAA at the subwatershed level. These species may or may not be impacted by this barrier.',
 				sort: false,
-				hideMissingValues: false,
+				hideMissingValues: true,
 				hideIfEmpty: true,
 				...getEntries(SALMONID_ESU_COUNT)
 			},

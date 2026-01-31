@@ -69,6 +69,7 @@
 	<DownloadPopup
 		bind:open={isDownloadPopupOpen}
 		{barrierType}
+		{label}
 		{areaName}
 		{config}
 		{includeUnranked}

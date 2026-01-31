@@ -257,6 +257,26 @@
 		}
 	}
 
+	.map-container {
+		.mapboxgl-ctrl-top-right {
+			@apply mt-12!;
+		}
+
+		&.has-top-bar {
+			.mapboxgl-ctrl-top-right {
+				@apply mt-21! xl:mt-12!;
+			}
+
+			.layer-toggle {
+				@apply top-41! xl:top-32!;
+			}
+
+			.location-search {
+				@apply top-12! xl:top-3!;
+			}
+		}
+	}
+
 	@media print {
 		@page :first {
 			counter-set: page 0;

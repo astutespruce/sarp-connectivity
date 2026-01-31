@@ -197,7 +197,7 @@
 </script>
 
 <div class="flex flex-col h-full">
-	<Header class="flex justify-center items-start leading-tight">
+	<Header class="flex justify-center items-start leading-tight px-4 pt-2 pb-4">
 		<div class="flex flex-auto">
 			<h2 class="text-xl">
 				{title}
@@ -214,12 +214,7 @@
 		</div>
 
 		<div class="flex flex-none flex-col justify-between items-end h-full">
-			<Button
-				onclick={onReset}
-				variant="ghost"
-				aria-label={`unselect ${title}`}
-				class="p-0! h-auto rounded-full text-muted-foreground hover:text-foreground"
-			>
+			<Button onclick={onReset} variant="close" aria-label={`unselect ${title}`}>
 				<CloseIcon class="size-5" />
 			</Button>
 			{#if summaryUnits.length === 1 && summaryUnits[0].bbox}
@@ -372,7 +367,7 @@
 	</div>
 
 	<Footer
-		class={cn('flex gap-4 items-center flex-none', {
+		class={cn('flex gap-4 items-center flex-none pt-4', {
 			'flex-wrap': barrierType === 'small_barriers'
 		})}
 	>

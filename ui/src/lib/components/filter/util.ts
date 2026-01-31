@@ -1,5 +1,6 @@
 import { addFunction, op, escape } from 'arquero'
 import type { ColumnTable as Table } from 'arquero'
+import { SvelteSet } from 'svelte/reactivity'
 
 import { reduceToObject } from '$lib/util/data'
 import type { Dimension, Dimensions, FilterConfig } from './types'
@@ -55,7 +56,7 @@ export const getDimensionCount = (data: Table, dimension: Dimension) => {
  * @param {Object} dimensions - object of dimensions
  */
 
-export const countByDimension = (data: Table, dimensions) =>
+export const countByDimension = (data: Table, dimensions: Dimensions) =>
 	Object.values(dimensions)
 		.map((dimension) => ({
 			field: dimension.field,
@@ -69,7 +70,7 @@ export const countByDimension = (data: Table, dimensions) =>
  * @param {Array} values - values on record
  * @returns bool
  */
-const hasAny = (filterValues, values) => {
+const hasAny = (filterValues: number[] | string[], values: number[] | string[]) => {
 	for (let i = 0; i < filterValues.length; i += 1) {
 		if (op.indexof(values, filterValues[i]) !== -1) {
 			return true
@@ -82,13 +83,17 @@ const hasAny = (filterValues, values) => {
 // NOTE: overwrite is used to redefine this on window reload
 addFunction('hasAny', hasAny, { override: true })
 
-export const applyFilters = (rawData, dimensions, rawFilters) => {
+export const applyFilters = (
+	rawData: Table,
+	dimensions: Dimensions,
+	rawFilters: Record<string, SvelteSet>
+) => {
 	let data = rawData
 	const dimensionCounts = {}
 
 	// do a first pass and apply all filters into derived columns
 	const filters = Object.entries(rawFilters)
-		/* eslint-disable-next-line no-unused-vars */
+		/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 		.filter(([field, values]) => values && values.size > 0)
 		.map(([field, values]) => {
 			if (dimensions[field].isArray) {

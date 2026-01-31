@@ -116,6 +116,7 @@
 		<StartOverButton {onStartOver} />
 		<Downloader
 			barrierType={networkType}
+			disabled={rankData.length === 0}
 			label="Download prioritized barriers"
 			config={{ ...rawConfig, scenario }}
 			customRank

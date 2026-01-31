@@ -96,20 +96,14 @@ export const unpackBits = (packed, fieldBits) => {
 }
 
 /**
- * Tests if the left and right objects have the same values for props
+ * Tests if the left and right objects have the same values for props, without
+ * doing a deep comparison of the full object
  *
  * @param {Object} left
  * @param {Object} right
  * @param {Array} props - list of prop names to test for equality
  */
-export const isEqual = (left, right, props) =>
-	props.filter((p) => left && right && dequal(left[p], right[p])).length === props.length
-
-/** Serialize a key, which may be a nested object, so that it can
- * be used as a query key for tanstack/react-query
- *
- * @param {Object | String} key - query key
- * @returns String - serialized query key
- */
-export const serializeQueryKey = (key) =>
-	JSON.stringify(key, (_, value) => (value instanceof Set ? [...value] : value))
+export const isEqual = (left: object | null, right: object | null, props: string[]) =>
+	props.filter(
+		(p) => left && right && dequal(left[p as keyof typeof left], right[p as keyof typeof right])
+	).length === props.length

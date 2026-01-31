@@ -17,7 +17,7 @@
 	import { CONTACT_EMAIL, API_HOST } from '$lib/env'
 	import { trackDownload } from '$lib/util/analytics'
 	import { cn } from '$lib/utils'
-	import { barrierTypeLabels } from '$lib/config/constants'
+	import { shortBarrierTypeLabels } from '$lib/config/constants'
 	import type { BarrierTypePlural } from '$lib/config/types'
 
 	type Status = {
@@ -39,6 +39,7 @@
 	let {
 		open = $bindable(false),
 		barrierType,
+		label = null,
 		areaName,
 		config = {},
 		customRank = false,
@@ -46,7 +47,7 @@
 		showOptions = true
 	} = $props()
 
-	const barrierTypeLabel = $derived(barrierTypeLabels[barrierType as BarrierTypePlural])
+	const barrierTypeLabel = $derived(shortBarrierTypeLabels[barrierType as BarrierTypePlural])
 
 	let includeUnranked = $derived(initialIncludeUnranked)
 	let status: Status = $state(initialStatus)
@@ -93,12 +94,18 @@
 				.map(([key, values]) => `${key}: ${(values as string[]).join(',')}`)
 				.join(';')
 
+			let details = `ids: [${formattedIds}], filters: ${filters ? Object.keys(filters) : 'none'}`
+			if (scenario) {
+				details += `, scenario: ${scenario}`
+			}
+			if (barrierType !== 'road_crossings') {
+				details += `, include unranked: ${includeUnranked}`
+			}
+
 			trackDownload({
 				barrierType,
 				unitType: 'selected area',
-				details: `ids: [${formattedIds}], filters: ${
-					filters ? Object.keys(filters) : 'none'
-				}, scenario: ${scenario}, include unranked: ${includeUnranked}`
+				details
 			})
 
 			// NOTE: this doesn't complete until the background job is completed
@@ -150,9 +157,9 @@
 <Dialog.Root bind:open>
 	<Dialog.Content showCloseButton={false} class="sm:max-w-2xl h-full sm:h-auto pt-4 overflow-auto">
 		<Dialog.Header class="border-b-4 border-b-blue-9 pb-1">
-			<Dialog.Title class="text-xl sm:text-2xl"
-				>Download {customRank ? 'prioritized' : ''}
-				{barrierTypeLabels[barrierType as keyof typeof barrierTypeLabels]}
+			<Dialog.Title class="text-xl sm:text-2xl">
+				{label ||
+					`Download ${customRank ? 'prioritized' : ''} ${shortBarrierTypeLabels[barrierType as keyof typeof shortBarrierTypeLabels]}`}
 
 				{#if areaName}
 					in {areaName}
@@ -244,7 +251,7 @@
 							<DownloadIcon class="size-5" />
 						{/if}
 
-						Download {barrierTypeLabel}</Button
+						{label || `Download ${barrierTypeLabel}`}</Button
 					>
 				{/if}
 			{/if}

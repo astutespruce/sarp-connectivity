@@ -13,7 +13,7 @@
 	const { id, title, filters: dimensions, crossfilter } = $props()
 
 	// all filters initially closed
-	let isOpen: boolean = $state(true)
+	let isOpen: boolean = $state(false)
 	let openFilters: Record<string, boolean> = $state({})
 
 	const hasFilters = $derived(

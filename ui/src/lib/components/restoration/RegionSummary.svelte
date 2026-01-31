@@ -179,7 +179,7 @@
 	</div>
 
 	{#if id === 'total'}
-		<Footer class="flex gap-4 items-center">
+		<Footer class="flex gap-4 items-center pt-4">
 			<div class="leading-none flex-auto">Download:</div>
 			<div class="flex-none">
 				<Downloader

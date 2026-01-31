@@ -11,16 +11,16 @@ import type { Dimension, Dimensions, FilterConfig } from './types'
 
 export class Crossfilter {
 	#networkType: BarrierTypePlural | null = $state(null)
-	#filterConfig: FilterConfig | null = $state(null)
+	#filterConfig: FilterConfig | null = $state.raw(null)
 	// dimensions do not change once this class is initialized
-	#dimensions: Dimensions = $state({})
+	#dimensions: Dimensions = $state.raw({})
 
-	#data: Table | null = $state(null)
-	#filteredData: Table | null = $state(null)
+	#data: Table | null = $state.raw(null)
+	#filteredData: Table | null = $state.raw(null)
 
 	// total dimension counts are the counts when no filters are applied
-	#totalDimensionCounts: Record<string, number> = $state({})
-	#dimensionCounts: Record<string, number> = $state({})
+	#totalDimensionCounts: Record<string, number> = $state.raw({})
+	#dimensionCounts: Record<string, number> = $state.raw({})
 
 	#filters: Record<string, SvelteSet<number | string>> = $state({})
 	#hasFilters: boolean = $state(false)
@@ -29,8 +29,13 @@ export class Crossfilter {
 	#emptyDimensions: SvelteSet<string> = new SvelteSet()
 	#emptyGroups: SvelteSet<string> = new SvelteSet()
 
-	constructor(networkType: BarrierTypePlural) {
+	constructor(networkType: BarrierTypePlural | undefined) {
 		console.log('create crossfilter', networkType)
+
+		if (!networkType) {
+			// this happens sometimes when changing between routes
+			return
+		}
 
 		this.#networkType = networkType
 		this.#filterConfig = allFilterConfig[

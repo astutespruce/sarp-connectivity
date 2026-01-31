@@ -17,7 +17,7 @@ import {
 	DIADROMOUS_HABITAT,
 	WILDSCENIC_RIVER,
 	YEAR_SURVEYED_BINS
-} from 'config'
+} from '$lib/config/constants'
 
 import { getEntries } from './common'
 
@@ -57,7 +57,7 @@ export const roadCrossings = [
 			{
 				field: 'disadvantagedcommunity',
 				title: 'Climate and environmental justice',
-				help: 'Within a disadvantaged community as defined by the Climate and Environmental Justice Screening tool.  These include overburdened and underserved Census tracts and American Indian and Alaska Native areas as defined by the Census.', // TODO:,
+				help: 'Within a disadvantaged community as defined by the Climate and Environmental Justice Screening tool.  These include overburdened and underserved Census tracts and American Indian and Alaska Native areas as defined by the Census.',
 				sort: false,
 				hideIfEmpty: true,
 				isArray: true,

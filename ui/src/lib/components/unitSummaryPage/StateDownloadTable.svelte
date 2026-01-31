@@ -22,7 +22,7 @@
 			<th class="w-48">Reconned dams</th>
 			<th class="w-48">Assessed road-related barriers</th>
 			<th aria-label="dams download link column" class="w-32"> </th>
-			<th aria-label="road barriers download link column" class="w-32"> </th>
+			<th aria-label="surveyed road/stream crossings download link column" class="w-32"> </th>
 		</tr>
 	</thead>
 	<tbody>

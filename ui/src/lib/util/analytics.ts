@@ -13,7 +13,7 @@ export const trackPrioritize = ({
 }: {
 	barrierType: string
 	unitType: string
-	details: object
+	details: string
 }) => {
 	if (!(browser && window.gtag)) return
 

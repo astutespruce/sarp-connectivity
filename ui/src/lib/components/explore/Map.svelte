@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Popup } from 'mapbox-gl'
-	import type { FeatureSelector, GeoJSONFeature, LngLatLike, Point } from 'mapbox-gl'
+	import type { FeatureSelector, GeoJSONFeature, Point } from 'mapbox-gl'
+	import { untrack } from 'svelte'
 
 	import {
 		Map,
@@ -32,7 +33,7 @@
 
 	let {
 		map = $bindable(),
-		region,
+		region: regionProp,
 		system,
 		focalBarrierType,
 		summaryUnits = [],
@@ -41,6 +42,9 @@
 		onSelectBarrier,
 		children
 	} = $props()
+
+	// only use initial value of region when setting up layers (it is a route variable and does not change after mount)
+	const region = $state.snapshot(untrack(() => regionProp))
 
 	const barrierTypeLabel = $derived(shortBarrierTypeLabels[focalBarrierType as BarrierTypePlural])
 
@@ -155,7 +159,7 @@
 			id: `unranked_${t}`,
 			source: t,
 			'source-layer': `unranked_${t}`,
-			...unrankedPointLayer, // TODO: dedicated styling
+			...unrankedPointLayer,
 			layout: {
 				visibility: 'none'
 			}
@@ -221,6 +225,7 @@
 						return
 					}
 					const {
+						// @ts-expect-error coordinates is valid
 						geometry: { coordinates }
 					} = feature!
 					setBarrierHighlight(map, hoverFeature, false)

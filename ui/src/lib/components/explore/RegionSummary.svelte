@@ -207,7 +207,7 @@
 
 	{#if id === 'total'}
 		<Footer
-			class={cn('flex gap-4 items-center', { 'flex-wrap': barrierType === 'small_barriers' })}
+			class={cn('flex gap-4 items-center pt-4', { 'flex-wrap': barrierType === 'small_barriers' })}
 		>
 			<div class="leading-none flex-auto">Download:</div>
 			<div
