@@ -1,11 +1,16 @@
-import { error as handleError } from '@sveltejs/kit'
 import { tableFromIPC } from '@uwdata/flechette'
 
 import { API_HOST } from '$lib/env'
-import { SPECIES_HABITAT_FIELDS, barrierNameWhenUnknown } from '$lib/config/constants'
+import {
+	SPECIES_HABITAT_FIELDS,
+	barrierNameWhenUnknown,
+	TIER_FIELDS,
+	TIER_PACK_INFO
+} from '$lib/config/constants'
 import { captureException } from '$lib/util/log'
-import type { SummaryUnits, Filters } from '$lib/config/types'
+import type { SummaryUnits, Filters, BarrierTypePlural } from '$lib/config/types'
 import { isEmptyString } from '$lib/util/string'
+import { unpackBits } from '$lib/util/data'
 
 import { pollJob } from './job'
 import type { ProgressCallback } from './job'
@@ -13,7 +18,7 @@ import { fetchFeather } from './request'
 
 type APIQueryParams = {
 	summaryUnits: SummaryUnits
-	filters: Filters
+	filters?: Filters
 	includeUnranked?: boolean | null
 	sort?: string | null
 	customRank?: boolean
@@ -69,7 +74,7 @@ const apiQueryParams = ({
 /**
  * Fetch and parse Feather data from API for dams or small barriers
  */
-export const fetchBarrierInfo = async (barrierType: string, summaryUnits) => {
+export const fetchBarrierInfo = async (barrierType: string, summaryUnits: SummaryUnits) => {
 	const url = `${API_HOST}/api/v1/internal/${barrierType}/query?${apiQueryParams({
 		summaryUnits
 	})}`
@@ -80,7 +85,11 @@ export const fetchBarrierInfo = async (barrierType: string, summaryUnits) => {
 /**
  * Fetch and parse Feather data from API for dams or small barriers
  */
-export const fetchBarrierRanks = async (barrierType, summaryUnits, filters) => {
+export const fetchBarrierRanks = async (
+	barrierType: BarrierTypePlural,
+	summaryUnits: SummaryUnits,
+	filters: Filters
+) => {
 	const url = `${API_HOST}/api/v1/internal/${barrierType}/rank?${apiQueryParams({
 		summaryUnits,
 		filters
@@ -93,22 +102,30 @@ export const fetchBarrierRanks = async (barrierType, summaryUnits, filters) => {
 		return { error, bounds: null, data: [] }
 	}
 
-	const data = packedTiers.map(({ id, full, perennial, mainstem }) => ({
-		id,
-		// ...unpackBits(tiers, TIER_PACK_BITS),
-		...unpackBits(
-			full,
-			TIER_FIELDS.map((field) => ({ field, ...TIER_PACK_INFO }))
-		),
-		...unpackBits(
-			perennial,
-			TIER_FIELDS.map((field) => ({ field: `p${field}`, ...TIER_PACK_INFO }))
-		),
-		...unpackBits(
-			mainstem,
-			TIER_FIELDS.map((field) => ({ field: `m${field}`, ...TIER_PACK_INFO }))
-		)
-	}))
+	type BitPackedDatum = {
+		id: string | number
+		full: number
+		perennial: number
+		mainstem: number
+	}
+
+	const data = (packedTiers as BitPackedDatum[])!.map(
+		({ id, full, perennial, mainstem }: BitPackedDatum) => ({
+			id,
+			...unpackBits(
+				full,
+				TIER_FIELDS.map((field) => ({ field, ...TIER_PACK_INFO }))
+			),
+			...unpackBits(
+				perennial,
+				TIER_FIELDS.map((field) => ({ field: `p${field}`, ...TIER_PACK_INFO }))
+			),
+			...unpackBits(
+				mainstem,
+				TIER_FIELDS.map((field) => ({ field: `m${field}`, ...TIER_PACK_INFO }))
+			)
+		})
+	)
 
 	return {
 		bounds,

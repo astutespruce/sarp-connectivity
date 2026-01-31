@@ -27,23 +27,25 @@
 		<div
 			class="absolute right-2.5 bottom-6 text-sm px-4 pt-1 pb-2 bg-white hover:bg-white text-foreground border border-grey-5 rounded-md shadow-grey-6 shadow-lg max-w-[16rem]"
 		>
-			<Button
-				variant="ghost"
-				class="block w-full h-auto p-0! font-bold"
-				onclick={() => {
-					isOpen = false
-				}}
-			>
-				<div class="flex items-center gap-2 justify-between text-lg">
-					{title}
-					<CloseIcon class="size-5" />
-				</div>
-			</Button>
-			{#if subtitle}
-				<div class="text-xs text-muted-foreground leading-tight mb-2">
-					{subtitle}
-				</div>
-			{/if}
+			<div class="mb-2">
+				<Button
+					variant="ghost"
+					class="block w-full h-auto p-0! font-bold"
+					onclick={() => {
+						isOpen = false
+					}}
+				>
+					<div class="flex items-center gap-2 justify-between text-lg">
+						{title}
+						<CloseIcon class="size-5" />
+					</div>
+				</Button>
+				{#if subtitle}
+					<div class="text-xs text-muted-foreground leading-tight mb-2">
+						{subtitle}
+					</div>
+				{/if}
+			</div>
 
 			{#if patches && patches.length > 0}
 				<div>

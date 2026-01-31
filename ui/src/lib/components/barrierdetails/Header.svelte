@@ -68,11 +68,8 @@
 				</div>
 			{/if}
 		</div>
-		<Button
-			variant="ghost"
-			onclick={onClose}
-			class="p-0! flex-none h-auto rounded-full text-muted-foreground hover:text-foreground"
-			aria-label="close barrier details"><CloseIcon class="size-6" /></Button
+		<Button variant="close" onclick={onClose} aria-label="close barrier details"
+			><CloseIcon class="size-6" /></Button
 		>
 	</div>
 

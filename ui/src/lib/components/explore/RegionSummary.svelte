@@ -8,6 +8,7 @@
 	import { formatNumber } from '$lib/util/format'
 	import { Downloader } from '$lib/components/download'
 	import { Search } from '$lib/components/unitsearch'
+	import { Footer } from '$lib/components/sidebar'
 	import { cn } from '$lib/utils'
 
 	const {
@@ -205,11 +206,8 @@
 	</div>
 
 	{#if id === 'total'}
-		<div
-			class={cn(
-				'flex gap-4 items-center flex-none pt-2 pb-4 px-2 border-t border-t-grey-4 bg-grey-1/50',
-				{ 'flex-wrap': barrierType === 'small_barriers' }
-			)}
+		<Footer
+			class={cn('flex gap-4 items-center', { 'flex-wrap': barrierType === 'small_barriers' })}
 		>
 			<div class="leading-none flex-auto">Download:</div>
 			<div
@@ -233,6 +231,6 @@
 					/>
 				{/if}
 			</div>
-		</div>
+		</Footer>
 	{/if}
 </div>

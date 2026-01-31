@@ -5,11 +5,11 @@
 	import { SvelteSet } from 'svelte/reactivity'
 
 	import { CONTACT_EMAIL, SITE_NAME } from '$lib/env'
-	import { Button } from '$lib/components/ui/button'
 
 	import { fetchUnitDetails } from '$lib/api'
 	import { Alert } from '$lib/components/alert'
 	import { BarrierDetails } from '$lib/components/barrierdetails'
+	import { Button } from '$lib/components/ui/button'
 	import { Root as ButtonGroup } from '$lib/components/ui/button-group'
 	import { Map, RegionSummary, UnitSummary } from '$lib/components/explore'
 	import type { FocalBarrierType } from '$lib/config/types'
@@ -45,8 +45,6 @@
 	const queryClient = new QueryClient()
 
 	const { type, data: regionData } = $props()
-
-	$inspect('incoming region data', regionData)
 
 	let map: MapboxGLMapType | undefined = $state.raw()
 

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Popup } from 'mapbox-gl'
-	import type { FeatureSelector, GeoJSONFeature } from 'mapbox-gl'
+	import type { FeatureSelector, GeoJSONFeature, LngLatLike, Point } from 'mapbox-gl'
 
 	import {
 		Map,
@@ -47,6 +47,13 @@
 	let zoom = $state(0)
 	let hoverFeature: (FeatureSelector & GeoJSONFeature) | null = $state(null)
 	let selectedFeature: (FeatureSelector & GeoJSONFeature) | null = $state(null)
+
+	const tooltip = new Popup({
+		closeButton: false,
+		closeOnClick: false,
+		anchor: 'left',
+		offset: 20
+	})
 
 	// @ts-expect-error layers is constructed dynamically
 	const layers = []
@@ -204,12 +211,7 @@
 		const clickLayers = pointLayers.concat(summaryUnitLayers.map(({ id }) => `${id}-fill`))
 
 		// add hover and tooltip to point layers
-		const tooltip = new Popup({
-			closeButton: false,
-			closeOnClick: false,
-			anchor: 'left',
-			offset: 20
-		})
+
 		pointLayers.forEach((id) => {
 			map.on(
 				'mousemove',
@@ -220,7 +222,7 @@
 					}
 					const {
 						geometry: { coordinates }
-					} = feature
+					} = feature!
 					setBarrierHighlight(map, hoverFeature, false)
 					hoverFeature = feature
 					setBarrierHighlight(map, feature, true)
@@ -251,12 +253,11 @@
 					}
 				}
 				hoverFeature = null
-				/* eslint-disable-next-line no-param-reassign */
 				map.getCanvas().style.cursor = ''
 				tooltip.remove()
 			})
 		})
-		map.on('click', ({ point }) => {
+		map.on('click', ({ point }: { point: Point }) => {
 			const [feature] = map.queryRenderedFeatures(point, {
 				layers: clickLayers
 			})

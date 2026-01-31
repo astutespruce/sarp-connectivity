@@ -5,6 +5,7 @@
 	import 'mapbox-gl/dist/mapbox-gl.css'
 
 	import { MAPBOX_TOKEN } from '$lib/env'
+	import { cn } from '$lib/utils'
 
 	import { mapConfig, sources as initSources, basemapLayers } from './config'
 	import { getCenterAndZoom } from './util'
@@ -18,7 +19,8 @@
 		sources = {},
 		layers = [],
 		onCreateMap = null,
-		children = null
+		children = null,
+		class: className = null
 	} = $props()
 
 	let map: MapboxGLMapType | undefined = $state.raw()
@@ -92,7 +94,7 @@
 	})
 </script>
 
-<div class="relative flex-auto h-full z-1 [&_.mapboxgl-ctrl-top-right]:mt-12!">
+<div class={cn('map-container relative flex-auto h-full z-1 overflow-hidden', className)}>
 	<div bind:this={mapNode} class="h-full w-full"></div>
 
 	{#if isLoaded}

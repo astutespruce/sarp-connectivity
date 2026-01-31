@@ -1,0 +1,945 @@
+<script lang="ts">
+	import { Popup } from 'mapbox-gl'
+	import type { FeatureSelector, GeoJSONFeature, Point } from 'mapbox-gl'
+	import { untrack } from 'svelte'
+
+	import { shortBarrierTypeLabels, pointLegends } from '$lib/config/constants'
+	import {
+		Map,
+		LayerToggle,
+		Legend,
+		networkLayers,
+		highlightNetwork,
+		setBarrierHighlight,
+		getInArrayExpr,
+		getInStringExpr,
+		getInMapUnitsExpr,
+		getBarrierTooltip,
+		getBitFromBitsetExpr,
+		runOnceOnIdle
+	} from '$lib/components/map'
+
+	import { isEqual, groupBy } from '$lib/util/data'
+
+	import {
+		priorityAreaSources,
+		priorityAreasLegend,
+		unitLayerConfig
+	} from '$lib/components/workflow/config'
+	import {
+		maskFill,
+		maskOutline,
+		unitLayers,
+		unitHighlightLayers,
+		parentOutline,
+		priorityAreaLayers
+	} from '$lib/components/workflow/layers'
+
+	import {
+		prioritizedPointLayer,
+		unrankedPointLayer,
+		removedBarrierPointLayer,
+		otherBarrierPointLayer,
+		excludedPointLayer,
+		includedPointLayer,
+		roadCrossingsLayer,
+		damsSecondaryLayer,
+		waterfallsLayer,
+		getTierPointColor,
+		getTierPointSize
+	} from './layers'
+	import type { BarrierTypePlural } from '$lib/config/types'
+
+	let {
+		map = $bindable(),
+		networkType,
+		crossfilter,
+		activeLayer,
+		summaryUnits = [],
+		allowUnitSelect,
+		selectedBarrier = null,
+		rankedBarriers,
+		tierThreshold,
+		scenario,
+		bounds,
+		onSelectUnit,
+		onSelectBarrier,
+		onCreateMap,
+		children,
+		class: className = null
+	} = $props()
+
+	const barrierTypeLabel = $derived(shortBarrierTypeLabels[networkType as BarrierTypePlural])
+
+	let zoom = $state(0)
+	let hoverFeature: (FeatureSelector & GeoJSONFeature) | null = $state(null)
+	let selectedFeature: (FeatureSelector & GeoJSONFeature) | null = $state(null)
+	let hoverPriorityAreaId: string | number | null = $state(null)
+	let priorityAreaLayerOptions = $state(
+		priorityAreasLegend.entries.map((entry) => ({ ...entry, visible: false }))
+	)
+
+	// we keep a cached copy of the ranked barriers so we can unset their feature state on change of ranked barriers
+	let prevRankedBarrierIds: number[] = $state([])
+	let rankedBarriersIndex = $state({})
+	let timeout = $state()
+
+	// $inspect('activeLayer', activeLayer).with(console.log)
+	// $inspect('allowUnitSelect', allowUnitSelect).with(console.log)
+	$inspect('filters in map', crossfilter.filters).with(console.log)
+	// $inspect('selectedBarrier', selectedBarrier).with(console.log)
+	// $inspect('rankedBarriers', rankedBarriers).with(console.log)
+	// $inspect('bounds', bounds).with(console.log)
+	// $inspect('priorityAreaLayerOptions', priorityAreaLayerOptions).with(console.log)
+
+	const tooltip = new Popup({
+		closeButton: false,
+		closeOnClick: false,
+		anchor: 'left',
+		offset: 20
+	})
+
+	// @ts-expect-error layers is constructed dynamically
+	const layers = []
+
+	// Add the priority areas under everything else
+	layers.push(...priorityAreaLayers)
+
+	// Add flowlines and network highlight layers
+	layers.push(...networkLayers)
+
+	// Add summary unit layers
+	// @ts-expect-error parent is valid
+	Object.entries(unitLayerConfig).forEach(([layer, { minzoom = 0, maxzoom = 24, parent }]) => {
+		const config = {
+			'source-layer': layer,
+			minzoom,
+			maxzoom
+		}
+
+		if (parent) {
+			layers.push({
+				'source-layer': parent.id,
+				minzoom: parent.minzoom || minzoom,
+				maxzoom: parent.maxzoom || maxzoom,
+				...parentOutline,
+				id: `${layer}-${parentOutline.id}`
+			})
+		}
+
+		// Each layer has 2 display layers: outline, fill
+		// show grey fill when the map unit cannot be ranked
+		let bitPos = 0
+
+		/* eslint-disable-next-line default-case */
+		switch (networkType) {
+			case 'dams': {
+				bitPos = 0
+				break
+			}
+			case 'small_barriers': {
+				bitPos = 1
+				break
+			}
+			case 'combined_barriers': {
+				bitPos = 2
+				break
+			}
+			case 'largefish_barriers': {
+				bitPos = 3
+				break
+			}
+			case 'smallfish_barriers': {
+				bitPos = 4
+				break
+			}
+		}
+
+		const fillExpr = ['case', ['==', getBitFromBitsetExpr('has_data', bitPos), 0], 0.25, 0]
+
+		// make all layers initially hidden; these are shown via an effect below
+		unitLayers.forEach(({ id, ...rest }) => {
+			const unitLayer = { ...config, ...rest, id: `${layer}-${id}`, layout: { visibility: 'none' } }
+
+			if (id === 'unit-fill') {
+				// @ts-expect-error fill-opacity is valid key
+				unitLayer.paint['fill-opacity'] = fillExpr
+			}
+
+			layers.push(unitLayer)
+		})
+
+		// Each layer has 2 highlight layers: highlight fill, highlight outline
+		unitHighlightLayers.forEach(({ id, ...rest }) => {
+			layers.push({ ...config, ...rest, id: `${layer}-${id}` })
+		})
+	})
+
+	// add waterfalls
+	layers.push(waterfallsLayer)
+
+	// add road crossings layer
+	layers.push({
+		...roadCrossingsLayer,
+		layout: {
+			visibility: networkType !== 'dams' ? 'visible' : 'none'
+		}
+	})
+
+	// add secondary dams layer (only applicable for small barriers)
+	layers.push({
+		...damsSecondaryLayer,
+		layout: {
+			visibility: networkType === 'small_barriers' ? 'visible' : 'none'
+		}
+	})
+
+	layers.push({
+		source: networkType,
+		'source-layer': `other_${networkType}`,
+		...otherBarrierPointLayer
+	})
+
+	layers.push({
+		source: networkType,
+		'source-layer': `removed_${networkType}`,
+		...removedBarrierPointLayer
+	})
+
+	layers.push({
+		source: networkType,
+		'source-layer': `unranked_${networkType}`,
+		...unrankedPointLayer
+	})
+
+	// add primary barrier-type point layers
+	const pointConfig = {
+		source: networkType,
+		'source-layer': `ranked_${networkType}`
+	}
+
+	// all points are initially excluded from analysis until their
+	// units are selected
+	layers.push({ ...pointConfig, ...excludedPointLayer })
+	layers.push({
+		...pointConfig,
+		...includedPointLayer
+	})
+
+	layers.push({
+		...pointConfig,
+		...prioritizedPointLayer,
+		paint: {
+			...prioritizedPointLayer.paint
+		}
+	})
+
+	// add boundary / mask layers
+	layers.push(maskFill)
+	layers.push(maskOutline)
+
+	const pointLayers = [
+		roadCrossingsLayer.id,
+		damsSecondaryLayer.id,
+		waterfallsLayer.id,
+		removedBarrierPointLayer.id,
+		otherBarrierPointLayer.id,
+		unrankedPointLayer.id,
+		excludedPointLayer.id,
+		includedPointLayer.id,
+		prioritizedPointLayer.id
+	]
+
+	const clickLayers = pointLayers.concat(
+		Object.keys(unitLayerConfig).map((id) => `${id}-unit-fill`)
+	)
+
+	const clearNetworkHighlight = () => {
+		map.setFilter('network-highlight', ['==', 'dams', Infinity])
+		map.setFilter('network-intermittent-highlight', ['==', 'dams', Infinity])
+		map.setFilter('removed-network-highlight', ['==', 'id', Infinity])
+		map.setFilter('removed-network-intermittent-highlight', ['==', 'id', Infinity])
+	}
+
+	const handleCreateMap = () => {
+		// keep track of zoom for legend
+		zoom = map.getZoom()
+		map.on('zoomend', () => {
+			zoom = map.getZoom()
+		})
+
+		pointLayers.forEach((id) => {
+			// @ts-expect-error ignore typing on feature
+			map.on('mousemove', id, ({ features: [feature] }) => {
+				if (map.getZoom() < 8) {
+					return
+				}
+
+				const {
+					geometry: { coordinates }
+				} = feature
+
+				setBarrierHighlight(map, hoverFeature, false)
+				hoverFeature = feature
+				setBarrierHighlight(map, feature, true)
+
+				map.getCanvas().style.cursor = 'pointer'
+
+				tooltip
+					.setLngLat(coordinates)
+					.setHTML(
+						getBarrierTooltip(
+							feature.source === 'combined_barriers' ||
+								feature.source === 'largefish_barriers' ||
+								feature.source === 'smallfish_barriers'
+								? feature.properties.barriertype
+								: feature.source,
+							feature.properties
+						)
+					)
+					.addTo(map)
+			})
+			map.on('mouseleave', id, () => {
+				// only unhighlight if not the same as currently selected feature
+				const prevFeature = hoverFeature
+
+				if (prevFeature) {
+					if (
+						!selectedFeature ||
+						prevFeature.id !== selectedFeature.id ||
+						prevFeature.layer?.id !== selectedFeature.layer?.id
+					) {
+						setBarrierHighlight(map, prevFeature, false)
+					}
+				}
+
+				hoverFeature = null
+
+				/* eslint-disable-next-line no-param-reassign */
+				map.getCanvas().style.cursor = ''
+				tooltip.remove()
+			})
+		})
+
+		map.on('click', ({ point }: { point: Point }) => {
+			const features = map.queryRenderedFeatures(point, {
+				layers: clickLayers
+			})
+
+			const [feature] = features
+
+			// always clear out prior feature
+			const prevFeature = selectedFeature
+			if (prevFeature) {
+				setBarrierHighlight(map, prevFeature, false)
+
+				selectedFeature = null
+
+				if (isEqual(prevFeature, hoverFeature, ['id', 'layer'])) {
+					setBarrierHighlight(map, hoverFeature, false)
+					hoverFeature = null
+				}
+			}
+
+			// only call handler if there was a feature
+			if (!feature) {
+				onSelectBarrier(null)
+				return
+			}
+
+			const {
+				source,
+				sourceLayer,
+				properties,
+				geometry: {
+					coordinates: [lon, lat]
+				}
+			} = feature
+
+			if (source === 'map_units') {
+				onSelectUnit({ layer: sourceLayer, id: properties.id })
+				return
+			}
+
+			if (map.getZoom() < 8) {
+				// don't allow selection of points below zoom 8
+				const [unitLayerFeature] = features.filter(
+					({ source: lyrSource }: { source: string }) => lyrSource === 'map_units'
+				)
+				if (unitLayerFeature) {
+					onSelectUnit({
+						layer: unitLayerFeature.sourceLayer,
+						id: unitLayerFeature.properties.id
+					})
+				}
+				return
+			}
+
+			const removed = sourceLayer.startsWith('removed_')
+
+			const thisBarrierType =
+				source === 'combined_barriers' ||
+				source === 'largefish_barriers' ||
+				source === 'smallfish_barriers'
+					? properties.barriertype
+					: source
+
+			const network = networkType === 'small_barriers' ? 'combined_barriers' : networkType
+
+			// promote network fields if clicking on a waterfall
+			let networkIDField = 'upnetid'
+			if (removed) {
+				networkIDField = 'id'
+			} else if (thisBarrierType === 'waterfalls') {
+				networkIDField = `${network}_upnetid`
+			}
+
+			setBarrierHighlight(map, feature, true)
+			selectedFeature = feature
+
+			onSelectBarrier({
+				upnetid: properties[networkIDField] || Infinity,
+				...properties,
+				tiers: rankedBarriersIndex[properties.id as keyof typeof rankedBarriersIndex] || null,
+				barrierType: thisBarrierType,
+				networkType,
+				lat,
+				lon,
+				// note: ranked layers are those that can be ranked, not necessarily those that have custom ranks
+				ranked: sourceLayer.startsWith('ranked_'),
+				removed,
+				layer: {
+					source,
+					sourceLayer
+				}
+			})
+		})
+
+		// hook up mouse events for priority layer hover / unhover
+		// index 0 is the fill layer, index 1 is the outline
+		// @ts-expect-error ignore typing on feature and lngLat
+		map.on('mousemove', priorityAreaLayers[0].id, ({ features: [feature], lngLat }) => {
+			const {
+				id: featureId,
+				properties: { type, name }
+			} = feature
+
+			// only show tooltips for broad priority areas at lower zooms, but
+			// always show for Wild & Scenic Rivers
+			if ((type === 'hifhp_gfa' || type === 'sarp_coa') && map.getZoom() > 10) {
+				if (hoverPriorityAreaId !== null) {
+					map.removeFeatureState({
+						id: hoverPriorityAreaId,
+						source: priorityAreaLayers[1].source,
+						sourceLayer: priorityAreaLayers[1]['source-layer']
+					})
+					hoverPriorityAreaId = null
+				}
+				return
+			}
+
+			if (hoverPriorityAreaId !== featureId) {
+				map.removeFeatureState({
+					id: hoverPriorityAreaId,
+					source: priorityAreaLayers[1].source,
+					sourceLayer: priorityAreaLayers[1]['source-layer']
+				})
+			}
+
+			const { label: priorityLabel, showName } = priorityAreasLegend.entries.filter(
+				({ id }) => id === type
+			)[0]
+			const prefix = `${priorityLabel}`
+			const suffix = showName ? `: ${name}` : ''
+
+			map.getCanvas().style.cursor = 'pointer'
+			tooltip.setLngLat(lngLat).setHTML(`<b>${prefix}${suffix}</b>`).addTo(map)
+
+			map.setFeatureState(
+				{
+					id: featureId,
+					source: priorityAreaLayers[1].source,
+					sourceLayer: priorityAreaLayers[1]['source-layer']
+				},
+				{ highlight: true }
+			)
+
+			hoverPriorityAreaId = featureId
+		})
+		map.on('mouseleave', priorityAreaLayers[0].id, () => {
+			map.getCanvas().style.cursor = ''
+			tooltip.remove()
+
+			map.removeFeatureState({
+				id: hoverPriorityAreaId,
+				source: priorityAreaLayers[1].source,
+				sourceLayer: priorityAreaLayers[1]['source-layer']
+			})
+
+			hoverPriorityAreaId = null
+		})
+
+		onCreateMap()
+	}
+
+	/**
+	 * Update layers depending on whether they allow selection, or just show
+	 * currently selected layers
+	 */
+	const updateSummaryUnitVisibility = () => {
+		// toggle visibility of layers so that we only show those layers for the activeLayer
+		Object.keys(unitLayerConfig).forEach((layer) => {
+			// only show the unit fill and boundary if we allow selection
+			const visibility = layer === activeLayer && allowUnitSelect ? 'visible' : 'none'
+			unitLayers.forEach(({ id }) => {
+				map.setLayoutProperty(`${layer}-${id}`, 'visibility', visibility)
+			})
+
+			// @ts-expect-error parent is valid
+			const { parent } = unitLayerConfig[layer as keyof typeof unitLayerConfig]
+			if (parent) {
+				map.setLayoutProperty(`${layer}-unit-parent-outline`, 'visibility', visibility)
+			}
+
+			// only show highlight fill when selecting units
+			map.setLayoutProperty(`${layer}-${unitHighlightLayers[0].id}`, 'visibility', visibility)
+
+			// show boundary highlight in all cases
+			map.setLayoutProperty(
+				`${layer}-${unitHighlightLayers[1].id}`,
+				'visibility',
+				layer === activeLayer ? 'visible' : 'none'
+			)
+		})
+	}
+
+	$effect.pre(() => {
+		activeLayer
+		allowUnitSelect
+
+		if (!map) {
+			return
+		}
+
+		runOnceOnIdle(map, updateSummaryUnitVisibility)
+	})
+
+	/**
+	 * Update highlight of selected summary units in the active layer
+	 */
+	const updateSelectedSummaryUnits = () => {
+		const ids = summaryUnits.map(({ id }) => id)
+		const filterExpr = ids.length > 0 ? ['in', 'id', ...ids] : ['==', 'id', Infinity]
+
+		unitHighlightLayers.forEach(({ id }) => {
+			map.setFilter(`${activeLayer}-${id}`, filterExpr)
+		})
+	}
+
+	// Highlight currently selected summaryUnits
+	$effect.pre(() => {
+		activeLayer
+		summaryUnits
+
+		if (!(map && activeLayer)) return
+
+		runOnceOnIdle(map, updateSelectedSummaryUnits)
+	})
+
+	/**
+	 * Update barrier and network highlight on change of selectedBarrier
+	 */
+	const updateNetworkHighlight = () => {
+		clearNetworkHighlight()
+
+		const removed = selectedBarrier && selectedBarrier.removed
+		if (selectedBarrier) {
+			const networkIDField = removed ? 'id' : 'upnetid'
+			const { [networkIDField]: networkID = Infinity } = selectedBarrier
+
+			highlightNetwork(
+				map,
+				networkType === 'small_barriers' ? 'combined_barriers' : networkType,
+				networkID,
+				removed
+			)
+		} else {
+			const prevFeature = selectedFeature
+			if (prevFeature) {
+				setBarrierHighlight(map, prevFeature, false)
+				hoverFeature = null
+
+				if (isEqual(prevFeature, hoverFeature, ['id', 'layer'])) {
+					setBarrierHighlight(map, hoverFeature, false)
+					hoverFeature = null
+				}
+			}
+		}
+	}
+
+	$effect.pre(() => {
+		selectedBarrier
+		networkType
+
+		if (!map) return
+
+		runOnceOnIdle(map, updateNetworkHighlight)
+	})
+
+	/**
+	 * if map allows filter, show selected vs unselected points, and make those without networks
+	 * background points
+	 */
+	const updateBarrierVisibility = () => {
+		const ids = summaryUnits.map(({ id }) => id)
+
+		if (!activeLayer || ids.length === 0) {
+			// if no summary units are selected, reset filters on barriers
+			map.setFilter(includedPointLayer.id, ['==', 'id', Infinity])
+			map.setFilter(excludedPointLayer.id, null)
+			return
+		}
+
+		// Construct filter expressions for each active filter
+		// @ts-expect-error v.size is valid
+		const filterEntries = Object.entries(crossfilter.filters).filter(([, v]) => v && v.size > 0)
+
+		const hasActiveUnits = ids && ids.length > 0
+		const insideActiveUnitsExpr = hasActiveUnits ? getInMapUnitsExpr(activeLayer, ids) : false
+
+		const outsideActiveUnitsExpr = hasActiveUnits ? ['!', insideActiveUnitsExpr] : true
+
+		const includedByFilters = filterEntries.map(([field, values]) =>
+			crossfilter.filterConfigIndex[field].isArray
+				? getInStringExpr(field, values as string[] | number[])
+				: getInArrayExpr(field, values as string[] | number[])
+		)
+
+		const excludedByFilters = includedByFilters.map((f) => ['!', f])
+
+		// update barrier layers to select those that are in selected units
+		map.setFilter(includedPointLayer.id, ['all', insideActiveUnitsExpr, ...includedByFilters])
+		map.setFilter(excludedPointLayer.id, [
+			'any', // should this be any?
+			outsideActiveUnitsExpr,
+			...excludedByFilters
+		])
+	}
+
+	$effect.pre(() => {
+		activeLayer
+		summaryUnits
+		// NOTE: have to take snapshot to force effect to detect deep change in filters
+		$state.snapshot(crossfilter.filters)
+
+		if (!map) return
+
+		runOnceOnIdle(map, updateBarrierVisibility)
+	})
+
+	/**
+	 * Update feature state of ranked barriers
+	 */
+	const updateRankedBarriers = () => {
+		const showRanks = rankedBarriers.length > 0
+		map.setLayoutProperty(includedPointLayer.id, 'visibility', showRanks ? 'none' : 'visible')
+		map.setLayoutProperty(prioritizedPointLayer.id, 'visibility', showRanks ? 'visible' : 'none')
+
+		const { source, 'source-layer': sourceLayer } = map.getLayer(prioritizedPointLayer.id)
+
+		// unset feature state for all ranked points
+		if (prevRankedBarrierIds && prevRankedBarrierIds.length) {
+			prevRankedBarrierIds.forEach((id: number) => {
+				// NOTE: this removes all feature state including selected and hover
+				// but neither of those should be active on transition to showing
+				// ranked barriers
+				map.removeFeatureState({ source, sourceLayer, id })
+			})
+		}
+		if (showRanks) {
+			// copy filters to ranked layers
+			map.setFilter(prioritizedPointLayer.id, map.getFilter(includedPointLayer.id))
+			rankedBarriers.forEach(({ id, ...rest }: { id: string }) => {
+				map.setFeatureState({ source, sourceLayer, id }, rest)
+			})
+			rankedBarriersIndex = groupBy(rankedBarriers, 'id')
+		} else {
+			rankedBarriersIndex = {}
+		}
+
+		// cache ranked barrier ids
+		prevRankedBarrierIds = rankedBarriers.map(({ id }: { id: number }) => id)
+	}
+
+	$effect.pre(() => {
+		rankedBarriers
+
+		if (!map) {
+			return
+		}
+
+		runOnceOnIdle(map, updateRankedBarriers)
+	})
+
+	/**
+	 * Update rank filtering of barriers
+	 * Note: this is debounced to prevent frequent redraws
+	 * which have bad performance with high numbers of barriers
+	 */
+	const updateRankedBarrierRendering = () => {
+		untrack(() => {
+			// @ts-expect-error ignore typing error here
+			clearTimeout(timeout)
+
+			timeout = setTimeout(() => {
+				// do not set paint properties on layers that are not visible
+				if (map.getLayoutProperty('point-prioritized', 'visibility') === 'none') {
+					return
+				}
+
+				map.setPaintProperty(
+					prioritizedPointLayer.id,
+					'circle-color',
+					getTierPointColor(scenario, tierThreshold)
+				)
+				map.setPaintProperty(
+					prioritizedPointLayer.id,
+					'circle-radius',
+					getTierPointSize(scenario, tierThreshold)
+				)
+			}, 300)
+		})
+	}
+
+	$effect.pre(() => {
+		tierThreshold
+		scenario
+		rankedBarriers
+
+		if (!(map && rankedBarriers)) {
+			return
+		}
+
+		runOnceOnIdle(map, updateRankedBarrierRendering)
+	})
+
+	/**
+	 * Update map bounds on change
+	 */
+	$effect.pre(() => {
+		bounds
+
+		if (!(map && bounds)) {
+			return
+		}
+
+		runOnceOnIdle(map, () => {
+			map.fitBounds(bounds, { padding: 100, maxZoom: 14, duration: 500 })
+		})
+	})
+
+	const updatePriorityLayerVisibility = () => {
+		// visibility here means that the priority layer types are filtered IN
+		const visibleTypes = priorityAreaLayerOptions
+			.filter(({ visible }) => visible)
+			.map(({ id }) => id)
+
+		priorityAreaLayers.forEach(({ id }) => {
+			map.setLayoutProperty(id, 'visibility', visibleTypes.length > 0 ? 'visible' : 'none')
+			map.setFilter(id, ['in', ['get', 'type'], ['literal', visibleTypes]])
+		})
+	}
+
+	$effect(() => {
+		// force detection of update of visible property
+		$state.snapshot(priorityAreaLayerOptions)
+
+		if (!map) {
+			return
+		}
+
+		runOnceOnIdle(map, updatePriorityLayerVisibility)
+	})
+
+	const getLegend = () => {
+		const pointLayers = [
+			includedPointLayer,
+			excludedPointLayer,
+			otherBarrierPointLayer,
+			prioritizedPointLayer
+		]
+
+		const isWithinZoom = pointLayers.reduce(
+			(prev, { id, minzoom, maxzoom }) =>
+				Object.assign(prev, {
+					[id]: zoom >= minzoom && zoom <= maxzoom
+				}),
+			{}
+		)
+
+		const {
+			included: includedLegend,
+			excluded: excludedLegend,
+			topRank: topRankLegend,
+			lowerRank: lowerRankLegend,
+			unrankedBarriers,
+			other
+		} = pointLegends
+
+		const circles = []
+		const patches = []
+		let lines = null
+
+		if (zoom > 6) {
+			lines = [
+				{
+					id: 'normal',
+					label: 'stream reach',
+					color: '#1891ac',
+					lineWidth: '2px'
+				},
+				{
+					id: 'altered',
+					label: 'altered stream reach (canal / ditch / reservoir)',
+					color: '#9370db',
+					lineWidth: '2px'
+				},
+				{
+					id: 'intermittent',
+					label: 'intermittent / ephemeral stream reach',
+					color: '#1891ac',
+					lineStyle: 'dashed',
+					lineWidth: '2px'
+				}
+			]
+		}
+
+		let footnote = null
+
+		priorityAreaLayerOptions
+			.filter(({ visible }) => visible)
+			.forEach(({ id, label }) => {
+				patches.push({
+					id,
+					entries: [{ id, label, color: priorityAreasLegend.color }]
+				})
+			})
+
+		// if no layer is selected for choosing summary areas
+		if (activeLayer === null) {
+			if (!isWithinZoom[includedPointLayer.id as keyof typeof isWithinZoom]) {
+				footnote = `zoom in to see ${barrierTypeLabel} available for prioritization`
+			} else {
+				circles.push({
+					id: includedPointLayer.id,
+					...includedLegend.getSymbol(networkType),
+					label: `${barrierTypeLabel} available for prioritization`
+				})
+			}
+		}
+
+		// may need to be mutually exclusive of above
+		else if (rankedBarriers.length > 0) {
+			const tierLabel = tierThreshold === 1 ? 'tier 1' : `tiers 1 - ${tierThreshold}`
+			circles.push({
+				id: `${networkType}-top-rank`,
+				...topRankLegend.getSymbol(networkType),
+				label: topRankLegend.getLabel(barrierTypeLabel, tierLabel)
+			})
+
+			circles.push({
+				id: `${networkType}-lower-rank`,
+				...lowerRankLegend.getSymbol(networkType),
+				label: lowerRankLegend.getLabel(barrierTypeLabel, tierLabel)
+			})
+
+			if (isWithinZoom[excludedPointLayer.id as keyof typeof isWithinZoom]) {
+				circles.push({
+					id: excludedPointLayer.id,
+					...excludedLegend.getSymbol(networkType),
+					label: excludedLegend.getLabel(barrierTypeLabel)
+				})
+			}
+		} else {
+			// either in select units or filter step
+			if (isWithinZoom[includedPointLayer.id as keyof typeof isWithinZoom]) {
+				circles.push({
+					id: includedPointLayer.id,
+					...includedLegend.getSymbol(networkType),
+					label: includedLegend.getLabel(barrierTypeLabel)
+				})
+			} else {
+				footnote = `zoom in to see ${barrierTypeLabel} included in prioritization`
+			}
+
+			if (isWithinZoom[excludedPointLayer.id as keyof typeof isWithinZoom]) {
+				circles.push({
+					id: `${networkType}-excluded`,
+					...excludedLegend.getSymbol(networkType),
+					label: excludedLegend.getLabel(barrierTypeLabel)
+				})
+			}
+
+			if (allowUnitSelect) {
+				patches.push({
+					id: 'summaryAreas',
+					entries: [
+						{
+							color: 'rgba(0,0,0,0.15)',
+							label: `area with no inventoried ${barrierTypeLabel}`
+						}
+					]
+				})
+			}
+		}
+
+		if (isWithinZoom[otherBarrierPointLayer.id as keyof typeof isWithinZoom]) {
+			unrankedBarriers
+				.filter(
+					({ id }) =>
+						// don't show minor barriers legend entry for dams view
+						id !== 'minorBarrier' || networkType !== 'dams'
+				)
+				.forEach(({ id, getSymbol, getLabel }) => {
+					circles.push({
+						id,
+						...getSymbol(networkType),
+						label: getLabel(barrierTypeLabel)
+					})
+				})
+
+			other.forEach(({ id, getSymbol, getLabel }) => {
+				if (id === 'dams-secondary' && networkType !== 'small_barriers') {
+					return
+				}
+
+				circles.push({
+					id,
+					...getSymbol(),
+					label: getLabel()
+				})
+			})
+		}
+
+		return {
+			patches,
+			circles,
+			lines,
+			footnote
+		}
+	}
+</script>
+
+<Map
+	bind:map
+	sources={priorityAreaSources}
+	{layers}
+	onCreateMap={handleCreateMap}
+	class={className}
+>
+	<LayerToggle bind:options={priorityAreaLayerOptions} />
+
+	<Legend {...getLegend()} />
+
+	{@render children()}
+</Map>

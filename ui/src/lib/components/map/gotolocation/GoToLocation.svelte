@@ -130,7 +130,7 @@
 	tabindex={0}
 	variant="outline"
 	class={cn(
-		'block invisible opacity-0 transition-opacity absolute leading-none bg-white z-2001 top-2 right-2 rounded-md p-1.75 hover:grey-0 w-36 h-10 border-none',
+		'location-search block invisible opacity-0 transition-opacity absolute leading-none bg-white z-2001 top-2 right-2 rounded-md p-1.75 hover:grey-0 w-36 h-10 border-none',
 		{ 'visible opacity-100': !isOpen }
 	)}
 	style="box-shadow:0 0 0 2px #0000001a"
@@ -157,7 +157,7 @@
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <div
 	class={cn(
-		'invisible transition-opacity opacity-0 absolute leading-none bg-white z-2001 top-3 right-2 p-1.75 rounded-lg hover:grey-0 border border-text-foreground shadow-lg shadow-grey-8 w-75 overflow-hidden',
+		'location-search invisible transition-opacity opacity-0 absolute leading-none bg-white z-2001 top-3 right-2 p-1.75 rounded-lg hover:grey-0 border border-text-foreground shadow-lg shadow-grey-8 w-75 overflow-hidden',
 		{ 'visible opacity-100': isOpen }
 	)}
 	onkeydown={handleKeyDown}

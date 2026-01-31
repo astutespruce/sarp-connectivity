@@ -6,6 +6,7 @@
 	// change background on secondary to bg-foreground
 	// remove hover background on ghost, change to hover:text-foreground
 	// remove hober background on outline
+	// added close variant
 
 	import { cn, type WithElementRef } from '$lib/utils.js'
 	import type { HTMLAnchorAttributes, HTMLButtonAttributes } from 'svelte/elements'
@@ -24,7 +25,8 @@
 				ghost: 'hover:text-foreground',
 				link: 'text-primary underline-offset-4 hover:underline',
 				header:
-					'bg-transparent text-lg text-white no-underline hover:bg-primary/90 focus-visible:ring-white'
+					'bg-transparent text-lg text-white no-underline hover:bg-primary/90 focus-visible:ring-white',
+				close: 'flex-none p-0! h-auto! text-muted-foreground hover:text-foreground rounded-full'
 			},
 			size: {
 				default: 'h-9 px-4 py-2 has-[>svg]:px-3',

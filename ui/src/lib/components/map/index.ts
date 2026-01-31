@@ -1,4 +1,5 @@
 import BasemapSelector from './BasemapSelector.svelte'
+import LayerToggle from './LayerToggle.svelte'
 import { basemapAttribution, basemapLayers, mapConfig, sources } from './config'
 import {
 	getCenterAndZoom,
@@ -26,6 +27,7 @@ import TopBar from './TopBar.svelte'
 
 export {
 	BasemapSelector,
+	LayerToggle,
 	basemapAttribution,
 	basemapLayers,
 	mapConfig,

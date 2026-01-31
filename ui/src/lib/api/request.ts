@@ -66,6 +66,7 @@ export const fetchJSONP = async (
 		})
 
 		const removeCallback = () => {
+			// @ts-expect-error callbackName is valid
 			window[callbackName] = undefined
 			document.querySelector('head')?.removeChild(script)
 			clearTimeout(timeout)
@@ -77,6 +78,7 @@ export const fetchJSONP = async (
 			return reject(new Error('JSONP request timed out'))
 		}, requestTimeout)
 
+		// @ts-expect-error callbackName is valid, return is any
 		window[callbackName] = (responseData) => {
 			removeCallback()
 
@@ -103,11 +105,12 @@ export const fetchFeather = async (url: string, options?: RequestInit, asTable =
 		const data = await tableFromIPC(bytes)
 
 		return {
+			// @ts-expect-error tableFromIPC returns valid input for fromArrow
 			data: asTable ? fromArrow(data) : data.toArray(),
 			bounds: data.schema?.metadata?.get('bounds')
 		}
 	} catch (err) {
-		captureException(err)
+		captureException(err as Error | string)
 
 		return {
 			error: err,

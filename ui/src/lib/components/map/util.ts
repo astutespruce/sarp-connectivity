@@ -118,16 +118,30 @@ export const mapToDataURL = async (map: MapboxGLMapType) =>
 		map.triggerRepaint()
 	})
 
+type GetHighlightExpr = (
+	defaultExpr: string | number | ExpressionSpecification,
+	highlightExpr: string | number | ExpressionSpecification
+) => ExpressionSpecification
+
 /**
  * Create an expression to toggle style based on highlight state of point
  * @param {Array or String} defaultExpr - expression used when point is not highlighted
  * @param {Array or String} highlightExpr - expression used when point is highlighted
  * @returns
  */
-export const getHighlightExpr = (
-	defaultExpr: string | number | ExpressionSpecification,
-	highlightExpr: string | number | ExpressionSpecification
-) => ['case', ['boolean', ['feature-state', 'highlight'], false], highlightExpr, defaultExpr]
+export const getHighlightExpr: GetHighlightExpr = (defaultExpr, highlightExpr) => [
+	'case',
+	['boolean', ['feature-state', 'highlight'], false],
+	highlightExpr,
+	defaultExpr
+]
+
+type GetTierExpr = (
+	scenario: string,
+	tierThreshold: number,
+	belowExpr: string | number | ExpressionSpecification,
+	aboveExpr: string | number | ExpressionSpecification
+) => ExpressionSpecification
 
 /**
  * Create an expression to toggle between two expressions based on a given
@@ -138,12 +152,7 @@ export const getHighlightExpr = (
  * @param {Array or String} aboveExpr  - expression used when tier of point is > tierThreshold
  * @returns
  */
-export const getTierExpr = (
-	scenario: string,
-	tierThreshold: number,
-	belowExpr: string | ExpressionSpecification,
-	aboveExpr: string | ExpressionSpecification
-) => [
+export const getTierExpr: GetTierExpr = (scenario, tierThreshold, belowExpr, aboveExpr) => [
 	'case',
 	// make sure that tier field exists in feature state, otherwise emits null warnings
 	// for following condition

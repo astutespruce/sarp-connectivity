@@ -38,7 +38,6 @@
 		}
 
 		timeout = setTimeout(() => {
-			console.log('set debounced to', value)
 			debouncedQuery = value
 		}, TIMEOUT)
 	})

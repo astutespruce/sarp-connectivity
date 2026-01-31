@@ -8,8 +8,8 @@
 	import { STATE_FIPS, STATES, shortBarrierTypeLabels } from '$lib/config/constants'
 	import { formatNumber, pluralize, singularOrPlural } from '$lib/util/format'
 	import { Downloader } from '$lib/components/download'
-	import { summaryUnitLayers } from '$lib/components/explore/layers'
 	import { Search } from '$lib/components/unitsearch'
+	import { Header, Footer } from '$lib/components/sidebar'
 	import { cn } from '$lib/utils'
 
 	import Chart from './Chart.svelte'
@@ -197,9 +197,7 @@
 </script>
 
 <div class="flex flex-col h-full">
-	<div
-		class="flex pt-3 pb-4 pl-4 pr-2 justify-center items-start border-b border-b-grey-4 bg-grey-1/50 leading-tight"
-	>
+	<Header class="flex justify-center items-start leading-tight">
 		<div class="flex flex-auto">
 			<h2 class="text-xl">
 				{title}
@@ -233,7 +231,7 @@
 				>
 			{/if}
 		</div>
-	</div>
+	</Header>
 
 	<div bind:this={contentNode} class="px-4 pt-2 pb-8 flex-auto h-full overflow-y-auto">
 		{#if summaryUnits.length === 1 && layer === 'State'}
@@ -373,11 +371,10 @@
 		</div>
 	</div>
 
-	<div
-		class={cn(
-			'flex gap-4 items-center flex-none pt-2 pb-4 px-2 border-t border-t-grey-4 bg-grey-1/50',
-			{ 'flex-wrap': barrierType === 'small_barriers' }
-		)}
+	<Footer
+		class={cn('flex gap-4 items-center flex-none', {
+			'flex-wrap': barrierType === 'small_barriers'
+		})}
 	>
 		<div class="leading-none flex-auto">Download:</div>
 		<div class="flex gap-4 justify-between flex-none">
@@ -413,5 +410,5 @@
 				/>
 			{/if}
 		</div>
-	</div>
+	</Footer>
 </div>

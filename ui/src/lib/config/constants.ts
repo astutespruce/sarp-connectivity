@@ -566,25 +566,21 @@ export const REGIONS = {
 	alaska: {
 		name: 'Alaska',
 		order: 7,
-		url: '/regions/alaska/',
 		states: ['AK'],
 		inDevelopment: true
 	},
 	great_lakes: {
 		name: 'Great Lakes',
 		order: 4,
-		url: '/regions/great_lakes/',
 		states: ['IA', 'IL', 'IN', 'MI', 'MN', 'OH', 'WI']
 	},
 	great_plains_intermountain_west: {
 		name: 'Great Plains & Intermountain West',
-		url: '/regions/great_plains_intermountain_west',
 		order: 1,
 		states: ['CO', 'IA', 'KS', 'MT', 'ND', 'NE', 'SD', 'WY', 'UT']
 	},
 	hawaii: {
 		name: 'Hawaii',
-		url: '/regions/hawaii/',
 		order: 8,
 		states: ['HI'],
 		inDevelopment: true
@@ -592,25 +588,21 @@ export const REGIONS = {
 	northeast: {
 		name: 'Northeast',
 		order: 6,
-		url: '/regions/northeast/',
 		states: ['CT', 'DC', 'DE', 'MA', 'MD', 'ME', 'NH', 'NJ', 'NY', 'PA', 'RI', 'VT']
 	},
 	northwest: {
 		name: 'Pacific Northwest',
 		order: 3,
-		url: '/regions/northwest/',
 		states: ['ID', 'OR', 'WA']
 	},
 	pacific_southwest: {
 		name: 'Pacific Southwest',
 		order: 5,
-		url: '/regions/pacific_southwest/',
 		states: ['CA', 'NV']
 	},
 	southeast: {
 		name: 'Southeast',
 		order: 0,
-		url: '/regions/southeast/',
 		states: [
 			'AL',
 			'AR',
@@ -634,7 +626,6 @@ export const REGIONS = {
 	southwest: {
 		name: 'Southwest',
 		order: 2,
-		url: '/regions/southwest/',
 		states: ['AZ', 'NM', 'OK', 'TX']
 	}
 }

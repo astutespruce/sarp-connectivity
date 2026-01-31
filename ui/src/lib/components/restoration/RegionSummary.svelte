@@ -7,6 +7,7 @@
 	import { formatNumber, pluralize } from '$lib/util/format'
 	import { Downloader } from '$lib/components/download'
 	import { Search } from '$lib/components/unitsearch'
+	import { Footer } from '$lib/components/sidebar'
 	import { cn } from '$lib/utils'
 
 	import Chart from './Chart.svelte'
@@ -178,9 +179,7 @@
 	</div>
 
 	{#if id === 'total'}
-		<div
-			class="flex gap-4 items-center flex-none pt-2 pb-4 px-2 border-t border-t-grey-4 bg-grey-1/50"
-		>
+		<Footer class="flex gap-4 items-center">
 			<div class="leading-none flex-auto">Download:</div>
 			<div class="flex-none">
 				<Downloader
@@ -192,6 +191,6 @@
 					triggerClass="text-sm h-auto py-1.5 px-2!"
 				/>
 			</div>
-		</div>
+		</Footer>
 	{/if}
 </div>
