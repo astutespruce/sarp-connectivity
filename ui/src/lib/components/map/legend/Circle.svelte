@@ -1,5 +1,5 @@
 <script lang="ts">
-	const { radius, color, borderColor = null, borderWidth = 0 } = $props()
+	const { radius = 4, color = '#000000', borderColor = null, borderWidth = 0 } = $props()
 	const width = $derived(2 * borderWidth + 2 * radius)
 	const center = $derived(width / 2)
 </script>

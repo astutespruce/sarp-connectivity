@@ -1,18 +1,16 @@
 <script lang="ts">
-	import { Popup } from 'mapbox-gl'
 	import type { FeatureSelector, GeoJSONFeature, Point } from 'mapbox-gl'
 	import { untrack } from 'svelte'
 
 	import {
 		Map,
-		Legend,
 		interpolateExpr,
-		networkLayers,
 		highlightNetwork,
 		setBarrierHighlight,
 		getBarrierTooltip,
 		runOnceOnIdle
 	} from '$lib/components/map'
+	import type { Circle, Patch } from '$lib/components/map/legend/types'
 	import { shortBarrierTypeLabels, pointLegends, SUMMARY_UNIT_COLORS } from '$lib/config/constants'
 	import type { BarrierTypePlural, FocalBarrierType } from '$lib/config/types'
 	import { isEqual } from '$lib/util/data'
@@ -51,13 +49,6 @@
 	let zoom = $state(0)
 	let hoverFeature: (FeatureSelector & GeoJSONFeature) | null = $state(null)
 	let selectedFeature: (FeatureSelector & GeoJSONFeature) | null = $state(null)
-
-	const tooltip = new Popup({
-		closeButton: false,
-		closeOnClick: false,
-		anchor: 'left',
-		offset: 20
-	})
 
 	// @ts-expect-error layers is constructed dynamically
 	const layers = []
@@ -125,9 +116,6 @@
 			filter: ['==', 'id', Infinity]
 		})
 	})
-
-	// Add network layers
-	layers.push(...networkLayers)
 
 	// Add barrier point layers
 	layers.push(...[waterfallsLayer, damsSecondaryLayer, roadCrossingsLayer])
@@ -232,7 +220,7 @@
 					hoverFeature = feature
 					setBarrierHighlight(map, feature, true)
 					map.getCanvas().style.cursor = 'pointer'
-					tooltip
+					map.tooltip
 						.setLngLat(coordinates)
 						.setHTML(
 							getBarrierTooltip(
@@ -259,7 +247,7 @@
 				}
 				hoverFeature = null
 				map.getCanvas().style.cursor = ''
-				tooltip.remove()
+				map.tooltip.remove()
 			})
 		})
 		map.on('click', ({ point }: { point: Point }) => {
@@ -510,7 +498,7 @@
 			})
 			.reverse()
 
-		const patchEntries = colors.map((color, i) => ({
+		const patchEntries = colors.map((color: string, i: number) => ({
 			color,
 			label: labels[i]
 		}))
@@ -520,14 +508,14 @@
 			label: `no inventoried ${barrierTypeLabel}`
 		})
 
-		const circles = []
+		const circles: Circle[] = []
 		if (map.getZoom() >= 12) {
 			const { included: primary, unrankedBarriers, other } = pointLegends
 			circles.push({
 				id: 'primary',
 				...primary.getSymbol(focalBarrierType),
 				label: primary.getLabel(barrierTypeLabel)
-			})
+			} as Circle)
 
 			unrankedBarriers
 				.filter(
@@ -540,7 +528,7 @@
 						id,
 						...getSymbol(focalBarrierType),
 						label: getLabel(barrierTypeLabel)
-					})
+					} as Circle)
 				})
 
 			other.forEach(({ id, getSymbol, getLabel }) => {
@@ -555,44 +543,24 @@
 			})
 		}
 
-		let lines = null
-		if (zoom >= 11) {
-			lines = [
-				{
-					id: 'normal',
-					label: 'stream reach',
-					color: '#1891ac',
-					lineWidth: '2px'
-				},
-				{
-					id: 'altered',
-					label: 'altered stream reach (canal / ditch / reservoir)',
-					color: '#9370db',
-					lineWidth: '2px'
-				},
-				{
-					id: 'intermittent',
-					label: 'intermittent / ephemeral stream reach',
-					color: '#1891ac',
-					lineStyle: 'dashed',
-					lineWidth: '2px'
-				}
-			]
-		}
-
 		return {
 			layerTitle: title,
 			legendEntries: {
-				patches: [{ id: 'summaryAreas', entries: patchEntries }],
-				circles,
-				lines
+				patches: [
+					{ id: 'summaryAreas', label: `number of ${barrierTypeLabel}`, entries: patchEntries }
+				] as Patch[],
+				circles
 			}
 		}
 	})
 </script>
 
-<Map bind:map bounds={region.bbox} {layers} onCreateMap={handleCreateMap}>
-	<Legend title={layerTitle} subtitle={`number of ${barrierTypeLabel}`} {...legendEntries} />
-
+<Map
+	bind:map
+	bounds={region.bbox}
+	{layers}
+	legend={{ title: layerTitle, legendEntries }}
+	onCreateMap={handleCreateMap}
+>
 	{@render children()}
 </Map>

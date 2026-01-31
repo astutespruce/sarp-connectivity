@@ -107,12 +107,9 @@
 			{#each networkTypes as networkType (networkType.id)}
 				<div class="bg-blue-1/40 rounded-lg pt-2 px-4 pb-4 border border-grey-2">
 					<div class="flex flex-col gap-2 h-full">
-						<a
-							href={resolve(`/priority/${networkType.id}/`, { networkType: networkType.id })}
-							class="block no-underline hover:underline flex-none font-bold border-b-2 border-b-white pb-2 text-lg"
-						>
+						<div class="flex-none font-bold border-b-2 border-b-white pb-2 text-lg">
 							{networkType.label}
-						</a>
+						</div>
 						<div class="flex flex-auto f-full text-sm">
 							{networkType.description}
 						</div>

@@ -5,14 +5,13 @@
 
 	import {
 		Map,
-		Legend,
 		interpolateExpr,
-		networkLayers,
 		highlightNetwork,
 		setBarrierHighlight,
 		getBarrierTooltip,
 		runOnceOnIdle
 	} from '$lib/components/map'
+	import type { Circle, Patch } from '$lib/components/map/legend/types'
 	import { shortBarrierTypeLabels, pointLegends, SUMMARY_UNIT_COLORS } from '$lib/config/constants'
 	import type { BarrierTypePlural, FocalBarrierType } from '$lib/config/types'
 	import { isEqual } from '$lib/util/data'
@@ -107,9 +106,6 @@
 			filter: ['==', 'id', Infinity]
 		})
 	})
-
-	// Add network layers
-	layers.push(...networkLayers)
 
 	barrierTypes.forEach((t) => {
 		layers.push({
@@ -451,54 +447,34 @@
 			label: `no inventoried ${barrierTypeLabel}`
 		})
 
-		const circles = []
+		const circles: Circle[] = []
 		if (map && map.getZoom() >= 8) {
 			const { unrankedBarriers } = pointLegends
 			const removedLegend = unrankedBarriers.filter(({ id }) => id === 'removed')[0]
 			circles.push({
 				...removedLegend.getSymbol(focalBarrierType),
 				label: removedLegend.getLabel(barrierTypeLabel)
-			})
-		}
-
-		let lines = null
-		if (zoom >= 11) {
-			lines = [
-				{
-					id: 'normal',
-					label: 'stream reach',
-					color: '#1891ac',
-					lineWidth: '2px'
-				},
-				{
-					id: 'altered',
-					label: 'altered stream reach (canal / ditch / reservoir)',
-					color: '#9370db',
-					lineWidth: '2px'
-				},
-				{
-					id: 'intermittent',
-					label: 'intermittent / ephemeral stream reach',
-					color: '#1891ac',
-					lineStyle: 'dashed',
-					lineWidth: '2px'
-				}
-			]
+			} as Circle)
 		}
 
 		return {
 			layerTitle: title,
 			legendEntries: {
-				patches: [{ id: 'summaryAreas', entries: patchEntries }],
-				circles,
-				lines
+				patches: [
+					{ id: 'summaryAreas', label: `number of ${barrierTypeLabel}`, entries: patchEntries }
+				] as Patch[],
+				circles
 			}
 		}
 	})
 </script>
 
-<Map bind:map bounds={region.bbox} {layers} onCreateMap={handleCreateMap}>
-	<Legend title={layerTitle} subtitle={`number of ${barrierTypeLabel}`} {...legendEntries} />
-
+<Map
+	bind:map
+	bounds={region.bbox}
+	{layers}
+	legend={{ title: layerTitle, legendEntries }}
+	onCreateMap={handleCreateMap}
+>
 	{@render children()}
 </Map>

@@ -67,6 +67,11 @@ export const sources = {
 		tiles: [`${TILE_HOST}/services/networks/tiles/{z}/{x}/{y}.pbf`],
 		minzoom: 3,
 		maxzoom: 16
+	},
+	priority_areas: {
+		type: 'vector',
+		maxzoom: 12,
+		tiles: [`${TILE_HOST}/services/priority_areas/tiles/{z}/{x}/{y}.pbf`]
 	}
 }
 

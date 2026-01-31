@@ -3,14 +3,10 @@
 	import type { FeatureSelector, GeoJSONFeature, Point } from 'mapbox-gl'
 	import { untrack } from 'svelte'
 
-	import { shortBarrierTypeLabels, pointLegends, pointColors } from '$lib/config/constants'
+	import { shortBarrierTypeLabels, pointLegends } from '$lib/config/constants'
 	import type { BarrierTypePlural } from '$lib/config/types'
 	import {
 		Map,
-		LayerToggle,
-		Legend,
-		networkLayers,
-		highlightNetwork,
 		setBarrierHighlight,
 		getInArrayExpr,
 		getInStringExpr,
@@ -19,21 +15,17 @@
 		getBitFromBitsetExpr,
 		runOnceOnIdle
 	} from '$lib/components/map'
+	import type { Circle, Patch } from '$lib/components/map/legend/types'
 
-	import { isEqual, groupBy } from '$lib/util/data'
+	import { isEqual } from '$lib/util/data'
 
-	import {
-		priorityAreaSources,
-		priorityAreasLegend,
-		unitLayerConfig
-	} from '$lib/components/workflow/config'
+	import { unitLayerConfig } from '$lib/components/workflow/config'
 	import {
 		maskFill,
 		maskOutline,
 		unitLayers,
 		unitHighlightLayers,
-		parentOutline,
-		priorityAreaLayers
+		parentOutline
 	} from '$lib/components/workflow/layers'
 
 	import { excludedPointLayer, includedPointLayer, waterfallsLayer } from './layers'
@@ -62,15 +54,6 @@
 	let zoom = $state(0)
 	let hoverFeature: (FeatureSelector & GeoJSONFeature) | null = $state(null)
 	let selectedFeature: (FeatureSelector & GeoJSONFeature) | null = $state(null)
-	let hoverPriorityAreaId: string | number | null = $state(null)
-	let priorityAreaLayerOptions = $state(
-		priorityAreasLegend.entries.map((entry) => ({ ...entry, visible: false }))
-	)
-
-	// we keep a cached copy of the ranked barriers so we can unset their feature state on change of ranked barriers
-	let prevRankedBarrierIds: number[] = $state([])
-	let rankedBarriersIndex = $state({})
-	let timeout = $state()
 
 	const tooltip = new Popup({
 		closeButton: false,
@@ -81,12 +64,6 @@
 
 	// @ts-expect-error layers is constructed dynamically
 	const layers = []
-
-	// Add the priority areas under everything else
-	layers.push(...priorityAreaLayers)
-
-	// Add flowlines and network highlight layers
-	layers.push(...networkLayers)
 
 	// Add summary unit layers
 	// @ts-expect-error parent is valid
@@ -331,70 +308,6 @@
 			})
 		})
 
-		// hook up mouse events for priority layer hover / unhover
-		// index 0 is the fill layer, index 1 is the outline
-		// @ts-expect-error ignore typing on feature and lngLat
-		map.on('mousemove', priorityAreaLayers[0].id, ({ features: [feature], lngLat }) => {
-			const {
-				id: featureId,
-				properties: { type, name }
-			} = feature
-
-			// only show tooltips for broad priority areas at lower zooms, but
-			// always show for Wild & Scenic Rivers
-			if ((type === 'hifhp_gfa' || type === 'sarp_coa') && map.getZoom() > 10) {
-				if (hoverPriorityAreaId !== null) {
-					map.removeFeatureState({
-						id: hoverPriorityAreaId,
-						source: priorityAreaLayers[1].source,
-						sourceLayer: priorityAreaLayers[1]['source-layer']
-					})
-					hoverPriorityAreaId = null
-				}
-				return
-			}
-
-			if (hoverPriorityAreaId !== featureId) {
-				map.removeFeatureState({
-					id: hoverPriorityAreaId,
-					source: priorityAreaLayers[1].source,
-					sourceLayer: priorityAreaLayers[1]['source-layer']
-				})
-			}
-
-			const { label: priorityLabel, showName } = priorityAreasLegend.entries.filter(
-				({ id }) => id === type
-			)[0]
-			const prefix = `${priorityLabel}`
-			const suffix = showName ? `: ${name}` : ''
-
-			map.getCanvas().style.cursor = 'pointer'
-			tooltip.setLngLat(lngLat).setHTML(`<b>${prefix}${suffix}</b>`).addTo(map)
-
-			map.setFeatureState(
-				{
-					id: featureId,
-					source: priorityAreaLayers[1].source,
-					sourceLayer: priorityAreaLayers[1]['source-layer']
-				},
-				{ highlight: true }
-			)
-
-			hoverPriorityAreaId = featureId
-		})
-		map.on('mouseleave', priorityAreaLayers[0].id, () => {
-			map.getCanvas().style.cursor = ''
-			tooltip.remove()
-
-			map.removeFeatureState({
-				id: hoverPriorityAreaId,
-				source: priorityAreaLayers[1].source,
-				sourceLayer: priorityAreaLayers[1]['source-layer']
-			})
-
-			hoverPriorityAreaId = null
-		})
-
 		onCreateMap()
 	}
 
@@ -463,6 +376,33 @@
 	})
 
 	/**
+	 * Update barrier and network highlight on change of selectedBarrier
+	 */
+	const updateSelectedBarrier = () => {
+		clearNetworkHighlight()
+
+		if (!selectedBarrier) {
+			if (selectedFeature) {
+				setBarrierHighlight(map, selectedFeature, false)
+				hoverFeature = null
+
+				if (isEqual(selectedFeature, hoverFeature, ['id', 'layer'])) {
+					setBarrierHighlight(map, hoverFeature, false)
+					hoverFeature = null
+				}
+			}
+		}
+	}
+
+	$effect.pre(() => {
+		selectedBarrier
+
+		if (!map) return
+
+		runOnceOnIdle(map, updateSelectedBarrier)
+	})
+
+	/**
 	 * if map allows filter, show selected vs unselected points, and make those without networks
 	 * background points
 	 */
@@ -528,30 +468,7 @@
 		})
 	})
 
-	const updatePriorityLayerVisibility = () => {
-		// visibility here means that the priority layer types are filtered IN
-		const visibleTypes = priorityAreaLayerOptions
-			.filter(({ visible }) => visible)
-			.map(({ id }) => id)
-
-		priorityAreaLayers.forEach(({ id }) => {
-			map.setLayoutProperty(id, 'visibility', visibleTypes.length > 0 ? 'visible' : 'none')
-			map.setFilter(id, ['in', ['get', 'type'], ['literal', visibleTypes]])
-		})
-	}
-
-	$effect(() => {
-		// force detection of update of visible property
-		$state.snapshot(priorityAreaLayerOptions)
-
-		if (!map) {
-			return
-		}
-
-		runOnceOnIdle(map, updatePriorityLayerVisibility)
-	})
-
-	const getLegend = () => {
+	const { legendEntries, footnote: legendFootnote } = $derived.by(() => {
 		const pointLayers = [includedPointLayer, excludedPointLayer]
 
 		const isWithinZoom = pointLayers.reduce(
@@ -564,44 +481,10 @@
 
 		const { included: includedLegend, excluded: excludedLegend } = pointLegends
 
-		const circles = []
-		const patches = []
-		let lines = null
-
-		if (zoom > 6) {
-			lines = [
-				{
-					id: 'normal',
-					label: 'stream reach',
-					color: '#1891ac',
-					lineWidth: '2px'
-				},
-				{
-					id: 'altered',
-					label: 'altered stream reach (canal / ditch / reservoir)',
-					color: '#9370db',
-					lineWidth: '2px'
-				},
-				{
-					id: 'intermittent',
-					label: 'intermittent / ephemeral stream reach',
-					color: '#1891ac',
-					lineStyle: 'dashed',
-					lineWidth: '2px'
-				}
-			]
-		}
+		const circles: Circle[] = []
+		const patches: Patch[] = []
 
 		let footnote = null
-
-		priorityAreaLayerOptions
-			.filter(({ visible }) => visible)
-			.forEach(({ id, label }) => {
-				patches.push({
-					id,
-					entries: [{ id, label, color: priorityAreasLegend.color }]
-				})
-			})
 
 		// if no layer is selected for choosing summary areas
 		if (activeLayer === null) {
@@ -612,7 +495,7 @@
 					id: includedPointLayer.id,
 					...includedLegend.getSymbol(networkType),
 					label: `${barrierTypeLabel} selected for download`
-				})
+				} as Circle)
 			}
 		}
 
@@ -623,7 +506,7 @@
 					id: includedPointLayer.id,
 					...includedLegend.getSymbol(networkType),
 					label: `${barrierTypeLabel} selected for download`
-				})
+				} as Circle)
 			} else {
 				footnote = `zoom in to see ${barrierTypeLabel} selected for download`
 			}
@@ -633,7 +516,7 @@
 					id: `${networkType}-excluded`,
 					...excludedLegend.getSymbol(networkType),
 					label: `${barrierTypeLabel} not selected for download`
-				})
+				} as Circle)
 			}
 
 			if (allowUnitSelect) {
@@ -650,24 +533,21 @@
 		}
 
 		return {
-			patches,
-			circles,
-			lines,
+			legendEntries: {
+				patches,
+				circles
+			},
 			footnote
 		}
-	}
+	})
 </script>
 
 <Map
 	bind:map
-	sources={priorityAreaSources}
 	{layers}
+	legend={{ legendEntries, footnote: legendFootnote }}
 	onCreateMap={handleCreateMap}
 	class={className}
 >
-	<LayerToggle bind:options={priorityAreaLayerOptions} />
-
-	<Legend {...getLegend()} />
-
 	{@render children()}
 </Map>

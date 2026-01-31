@@ -2,11 +2,12 @@
 	import CloseIcon from '@lucide/svelte/icons/circle-x'
 	import LayersIcon from '@lucide/svelte/icons/layers'
 
+	import { priorityAreasLegend } from '$lib/config/constants'
 	import { Button } from '$lib/components/ui/button'
 	import { Checkbox } from '$lib/components/ui/checkbox'
 	import { Label } from '$lib/components/ui/label'
 
-	const { options = $bindable([]) } = $props()
+	let { visibleLayers = $bindable({}) } = $props()
 	let isOpen = $state(false)
 
 	const handleToggleOpen = () => {
@@ -30,11 +31,11 @@
 		</div>
 
 		<div class="mt-4 max-w-[16rem]">
-			{#each options as option (option.id)}
+			{#each priorityAreasLegend.entries as layer (layer.id)}
 				<div class="flex gap-2 items-start not-first:mt-4">
-					<Checkbox bind:checked={option.visible} id={`layer-toggle-${option.id}`} />
-					<Label for={`layer-toggle-${option.id}`} class="leading-tight text-sm">
-						{option.label}
+					<Checkbox bind:checked={visibleLayers[layer.id]} id={`layer-toggle-${layer.id}`} />
+					<Label for={`layer-toggle-${layer.id}`} class="leading-tight text-sm">
+						{layer.label}
 					</Label>
 				</div>
 			{/each}
