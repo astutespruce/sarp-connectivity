@@ -50,15 +50,15 @@
 		countMessage = null,
 		offNetworkCount = 0
 	} = $derived.by(() => {
-		if (summaryUnits.length > 0) {
+		if (summaryUnits.count > 0) {
 			switch (networkType) {
 				case 'dams': {
-					const numDams = summaryUnits.reduce(
+					const numDams = summaryUnits.items.reduce(
 						(out: number, v: SummaryUnit) => out + v.rankedDams,
 						0
 					)
 					return {
-						offNetworkCount: summaryUnits.reduce(
+						offNetworkCount: summaryUnits.items.reduce(
 							(out: number, v: SummaryUnit) => out + (v.dams - v.rankedDams),
 							0
 						),
@@ -67,12 +67,12 @@
 					}
 				}
 				case 'small_barriers': {
-					const numBarriers = summaryUnits.reduce(
+					const numBarriers = summaryUnits.items.reduce(
 						(out: number, v: SummaryUnit) => out + v.rankedSmallBarriers,
 						0
 					)
 					return {
-						offNetworkCount: summaryUnits.reduce(
+						offNetworkCount: summaryUnits.items.reduce(
 							(out: number, v: SummaryUnit) => out + (v.smallBarriers - v.rankedSmallBarriers),
 							0
 						),
@@ -99,7 +99,7 @@
 					let dams = 0
 					let smallBarriers = 0
 
-					summaryUnits.forEach(
+					summaryUnits.items.forEach(
 						// @ts-expect-error damField, smallBarrierField are valid
 						({ [damField]: damCount = 0, [smallBarrierField]: smallBarrierCount = 0 }) => {
 							dams += damCount
@@ -118,7 +118,7 @@
 							smallBarriers
 						)}`,
 						// always use plain ranked barriers vs count to determine off-network values
-						offNetworkCount: summaryUnits.reduce(
+						offNetworkCount: summaryUnits.items.reduce(
 							(out: number, v: SummaryUnit) =>
 								out + (v.dams - v.rankedDams) + (v.smallBarriers - v.rankedSmallBarriers),
 							0
@@ -126,7 +126,7 @@
 					}
 				}
 				case 'road_crossings': {
-					let numCrossings = summaryUnits.reduce(
+					let numCrossings = summaryUnits.items.reduce(
 						(out: number, v: SummaryUnit) => out + v.totalRoadCrossings,
 						0
 					)
@@ -142,7 +142,7 @@
 		return {}
 	})
 
-	$inspect('summaryUnits', summaryUnits).with(console.log)
+	$inspect('summaryUnits', summaryUnits.items).with(console.log)
 </script>
 
 <div class="flex flex-col h-full">
@@ -155,16 +155,16 @@
 
 	<div class="flex-auto p-4 overflow-y-auto h-full overflow-x-hidden">
 		<div class="text-muted-foreground text-sm">
-			Select {summaryUnits.length > 0 ? 'additional' : ''}
+			Select {summaryUnits.count > 0 ? 'additional' : ''}
 			{pluralUnitsLabel} by clicking on them on the map or using the search below.
 		</div>
 
-		{#if summaryUnits.length}
+		{#if summaryUnits.count}
 			<h3 class="font-bold mt-8 text-lg">
 				Selected {pluralUnitsLabel}:
 			</h3>
 			<ul class="list-none pl-0!">
-				{#each summaryUnits as unit (unit.id)}
+				{#each summaryUnits.items as unit (unit.id)}
 					<ListItem
 						barrierType={networkType}
 						{layer}
@@ -179,16 +179,14 @@
 		<Search
 			barrierType={networkType}
 			{layer}
-			ignoreIds={summaryUnits && summaryUnits.length > 0
-				? new Set(summaryUnits.map(({ id }: SummaryUnit) => id))
-				: null}
+			ignoreIds={summaryUnits.count > 0 ? new Set(summaryUnits.ids) : null}
 			showCount
 			minQueryLength={layer === 'StateWRA' ? 1 : 3}
 			onSelect={onSelectUnit}
 			class="mt-8"
 		/>
 
-		{#if summaryUnits.length > 0 && offNetworkCount > 0}
+		{#if summaryUnits.count > 0 && offNetworkCount > 0}
 			<div class="text-muted-foreground mt-8 pb-8 text-sm">
 				Note: only {barrierTypeLabel} that have been evaluated for aquatic network connectivity are available
 				for prioritization. There are
@@ -206,10 +204,10 @@
 		<div class="flex items-center justify-between">
 			<StartOverButton {onStartOver} />
 			<NextButton
-				disabled={summaryUnits.size === 0 || total === 0}
+				disabled={summaryUnits.count === 0 || total === 0}
 				onClick={onSubmit}
 				label="Configure filters"
-				title={summaryUnits.size === 0 || total === 0
+				title={summaryUnits.count === 0 || total === 0
 					? `you must select at least one area that has ${barrierTypeLabel} available`
 					: null}
 			/>

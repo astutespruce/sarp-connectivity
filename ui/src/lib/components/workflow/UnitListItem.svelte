@@ -217,7 +217,7 @@
 		{/if}
 
 		{#if countMessage}
-			<div class="text-sm text-muted-foreground mt-0.5">
+			<div class="text-xs text-muted-foreground mt-1">
 				{countMessage}
 			</div>
 		{/if}

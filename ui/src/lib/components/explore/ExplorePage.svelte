@@ -1,12 +1,9 @@
 <script lang="ts">
 	import LoadingIcon from '@lucide/svelte/icons/loader-circle'
 	import type { Map as MapboxGLMapType, LngLatBoundsLike } from 'mapbox-gl'
-	import { getQueryClientContext } from '@tanstack/svelte-query'
-	import { SvelteSet } from 'svelte/reactivity'
 
 	import { CONTACT_EMAIL, SITE_NAME } from '$lib/env'
 
-	import { fetchUnitDetails } from '$lib/api'
 	import { Alert } from '$lib/components/alert'
 	import { BarrierDetails } from '$lib/components/barrierdetails'
 	import { Button } from '$lib/components/ui/button'
@@ -15,16 +12,12 @@
 	import type { FocalBarrierType } from '$lib/config/types'
 	import { TopBar } from '$lib/components/map'
 	import { Sidebar } from '$lib/components/sidebar'
+	import { SummaryUnitManager } from '$lib/components/summaryunits'
 	import type { SummaryUnit } from '$lib/components/summaryunits/types'
 	import { SYSTEMS } from '$lib/config/constants'
-	import { captureException } from '$lib/util/log'
 	import { cn } from '$lib/utils'
 
 	type System = 'ADM' | 'HUC'
-	type Status = {
-		isLoading: boolean
-		error: string | null
-	}
 
 	const focalBarrierTypeOptions: { value: FocalBarrierType; label: string }[] = [
 		{ value: 'dams', label: 'dams' },
@@ -39,94 +32,32 @@
 			label: label.toLowerCase()
 		}))
 
-	const queryClient = getQueryClientContext()
+	const summaryUnits = new SummaryUnitManager()
 
 	const { type, data: regionData } = $props()
 
 	let map: MapboxGLMapType | undefined = $state.raw()
-
 	let system: System = $derived(
 		type === 'Region' || type === 'State' || type === 'FishHabitatPartnership' ? 'ADM' : 'HUC'
 	)
 	let focalBarrierType: FocalBarrierType = $state('dams')
-	let summaryUnitIds: SvelteSet<string> = new SvelteSet()
-	let summaryUnits: SummaryUnit[] = $state([])
-	let unitStatus: Status = $state({ isLoading: false, error: null })
 	let selectedBarrier = $state.raw(null)
 
 	const handleSetSystem = (newSystem: System) => {
 		system = newSystem
-		summaryUnitIds.clear()
-		summaryUnits = []
-		unitStatus = {
-			isLoading: false,
-			error: null
-		}
+		summaryUnits.clear()
 	}
 
-	const handleSelectUnit = async ({
-		layer,
-		id: selectedId,
-		...preFetchedUnitData
-	}: {
-		layer: string
-		id: string
-	}) => {
+	const handleSelectUnit = async (item: SummaryUnit) => {
 		selectedBarrier = null
 
-		if (summaryUnitIds.has(selectedId)) {
-			// remove it
-			summaryUnitIds.delete(selectedId)
-			summaryUnits = summaryUnits.filter(({ id: unitId }) => unitId !== selectedId)
-			unitStatus = { isLoading: false, error: null }
-			return
-		}
-
-		// add it
-
-		// assume if unitData are present it was from a search feature and already
-		// has necessary data loaded
-		if (Object.keys(preFetchedUnitData).length > 0) {
-			summaryUnitIds.add(selectedId)
-			summaryUnits = [
-				...summaryUnits,
-				{
-					layer,
-					id: selectedId,
-					...preFetchedUnitData
-				}
-			]
-			unitStatus = { isLoading: false, error: null }
-			return
-		}
-
-		// otherwise fetch details for it
-		unitStatus = { isLoading: true, error: null }
-
-		try {
-			const unitData = await queryClient.fetchQuery({
-				queryKey: ['explore-unit-details', layer, selectedId],
-				queryFn: async () => fetchUnitDetails(layer, selectedId)
-			})
-
-			// if multiple requests resolved with this id due to slow requests, ignore
-			// subsequent requests
-			if (!summaryUnitIds.has(selectedId)) {
-				summaryUnitIds.add(selectedId)
-				summaryUnits = [...summaryUnits, unitData]
-			}
-			unitStatus = { isLoading: false, error: null }
-		} catch (ex) {
-			captureException(ex as Error | string)
-			unitStatus = { isLoading: false, error: ex as string }
-		}
+		await summaryUnits.toggleItem(item)
 	}
 
 	// @ts-expect-error ignore typing here
 	const handleSelectBarrier = (feature) => {
 		selectedBarrier = feature
-		summaryUnitIds.clear()
-		summaryUnits = []
+		summaryUnits.clear()
 	}
 
 	const handleBarrierDetailsClose = () => {
@@ -134,13 +65,8 @@
 	}
 
 	const handleReset = () => {
-		summaryUnitIds.clear()
-		summaryUnits = []
+		summaryUnits.clear()
 		selectedBarrier = null
-		unitStatus = {
-			isLoading: false,
-			error: null
-		}
 	}
 
 	const handleZoomBounds = (newBounds: LngLatBoundsLike) => {
@@ -157,7 +83,7 @@
 
 <div class="flex gap-0 w-full h-full">
 	<Sidebar>
-		{#if unitStatus.error}
+		{#if summaryUnits.error}
 			<div class="flex flex-col p-4 mt-8 flex-auto">
 				<Alert title="Whoops!">
 					<div>
@@ -167,14 +93,14 @@
 					</div>
 				</Alert>
 			</div>
-		{:else if unitStatus.isLoading}
+		{:else if summaryUnits.isLoading}
 			<div class="flex justify-center items-center gap-4 text-md text-muted-foreground mt-8 p-4">
 				<LoadingIcon class="size-8 motion-safe:animate-spin" />
 				Loading...
 			</div>
 		{:else if selectedBarrier}
 			<BarrierDetails data={selectedBarrier} onClose={handleBarrierDetailsClose} />
-		{:else if summaryUnits.length > 0}
+		{:else if summaryUnits.count > 0}
 			<UnitSummary
 				barrierType={focalBarrierType}
 				{system}

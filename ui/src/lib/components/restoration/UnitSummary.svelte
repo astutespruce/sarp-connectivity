@@ -8,6 +8,7 @@
 	import { STATE_FIPS, STATES, shortBarrierTypeLabels } from '$lib/config/constants'
 	import { formatNumber, pluralize, singularOrPlural } from '$lib/util/format'
 	import { Downloader } from '$lib/components/download'
+	import { summaryUnitLayers } from '$lib/components/explore/layers'
 	import { Search } from '$lib/components/unitsearch'
 	import { Header, Footer } from '$lib/components/sidebar'
 	import type { SummaryUnit } from '$lib/components/summaryunits/types'
@@ -37,14 +38,14 @@
 		onZoomBounds
 	} = $props()
 
-	const [{ id, name = '', layer }] = $derived(summaryUnits)
+	const [{ id, name = '', layer }] = $derived(summaryUnits.items)
 	const {
 		title = null,
 		subtitle = null,
 		idInfo = null,
 		ignoreIds = new Set()
 	} = $derived.by(() => {
-		if (summaryUnits.length === 1) {
+		if (summaryUnits.count === 1) {
 			switch (layer) {
 				case 'State': {
 					return {
@@ -59,7 +60,7 @@
 				}
 				default: {
 					// all remaining HUC cases
-					const [{ title: layerTitle }] = laysummaryUnitLayersers.filter(
+					const [{ title: layerTitle }] = summaryUnitLayers.filter(
 						({ id: lyrID }) => lyrID === layer
 					)
 					return {
@@ -75,12 +76,12 @@
 		const existingIds: Set<string> = new Set()
 		if (system === 'ADM') {
 			const statesPresent = new Set(
-				(summaryUnits as SummaryUnit[])
-					.filter(({ layer: l }) => l === 'State')
-					.map(({ id: i }) => STATES[i as keyof typeof STATES])
+				summaryUnits.items
+					.filter(({ layer: l }: SummaryUnit) => l === 'State')
+					.map(({ id: i }: SummaryUnit) => STATES[i as keyof typeof STATES])
 			)
 
-			summaryUnits
+			summaryUnits.items
 				.filter(({ layer: l }: SummaryUnit) => l === 'County')
 				.forEach(({ id: i }: SummaryUnit) => {
 					const state = STATE_FIPS[i.slice(0, 2) as keyof typeof STATE_FIPS]
@@ -89,7 +90,7 @@
 					}
 				})
 		} else {
-			const hucsPresent = new Set(summaryUnits.map(({ id: huc }: SummaryUnit) => huc))
+			const hucsPresent = new Set(summaryUnits.items.map(({ id: huc }: SummaryUnit) => huc))
 			const ids = [...hucsPresent]
 			ids.forEach((parentHuc) => {
 				ids.forEach((childHuc) => {
@@ -112,7 +113,7 @@
 		let removedSmallBarriersGainMiles = 0
 		let removedBarriersByYear: RemovedBarriersByYear = []
 
-		summaryUnits
+		summaryUnits.items
 			.filter(({ id: i }: SummaryUnit) => !ignoreIds.has(i))
 			.forEach(
 				({
@@ -170,15 +171,7 @@
 		}
 	})
 
-	const summaryUnitsForDownload = $derived(
-		summaryUnits.reduce(
-			(prev: Record<string, string[]>, { layer: l, id: i }: SummaryUnit) =>
-				Object.assign(prev, {
-					[l]: prev[l] ? prev[l].concat([i]) : [i]
-				}),
-			{}
-		)
-	)
+	const summaryUnitsForDownload = $derived(summaryUnits.getUnitIdsByLayer())
 
 	const downloadConfig = $derived({
 		// aggregate summary unit ids to list per summary unit layer
@@ -187,8 +180,8 @@
 	})
 
 	const handleZoomBounds = () => {
-		if (summaryUnits.length !== 1) return
-		onZoomBounds(summaryUnits[0].bbox)
+		if (summaryUnits.count !== 1) return
+		onZoomBounds(summaryUnits.items[0].bbox)
 	}
 </script>
 
@@ -213,7 +206,7 @@
 			<Button onclick={onReset} variant="close" aria-label={`unselect ${title}`}>
 				<CloseIcon class="size-5" />
 			</Button>
-			{#if summaryUnits.length === 1 && summaryUnits[0].bbox}
+			{#if summaryUnits.count === 1 && summaryUnits.items[0].bbox}
 				<Button
 					variant="link"
 					onclick={handleZoomBounds}
@@ -225,7 +218,7 @@
 	</Header>
 
 	<div bind:this={contentNode} class="px-4 pt-2 pb-8 flex-auto h-full overflow-y-auto">
-		{#if summaryUnits.length === 1 && layer === 'State'}
+		{#if summaryUnits.count === 1 && layer === 'State'}
 			<a href={resolve(`/states/${id}`, { id })} class="flex gap-2 items-end pb-4">
 				view state page for more information
 				<ChevronsRightIcon class="size-5" />
@@ -234,7 +227,7 @@
 
 		<div class="[&_ul]:pl-5 [&_ul>li]:leading-snug [&_ul>li+li]:mt-2">
 			<div>
-				{singularOrPlural('This area contains', 'These areas contain', summaryUnits.length)}:
+				{singularOrPlural('This area contains', 'These areas contain', summaryUnits.count)}:
 			</div>
 
 			{#if barrierType === 'dams' || barrierType === 'combined_barriers'}
@@ -283,7 +276,7 @@
 			/>
 		</div>
 
-		{#if summaryUnits.length > 1}
+		{#if summaryUnits.count > 1}
 			<div
 				class="mt-8 bg-grey-1/50 py-1 px-4 -mx-4 border-t border-t-grey-2 border-b border-b-grey-2"
 			>
@@ -291,7 +284,7 @@
 			</div>
 
 			<ul class="pl-0! list-none">
-				{#each summaryUnits as unit (unit.id)}
+				{#each summaryUnits.items as unit (unit.id)}
 					<ListItem
 						{barrierType}
 						{system}
@@ -309,7 +302,7 @@
 		<hr class="my-6" />
 
 		<div class="text-sm text-muted-foreground mt-2 pb-6">
-			Select {summaryUnits.length > 0 ? 'additional' : ''}
+			Select {summaryUnits.count > 0 ? 'additional' : ''}
 			{system === 'ADM' ? 'states / counties' : 'hydrologic units'} by clicking on them on the map or
 			searching by name. You can then download data for all selected areas.
 		</div>
@@ -317,8 +310,8 @@
 		<Search
 			{barrierType}
 			{system}
-			ignoreIds={summaryUnits && summaryUnits.length > 0
-				? new Set(summaryUnits.map(({ id: unitId }: SummaryUnit) => unitId))
+			ignoreIds={summaryUnits.count > 0
+				? new Set(summaryUnits.items.map(({ id: unitId }: SummaryUnit) => unitId))
 				: null}
 			onSelect={onSelectUnit}
 		/>

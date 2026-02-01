@@ -23,7 +23,7 @@
 		region,
 		system,
 		focalBarrierType,
-		summaryUnits = [],
+		summaryUnits,
 		selectedBarrier = null,
 		onSelectUnit,
 		onSelectBarrier,
@@ -328,7 +328,7 @@
 	}
 
 	const updateSelectedSummaryUnits = () => {
-		const ids = summaryUnits.map(({ id }: { id: string }) => id)
+		const ids = summaryUnits.items.map(({ id }: { id: string }) => id)
 
 		summaryUnitLayers.forEach(({ id: lyrId, system: lyrSystem }) => {
 			map.setFilter(
@@ -376,7 +376,7 @@
 	 * Update filters on summary unit layers to highlight selected summary units
 	 */
 	$effect.pre(() => {
-		summaryUnits
+		summaryUnits.items
 
 		runOnceOnIdle(map, updateSelectedSummaryUnits)
 	})

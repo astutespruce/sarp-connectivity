@@ -1,6 +1,7 @@
 export type SummaryUnit = {
 	layer: string
 	id: string
+	state: string // may be blank
 	dams: number
 	rankedDams: number
 	smallBarriers: number
@@ -10,6 +11,13 @@ export type SummaryUnit = {
 	rankedSmallfishBarriersDams: number
 	rankedSmallfishBarriersSmallBarriers: number
 	totalRoadCrossings: number
+
+	removedDams: number
+	removedDamsByYear: string
+	removedDamsGainMiles: number
+	removedSmallBarriers: number
+	removedSmallBarriersByYear: string
+	removedSmallBarriersGainMiles: number
 
 	// not defined until populated dynamically
 	removedBarriersByYear?: {

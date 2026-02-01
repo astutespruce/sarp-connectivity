@@ -15,6 +15,7 @@
 	import { Crossfilter } from '$lib/components/filter'
 	import { TopBar } from '$lib/components/map'
 	import { Sidebar } from '$lib/components/sidebar'
+	import { SummaryUnitManager } from '$lib/components/summaryunits'
 	import type { SummaryUnit } from '$lib/components/summaryunits/types'
 	import { Filters, LayerChooser, UnitChooser } from '$lib/components/workflow'
 	import type { Status, Step } from '$lib/components/workflow/types'
@@ -28,16 +29,15 @@
 
 	const networkType = 'road_crossings'
 
+	const summaryUnits = new SummaryUnitManager()
+
 	const crossfilter = new Crossfilter(networkType)
 	$inspect('filters', crossfilter.filters).with(console.log)
 
 	const { bounds: fullBounds } = summaryStats
 
 	let status: Status = $state({ isLoading: true, error: null })
-	let unitStatus: Status = $state({ isLoading: false, error: null })
 	let map: MapboxGLMapType | undefined = $state.raw()
-	let summaryUnitIds: SvelteSet<string> = new SvelteSet()
-	let summaryUnits: SummaryUnit[] = $state([])
 	let layer: string | null = $state(null)
 
 	let bounds = $state(fullBounds)
@@ -51,7 +51,7 @@
 		step = 'select-layer'
 		selectedBarrier = null
 		layer = null
-		summaryUnits = []
+		summaryUnits.clear()
 		bounds = fullBounds
 	}
 
@@ -92,63 +92,14 @@
 	// @ts-expect-error newLayer is valid; don't want to bother type checking
 	const handleSelectLayer = (newLayer) => {
 		layer = newLayer
-		summaryUnits = []
+		summaryUnits.clear()
 		step = 'select-units'
 	}
 
-	const handleSelectUnit = async ({
-		layer,
-		id: selectedId,
-		...preFetchedUnitData
-	}: SummaryUnit) => {
+	const handleSelectUnit = async (item: SummaryUnit) => {
 		selectedBarrier = null
 
-		if (summaryUnitIds.has(selectedId)) {
-			// remove it
-			summaryUnitIds.delete(selectedId)
-			summaryUnits = summaryUnits.filter(({ id: unitId }) => unitId !== selectedId)
-			unitStatus = { isLoading: false, error: null }
-			return
-		}
-
-		// add it
-
-		// assume if unitData are present it was from a search feature and already
-		// has necessary data loaded
-		if (Object.keys(preFetchedUnitData).length > 0) {
-			summaryUnitIds.add(selectedId)
-			summaryUnits = [
-				...summaryUnits,
-				{
-					layer,
-					id: selectedId,
-					...preFetchedUnitData
-				} as SummaryUnit
-			]
-			unitStatus = { isLoading: false, error: null }
-			return
-		}
-
-		// otherwise fetch details for it
-		unitStatus = { isLoading: true, error: null }
-
-		try {
-			const unitData = await queryClient.fetchQuery({
-				queryKey: ['explore-unit-details', layer, selectedId],
-				queryFn: async () => fetchUnitDetails(layer, selectedId)
-			})
-
-			// if multiple requests resolved with this id due to slow requests, ignore
-			// subsequent requests
-			if (!summaryUnitIds.has(selectedId)) {
-				summaryUnitIds.add(selectedId)
-				summaryUnits = [...summaryUnits, unitData]
-			}
-			unitStatus = { isLoading: false, error: null }
-		} catch (ex) {
-			captureException(ex as Error | string)
-			unitStatus = { isLoading: false, error: ex as string }
-		}
+		await summaryUnits.toggleItem(item)
 	}
 
 	// @ts-expect-error feature is valid here; don't want to bother typing
@@ -164,21 +115,17 @@
 		status = { isLoading: true, error: null }
 
 		// only select units with non-zero ranked barriers
-		const nonzeroSummaryUnits: SummaryUnit[] = summaryUnits.filter(
-			({ totalRoadCrossings }) => totalRoadCrossings > 0
-		)
-
-		summaryUnits = nonzeroSummaryUnits
+		summaryUnits.dropEmptyUnits(({ totalRoadCrossings }) => totalRoadCrossings > 0)
 
 		const {
 			error,
 			data,
 			bounds: newBounds = null
 		} = await queryClient.fetchQuery({
-			queryKey: [networkType, layer, nonzeroSummaryUnits.toString()],
+			queryKey: [networkType, layer, summaryUnits.ids.toString()],
 			queryFn: async () =>
 				fetchBarrierInfo(networkType, {
-					[layer!]: nonzeroSummaryUnits.map(({ id }) => id)
+					[layer!]: summaryUnits.ids
 				})
 		})
 
@@ -198,7 +145,7 @@
 
 <div class="flex gap-0 h-full w-full">
 	<Sidebar>
-		{#if status.error || unitStatus.error}
+		{#if status.error || summaryUnits.error}
 			<div class="flex flex-col p-4 mt-8 flex-auto">
 				<Alert title="Whoops!">
 					<div>
@@ -243,7 +190,7 @@
 				{networkType}
 				{crossfilter}
 				config={{
-					summaryUnits: { [layer!]: summaryUnits.map(({ id }) => id) },
+					summaryUnits: { [layer!]: summaryUnits.ids },
 					filters: crossfilter.filters
 				}}
 				onStartOver={handleStartOver}

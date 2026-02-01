@@ -17,6 +17,7 @@
 	import { Crossfilter } from '$lib/components/filter'
 	import { TopBar } from '$lib/components/map'
 	import { Sidebar } from '$lib/components/sidebar'
+	import { SummaryUnitManager } from '$lib/components/summaryunits'
 	import type { SummaryUnit } from '$lib/components/summaryunits/types'
 	import { Filters, LayerChooser, UnitChooser } from '$lib/components/workflow'
 	import type { Status, Step } from '$lib/components/workflow/types'
@@ -55,6 +56,8 @@
 		mainstem: 'm'
 	}
 
+	const summaryUnits = new SummaryUnitManager()
+
 	const { networkType } = $props()
 
 	const crossfilter = $derived(new Crossfilter(networkType))
@@ -63,11 +66,7 @@
 	const { bounds: fullBounds } = summaryStats
 
 	let status: Status = $state({ isLoading: true, error: null })
-	let unitStatus: Status = $state({ isLoading: false, error: null })
 	let map: MapboxGLMapType | undefined = $state.raw()
-
-	let summaryUnitIds: SvelteSet<string> = new SvelteSet()
-	let summaryUnits: SummaryUnit[] = $state([])
 	let layer: string | null = $state(null)
 
 	let rankData = $state.raw([])
@@ -85,7 +84,7 @@
 		step = 'select-layer'
 		selectedBarrier = null
 		layer = null
-		summaryUnits = []
+		summaryUnits.clear()
 		rankData = []
 		scenario = 'ncwc'
 		resultsType = 'full'
@@ -130,63 +129,14 @@
 	// @ts-expect-error newLayer is valid; don't want to bother type checking
 	const handleSelectLayer = (newLayer) => {
 		layer = newLayer
-		summaryUnits = []
+		summaryUnits.clear()
 		step = 'select-units'
 	}
 
-	const handleSelectUnit = async ({
-		layer,
-		id: selectedId,
-		...preFetchedUnitData
-	}: SummaryUnit) => {
+	const handleSelectUnit = async (item: SummaryUnit) => {
 		selectedBarrier = null
 
-		if (summaryUnitIds.has(selectedId)) {
-			// remove it
-			summaryUnitIds.delete(selectedId)
-			summaryUnits = summaryUnits.filter(({ id: unitId }) => unitId !== selectedId)
-			unitStatus = { isLoading: false, error: null }
-			return
-		}
-
-		// add it
-
-		// assume if unitData are present it was from a search feature and already
-		// has necessary data loaded
-		if (Object.keys(preFetchedUnitData).length > 0) {
-			summaryUnitIds.add(selectedId)
-			summaryUnits = [
-				...summaryUnits,
-				{
-					layer,
-					id: selectedId,
-					...preFetchedUnitData
-				} as SummaryUnit
-			]
-			unitStatus = { isLoading: false, error: null }
-			return
-		}
-
-		// otherwise fetch details for it
-		unitStatus = { isLoading: true, error: null }
-
-		try {
-			const unitData = await queryClient.fetchQuery({
-				queryKey: ['explore-unit-details', layer, selectedId],
-				queryFn: async () => fetchUnitDetails(layer, selectedId)
-			})
-
-			// if multiple requests resolved with this id due to slow requests, ignore
-			// subsequent requests
-			if (!summaryUnitIds.has(selectedId)) {
-				summaryUnitIds.add(selectedId)
-				summaryUnits = [...summaryUnits, unitData]
-			}
-			unitStatus = { isLoading: false, error: null }
-		} catch (ex) {
-			captureException(ex as Error | string)
-			unitStatus = { isLoading: false, error: ex as string }
-		}
+		await summaryUnits.toggleItem(item)
 	}
 
 	const loadBarrierInfo = async () => {
@@ -194,33 +144,30 @@
 		rankData = []
 
 		// only select units with non-zero ranked barriers
-		let nonzeroSummaryUnits: SummaryUnit[] = []
 		switch (networkType) {
 			case 'dams': {
-				nonzeroSummaryUnits = summaryUnits.filter(({ rankedDams }) => rankedDams > 0)
+				summaryUnits.dropEmptyUnits(({ rankedDams }) => rankedDams > 0)
 				break
 			}
 			case 'small_barriers': {
-				nonzeroSummaryUnits = summaryUnits.filter(
-					({ rankedSmallBarriers }) => rankedSmallBarriers > 0
-				)
+				summaryUnits.dropEmptyUnits(({ rankedSmallBarriers }) => rankedSmallBarriers > 0)
 				break
 			}
 			case 'combined_barriers': {
-				nonzeroSummaryUnits = summaryUnits.filter(
+				summaryUnits.dropEmptyUnits(
 					({ rankedDams = 0, rankedSmallBarriers = 0 }) => rankedDams + rankedSmallBarriers > 0
 				)
 				break
 			}
 			case 'largefish_barriers': {
-				nonzeroSummaryUnits = summaryUnits.filter(
+				summaryUnits.dropEmptyUnits(
 					({ rankedLargefishBarriersDams = 0, rankedLargefishBarriersSmallBarriers = 0 }) =>
 						rankedLargefishBarriersDams + rankedLargefishBarriersSmallBarriers > 0
 				)
 				break
 			}
 			case 'smallfish_barriers': {
-				nonzeroSummaryUnits = summaryUnits.filter(
+				summaryUnits.dropEmptyUnits(
 					({ rankedSmallfishBarriersDams = 0, rankedSmallfishBarriersSmallBarriers = 0 }) =>
 						rankedSmallfishBarriersDams + rankedSmallfishBarriersSmallBarriers > 0
 				)
@@ -228,17 +175,15 @@
 			}
 		}
 
-		summaryUnits = nonzeroSummaryUnits
-
 		const {
 			error,
 			data,
 			bounds: newBounds = null
 		} = await queryClient.fetchQuery({
-			queryKey: [networkType, layer, nonzeroSummaryUnits.toString()],
+			queryKey: [networkType, layer, summaryUnits.ids.toString()],
 			queryFn: async () =>
 				fetchBarrierInfo(networkType, {
-					[layer!]: nonzeroSummaryUnits.map(({ id }) => id)
+					[layer!]: summaryUnits.ids
 				})
 		})
 
@@ -266,11 +211,7 @@
 		} = await queryClient.fetchQuery({
 			queryKey: [networkType, layer, summaryUnits.toString(), crossfilter.serializeFilters()],
 			queryFn: async () =>
-				fetchBarrierRanks(
-					networkType,
-					{ [layer!]: summaryUnits.map(({ id }) => id) },
-					crossfilter.filters
-				)
+				fetchBarrierRanks(networkType, { [layer!]: summaryUnits.ids }, crossfilter.filters)
 		})
 
 		if (error || !data) {
@@ -290,7 +231,7 @@
 		trackPrioritize({
 			barrierType: networkType,
 			unitType: layer!,
-			details: `ids: [${summaryUnits ? summaryUnits.map(({ id }) => id) : 'none'}], filters: ${crossfilter.serializeFilters()}, scenario: ${scenario}`
+			details: `ids: [${summaryUnits.ids.join(',')}], filters: ${crossfilter.serializeFilters()}, scenario: ${scenario}`
 		})
 	}
 
@@ -306,7 +247,7 @@
 
 <div class="flex gap-0 h-full w-full">
 	<Sidebar>
-		{#if status.error || unitStatus.error}
+		{#if status.error || summaryUnits.error}
 			<div class="flex flex-col p-4 mt-8 flex-auto">
 				<Alert title="Whoops!">
 					<div>
@@ -354,7 +295,7 @@
 				{scenario}
 				{resultsType}
 				config={{
-					summaryUnits: { [layer!]: summaryUnits.map(({ id }) => id) },
+					summaryUnits: { [layer!]: summaryUnits.ids },
 					filters: crossfilter.filters,
 					scenario
 				}}

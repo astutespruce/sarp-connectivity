@@ -9,6 +9,7 @@ const coreStats = camelcaseKeys(rawStats)
 
 export const summaryStats = {
 	...coreStats,
+	bbox: coreStats.bounds, // to match summary units
 	removedBarriersByYear: extractYearRemovedStats(
 		coreStats.removedDamsByYear || '',
 		coreStats.removedSmallBarriersByYear || ''

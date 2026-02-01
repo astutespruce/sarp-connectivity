@@ -29,7 +29,7 @@
 		networkType: networkTypeProp,
 		crossfilter,
 		activeLayer,
-		summaryUnits = [],
+		summaryUnits,
 		allowUnitSelect,
 		selectedBarrier = null,
 		bounds,
@@ -347,7 +347,7 @@
 	 * Update highlight of selected summary units in the active layer
 	 */
 	const updateSelectedSummaryUnits = () => {
-		const ids = summaryUnits.map(({ id }) => id)
+		const ids = summaryUnits.ids
 		const filterExpr = ids.length > 0 ? ['in', 'id', ...ids] : ['==', 'id', Infinity]
 
 		unitHighlightLayers.forEach(({ id }) => {
@@ -358,7 +358,7 @@
 	// Highlight currently selected summaryUnits
 	$effect.pre(() => {
 		activeLayer
-		summaryUnits
+		summaryUnits.items
 
 		if (!(map && activeLayer)) return
 
@@ -397,7 +397,7 @@
 	 * background points
 	 */
 	const updateBarrierVisibility = () => {
-		const ids = summaryUnits.map(({ id }) => id)
+		const ids = summaryUnits.ids
 
 		if (!activeLayer || ids.length === 0) {
 			// if no summary units are selected, reset filters on barriers
@@ -434,7 +434,7 @@
 
 	$effect.pre(() => {
 		activeLayer
-		summaryUnits
+		summaryUnits.items
 		// NOTE: have to take snapshot to force effect to detect deep change in filters
 		$state.snapshot(crossfilter.filters)
 

@@ -85,7 +85,7 @@
 	}
 
 	const handleDownload = async () => {
-		const { summaryUnits = null, filters = null, scenario = null } = config
+		const { summaryUnits = {}, filters = {}, scenario = null } = config
 
 		let url = null
 
@@ -94,7 +94,7 @@
 				.map(([key, values]) => `${key}: ${(values as string[]).join(',')}`)
 				.join(';')
 
-			let details = `ids: [${formattedIds}], filters: ${filters ? Object.keys(filters) : 'none'}`
+			let details = `ids: [${formattedIds}], filters: ${filters && Object.keys(filters).length > 0 ? Object.keys(filters) : 'none'}`
 			if (scenario) {
 				details += `, scenario: ${scenario}`
 			}
@@ -138,8 +138,6 @@
 			trackDownload({ barrierType, unitType: 'national', details: '' })
 			url = `${API_HOST}/downloads/national/${barrierType}.zip`
 		}
-
-		console.log('got download url:', url)
 
 		status = {
 			inProgress: false,
