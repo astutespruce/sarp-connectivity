@@ -33,8 +33,8 @@
 	const barrierTypeLabel = $derived(shortBarrierTypeLabels[focalBarrierType as BarrierTypePlural])
 
 	let zoom = $state(0)
-	let hoverFeature: (FeatureSelector & GeoJSONFeature) | null = $state(null)
-	let selectedFeature: (FeatureSelector & GeoJSONFeature) | null = $state(null)
+	let hoverFeature: (FeatureSelector & GeoJSONFeature) | null = $state.raw(null)
+	let selectedFeature: (FeatureSelector & GeoJSONFeature) | null = $state.raw(null)
 
 	// @ts-expect-error layers is constructed dynamically
 	const layers = []

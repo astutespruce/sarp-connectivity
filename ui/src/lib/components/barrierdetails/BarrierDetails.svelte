@@ -33,9 +33,12 @@
 	// SARPID is packed for tile data
 	const sarpid = $derived(coreData ? coreData.sarpidname.split('|')[0] : null)
 
+	const requestNetworkType = $derived(
+		coreData.networkType === 'small_barriers' ? 'combined_barriers' : coreData.newtorkType
+	)
 	const dataRequest = createQuery(() => ({
-		queryKey: ['barrier-details', coreData.networkType, sarpid],
-		queryFn: async () => fetchBarrierDetails(coreData.networkType, sarpid),
+		queryKey: ['barrier-details', requestNetworkType, sarpid],
+		queryFn: async () => fetchBarrierDetails(requestNetworkType, sarpid),
 		enabled: sarpid !== null
 	}))
 

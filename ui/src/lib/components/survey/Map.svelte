@@ -46,8 +46,8 @@
 	const barrierTypeLabel = $derived(shortBarrierTypeLabels[networkType as BarrierTypePlural])
 
 	let zoom = $state(0)
-	let hoverFeature: (FeatureSelector & GeoJSONFeature) | null = $state(null)
-	let selectedFeature: (FeatureSelector & GeoJSONFeature) | null = $state(null)
+	let hoverFeature: (FeatureSelector & GeoJSONFeature) | null = $state.raw(null)
+	let selectedFeature: (FeatureSelector & GeoJSONFeature) | null = $state.raw(null)
 
 	const tooltip = new Popup({
 		closeButton: false,
@@ -443,21 +443,6 @@
 		runOnceOnIdle(map, updateBarrierVisibility)
 	})
 
-	/**
-	 * Update map bounds on change
-	 */
-	$effect.pre(() => {
-		bounds
-
-		if (!(map && bounds)) {
-			return
-		}
-
-		runOnceOnIdle(map, () => {
-			map.fitBounds(bounds, { padding: 100, maxZoom: 14, duration: 500 })
-		})
-	})
-
 	const { legendEntries, footnote: legendFootnote } = $derived.by(() => {
 		const pointLayers = [includedPointLayer, excludedPointLayer]
 
@@ -535,6 +520,7 @@
 <Map
 	bind:map
 	{layers}
+	{bounds}
 	region={{ id: 'total', boundaryLayer: 'boundary' }}
 	legend={{ legendEntries, footnote: legendFootnote }}
 	onCreateMap={handleCreateMap}

@@ -95,7 +95,7 @@
 	</Header>
 
 	<div class="flex-auto px-4 pt-2 pb-4 overflow-y-auto overflow-x-hidden">
-		<div class="text-muted-foreground text-sm">
+		<div class="text-muted-foreground text-xs">
 			<ExpandableParagraph
 				snippet={`[OPTIONAL] Use the filters below to select the ${barrierTypeLabel} that meet
         your needs. Click on a bar to select ${barrierTypeLabel} with that value.`}
@@ -109,7 +109,7 @@
 			</ExpandableParagraph>
 		</div>
 
-		<div class="-mx-4">
+		<div class="-mx-4 mt-2">
 			{#each crossfilter.filterConfig.filter(({ id }: { id: string }) => !crossfilter.emptyGroups.has(id)) as group (group.id)}
 				<FilterGroup {...group} {crossfilter} />
 			{/each}

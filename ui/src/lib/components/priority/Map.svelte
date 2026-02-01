@@ -62,12 +62,12 @@
 	const barrierTypeLabel = $derived(shortBarrierTypeLabels[networkType as BarrierTypePlural])
 
 	let zoom = $state(0)
-	let hoverFeature: (FeatureSelector & GeoJSONFeature) | null = $state(null)
-	let selectedFeature: (FeatureSelector & GeoJSONFeature) | null = $state(null)
+	let hoverFeature: (FeatureSelector & GeoJSONFeature) | null = $state.raw(null)
+	let selectedFeature: (FeatureSelector & GeoJSONFeature) | null = $state.raw(null)
 
 	// we keep a cached copy of the ranked barriers so we can unset their feature state on change of ranked barriers
-	let prevRankedBarrierIds: number[] = $state([])
-	let rankedBarriersIndex = $state({})
+	let prevRankedBarrierIds: number[] = $state.raw([])
+	let rankedBarriersIndex = $state.raw({})
 	let timeout = $state()
 
 	const tooltip = new Popup({
@@ -354,6 +354,7 @@
 					? properties.barriertype
 					: source
 
+			console.log('network type here is', networkType)
 			const network = networkType === 'small_barriers' ? 'combined_barriers' : networkType
 
 			// promote network fields if clicking on a waterfall
@@ -393,6 +394,11 @@
 	 * currently selected layers
 	 */
 	const updateSummaryUnitVisibility = () => {
+		// make sure to update filters before toggling visibility
+		if (activeLayer) {
+			updateSelectedSummaryUnits()
+		}
+
 		// toggle visibility of layers so that we only show those layers for the activeLayer
 		Object.keys(unitLayerConfig).forEach((layer) => {
 			// only show the unit fill and boundary if we allow selection
@@ -648,21 +654,6 @@
 		runOnceOnIdle(map, updateRankedBarrierRendering)
 	})
 
-	/**
-	 * Update map bounds on change
-	 */
-	$effect.pre(() => {
-		bounds
-
-		if (!(map && bounds)) {
-			return
-		}
-
-		runOnceOnIdle(map, () => {
-			map.fitBounds(bounds, { padding: 100, maxZoom: 14, duration: 500 })
-		})
-	})
-
 	const { legendEntries, footnote: legendFootnote } = $derived.by(() => {
 		const pointLayers = [
 			includedPointLayer,
@@ -801,6 +792,7 @@
 
 <Map
 	bind:map
+	{bounds}
 	{layers}
 	region={{ id: 'total', boundaryLayer: 'boundary' }}
 	legend={{ legendEntries, footnote: legendFootnote }}

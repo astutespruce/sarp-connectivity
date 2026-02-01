@@ -145,7 +145,7 @@
 	$inspect('summaryUnits', summaryUnits).with(console.log)
 </script>
 
-<div class="flex flex-col h-full pb-8">
+<div class="flex flex-col h-full">
 	<Header class="pt-2 pb-3 px-4">
 		<BackButton label="choose a different type of area" onClick={onBack} />
 		<h2 class="text-2xl">
@@ -153,7 +153,7 @@
 		</h2>
 	</Header>
 
-	<div class="flex-auto p-4 overflow-y-auto overflow-x-hidden">
+	<div class="flex-auto p-4 overflow-y-auto h-full overflow-x-hidden">
 		<div class="text-muted-foreground text-sm">
 			Select {summaryUnits.length > 0 ? 'additional' : ''}
 			{pluralUnitsLabel} by clicking on them on the map or using the search below.
@@ -197,23 +197,22 @@
 			</div>
 		{/if}
 	</div>
-</div>
-
-<Footer class="pt-4">
-	{#if countMessage}
-		<div class="text-sm text-right mr-1 -mt-2 mb-3">
-			selected: {countMessage}
+	<Footer class="pt-4">
+		{#if countMessage}
+			<div class="text-sm text-right mr-1 -mt-2 mb-3">
+				selected: {countMessage}
+			</div>
+		{/if}
+		<div class="flex items-center justify-between">
+			<StartOverButton {onStartOver} />
+			<NextButton
+				disabled={summaryUnits.size === 0 || total === 0}
+				onClick={onSubmit}
+				label="Configure filters"
+				title={summaryUnits.size === 0 || total === 0
+					? `you must select at least one area that has ${barrierTypeLabel} available`
+					: null}
+			/>
 		</div>
-	{/if}
-	<div class="flex items-center justify-between">
-		<StartOverButton {onStartOver} />
-		<NextButton
-			disabled={summaryUnits.size === 0 || total === 0}
-			onClick={onSubmit}
-			label="Configure filters"
-			title={summaryUnits.size === 0 || total === 0
-				? `you must select at least one area that has ${barrierTypeLabel} available`
-				: null}
-		/>
-	</div>
-</Footer>
+	</Footer>
+</div>

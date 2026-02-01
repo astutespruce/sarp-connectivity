@@ -73,7 +73,7 @@
 	let scenario = $state('ncwc')
 	let resultsType: ResultType = $state('full')
 	let tierThreshold = $state(1)
-	let bounds = $state(fullBounds)
+	let bounds = $state.raw(fullBounds)
 	let selectedBarrier = $state.raw(null)
 	let step: Step = $state('select-layer')
 	let zoom: number = $state(0)
@@ -338,6 +338,7 @@
 		{:else if step === 'filter'}
 			<Filters
 				{networkType}
+				title={networkType.endsWith('_barriers') ? 'Filter barriers' : null}
 				{crossfilter}
 				nextStepLabel="Prioritize selected barriers"
 				onBack={handleFilterBack}

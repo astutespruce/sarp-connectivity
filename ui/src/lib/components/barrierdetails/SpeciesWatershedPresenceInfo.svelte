@@ -71,7 +71,7 @@
 		</Entry>
 	{/if}
 {:else}
-	<div class="text-muted-foreground my-2 mr-2m px-2">
+	<div class="text-muted-foreground mt-4 mr-2m px-2 text-sm">
 		Data sources in the subwatershed containing this {typeLabel} have not recorded any federally-listed
 		threatened and endangered aquatic species, state-listed aquatic Species of Greatest Conservation Need,
 		regionally-listed aquatic Species of Greatest Conservation Need, trout species, or salmon ESU / steelhead

@@ -240,6 +240,21 @@
 		runOnceOnIdle(map, updatePriorityLayerVisibility)
 	})
 
+	/**
+	 * Update map bounds on change
+	 */
+	$effect.pre(() => {
+		bounds
+
+		if (!(map && bounds)) {
+			return
+		}
+
+		runOnceOnIdle(map, () => {
+			map!.fitBounds(bounds, { padding: 100, maxZoom: 14, duration: 500 })
+		})
+	})
+
 	const legendEntries = $derived.by(() => {
 		const circles: Circle[] = [...(legend?.legendEntries?.circles || [])]
 		const patches: Patch[] = [...(legend?.legendEntries?.patches || [])]
