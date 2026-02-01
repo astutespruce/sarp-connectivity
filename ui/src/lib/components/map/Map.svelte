@@ -3,13 +3,14 @@
 	import { Map as MapboxGLMap, NavigationControl, Popup } from 'mapbox-gl'
 	import type { Map as MapboxGLMapType, SourceSpecification, LayerSpecification } from 'mapbox-gl'
 	import 'mapbox-gl/dist/mapbox-gl.css'
+	import { untrack } from 'svelte'
 
 	import { MAPBOX_TOKEN } from '$lib/env'
 	import { cn } from '$lib/utils'
 
 	import { priorityAreasLegend } from '$lib/config/constants'
 	import { mapConfig, sources as initSources, basemapLayers } from './config'
-	import { priorityAreaLayers, networkLayers } from './layers'
+	import { priorityAreaLayers, networkLayers, regionBoundary, regionMask } from './layers'
 	import { getCenterAndZoom, runOnceOnIdle } from './util'
 	import BasemapSelector from './BasemapSelector.svelte'
 	import Coords from './Coords.svelte'
@@ -24,6 +25,7 @@
 		sources = {},
 		layers = [],
 		legend = {},
+		region = {},
 		onCreateMap = null,
 		children = null,
 		class: className = null
@@ -101,16 +103,35 @@
 			})
 
 			// Add the priority areas under everything else
-			layers.push(...priorityAreaLayers)
+			priorityAreaLayers.forEach((layer) => {
+				map!.addLayer(layer as LayerSpecification)
+			})
 
 			// Add network layers
-			layers.push(...networkLayers)
+			networkLayers.forEach((layer) => {
+				map!.addLayer(layer as LayerSpecification)
+			})
 
 			if (layers) {
 				layers.forEach((layer) => {
 					map!.addLayer(layer)
 				})
 			}
+
+			// Add region mask / boundary layers
+			// only use initial value of region when setting up layers (it is a route variable and does not change after mount)
+			const { id: regionId, boundaryLayer: regionBoundaryLayer } = $state.snapshot(
+				untrack(() => region)
+			)
+			map!.addLayer({
+				...regionMask,
+				filter: ['==', 'id', regionId && regionId !== 'total' ? `${regionId}_mask` : 'total']
+			} as LayerSpecification)
+			map!.addLayer({
+				...regionBoundary,
+				'source-layer': regionBoundaryLayer || 'boundary',
+				filter: ['==', 'id', regionId || 'total']
+			} as LayerSpecification)
 
 			// hook up mouse events for priority layer hover / unhover
 			// index 0 is the fill layer, index 1 is the outline

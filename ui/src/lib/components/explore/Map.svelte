@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { FeatureSelector, GeoJSONFeature, Point } from 'mapbox-gl'
-	import { untrack } from 'svelte'
 
 	import {
 		Map,
@@ -22,16 +21,14 @@
 		rankedPointLayer,
 		unrankedPointLayer,
 		removedBarrierPointLayer,
-		otherBarrierPointLayer,
-		regionMask,
-		regionBoundary
+		otherBarrierPointLayer
 	} from './layers'
 
 	const barrierTypes: FocalBarrierType[] = ['dams', 'small_barriers', 'combined_barriers']
 
 	let {
 		map = $bindable(),
-		region: regionProp,
+		region,
 		system,
 		focalBarrierType,
 		summaryUnits = [],
@@ -40,9 +37,6 @@
 		onSelectBarrier,
 		children
 	} = $props()
-
-	// only use initial value of region when setting up layers (it is a route variable and does not change after mount)
-	const region = $state.snapshot(untrack(() => regionProp))
 
 	const barrierTypeLabel = $derived(shortBarrierTypeLabels[focalBarrierType as BarrierTypePlural])
 
@@ -163,18 +157,6 @@
 				visibility: 'none'
 			}
 		})
-	})
-
-	// Add region mask / boundary layers
-	// NOTE: we intentionally use the first value of region here; it does not change after mounting
-	layers.push({
-		...regionMask,
-		filter: ['==', 'id', `${region.id}_mask`]
-	})
-	layers.push({
-		...regionBoundary,
-		'source-layer': region.boundaryLayer,
-		filter: ['==', 'id', region.id]
 	})
 
 	const clearNetworkHighlight = () => {
@@ -559,6 +541,7 @@
 	bind:map
 	bounds={region.bbox}
 	{layers}
+	{region}
 	legend={{ title: layerTitle, legendEntries }}
 	onCreateMap={handleCreateMap}
 >

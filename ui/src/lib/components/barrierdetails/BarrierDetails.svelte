@@ -108,7 +108,7 @@
 		return out
 	})
 
-	$inspect('selectedBarrier', sarpid, data.barrierType, data)
+	$inspect('selectedBarrier', sarpid, data.barrierType, data).with(console.log)
 </script>
 
 <!-- data request null indicates 404 type error -->

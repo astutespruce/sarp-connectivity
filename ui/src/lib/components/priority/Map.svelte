@@ -21,13 +21,7 @@
 	import { isEqual, groupBy } from '$lib/util/data'
 
 	import { unitLayerConfig } from '$lib/components/workflow/config'
-	import {
-		maskFill,
-		maskOutline,
-		unitLayers,
-		unitHighlightLayers,
-		parentOutline
-	} from '$lib/components/workflow/layers'
+	import { unitLayers, unitHighlightLayers, parentOutline } from '$lib/components/workflow/layers'
 
 	import {
 		prioritizedPointLayer,
@@ -212,10 +206,6 @@
 			...prioritizedPointLayer.paint
 		}
 	})
-
-	// add boundary / mask layers
-	layers.push(maskFill)
-	layers.push(maskOutline)
 
 	const pointLayers = [
 		roadCrossingsLayer.id,
@@ -812,6 +802,7 @@
 <Map
 	bind:map
 	{layers}
+	region={{ id: 'total', boundaryLayer: 'boundary' }}
 	legend={{ legendEntries, footnote: legendFootnote }}
 	onCreateMap={handleCreateMap}
 	class={className}

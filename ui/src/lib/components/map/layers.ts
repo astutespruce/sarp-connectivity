@@ -126,6 +126,33 @@ export const networkLayers = [
 	intermittentFlowlinesLayer
 ]
 
+export const regionMask = {
+	id: 'region-mask',
+	source: 'map_units',
+	'source-layer': 'mask',
+	type: 'fill',
+	maxzoom: 24,
+	// filter: ['==', ['get', 'id'], `${region.id}_mask`], // provided dynamically
+	paint: {
+		'fill-opacity': 0.6,
+		'fill-color': '#AAA'
+	}
+}
+
+export const regionBoundary = {
+	id: 'region-bounds',
+	source: 'map_units',
+	// 'source-layer': '', // provided dynamically
+	type: 'line',
+	maxzoom: 24,
+	// filter: ['==', ['get', 'id'], region.id],  // provided dynamically
+	paint: {
+		'line-opacity': 0.8,
+		'line-width': 2,
+		'line-color': '#4A0025'
+	}
+}
+
 const priorityAreasLayer = {
 	// id: // provided by specific layer
 	source: 'priority_areas',

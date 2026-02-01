@@ -28,7 +28,7 @@
 	const networkType = 'road_crossings'
 
 	const crossfilter = new Crossfilter(networkType)
-	$inspect('filters', crossfilter.filters)
+	$inspect('filters', crossfilter.filters).with(console.log)
 
 	const { bounds: fullBounds } = summaryStats
 

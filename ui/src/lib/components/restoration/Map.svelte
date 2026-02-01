@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { Popup } from 'mapbox-gl'
 	import type { FeatureSelector, GeoJSONFeature, Point } from 'mapbox-gl'
-	import { untrack } from 'svelte'
 
 	import {
 		Map,
@@ -15,13 +14,13 @@
 	import { shortBarrierTypeLabels, pointLegends, SUMMARY_UNIT_COLORS } from '$lib/config/constants'
 	import type { BarrierTypePlural, FocalBarrierType } from '$lib/config/types'
 	import { isEqual } from '$lib/util/data'
-	import { summaryUnitLayers, removedBarrierPointLayer, regionMask, regionBoundary } from './layers'
+	import { summaryUnitLayers, removedBarrierPointLayer } from './layers'
 
 	const barrierTypes: FocalBarrierType[] = ['dams', 'small_barriers', 'combined_barriers']
 
 	let {
 		map = $bindable(),
-		region: regionProp,
+		region,
 		system,
 		focalBarrierType,
 		summaryUnits = [],
@@ -30,9 +29,6 @@
 		onSelectBarrier,
 		children
 	} = $props()
-
-	// only use initial value of region when setting up layers (it is a route variable and does not change after mount)
-	const region = $state.snapshot(untrack(() => regionProp))
 
 	const barrierTypeLabel = $derived(shortBarrierTypeLabels[focalBarrierType as BarrierTypePlural])
 
@@ -117,18 +113,6 @@
 				visibility: 'none'
 			}
 		})
-	})
-
-	// Add region mask / boundary layers
-	// NOTE: we intentionally use the first value of region here; it does not change after mounting
-	layers.push({
-		...regionMask,
-		filter: ['==', 'id', `${region.id}_mask`]
-	})
-	layers.push({
-		...regionBoundary,
-		'source-layer': region.boundaryLayer,
-		filter: ['==', 'id', region.id]
 	})
 
 	const clearNetworkHighlight = () => {
@@ -473,6 +457,7 @@
 	bind:map
 	bounds={region.bbox}
 	{layers}
+	{region}
 	legend={{ title: layerTitle, legendEntries }}
 	onCreateMap={handleCreateMap}
 >

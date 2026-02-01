@@ -20,13 +20,7 @@
 	import { isEqual } from '$lib/util/data'
 
 	import { unitLayerConfig } from '$lib/components/workflow/config'
-	import {
-		maskFill,
-		maskOutline,
-		unitLayers,
-		unitHighlightLayers,
-		parentOutline
-	} from '$lib/components/workflow/layers'
+	import { unitLayers, unitHighlightLayers, parentOutline } from '$lib/components/workflow/layers'
 
 	import { excludedPointLayer, includedPointLayer, waterfallsLayer } from './layers'
 
@@ -140,10 +134,6 @@
 	layers.push(includedPointLayer)
 
 	// prioritized points are not initially visible
-
-	// add boundary / mask layers
-	layers.push(maskFill)
-	layers.push(maskOutline)
 
 	const pointLayers = [
 		waterfallsLayer.id,
@@ -545,6 +535,7 @@
 <Map
 	bind:map
 	{layers}
+	region={{ id: 'total', boundaryLayer: 'boundary' }}
 	legend={{ legendEntries, footnote: legendFootnote }}
 	onCreateMap={handleCreateMap}
 	class={className}

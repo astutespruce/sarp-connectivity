@@ -1,30 +1,3 @@
-import { getHighlightExpr } from '$lib/components/map'
-
-export const maskFill = {
-	id: 'mask',
-	source: 'map_units',
-	'source-layer': 'mask',
-	type: 'fill',
-	filter: ['==', ['get', 'id'], 'total'],
-	paint: {
-		'fill-opacity': 0.6,
-		'fill-color': '#AAA'
-	}
-}
-
-export const maskOutline = {
-	id: 'mask-outline',
-	source: 'map_units',
-	'source-layer': 'boundary',
-	type: 'line',
-	filter: ['==', ['get', 'id'], 'total'],
-	paint: {
-		'line-opacity': 0.8,
-		'line-width': 2,
-		'line-color': '#4A0025'
-	}
-}
-
 // Used to capture click events from the unit layer
 export const unitFill = {
 	id: 'unit-fill',
