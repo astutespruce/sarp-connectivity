@@ -181,11 +181,11 @@
 			functional network.
 		</li>
 		<li>
-			Metrics for <a href={resolve('/methods/length/')}>network length</a>,
-			<a href={resolve('/methods/complexity/')}>network complexity</a>,
-			<a href={resolve('/methods/unaltered/')}>percent unaltered</a>, and
-			<a href={resolve('/methods/landcover/')}>natural landcover</a> were calculated based on these functional
-			networks.
+			Metrics for <a href={resolve('/methods/length/', {})}>network length</a>,
+			<a href={resolve('/methods/complexity/', {})}>network complexity</a>,
+			<a href={resolve('/methods/unaltered/', {})}>percent unaltered</a>, and
+			<a href={resolve('/methods/landcover/', {})}>natural landcover</a> were calculated based on these
+			functional networks.
 		</li>
 	</ol>
 
@@ -229,11 +229,11 @@
 			upstream functional network.
 		</li>
 		<li>
-			Metrics for <a href={resolve('/methods/length/')}>network length</a>,
-			<a href={resolve('/methods/complexity/')}>network complexity</a>,
-			<a href={resolve('/methods/unaltered/')}>percent unaltered</a>, and
-			<a href={resolve('/methods/landcover/')}>natural landcover</a> were calculated based on these functional
-			networks.
+			Metrics for <a href={resolve('/methods/length/', {})}>network length</a>,
+			<a href={resolve('/methods/complexity/', {})}>network complexity</a>,
+			<a href={resolve('/methods/unaltered/', {})}>percent unaltered</a>, and
+			<a href={resolve('/methods/landcover/', {})}>natural landcover</a> were calculated based on these
+			functional networks.
 		</li>
 	</ol>
 

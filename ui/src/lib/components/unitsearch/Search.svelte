@@ -93,7 +93,7 @@
 		query = ''
 	}
 
-	const handleKeyDown = (event) => {
+	const handleKeyDown = (event: KeyboardEvent) => {
 		const { key } = event
 		if (key === 'Escape') {
 			query = ''

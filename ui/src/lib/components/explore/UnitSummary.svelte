@@ -9,16 +9,12 @@
 	import { formatNumber, pluralize, singularOrPlural } from '$lib/util/format'
 	import { Downloader } from '$lib/components/download'
 	import { summaryUnitLayers } from '$lib/components/explore/layers'
+	import type { SummaryUnit } from '$lib/components/summaryunits/types'
 	import { Search } from '$lib/components/unitsearch'
 	import { Header, Footer } from '$lib/components/sidebar'
 	import { cn } from '$lib/utils'
 
 	import ListItem from './UnitListItem.svelte'
-
-	type SummaryUnit = {
-		id: string
-		layer: string
-	}
 
 	const { barrierType, system, summaryUnits, onSelectUnit, onReset, onZoomBounds } = $props()
 
@@ -102,7 +98,7 @@
 		let unsurveyedRoadCrossings = 0
 
 		summaryUnits
-			.filter(({ id: i }) => !ignoreIds.has(i))
+			.filter(({ id: i }: SummaryUnit) => !ignoreIds.has(i))
 			.forEach(
 				({
 					dams: curDams = 0,
@@ -167,7 +163,7 @@
 
 	const summaryUnitsForDownload = $derived(
 		summaryUnits.reduce(
-			(prev, { layer: l, id: i }) =>
+			(prev: Record<string, string[]>, { layer: l, id: i }: SummaryUnit) =>
 				Object.assign(prev, {
 					[l]: prev[l] ? prev[l].concat([i]) : [i]
 				}),

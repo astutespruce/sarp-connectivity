@@ -8,7 +8,7 @@ import {
 	TIER_PACK_INFO
 } from '$lib/config/constants'
 import { captureException } from '$lib/util/log'
-import type { SummaryUnits, Filters, BarrierTypePlural } from '$lib/config/types'
+import type { Filters, BarrierTypePlural } from '$lib/config/types'
 import { isEmptyString } from '$lib/util/string'
 import { unpackBits } from '$lib/util/data'
 
@@ -16,8 +16,11 @@ import { pollJob } from './job'
 import type { ProgressCallback } from './job'
 import { fetchFeather } from './request'
 
+// list of summary unit IDs per summary unit layer: {<layer>: [unit1,...]}
+export type SummaryUnitIdsByLayer = Record<string, string[] | number[]>
+
 type APIQueryParams = {
-	summaryUnits: SummaryUnits
+	summaryUnits: SummaryUnitIdsByLayer
 	filters?: Filters
 	includeUnranked?: boolean | null
 	sort?: string | null
@@ -74,7 +77,10 @@ const apiQueryParams = ({
 /**
  * Fetch and parse Feather data from API for dams or small barriers
  */
-export const fetchBarrierInfo = async (barrierType: string, summaryUnits: SummaryUnits) => {
+export const fetchBarrierInfo = async (
+	barrierType: string,
+	summaryUnits: SummaryUnitIdsByLayer
+) => {
 	const url = `${API_HOST}/api/v1/internal/${barrierType}/query?${apiQueryParams({
 		summaryUnits
 	})}`
@@ -87,7 +93,7 @@ export const fetchBarrierInfo = async (barrierType: string, summaryUnits: Summar
  */
 export const fetchBarrierRanks = async (
 	barrierType: BarrierTypePlural,
-	summaryUnits: SummaryUnits,
+	summaryUnits: SummaryUnitIdsByLayer,
 	filters: Filters
 ) => {
 	const url = `${API_HOST}/api/v1/internal/${barrierType}/rank?${apiQueryParams({

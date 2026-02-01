@@ -15,6 +15,7 @@
 	import type { FocalBarrierType } from '$lib/config/types'
 	import { TopBar } from '$lib/components/map'
 	import { Sidebar } from '$lib/components/sidebar'
+	import type { SummaryUnit } from '$lib/components/summaryunits/types'
 	import { SYSTEMS } from '$lib/config/constants'
 	import { captureException } from '$lib/util/log'
 	import { cn } from '$lib/utils'
@@ -23,10 +24,6 @@
 	type Status = {
 		isLoading: boolean
 		error: string | null
-	}
-	type SummaryUnit = {
-		layer: string
-		id: string
 	}
 
 	const focalBarrierTypeOptions: { value: FocalBarrierType; label: string }[] = [
@@ -125,6 +122,7 @@
 		}
 	}
 
+	// @ts-expect-error ignore typing here
 	const handleSelectBarrier = (feature) => {
 		selectedBarrier = feature
 		summaryUnitIds.clear()

@@ -33,7 +33,7 @@
 		actionable information to assist barrier removal projects.
 		<br />
 		<br />
-		<a href={resolve('/methods/scoring/')}>Read more about the methods here...</a>
+		<a href={resolve('/methods/scoring/', {})}>Read more about the methods here...</a>
 	</HighlightBox>
 
 	<HighlightBox title="Teams" icon={TeamIcon}>

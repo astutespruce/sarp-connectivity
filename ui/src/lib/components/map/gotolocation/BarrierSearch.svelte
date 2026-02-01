@@ -62,7 +62,7 @@
 
 	const { results = [], remaining = 0 } = $derived(searchRequest.data || {}) as ResponseData
 
-	const handleKeyDown = (event) => {
+	const handleKeyDown = (event: KeyboardEvent) => {
 		const { key } = event
 		if (key === 'Escape') {
 			value = ''

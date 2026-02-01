@@ -1,3 +1,5 @@
+import type { ColumnTable as Table } from 'arquero'
+
 import {
 	BOOLEAN_FIELD,
 	RARESPP,
@@ -143,7 +145,7 @@ export const roadCrossings = [
 	{
 		id: 'marine',
 		title: 'Marine connectivity & diadromous species information',
-		hasData: (data) =>
+		hasData: (data: Table) =>
 			data && data.numRows() > 0 && data.filter((d) => d.diadromoushabitat === 1).numRows() > 0,
 		filters: [
 			{

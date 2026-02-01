@@ -21,7 +21,7 @@
 	that may have been present in the source data. Habitat data are limited to available data sources
 	and are not comprehensive and do not fully capture all current or potential habitat for a given
 	species or group across its range. For more information, please see the
-	<a href={resolve('/methods/habitat/')}>analysis methods</a>.
+	<a href={resolve('/methods/habitat/', {})}>analysis methods</a>.
 </ExpandableParagraph>
 
 <table cellpadding="0" cellspacing="0">

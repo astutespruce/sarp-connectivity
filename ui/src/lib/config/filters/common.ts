@@ -1,4 +1,4 @@
-import type { Table } from 'arquero'
+import type { ColumnTable as Table } from 'arquero'
 
 const getIntKeys = (obj: object) =>
 	Object.keys(obj)
@@ -9,7 +9,7 @@ const getIntKeys = (obj: object) =>
  * Get sorted integer keys and labels for each entry in a keyed object
  * @param {Object} obj
  */
-export const getEntries = (obj: object, filter = null) => {
+export const getEntries = (obj: object, filter: ((value: number) => boolean) | null = null) => {
 	let values = getIntKeys(obj).sort((l, r) => (l < r ? -1 : 1))
 
 	if (filter) {

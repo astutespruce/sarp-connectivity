@@ -47,7 +47,7 @@
 		<nav
 			class="[&>a]:not-first:mt-6 leading-tight [&>a]:flex [&>a]:gap-2 [&>a]:items-center [&>a]:data-[is-active=true]:font-bold overflow-auto px-4 pt-4 pb-8"
 		>
-			<a href={resolve('/')} onclick={close}>National Aquatic Connectivity Collaborative</a>
+			<a href={resolve('/', {})} onclick={close}>National Aquatic Connectivity Collaborative</a>
 
 			<div class="mt-6">
 				<ExploreNav />
@@ -60,7 +60,7 @@
 						<div class="flex gap-2 not-first:mt-4">
 							<item.icon class="size-5 text-muted-foreground" />
 							<a
-								href={resolve(item.url)}
+								href={resolve(item.url, {})}
 								data-is-active={isActivePath(item.url).toString()}
 								onclick={close}
 							>

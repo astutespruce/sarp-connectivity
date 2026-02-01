@@ -11,7 +11,7 @@
 		tespp = 0,
 		regionalsgcnspp = 0,
 		statesgcnspp = 0,
-		trout = 0,
+		trout = null,
 		salmonidesu = null
 	} = $props()
 
@@ -21,7 +21,7 @@
 <div class="text-xs text-muted-foreground mx-2 mt-2">
 	Note: species information is very incomplete and is limited to the subwatershed level. These
 	species may or may not be directly impacted by this {typeLabel}.
-	<a href={resolve('/methods/sgcn/')} target="_blank"> Read more. </a>
+	<a href={resolve('/methods/sgcn/', {})} target="_blank"> Read more. </a>
 </div>
 
 {#if tespp + regionalsgcnspp + statesgcnspp > 0 || trout || salmonidesu}

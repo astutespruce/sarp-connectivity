@@ -64,7 +64,7 @@
 			limited to available data sources and are not comprehensive and do not fully capture all
 			current or potential habitat for a given species or group across its range. For more
 			information, please see the
-			<a href={resolve('/methods/habitat/')}>analysis methods</a>.
+			<a href={resolve('/methods/habitat/', {})}>analysis methods</a>.
 		</div>
 	{/if}
 </section>

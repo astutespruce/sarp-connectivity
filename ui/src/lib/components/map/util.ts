@@ -56,7 +56,7 @@ const flatzip = (a: number[] | string[], b: number[] | string[]) => {
 		throw new Error('arrays must be equal to use zip')
 	}
 
-	return a.reduce((prev, v, i) => prev.concat([v, b[i]]), [])
+	return a.reduce((prev: number, v, i) => prev.concat([v, b[i]]), [])
 }
 
 export const interpolateExpr = (

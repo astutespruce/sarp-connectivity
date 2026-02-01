@@ -9,8 +9,5 @@ export type NetworkType =
 // used for explore / restoration pages
 export type FocalBarrierType = 'dams' | 'small_barriers' | 'combined_barriers'
 
-// list of summary unit IDs per summary unit layer: {<layer>: [unit1,...]}
-export type SummaryUnits = Record<string, string[] | number[]>
-
 // set of filter values per filter field
 export type Filters = Record<string, Set<string | number>>

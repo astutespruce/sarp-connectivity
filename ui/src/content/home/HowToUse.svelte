@@ -16,7 +16,7 @@
 	<a
 		href="https://interagency-bil-fish-passage-project-1-fws.hub.arcgis.com/"
 		target="_blank"
-		ref="external"
+		rel="external"
 	>
 		Fish Passage Portal
 	</a>. The portal is a "one-stop shop" for anyone who needs information, funding, or resources to
@@ -41,13 +41,13 @@
 
 	<div>
 		<div class="flex justify-end">
-			<Button href={resolve('/explore/')} class="text-base">
+			<Button href={resolve('/explore/', {})} class="text-base">
 				<ExploreIcon />
 				Start exploring
 			</Button>
 		</div>
 		<div>
-			<a href={resolve('/explore/')} aria-label="explore page">
+			<a href={resolve('/explore/', {})} aria-label="explore page">
 				<enhanced:img
 					src="$lib/assets/images/summarize.png"
 					alt="explore map screenshot"
@@ -74,13 +74,13 @@
 
 	<div>
 		<div class="flex justify-end">
-			<Button href={resolve('/priority/')} class="text-base">
+			<Button href={resolve('/priority/', {})} class="text-base">
 				<PrioritizeIcon />
 				Start prioritizing
 			</Button>
 		</div>
 		<div>
-			<a href={resolve('/priority/')} aria-label="prioritize page">
+			<a href={resolve('/priority/', {})} aria-label="prioritize page">
 				<enhanced:img
 					src="$lib/assets/images/prioritize.png"
 					alt="prioritize map screenshot"

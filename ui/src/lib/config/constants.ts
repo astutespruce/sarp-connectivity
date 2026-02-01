@@ -665,7 +665,7 @@ export const REGIONS = {
 
 export const ANALYSIS_STATES = [
 	...new Set(
-		Object.values(REGIONS).reduce((prev, { states: cur }) => {
+		Object.values(REGIONS).reduce((prev: string[], { states: cur }: { states: string[] }) => {
 			prev.push(...cur)
 			return prev
 		}, [])
@@ -1857,7 +1857,7 @@ export const SPECIES_HABITAT_FIELDS: { [key: string]: SPECIES_HABITAT_FIELD } = 
 	}
 }
 
-export const getSingularUnitLabel = (layer) => {
+export const getSingularUnitLabel = (layer: string) => {
 	switch (layer) {
 		case 'State':
 			return 'state'

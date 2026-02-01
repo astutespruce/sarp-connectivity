@@ -23,19 +23,6 @@
 
 	type System = 'ADM' | 'HUC'
 	type Status = { isLoading: boolean; error: string | null }
-	type SummaryUnit = {
-		layer: string
-		id: string
-		removedBarriersByYear: {
-			label: string
-			dams: number
-			damsNoNetwork: number
-			damsGainMiles: number
-			smallBarriers: number
-			smallBarriersNoNetwork: number
-			smallBarriersGainMiles: number
-		}[]
-	}
 
 	const focalBarrierTypeOptions: { value: FocalBarrierType; label: string }[] = [
 		{ value: 'dams', label: 'dams' },
@@ -139,6 +126,7 @@
 		}
 	}
 
+	// @ts-expect-error ignore typing here
 	const handleSelectBarrier = (feature) => {
 		selectedBarrier = feature
 		summaryUnitIds.clear()

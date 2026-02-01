@@ -52,7 +52,7 @@
 		invalidReason = null
 	}
 
-	const handleKeyDown = ({ key }) => {
+	const handleKeyDown = ({ key }: KeyboardEvent) => {
 		if (key === 'Enter') {
 			handleSubmit()
 		} else if (key === 'Escape') {

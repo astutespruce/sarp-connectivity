@@ -103,7 +103,7 @@
 		isOpen = !isOpen
 	}
 
-	const handleKeyDown = ({ key }) => {
+	const handleKeyDown = ({ key }: KeyboardEvent) => {
 		if (key === 'Escape') {
 			isOpen = false
 		}

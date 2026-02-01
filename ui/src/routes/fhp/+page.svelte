@@ -62,7 +62,7 @@
 	<div class="grid sm:grid-cols-3 gap-6 bg-blue-0 p-4 items-stretch mt-2">
 		{#each fhps as fhp (fhp.id)}
 			<a
-				href={resolve(`/fhp/${fhp.id}/`)}
+				href={resolve(`/fhp/${fhp.id}/`, { id: fhp.id })}
 				class="bg-white p-2 border border-grey-1 rounded-sm h-full flex flex-col justify-end hover:shadow-md hover:border-grey-8 no-underline"
 			>
 				<div>

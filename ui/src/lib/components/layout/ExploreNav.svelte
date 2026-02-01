@@ -15,7 +15,7 @@
 		<div class="sm:bg-blue-1/50 sm:p-2 rounded-sm">
 			<div class="flex gap-2">
 				<ExploreIcon class="size-5 text-muted-foreground" />
-				<a href={resolve('/explore/')} class="sm:font-bold block leading-snug">
+				<a href={resolve('/explore/', {})} class="sm:font-bold block leading-snug">
 					Explore and download barriers
 				</a>
 			</div>
@@ -28,7 +28,7 @@
 		<div class="mt-6 sm:bg-blue-1/50 sm:p-2 rounded-sm">
 			<div class="flex gap-2">
 				<RestorationIcon class="size-5 text-muted-foreground" />
-				<a href={resolve('/restoration/')} class="sm:font-bold block leading-snug">
+				<a href={resolve('/restoration/', {})} class="sm:font-bold block leading-snug">
 					Explore restoration progress</a
 				>
 			</div>
@@ -43,14 +43,14 @@
 		<ul class="pl-7 sm:pl-4 sm:mt-4">
 			{#each regions as region (region.id)}
 				<li class="mt-2 sm:mt-3">
-					<a href={resolve(`/regions/${region.id}`)} class="block leading-snug">
+					<a href={resolve(`/regions/${region.id}`, { id: region.id })} class="block leading-snug">
 						{region.label}
 					</a>
 				</li>
 			{/each}
 
 			<li class="mt-2 sm:mt-3 sm:pt-3 sm:border-t sm:border-t-grey-2">
-				<a href={resolve(`/fhp/`)} class="block leading-snug">Fish Habitat Partnerships</a>
+				<a href={resolve(`/fhp/`, {})} class="block leading-snug">Fish Habitat Partnerships</a>
 			</li>
 		</ul>
 	</div>

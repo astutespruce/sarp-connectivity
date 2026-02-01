@@ -59,12 +59,13 @@
 			<h2>What can the Inventory and Prioritization Tool do?</h2>
 			<p>
 				The prioritization tool allows users to
-				<a href={resolve('/explore/')}>explore and download barrier</a> inventory information at
+				<a href={resolve('/explore/', {})}>explore and download barrier</a> inventory information at
 				different scales. It also allows users to
-				<a href={resolve('/priority/')}>prioritize</a> barriers at different scales using different
-				filtering approaches and different prioritization scenarios. It is also possible to
-				<a href={resolve('/restoration/')}>summarize accomplishments</a> over multiple years, such as
-				miles restored through barrier removal by year.
+				<a href={resolve('/priority/', {})}>prioritize</a> barriers at different scales using
+				different filtering approaches and different prioritization scenarios. It is also possible
+				to
+				<a href={resolve('/restoration/', {})}>summarize accomplishments</a> over multiple years, such
+				as miles restored through barrier removal by year.
 			</p>
 		</div>
 
@@ -115,7 +116,7 @@
 				<br />
 				<br />
 				More information about how barriers are prioritized can be found
-				<a href={resolve('/methods/scoring/')}>here</a>.
+				<a href={resolve('/methods/scoring/', {})}>here</a>.
 			</p>
 		</div>
 
@@ -149,7 +150,7 @@
 			<h2>How can I download barriers for a specific area?</h2>
 			<p>
 				Use the
-				<a href={resolve('/explore')}>
+				<a href={resolve('/explore', {})}>
 					<b>Explore & Download</b>
 				</a>
 				page to select one or more states, counties, or hydrologic units for your area of interest. You
@@ -163,11 +164,11 @@
 			<h2>How can I download all available barriers?</h2>
 			<p>
 				Use the download button on the bottom left of the
-				<a href={resolve('/explore/')}>
+				<a href={resolve('/explore/', {})}>
 					<b>Explore & Download</b>
 				</a>
 				page or the
-				<a href={resolve('/restoration/')}>
+				<a href={resolve('/restoration/', {})}>
 					<b>Restoration</b>
 				</a>
 				page to download all available dams and / or road-related barriers.

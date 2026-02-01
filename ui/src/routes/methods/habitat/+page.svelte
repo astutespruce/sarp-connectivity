@@ -29,10 +29,10 @@
 			National Hydrography Dataset - High Resolution Plus
 		</a>
 		(NHDPlusHR) dataset from the U.S. Geological Survey, which is used to
-		<a href={resolve('/methods/network/')}>create the aquatic networks</a> used in this tool. Our
-		overall goal is to estimate the amount of species-level habitat that could be gained by removing
-		or mitgating a specific barrier based on the best available species data and standardized
-		aquatic network data.
+		<a href={resolve('/methods/network/', {})}>create the aquatic networks</a> used in this tool.
+		Our overall goal is to estimate the amount of species-level habitat that could be gained by
+		removing or mitgating a specific barrier based on the best available species data and
+		standardized aquatic network data.
 		<br />
 		<br />
 		These estimates are intended to be a starting point for exploring and prioritizing barriers from a

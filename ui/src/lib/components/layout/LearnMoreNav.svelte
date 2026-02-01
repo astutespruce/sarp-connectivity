@@ -50,14 +50,14 @@
 		{/if}
 		<div class="flex gap-2">
 			<item.icon class="size-5 text-muted-foreground flex-none" />
-			<a href={resolve(item.url)} class="block flex-auto leading-snug">{item.label}</a>
+			<a href={resolve(item.url, {})} class="block flex-auto leading-snug">{item.label}</a>
 		</div>
 		{#if item.children}
 			<div class="mb-6 mt-1">
 				{#each item.children as child (child.id)}
 					<div class="flex gap-2 not-first:mt-2 ml-7">
 						<ArrowIcon class="size-4 text-muted-foreground/50 flex-none" aria-hidden="true" />
-						<a href={resolve(child.url)} class="block flex-auto">{child.label}</a>
+						<a href={resolve(child.url, {})} class="block flex-auto">{child.label}</a>
 					</div>
 				{/each}
 			</div>

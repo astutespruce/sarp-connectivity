@@ -10,15 +10,11 @@
 	import { Downloader } from '$lib/components/download'
 	import { Search } from '$lib/components/unitsearch'
 	import { Header, Footer } from '$lib/components/sidebar'
+	import type { SummaryUnit } from '$lib/components/summaryunits/types'
 	import { cn } from '$lib/utils'
 
 	import Chart from './Chart.svelte'
 	import ListItem from './UnitListItem.svelte'
-
-	type SummaryUnit = {
-		id: string
-		layer: string
-	}
 
 	type RemovedBarriersByYear = {
 		label: string
@@ -176,7 +172,7 @@
 
 	const summaryUnitsForDownload = $derived(
 		summaryUnits.reduce(
-			(prev, { layer: l, id: i }) =>
+			(prev: Record<string, string[]>, { layer: l, id: i }: SummaryUnit) =>
 				Object.assign(prev, {
 					[l]: prev[l] ? prev[l].concat([i]) : [i]
 				}),

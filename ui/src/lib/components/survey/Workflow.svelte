@@ -15,8 +15,9 @@
 	import { Crossfilter } from '$lib/components/filter'
 	import { TopBar } from '$lib/components/map'
 	import { Sidebar } from '$lib/components/sidebar'
+	import type { SummaryUnit } from '$lib/components/summaryunits/types'
 	import { Filters, LayerChooser, UnitChooser } from '$lib/components/workflow'
-	import type { SummaryUnit, Status, Step } from '$lib/components/workflow/types'
+	import type { Status, Step } from '$lib/components/workflow/types'
 	import { unitLayerConfig } from '$lib/components/workflow/config'
 	import { captureException } from '$lib/util/log'
 
@@ -268,7 +269,7 @@
 			<TopBar>
 				<div class="text-sm text-accent flex gap-2 items-center">
 					<WarningIcon class="size-4" />
-					Zoom in further to select a {getSingularUnitLabel(layer)}
+					Zoom in further to select a {getSingularUnitLabel(layer!)}
 				</div>
 			</TopBar>
 		{/if}

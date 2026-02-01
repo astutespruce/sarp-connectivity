@@ -13,7 +13,7 @@
 			>Southeast Aquatic Resources Partnership</a
 		>
 		<a href="https://southeastaquatics.net/about/contact-us">Contact Us </a>
-		<a href={resolve('/terms/')}> Terms of Use</a>
+		<a href={resolve('/terms/', {})}> Terms of Use</a>
 	</div>
 	<div class="flex-auto text-white text-center hidden md:block">
 		Data version: {dataVersion} ({dataDate})

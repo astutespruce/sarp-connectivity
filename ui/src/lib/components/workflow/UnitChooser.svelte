@@ -3,13 +3,13 @@
 	import type { BarrierTypePlural } from '$lib/config/types'
 	import { Search } from '$lib/components/unitsearch'
 	import { Header, Footer } from '$lib/components/sidebar'
+	import type { SummaryUnit } from '$lib/components/summaryunits/types'
 	import { formatNumber, pluralize } from '$lib/util/format'
 
 	import BackButton from './BackButton.svelte'
 	import StartOverButton from './StartOverButton.svelte'
 	import NextButton from './NextButton.svelte'
 	import ListItem from './UnitListItem.svelte'
-	import type { SummaryUnit } from './types'
 
 	const {
 		networkType,

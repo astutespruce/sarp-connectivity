@@ -45,7 +45,7 @@
 				{#if i > 0}
 					,
 				{/if}
-				<a href={resolve(`/regions/${region.id}`)}>
+				<a href={resolve(`/regions/${region.id}`, { id: region.id })}>
 					{region.name} region
 				</a>
 			{/each}

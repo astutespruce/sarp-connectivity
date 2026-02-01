@@ -23,13 +23,13 @@
 			</Content>
 		</Item>
 		<Item>
-			<Link href={resolve('/priority/')}>
+			<Link href={resolve('/priority/', {})}>
 				<PrioritizeIcon class="size-5 text-white" />
 				Prioritize</Link
 			>
 		</Item>
 		<Item>
-			<Link href={resolve('/survey/')}>
+			<Link href={resolve('/survey/', {})}>
 				<SurveyIcon class="size-5 text-white" />
 
 				Survey</Link

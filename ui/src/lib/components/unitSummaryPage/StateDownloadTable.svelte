@@ -28,7 +28,9 @@
 	<tbody>
 		{#each states as state (state.id)}
 			<tr>
-				<td class="font-bold"><a href={resolve(`/states/${state.id}`)}>{state.name}</a></td>
+				<td class="font-bold"
+					><a href={resolve(`/states/${state.id}`, { id: state.id })}>{state.name}</a></td
+				>
 				<td>{formatNumber(state.dams)}</td>
 				<td>{formatNumber(state.reconDams)}</td>
 				<td>{formatNumber(state.totalSmallBarriers)}</td>
