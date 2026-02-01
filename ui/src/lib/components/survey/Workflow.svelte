@@ -3,7 +3,7 @@
 	import LoadingIcon from '@lucide/svelte/icons/loader'
 	import WarningIcon from '@lucide/svelte/icons/triangle-alert'
 	import { SvelteSet } from 'svelte/reactivity'
-	import { QueryClient } from '@tanstack/svelte-query'
+	import { getQueryClientContext } from '@tanstack/svelte-query'
 	import type { Map as MapboxGLMapType, LngLatBoundsLike } from 'mapbox-gl'
 
 	import { fetchBarrierInfo, fetchUnitDetails } from '$lib/api'
@@ -23,7 +23,7 @@
 	import Map from './Map.svelte'
 	import Results from './Results.svelte'
 
-	const queryClient = new QueryClient()
+	const queryClient = getQueryClientContext()
 
 	const networkType = 'road_crossings'
 

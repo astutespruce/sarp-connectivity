@@ -1,7 +1,7 @@
 <script lang="ts">
 	import LoadingIcon from '@lucide/svelte/icons/loader-circle'
 	import type { Map as MapboxGLMapType, LngLatBoundsLike } from 'mapbox-gl'
-	import { QueryClient } from '@tanstack/svelte-query'
+	import { getQueryClientContext } from '@tanstack/svelte-query'
 	import { SvelteSet } from 'svelte/reactivity'
 
 	import { CONTACT_EMAIL, SITE_NAME } from '$lib/env'
@@ -50,7 +50,7 @@
 			label: label.toLowerCase()
 		}))
 
-	const queryClient = new QueryClient()
+	const queryClient = getQueryClientContext()
 
 	const { type, data: regionData } = $props()
 
