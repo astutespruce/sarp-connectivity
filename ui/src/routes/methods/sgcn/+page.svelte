@@ -1,7 +1,4 @@
 <script lang="ts">
-	import { resolve } from '$app/paths'
-	import { Alert } from '$lib/components/alert'
-	import { HighlightBox } from '$lib/components/elements'
 	import { HeaderImage } from '$lib/components/image'
 	import { SITE_NAME } from '$lib/env'
 </script>

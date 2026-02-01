@@ -1,5 +1,3 @@
-import { TILE_HOST } from '$lib/env'
-
 export const unitLayerConfig = {
 	HUC6: {
 		title: 'Basin',

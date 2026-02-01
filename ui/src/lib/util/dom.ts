@@ -12,7 +12,7 @@ export const encodeParams = (obj: object) =>
 		.map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(obj[key as keyof typeof obj])}`)
 		.join('&')
 
-export const saveToStorage = (key: string, data: any) => {
+export const saveToStorage = (key: string, data: unknown) => {
 	if (!browser) return
 
 	window.localStorage.setItem(key, JSON.stringify(data))
@@ -27,32 +27,3 @@ export const getFromStorage = (key: string) => {
 	}
 	return null
 }
-
-/**
- * Extract URL query params into a key / value object
- * @returns Object
- */
-export const getQueryParams = () => {
-	if (!browser) return []
-
-	return [...new window.URLSearchParams(location.search).entries()].reduce(
-		(prev, [key, value]) => Object.assign(prev, { [key]: value }),
-		{}
-	)
-}
-
-/**
- * Dynamically load an image using require()
- * @param {String} filename
- * @returns resolved image
- */
-// FIXME: deprecated
-// export const dynamicallyLoadImage = (filename:string) => {
-// 	try {
-//     alert('DEPRECATED: remove dynamicallyLoadImage')
-// 		return require(`images/${filename}`).default
-// 	} catch (err) {
-// 		console.error(err)
-// 	}
-// 	return null
-// }

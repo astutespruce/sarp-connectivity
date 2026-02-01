@@ -254,7 +254,7 @@
 				<br />
 			{/if}
 
-			Note: Statistics are based on aquatic networks cut by{' '}
+			Note: Statistics are based on aquatic networks cut by
 			{networkType === 'dams'
 				? 'waterfalls and dams'
 				: 'waterfalls, dams, and road-related barriers'}

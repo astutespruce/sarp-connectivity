@@ -133,9 +133,8 @@ export const getLegendEntries: GetLegendEntries = ({ name, networkType, visibleL
 
 	if (visibleLayers) {
 		const flowlineElementsPresent = Object.entries(flowlineSymbols)
-			/* eslint-disable-next-line no-unused-vars */
 			.filter(([key]) => visibleLayers.has(key))
-			/* eslint-disable-next-line no-unused-vars */
+			/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 			.map(([_, symbol]) => symbol)
 		entries.push(...flowlineElementsPresent)
 	} else {

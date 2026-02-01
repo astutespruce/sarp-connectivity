@@ -1,5 +1,6 @@
 import { addFunction, op, escape } from 'arquero'
 import type { ColumnTable as Table } from 'arquero'
+import type { RowObject } from 'arquero/dist/types/table/types'
 import { SvelteSet } from 'svelte/reactivity'
 
 import { reduceToObject } from '$lib/util/data'
@@ -45,8 +46,8 @@ export const getDimensionCount = (data: Table, dimension: Dimension) => {
 			.array('row')
 			// drop any values in data not in values list
 			.filter(({ [field]: v }) => values.has(v))
-			// FIXME: use builtin function to return object
-			.reduce(...reduceToObject(field, (d) => d._count))
+			// TODO: use builtin function to return object
+			.reduce(...reduceToObject(field, (d: RowObject) => d._count))
 	)
 }
 
@@ -62,7 +63,7 @@ export const countByDimension = (data: Table, dimensions: Dimensions) =>
 			field: dimension.field,
 			total: getDimensionCount(data, dimension)
 		}))
-		.reduce(...reduceToObject('field', (d) => d.total))
+		.reduce(...reduceToObject('field', (d: RowObject) => d.total))
 
 /**
  * Determine if record values contain any of the filterValues
@@ -86,10 +87,10 @@ addFunction('hasAny', hasAny, { override: true })
 export const applyFilters = (
 	rawData: Table,
 	dimensions: Dimensions,
-	rawFilters: Record<string, SvelteSet>
+	rawFilters: Record<string, SvelteSet<number | string>>
 ) => {
 	let data = rawData
-	const dimensionCounts = {}
+	const dimensionCounts: Record<string, number> = {}
 
 	// do a first pass and apply all filters into derived columns
 	const filters = Object.entries(rawFilters)
@@ -97,20 +98,14 @@ export const applyFilters = (
 		.filter(([field, values]) => values && values.size > 0)
 		.map(([field, values]) => {
 			if (dimensions[field].isArray) {
-				data = data
-					// .params({ field, values: [...values] })
-					.derive({
-						// [`${field}_filter`]: (d, $) => op.hasAny($.values, d[$.field]),
-						// temporary shim: build does not work with unescaped expressions
-						[`${field}_filter`]: escape((d) => op.hasAny([...values], d[field]))
-					})
+				data = data.derive({
+					// @ts-expect-error hasAny is defined dynamically
+					[`${field}_filter`]: escape((d: RowObject) => op.hasAny([...values], d[field]))
+				})
 			} else {
-				data = data
-					// .params({ field, values })
-					.derive({
-						// [`${field}_filter`]: (d, $) => op.has($.values, d[$.field]),
-						[`${field}_filter`]: escape((d) => op.has(values, d[field]))
-					})
+				data = data.derive({
+					[`${field}_filter`]: escape((d: RowObject) => op.has(values, d[field]))
+				})
 			}
 
 			return field
@@ -122,14 +117,9 @@ export const applyFilters = (
 			.filter((otherField) => otherField !== field)
 			.map((otherField) => `${otherField}_filter`)
 
-		const filtered = data
-			// .params({ fields })
-			.filter(
-				escape(
-					// (d, $) => $.fields.filter((f) => d[f]).length === $.fields.length
-					(d) => fields.filter((f) => d[f]).length === fields.length
-				)
-			)
+		const filtered = data.filter(
+			escape((d: RowObject) => fields.filter((f) => d[f]).length === fields.length)
+		)
 
 		dimensionCounts[field] = getDimensionCount(filtered, dimensions[field])
 	})
@@ -137,12 +127,7 @@ export const applyFilters = (
 	// apply all filters and update dimension counts for every dimension that
 	// doesn't have a filter
 	const fields = filters.map((field) => `${field}_filter`)
-	data = data
-		// .params({ fields })
-		.filter(
-			// escape((d, $) => $.fields.filter((f) => d[f]).length === $.fields.length)
-			escape((d) => fields.filter((f) => d[f]).length === fields.length)
-		)
+	data = data.filter(escape((d: RowObject) => fields.filter((f) => d[f]).length === fields.length))
 
 	Object.values(dimensions)
 		.filter(({ field }) => !(rawFilters[field] && rawFilters[field].size > 0))

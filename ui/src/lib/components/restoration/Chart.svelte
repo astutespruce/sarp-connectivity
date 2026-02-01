@@ -145,11 +145,7 @@
 					<div class="flex-none text-xs text-muted-foreground pl-1">
 						{metric === 'gainmiles'
 							? `${formatNumber(entry.totalGainMiles)} miles`
-							: formatNumber(entry.totalCount)}
-
-						{#if entry.totalNoNetworkCount}
-							<sup>*</sup>
-						{/if}
+							: formatNumber(entry.totalCount)}{#if entry.totalNoNetworkCount}<sup>*</sup>{/if}
 					</div>
 				</div>
 			</div>

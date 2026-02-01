@@ -1704,7 +1704,8 @@ export const YEAR_REMOVED_BINS = {
 	6: '2022',
 	7: '2023',
 	8: '2024',
-	9: '2025'
+	9: '2025',
+	10: '2026'
 }
 
 export const YEAR_SURVEYED_BINS = {
@@ -1717,7 +1718,8 @@ export const YEAR_SURVEYED_BINS = {
 	6: '2022',
 	7: '2023',
 	8: '2024',
-	9: '2025'
+	9: '2025',
+	10: '2026'
 }
 
 type SPECIES_HABITAT_FIELD = {

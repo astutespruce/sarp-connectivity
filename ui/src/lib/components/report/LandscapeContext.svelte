@@ -91,7 +91,7 @@
 			<div>
 				Fish Habitat Partnerships working in this area:
 				<div class="mt-1 ml-4">
-					{#each fishhabitatpartnership.split(',') as fhp, i (fhp)}
+					{#each fishhabitatpartnership.split(',') as fhp (fhp)}
 						<a
 							href={FISH_HABITAT_PARTNERSHIPS[fhp as keyof typeof FISH_HABITAT_PARTNERSHIPS].url}
 							target="_blank"

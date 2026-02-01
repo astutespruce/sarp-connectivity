@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit'
 
-import { REGIONS, STATES, CONNECTIVITY_TEAMS, STATE_DATA_PROVIDERS } from '$lib/config/constants.js'
+import { REGIONS, CONNECTIVITY_TEAMS, STATE_DATA_PROVIDERS } from '$lib/config/constants.js'
 
 import type { EntryGenerator } from './$types'
 

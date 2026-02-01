@@ -7,7 +7,6 @@
 	import { SearchField } from '$lib/components/search'
 	import { LAYER_NAMES, SYSTEMS, SYSTEM_UNITS } from '$lib/config/constants'
 	import { formatNumber } from '$lib/util/format'
-	import { cn } from '$lib/utils'
 
 	import SearchResult from './SearchResult.svelte'
 

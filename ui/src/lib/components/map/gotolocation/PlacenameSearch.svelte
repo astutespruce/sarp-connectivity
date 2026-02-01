@@ -54,7 +54,7 @@
 		enabled: debouncedQuery.length >= MIN_QUERY_LENGTH
 	}))
 
-	const placeRequest = createQuery(() => ({
+	createQuery(() => ({
 		queryKey: ['get-place', selectedId],
 		queryFn: async () => {
 			const { latitude = null, longitude = null } = await getPlace(selectedId!)

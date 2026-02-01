@@ -4,7 +4,6 @@
 
 	import { resolve } from '$app/paths'
 	import { REGIONS } from '$lib/config/constants'
-	import { cn } from '$lib/utils'
 
 	const regions = Object.entries(REGIONS)
 		.map(([id, { name: label, order }]) => ({ id, label, order }))

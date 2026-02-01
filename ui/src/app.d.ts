@@ -18,15 +18,18 @@ declare global {
 		dataLayer?: any[]
 
 		// sentry is dynamically defined at runtime
-		Sentry: {
+		Sentry?: {
 			captureException: (any) => void
 		}
 
+		// gtag is added dynamically at runtime
+		gtag?: (...unknown) => void
+
 		// map is dynamically added to window on map pages
-		map: Map | undefined
+		map?: Map
 
 		// crossfilter is dynamically added to window on priority / survey pages
-		crossfilter: Crossfilter | undefined
+		crossfilter?: Crossfilter
 	}
 }
 

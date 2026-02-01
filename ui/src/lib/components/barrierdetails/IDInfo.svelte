@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { attachmentKeywords } from '$lib/config/constants'
 	import { isEmptyString } from '$lib/util/string'
 
 	import Entry from './Entry.svelte'

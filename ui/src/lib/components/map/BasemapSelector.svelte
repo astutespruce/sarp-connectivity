@@ -12,7 +12,7 @@
 	type Basemap = {
 		id: string
 		src: string
-		layers: any[]
+		layers: string[]
 	}
 
 	const icons = {
@@ -65,6 +65,7 @@
 	})
 
 	const handleBasemapClick = (newBasemap: Basemap, { target }: Event) => {
+		// @ts-expect-error ignore type checking here
 		const buttonNode = target.parentNode
 		if (buttonNode) {
 			buttonNode.blur()

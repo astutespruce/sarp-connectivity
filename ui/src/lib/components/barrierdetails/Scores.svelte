@@ -16,8 +16,6 @@
 		{ id: 'huc8', label: 'Subbasin' }
 	]
 
-	const tabLabels = Object.fromEntries(tabs.map(({ id, label }) => [id, label]))
-
 	const { networkType, scores } = $props()
 
 	const availableTabs = $derived.by(() => {

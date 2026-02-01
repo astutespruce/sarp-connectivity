@@ -38,7 +38,15 @@ export const trackPrioritize = ({
 	})
 }
 
-export const trackDownload = ({ barrierType, unitType, details }) => {
+export const trackDownload = ({
+	barrierType,
+	unitType,
+	details
+}: {
+	barrierType: string
+	unitType: string
+	details: string
+}) => {
 	if (!(browser && window.gtag)) return
 
 	window.gtag('event', `download ${barrierType} by ${unitType}`, {

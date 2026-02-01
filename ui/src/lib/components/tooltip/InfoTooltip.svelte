@@ -1,5 +1,4 @@
 <script lang="ts">
-	import QuestionIcon from '@lucide/svelte/icons/circle-question-mark'
 	import * as Tooltip from '$lib/components/ui/tooltip'
 	import * as Dialog from '$lib/components/ui/dialog'
 

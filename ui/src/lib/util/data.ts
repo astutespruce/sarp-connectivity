@@ -1,15 +1,10 @@
 import { dequal } from 'dequal'
 
-import { toCamelCase } from '$lib/util/format'
-
 /**
  * Calculate the sum of an array of numbers
  * @param {Array} values - array of numbers
  */
-export const sum = (values) => values.reduce((prev, value) => prev + value, 0)
-
-export const groupBy = (records, groupField) =>
-	records.reduce((prev, record) => Object.assign(prev, { [record[groupField]]: record }), {})
+export const sum = (values: number[]) => values.reduce((prev, value) => prev + value, 0)
 
 /**
  * Count records within each group.
@@ -19,10 +14,9 @@ export const groupBy = (records, groupField) =>
  * @param {Array} records - Array of objects
  * @param {String} groupField - field to group by
  */
-export const countBy = (records, groupField) =>
-	records.reduce((prev, record) => {
-		const group = record[groupField]
-		/* eslint-disable-next-line no-param-reassign */
+export const countBy = (records: object[], groupField: string) =>
+	records.reduce((prev: Record<string, number>, record) => {
+		const group = record[groupField as keyof typeof record]
 		prev[group] = (prev[group] || 0) + 1
 		return prev
 	}, {})
@@ -37,22 +31,14 @@ export const countBy = (records, groupField) =>
  * @param {*} valueGetter - OPTIONAL: function to extract value from remaining
  * (non-key) values in each object in array
  */
-export const reduceToObject = (keyField, valueGetter) => [
-	(prev, { [keyField]: key, ...rest }) =>
+export const reduceToObject = (
+	keyField: string,
+	valueGetter: (params: object) => number | string
+) => [
+	(prev: object, { [keyField]: key, ...rest }) =>
 		Object.assign(prev, { [key]: valueGetter ? valueGetter(rest) : rest }),
 	{}
 ]
-
-/**
- * Convert snake_case fields to camelCase fields
- * @param {Object} obj
- * @returns object
- */
-export const toCamelCaseFields = (obj) =>
-	Object.entries(obj).reduce(
-		(prev, [key, value]) => Object.assign(prev, { [toCamelCase(key)]: value }),
-		{}
-	)
 
 /**
  * Split an array into elements that meet the condition and elements that don't.
@@ -60,8 +46,8 @@ export const toCamelCaseFields = (obj) =>
  * @param {Function} conditionFunc - if true, elements are added to first array
  * otherwise they are added to second array
  */
-export const splitArray = (arr, conditionFunc) => {
-	const out = [[], []]
+export const splitArray = (arr: unknown[], conditionFunc: (params: unknown) => boolean) => {
+	const out: unknown[][] = [[], []]
 	arr.forEach((elem) => {
 		if (conditionFunc(elem)) {
 			out[0].push(elem)
@@ -73,6 +59,12 @@ export const splitArray = (arr, conditionFunc) => {
 	return out
 }
 
+type FieldBitsSpec = {
+	field: string
+	bits: number
+	value_shift?: number
+}
+
 /**
  * Unpack a previously bit-packed value.
  *
@@ -82,12 +74,11 @@ export const splitArray = (arr, conditionFunc) => {
  * @param {Object} fieldBits - array of {field: <field>, bits: <num bits>, offset: <offset>} per field
  * @returns Object of {field: value, ...}
  */
-export const unpackBits = (packed, fieldBits) => {
-	const out = {}
+export const unpackBits = (packed: number, fieldBits: FieldBitsSpec[]) => {
+	const out: Record<string, number> = {}
 
 	let sumBits = 0
-	fieldBits.forEach(({ field, bits, value_shift = 0 }) => {
-		/* eslint-disable no-bitwise */
+	fieldBits.forEach(({ field, bits, value_shift = 0 }: FieldBitsSpec) => {
 		out[field] = ((packed >> sumBits) & (2 ** bits - 1)) + value_shift
 		sumBits += bits
 	})

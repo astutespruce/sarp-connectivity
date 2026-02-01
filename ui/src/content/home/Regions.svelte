@@ -13,7 +13,7 @@
 		}
 	})
 
-	const maps: { [key: string]: any } = {}
+	const maps: Record<string, unknown> = {}
 	for (const path in mapImages) {
 		const [region] = path.split('/').slice(-1)[0].split('.')
 		maps[region] = mapImages[path]
@@ -36,7 +36,7 @@
 <div class="grid sm:grid-cols-3 gap-6 bg-blue-0 p-4 items-stretch">
 	{#each regions as region (region.id)}
 		<a
-			href={resolve(`/regions/${region.id}`)}
+			href={resolve(`/regions/${region.id}/`)}
 			class="bg-white p-2 border border-grey-1 rounded-sm h-full flex flex-col justify-end hover:shadow-md hover:border-grey-8 no-underline"
 		>
 			<div>{region.name}</div>

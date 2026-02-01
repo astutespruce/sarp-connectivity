@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button'
-	import { STATES, barrierNameWhenUnknown, barrierTypeLabelSingular } from '$lib/config/constants'
+	import { STATES, barrierTypeLabelSingular } from '$lib/config/constants'
 	import type { BarrierTypePlural } from '$lib/config/types'
 	import { cn } from '$lib/utils'
 

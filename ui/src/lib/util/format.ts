@@ -52,15 +52,6 @@ export const formatNumber = (number: number, decimals: number | null = null, aut
 
 export const capitalize = (word: string) => `${word.slice(0, 1).toUpperCase()}${word.slice(1)}`
 
-export const toCamelCase = (value: string) => {
-	if (!value) return value
-
-	return value
-		.split('_')
-		.map((part, i) => (i === 0 ? part : capitalize(part)))
-		.join('')
-}
-
 export const pluralize = (word: string, count: number, suffix = 's') =>
 	count === 1 ? word : `${word}${suffix}`
 

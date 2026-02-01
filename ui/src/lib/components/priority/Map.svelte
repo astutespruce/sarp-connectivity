@@ -18,7 +18,7 @@
 	} from '$lib/components/map'
 	import type { Circle, Patch } from '$lib/components/map/legend/types'
 
-	import { isEqual, groupBy } from '$lib/util/data'
+	import { isEqual } from '$lib/util/data'
 
 	import { unitLayerConfig } from '$lib/components/workflow/config'
 	import { unitLayers, unitHighlightLayers, parentOutline } from '$lib/components/workflow/layers'
@@ -588,7 +588,7 @@
 			rankedBarriers.forEach(({ id, ...rest }: { id: string }) => {
 				map.setFeatureState({ source, sourceLayer, id }, rest)
 			})
-			rankedBarriersIndex = groupBy(rankedBarriers, 'id')
+			rankedBarriersIndex = Object.fromEntries(rankedBarriers.map((b: { id: string }) => [b.id, b]))
 		} else {
 			rankedBarriersIndex = {}
 		}

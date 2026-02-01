@@ -27,7 +27,7 @@
 		window.print()
 	}
 
-	console.log('data', data)
+	$inspect('data', data).with(console.log)
 </script>
 
 <div class="report-container">

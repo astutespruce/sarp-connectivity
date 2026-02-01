@@ -51,8 +51,7 @@
 		totalmainstemupstreammiles = 0,
 		totalmainstemdownstreammiles = 0,
 		yearcompleted = null,
-		yearremoved = null,
-		invasivenetwork = false
+		yearremoved = null
 	} = $derived(data)
 
 	const barrierTypeLabel = $derived.by(() => {
@@ -207,6 +206,7 @@
 						FEASIBILITYCLASS
 					)
 						.filter(([key]) => parseInt(key, 10) >= 1)
+						// eslint-disable-next-line @typescript-eslint/no-unused-vars
 						.map(([_, value]) => value)
 						.join('%0D%0A')})`}
 					target="_blank"

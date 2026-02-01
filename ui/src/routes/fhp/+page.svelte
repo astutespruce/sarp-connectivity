@@ -16,7 +16,7 @@
 		}
 	})
 
-	const maps: { [key: string]: any } = {}
+	const maps: { [key: string]: unknown } = {}
 	for (const path in mapImages) {
 		const [region] = path.split('/').slice(-1)[0].split('.')
 		maps[region] = mapImages[path]

@@ -1,5 +1,4 @@
 import { v4 as uuid } from 'uuid'
-import { createQuery } from '@tanstack/svelte-query'
 
 import { MAPBOX_TOKEN } from '$lib/env'
 import { getFromStorage, saveToStorage } from '$lib/util/dom'

@@ -28,6 +28,7 @@ export const load = async ({ params }) => {
 				})
 			)
 				.filter(([path]) => path.split('/').slice(-1)[0] === fhp.logo)
+				/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 				.map(([_, img]) => img)[0] as string)
 		: null
 
