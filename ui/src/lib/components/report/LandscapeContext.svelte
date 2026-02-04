@@ -27,7 +27,7 @@
 			<div>
 				Ability of the watershed to maintain cold water habitat:
 				{TNC_COLDWATER_STATUS[cold as keyof typeof TNC_COLDWATER_STATUS]}
-				<div class="text-xs text-muted-foreground leading-tight">
+				<div class="text-xs text-muted-foreground leading-tight mt-1">
 					based on The Nature Conservancy's cold water temperature score where this barrier occurs
 					(TNC; March 2024).
 				</div>
@@ -37,7 +37,7 @@
 		{#if resilience}
 			<div>
 				Freshwater resilience: {TNC_RESILIENCE[resilience as keyof typeof TNC_RESILIENCE]}
-				<div class="text-xs text-muted-foreground leading-tight">
+				<div class="text-xs text-muted-foreground leading-tight mt-1">
 					based on the The Nature Conservancy&apos;s freshwater resilience category of the watershed
 					where this barrier occurs (v0.44).
 				</div>
@@ -47,7 +47,7 @@
 		{#if brooktroutportfolio}
 			Eastern brook trout conservation portfolio:
 			{TU_BROOK_TROUT_PORTFOLIO[brooktroutportfolio as keyof typeof TU_BROOK_TROUT_PORTFOLIO]}
-			<div class="text-xs text-muted-foreground leading-tight">
+			<div class="text-xs text-muted-foreground leading-tight mt-1">
 				based on the
 				<a
 					href="https://www.tu.org/science/conservation-planning-and-assessment/conservation-portfolio/"
@@ -72,7 +72,7 @@
 		{#if nativeterritories}
 			<div>
 				Within the following native territories: {nativeterritories}
-				<div class="text-xs text-muted-foreground leading-tight">
+				<div class="text-xs text-muted-foreground leading-tight mt-1">
 					based on data provided by
 					<a href="https://native-land.ca/"> Native Land Digital </a>.
 				</div>

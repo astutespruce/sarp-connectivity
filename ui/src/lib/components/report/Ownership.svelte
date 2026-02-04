@@ -106,7 +106,7 @@
 			{#if fatality > 0}
 				<div>
 					Number of fatalities recorded: {formatNumber(fatality)}
-					<div class="text-xs text-muted-foreground leading-tight">
+					<div class="text-xs text-muted-foreground leading-tight mt-1">
 						based on data provided by
 						<a
 							href="https://krcproject.groups.et.byu.net/browse.php"

@@ -73,8 +73,6 @@
 	const percentUnaltered = $derived(
 		totalupstreammiles ? (100 * unalteredupstreammiles) / totalupstreammiles : 0
 	)
-
-	const numCols = $derived(totalupstreammiles > 0 ? 4 : 3)
 </script>
 
 <section>
@@ -142,7 +140,12 @@
 		{/if}
 
 		<div
-			class={`grid sm:grid-cols-${numCols} gap-4 text-sm mt-4 leading-snug sm:[&>div]:py-2 sm:[&>div+div]:border-l sm:[&>div+div]:border-l-grey-2 sm:[&>div+div]:pl-4`}
+			class={cn(
+				'grid sm:grid-cols-4 gap-4 text-sm mt-4 leading-snug sm:[&>div]:py-2 sm:[&>div+div]:border-l sm:[&>div+div]:border-l-grey-2 sm:[&>div+div]:pl-4',
+				{
+					'sm:grid-cols-4': totalupstreammiles > 0
+				}
+			)}
 		>
 			<div>
 				<b>{formatNumber(gainmiles, 2, true)} total miles</b>

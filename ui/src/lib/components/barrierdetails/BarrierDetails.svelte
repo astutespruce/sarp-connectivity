@@ -34,7 +34,7 @@
 	const sarpid = $derived(coreData ? coreData.sarpidname.split('|')[0] : null)
 
 	const requestNetworkType = $derived(
-		coreData.networkType === 'small_barriers' ? 'combined_barriers' : coreData.newtorkType
+		coreData.networkType === 'small_barriers' ? 'combined_barriers' : coreData.networkType
 	)
 	const dataRequest = createQuery(() => ({
 		queryKey: ['barrier-details', requestNetworkType, sarpid],

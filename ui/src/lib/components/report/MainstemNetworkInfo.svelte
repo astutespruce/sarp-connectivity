@@ -71,8 +71,6 @@
 			? (100 * unalteredmainstemupstreammiles) / totalmainstemupstreammiles
 			: 0
 	)
-
-	const numCols = $derived(totalmainstemupstreammiles > 0 ? 3 : 2)
 </script>
 
 <section>
@@ -86,7 +84,12 @@
 	</div>
 
 	<div
-		class={`grid sm:grid-cols-${numCols} gap-4 mt-4 text-sm leading-snug sm:[&>div]:py-2 sm:[&>div+div]:border-l sm:[&>div+div]:border-l-grey-2 sm:[&>div+div]:pl-4`}
+		class={cn(
+			'grid sm:grid-cols-2 gap-4 mt-4 text-sm leading-snug sm:[&>div]:py-2 sm:[&>div+div]:border-l sm:[&>div+div]:border-l-grey-2 sm:[&>div+div]:pl-4',
+			{
+				'sm:grid-cols-3': totalmainstemupstreammiles > 0
+			}
+		)}
 	>
 		<div>
 			<b>{formatNumber(mainstemGainMiles, 2, true)} total miles</b>
