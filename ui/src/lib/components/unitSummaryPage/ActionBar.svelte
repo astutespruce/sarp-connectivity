@@ -14,7 +14,8 @@
 >
 	<div>
 		<div class="flex-none">
-			Explore how many dams or road-related barriers there are in a state, county, or watershed.
+			Explore how many dams or surveyed road/stream crossings there are in a state, county, or
+			watershed.
 		</div>
 		<div class="flex-auto flex justify-center items-end mt-4">
 			<Button href={resolve(exploreURL)} class="no-underline">
@@ -26,8 +27,8 @@
 
 	<div>
 		<div class="flex-none">
-			Explore dams and road-related barriers that have been removed or mitigated by state, county,
-			or watershed.
+			Explore dams and surveyed road/stream crossings that have been removed or mitigated by state,
+			county, or watershed.
 		</div>
 		<div class="flex-auto flex justify-center items-end mt-4">
 			<Button href={resolve(restorationURL)} class="no-underline">
@@ -39,8 +40,8 @@
 
 	<div>
 		<div class="flex-none">
-			Identify and rank dams or road-related barriers that reconnect the most high-quality aquatic
-			networks.
+			Identify and rank dams or surveyed road/stream crossings that reconnect the most high-quality
+			aquatic networks.
 		</div>
 		<div class="flex-auto flex justify-center items-end mt-4">
 			<Button href={resolve(prioritizeURL)} class="no-underline">

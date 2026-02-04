@@ -348,9 +348,9 @@
 			</div>
 		{:else if barrierType === 'small_barriers'}
 			<div class="text-sm text-muted-foreground">
-				Note: These statistics are based on surveyed crossings that have been assessed for impacts
-				to aquatic organisms. Because the inventory is incomplete in many areas, areas with a high
-				number of barriers may simply represent areas that have a more complete inventory.
+				Note: These statistics are based on road/stream crossings that have been surveyed for
+				impacts to aquatic organisms. Because the inventory is incomplete in many areas, areas with
+				a high number of barriers may simply represent areas that have a more complete inventory.
 				{#if stats.unrankedBarriers}
 					{formatNumber(stats.unrankedBarriers, 0)} surveyed
 					{pluralize('crossing', stats.unrankedBarriers)}
@@ -361,8 +361,8 @@
 			</div>
 		{:else if barrierType === 'combined_barriers'}
 			<div class="text-sm text-muted-foreground">
-				Note: These statistics are based on inventoried dams and surveyed crossings that have been
-				assessed for impacts to aquatic organisms. Because the inventory is incomplete in many
+				Note: These statistics are based on inventoried dams and road/stream crossings that have
+				been surveyed for impacts to aquatic organisms. Because the inventory is incomplete in many
 				areas, areas with a high number of barriers may simply represent areas that have a more
 				complete inventory.
 				{#if stats.unrankedDams > 0 || stats.unrankedBarriers > 0}

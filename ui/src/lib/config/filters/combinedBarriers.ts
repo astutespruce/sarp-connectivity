@@ -102,7 +102,7 @@ export const combinedBarriers = [
 				title: 'Passability',
 				sort: false,
 				hideMissingValues: true,
-				help: 'Note: passability information is only available for a small number of dams. Not all data sources recorded this information. Partial passability includes any dam or road related barrier where some passability was indicated using a barrier assessment protocol.',
+				help: 'Note: passability information is only available for a small number of dams. Not all data sources recorded this information. Partial passability includes any dam or surveyed road/stream crossing where some passability was indicated using a barrier assessment protocol.',
 				...getEntries(PASSABILITY)
 			},
 			{
@@ -226,7 +226,7 @@ export const combinedBarriers = [
 				title: 'Condition',
 				sort: false,
 				hideMissingValues: true,
-				help: 'Note: condition information is only available for a small number of dams and road-related barriers.  Not all data sources recorded this information.',
+				help: 'Note: condition information is only available for a small number of dams and road/stream crossings.  Not all data sources recorded this information.',
 				...getEntries(CONDITION)
 			},
 			{
@@ -234,7 +234,7 @@ export const combinedBarriers = [
 				title: 'Does it have a fish passage facility?',
 				sort: false,
 				hideMissingValues: false,
-				help: 'Note: fish passage facility information is only available for a small number of dams and road-related barriers.  Not all data sources recorded this information.',
+				help: 'Note: fish passage facility information is only available for a small number of dams and road/stream crossings.  Not all data sources recorded this information.',
 				...getEntries(PASSAGEFACILITY_CLASS)
 			}
 		]
@@ -280,7 +280,7 @@ export const combinedBarriers = [
 	},
 	{
 		id: 'structure_small_barriers',
-		title: 'Road-related barrier characteristics',
+		title: 'Road/stream crossing characteristics',
 		filters: [
 			{
 				field: 'crossingtype',
@@ -418,9 +418,9 @@ export const combinedBarriers = [
 			},
 			{
 				field: 'downstreamoceanbarriersclass',
-				title: 'Number of dams / assessed road-related barriers between this dam and the ocean',
+				title: 'Number of dams / surveyed road/stream crossings between this dam and the ocean',
 				sort: false,
-				help: 'This value is based on any dams or assessed road-related barriers that occur on the downstream path between this dam and the ocean.  Note: this does not include any road crossings that have not been evaluated for barrier severity.',
+				help: 'This value is based on any dams or surveyed road/stream crossings that occur on the downstream path between this dam and the ocean.  Note: this does not include any road crossings that have not been evaluated for barrier severity.',
 				...getEntries(DOWNSTREAM_OCEAN_SMALL_BARRIERS_DOMAIN)
 			},
 			{

@@ -114,7 +114,7 @@ async def download(
             columns += COMBINED_EXPORT_FIELDS
         case "road_crossings":
             columns += ROAD_CROSSING_EXPORT_FIELDS
-            warnings = "this dataset includes road/stream crossings (potential barriers) derived\nfrom the USGS Road Crossings dataset (2022) or USFS National Road / Stream crossings dataset (2024)\nthat have not yet been assessed for impacts to aquatic organisms.  Unsurveyed\ncrossings are limited to those that were snapped to the aquatic network and should\nnot be taken as a comprehensive survey of all possible road-related barriers."
+            warnings = "this dataset includes road/stream crossings (potential barriers) derived\nfrom the USGS Road Crossings dataset (2022) or USFS National Road / Stream crossings dataset (2024)\nthat have not yet been surveyed for impacts to aquatic organisms.  Unsurveyed\ncrossings are limited to those that were snapped to the aquatic network and should\nnot be taken as a comprehensive survey of all possible road-related barriers."
 
     columns = [c for c in columns if c not in CUSTOM_TIER_FIELDS]
 
@@ -187,7 +187,7 @@ async def custom_download_task(
             columns += COMBINED_EXPORT_FIELDS
         case "road_crossings":
             columns += ROAD_CROSSING_EXPORT_FIELDS
-            warnings = "this dataset includes road/stream crossings (potential barriers) derived\nfrom the USGS Road Crossings dataset (2022) or USFS National Road / Stream crossings dataset (2024)\nthat have not yet been assessed for impacts to aquatic organisms.  Unsurveyed\ncrossings are limited to those that were snapped to the aquatic network and should\nnot be taken as a comprehensive survey of all possible road-related barriers."
+            warnings = "this dataset includes road/stream crossings (potential barriers) derived\nfrom the USGS Road Crossings dataset (2022) or USFS National Road / Stream crossings dataset (2024)\nthat have not yet been surveyed for impacts to aquatic organisms.  Unsurveyed\ncrossings are limited to those that were snapped to the aquatic network and should\nnot be taken as a comprehensive survey of all possible road-related barriers."
 
     columns = [c for c in columns if c not in CUSTOM_TIER_FIELDS]
 

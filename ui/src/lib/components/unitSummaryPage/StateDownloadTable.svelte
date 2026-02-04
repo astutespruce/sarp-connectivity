@@ -20,7 +20,7 @@
 			<th class="w-[16rem]">State</th>
 			<th class="w-48">Inventoried dams</th>
 			<th class="w-48">Reconned dams</th>
-			<th class="w-48">Assessed road-related barriers</th>
+			<th class="w-48">Surveyed road/stream crossings</th>
 			<th aria-label="dams download link column" class="w-32"> </th>
 			<th aria-label="surveyed road/stream crossings download link column" class="w-32"> </th>
 		</tr>
@@ -90,14 +90,14 @@
 	<div>
 		<b>{formatNumber(total.dams - total.rankedDams, 0)} inventoried dams</b> and
 		<b>
-			{formatNumber(total.smallBarriers - total.rankedSmallBarriers, 0)} assessed road-related barriers
+			{formatNumber(total.smallBarriers - total.rankedSmallBarriers, 0)} surveyed road/stream crossings
 		</b>
 		were not analyzed because they could not be correctly located on the aquatic network or were otherwise
 		excluded from the analysis. You can optionally include these in your download.
 	</div>
 	<div>
-		Note: These statistics are based on <i>inventoried</i> dams and road-related barriers. Because the
-		inventory is incomplete in many areas, areas with a high number of dams may simply represent areas
-		that have a more complete inventory.
+		Note: These statistics are based on inventoried dams and surveyed road/stream crossings. Because
+		the inventory is incomplete in many areas, areas with a high number of dams or surveyed
+		road/stream crossings may simply represent areas that have a more complete inventory.
 	</div>
 </div>

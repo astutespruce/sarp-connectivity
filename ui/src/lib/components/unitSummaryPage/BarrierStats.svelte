@@ -21,7 +21,8 @@
 		<enhanced:img src={map} alt={`${areaName} map`} class="border border-grey-3" />
 		<figcaption class="text-sm leading-snug">
 			Map of {formatNumber(stats.dams)} inventoried dams and
-			{formatNumber(stats.smallBarriers)} road-related barriers likely to impact aquatic organisms in
+			{formatNumber(stats.smallBarriers)} surveyed road/stream crossings likely to impact aquatic organisms
+			in
 			{areaName}.
 		</figcaption>
 	</figure>
@@ -60,7 +61,7 @@
 			<li>
 				<b>{formatNumber(stats.totalSmallBarriers, 0)}</b> that
 
-				{singularOrPlural('was', 'were', stats.totalSmallBarriers)} assessed for impacts to aquatic organisms
+				{singularOrPlural('was', 'were', stats.totalSmallBarriers)} surveyed for impacts to aquatic organisms
 			</li>
 			<li>
 				<b>{formatNumber(stats.smallBarriers, 0)}</b> that

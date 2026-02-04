@@ -30,9 +30,9 @@ from api.constants import (
     ROAD_CROSSING_EXPORT_FIELDS,
     verify_domains,
 )
-from api.constants import LOGO_PATH
 from api.metadata import get_readme, get_terms
 from api.lib.domains import unpack_domains
+from api.settings import LOGO_PATH
 from analysis.constants import NETWORK_TYPES
 
 # NOTE: no need to aggregate stats for full / dams-only networks
@@ -730,7 +730,7 @@ for barrier_type in ["dams", "small_barriers", "combined_barriers", "road_crossi
             columns += COMBINED_EXPORT_FIELDS
         case "road_crossings":
             columns += ROAD_CROSSING_EXPORT_FIELDS
-            warnings = "this dataset includes road/stream crossings (potential barriers) derived from the USGS Road Crossings dataset (2022) or USFS National Road / Stream crossings dataset (2024) that have not yet been assessed for impacts to aquatic organisms.  These only include those that were snapped to the aquatic network and should not be taken as a comprehensive survey of all possible road-related barriers."
+            warnings = "this dataset includes road/stream crossings (potential barriers) derived from the USGS Road Crossings dataset (2022) or USFS National Road / Stream crossings dataset (2024) that have not yet been surveyed for impacts to aquatic organisms.  These only include those that were snapped to the aquatic network and should not be taken as a comprehensive survey of all possible road-related barriers."
 
     columns = [c for c in columns if c not in CUSTOM_TIER_FIELDS]
 
@@ -757,4 +757,4 @@ for barrier_type in ["dams", "small_barriers", "combined_barriers", "road_crossi
 
         out.writestr("README.txt", readme)
         out.writestr("TERMS_OF_USE.txt", terms)
-        out.write(LOGO_PATH, "SARP_logo.png")
+        out.write(LOGO_PATH, LOGO_PATH.name)

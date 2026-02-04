@@ -207,7 +207,7 @@
 		Note: Statistics are based on aquatic networks cut by
 		{networkType === 'dams'
 			? 'waterfalls and dams'
-			: 'waterfalls, dams, and road-related barriers'}{networkType === 'largefish_barriers'
+			: 'waterfalls, dams, and surveyed road/stream crossings'}{networkType === 'largefish_barriers'
 			? ' based on their passability for large-bodied fish'
 			: null}{networkType === 'smallfish_barriers'
 			? ' based on their passability for small-bodied fish'

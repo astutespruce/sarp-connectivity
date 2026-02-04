@@ -132,7 +132,7 @@ export const smallBarriers = [
 	},
 	{
 		id: 'structure',
-		title: 'Road-related barrier characteristics',
+		title: 'Road/stream crossing characteristics',
 		filters: [
 			{
 				field: 'crossingtype',
@@ -162,7 +162,7 @@ export const smallBarriers = [
 				title: 'Does it have a fish passage facility?',
 				sort: false,
 				hideMissingValues: false,
-				help: 'Note: fish passage facility information is only available for a small number of road-related barriers.  Not all data sources recorded this information.',
+				help: 'Note: fish passage facility information is only available for a small number of road/stream crossings.  Not all data sources recorded this information.',
 				...getEntries(PASSAGEFACILITY_CLASS, (v) => v > 0)
 			},
 			{
@@ -276,9 +276,9 @@ export const smallBarriers = [
 			},
 			{
 				field: 'downstreamoceanbarriersclass',
-				title: 'Number of dams / assessed road-related barriers between this dam and the ocean',
+				title: 'Number of dams / surveyed road/stream crossings between this dam and the ocean',
 				sort: false,
-				help: 'This value is based on any dams or assessed road-related barriers that occur on the downstream path between this dam and the ocean.  Note: this does not include any road crossings that have not been evaluated for barrier severity.',
+				help: 'This value is based on any dams or sruveyed road/stream crossings that occur on the downstream path between this dam and the ocean.  Note: this does not include any road crossings that have not been evaluated for barrier severity.',
 				...getEntries(DOWNSTREAM_OCEAN_SMALL_BARRIERS_DOMAIN)
 			},
 			{

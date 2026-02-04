@@ -23,7 +23,7 @@
 {/if}
 
 {#if barrierType === 'small_barriers' && totaldownstreamsmallbarriers !== null && totaldownstreamsmallbarriers >= 0}
-	<Entry label="Number of assessed road-related barriers downstream">
+	<Entry label="Number of surveyed road/stream crossings downstream">
 		{formatNumber(totaldownstreamsmallbarriers)}
 	</Entry>
 {/if}

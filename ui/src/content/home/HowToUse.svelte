@@ -106,14 +106,14 @@
 	</li>
 	<li>
 		<a href={MAP_SERVICES.small_barriers} target="_blank" rel="external">
-			Assessed road crossings
+			Surveyed road crossings
 		</a>
-		based on networks that are cut by dams, waterfalls, and assessed crossings.
+		based on networks that are cut by dams, waterfalls, and surveyed crossings.
 	</li>
 	<li>
 		<a href={MAP_SERVICES.combined_barriers} target="_blank" rel="external">
-			Dams and assessed road crossings
+			Dams & surveyed road crossings
 		</a>
-		based on networks that are cut by dams, waterfalls, and assessed crossings.
+		based on networks that are cut by dams, waterfalls, and surveyed crossings.
 	</li>
 </ul>

@@ -115,7 +115,7 @@
 					removed or mitigated, gaining
 					<b>{formatNumber(removedSmallBarriersGainMiles)} miles</b> of reconnected rivers and streams.
 				{:else}
-					<b>0</b> road-related barriers that are known to have been removed or mitigated.
+					<b>0</b> surveyed road/stream crossings that are known to have been removed or mitigated.
 				{/if}
 			</div>
 		{/if}
@@ -163,8 +163,8 @@
 					totalSmallBarriers
 				)}, and available information on dams and barriers that have been or are actively being
 				removed or mitigated, including projects starting in 2026. Because the inventory is
-				incomplete in many areas, areas with a high number of dams or road-related barriers may
-				simply represent areas that have a more complete inventory.
+				incomplete in many areas, areas with a high number of dams or surveyed crossings may simply
+				represent areas that have a more complete inventory.
 			</div>
 		{/if}
 
@@ -172,7 +172,7 @@
 			Miles gained are based on aquatic networks cut by
 			{barrierType === 'dams'
 				? 'waterfalls and dams'
-				: 'waterfalls, dams, and road-related barriers'}
+				: 'waterfalls, dams, and surveyed road/stream crossings'}
 			that were present at the time a given barrier was removed, with the exception of those directly
 			upstream that were removed in the same year as a given barrier.
 		</div>

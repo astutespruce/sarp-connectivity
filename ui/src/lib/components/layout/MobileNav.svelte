@@ -22,7 +22,7 @@
 			label: 'Prioritize',
 			icon: PrioritizeIcon,
 			description:
-				'You can prioritize dams and road-related barriers based on their impact on the overall aquatic network and then download results for further analysis.'
+				'You can prioritize dams and surveyed road/stream crossings based on their impact on the overall aquatic network and then download results for further analysis.'
 		},
 		{
 			id: 'survey',
@@ -30,7 +30,7 @@
 			label: 'Survey',
 			icon: SurveyIcon,
 			description:
-				'You can select unsurveyed barriers within a given area of interest according to a range of different criteria, and then download the results for planning field surveys.'
+				'You can select road/stream crossings within a given area of interest according to a range of different criteria, and then download the results for planning field surveys.'
 		}
 	]
 

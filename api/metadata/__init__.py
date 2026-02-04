@@ -36,13 +36,13 @@ def get_readme(filename, barrier_type, fields, unit_ids, warnings=None):
             barrier_type_label = "dams"
         case "small_barriers":
             field_def = SB_FIELD_DEFINITIONS
-            barrier_type_label = "assessed road-related barriers"
+            barrier_type_label = "surveyed road/stream crossings"
         case "combined_barriers":
             field_def = COMBINED_FIELD_DEFINITIONS
-            barrier_type_label = "dams and assessed road-related barriers"
+            barrier_type_label = "dams & surveyed road/stream crossings"
         case "road_crossings":
             field_def = ROAD_CROSSING_FIELD_DEFINITIONS
-            barrier_type_label = "road/stream crossings (potential barriers)"
+            barrier_type_label = "road/stream crossings"
 
     fields = {f: field_def[f] for f in fields if f in field_def}
     field_info = "\n".join([f"{k}: {v}" for k, v in fields.items()])

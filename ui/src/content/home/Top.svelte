@@ -31,10 +31,10 @@
 				</span> <span class="text-lg">road/stream crossings</span>
 			</div>
 			<div class="mt-1 text-sm text-muted-foreground">
-				<b>{formatNumber(totalSmallBarriers)}</b> assessed for impacts to aquatic organisms
+				<b>{formatNumber(totalSmallBarriers)}</b> surveyed for impacts to aquatic organisms
 				<br />
 				<b>{formatNumber(smallBarriers - removedSmallBarriers)}</b>
-				assessed barriers likely to impact aquatic organisms
+				surveyed barriers likely to impact aquatic organisms
 				<br />
 				<b>{formatNumber(removedSmallBarriers)}</b> removed for conservation
 			</div>

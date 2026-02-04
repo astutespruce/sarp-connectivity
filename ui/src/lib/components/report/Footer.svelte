@@ -13,7 +13,7 @@
 		If you see an issue with the details for this barrier, please
 		<a
 			href={`mailto:${CONTACT_EMAIL}?subject=Problem with National Aquatic Barrier Inventory for ${
-				barrierType === 'dams' ? 'dam' : 'road-related barrier'
+				barrierType === 'dams' ? 'dam' : 'road/stream crossing'
 			}: ${sarpid} (data version: ${dataVersion})&body=I found the following problem with the Inventory for this barrier:`}
 		>
 			let us know!

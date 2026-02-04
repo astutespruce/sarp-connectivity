@@ -13,7 +13,7 @@
 
 	<div class="text-sm">
 		Data sources in the subwatershed containing this
-		{barrierType === 'dams' ? 'dam' : 'road-related barrier'} have recorded:
+		{barrierType === 'dams' ? 'dam' : 'road/stream crossing'} have recorded:
 	</div>
 
 	<div

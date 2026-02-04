@@ -38,7 +38,7 @@
 				return `${formatNumber(crossfilter.filteredCount)} ${pluralize('dam', crossfilter.filteredCount)}`
 			}
 			case 'small_barriers': {
-				return `${formatNumber(crossfilter.filteredCount)} road-related ${pluralize('barrier', crossfilter.filteredCount)}`
+				return `${formatNumber(crossfilter.filteredCount)} surveyed road/stream ${pluralize('crossing', crossfilter.filteredCount)}`
 			}
 			case 'combined_barriers':
 			case 'largefish_barriers':
@@ -53,7 +53,7 @@
 				return `${formatNumber(dams || 0)} ${pluralize(
 					'dam',
 					dams
-				)} and ${formatNumber(smallBarriers)} road-related ${pluralize('barrier', smallBarriers)}`
+				)} and ${formatNumber(smallBarriers)} surveyed road/stream ${pluralize('crossing', smallBarriers)}`
 			}
 			case 'road_crossings': {
 				return `${formatNumber(crossfilter.filteredCount)} road/stream ${pluralize('crossing', crossfilter.filteredCount)}`

@@ -162,9 +162,9 @@
 
 		{#if barrierType === 'dams'}
 			<div class="text-sm text-muted-foreground mt-12">
-				Note: These statistics are based on <i>inventoried</i> dams. Because the inventory is
-				incomplete in many areas, areas with a high number of dams may simply represent areas that
-				have a more complete inventory.
+				Note: These statistics are based on inventoried dams. Because the inventory is incomplete in
+				many areas, areas with a high number of dams may simply represent areas that have a more
+				complete inventory.
 				<br />
 				<br />
 				{formatNumber(unrankedDams, 0)} dams were not analyzed because they could not be correctly located
@@ -172,24 +172,24 @@
 			</div>
 		{:else if barrierType === 'small_barriers'}
 			<div class="text-sm text-muted-foreground mt-12">
-				Note: These statistics are based on <i>inventoried</i> road-related barriers. Because the
-				inventory is incomplete in many areas, areas with a high number of road-related barriers may
-				simply represent areas that have a more complete inventory.
+				Note: These statistics are based on surveyed road/stream crossings. Because the inventory is
+				incomplete in many areas, areas with a high number of surveyed crossings may simply
+				represent areas that have a more complete inventory.
 				<br />
 				<br />
-				{formatNumber(unrankedBarriers, 0)} road-related barriers could not be correctly located on the
-				aquatic network or were otherwise excluded from the analysis.
+				{formatNumber(unrankedBarriers, 0)} surveyed road/stream crossings could not be correctly located
+				on the aquatic network or were otherwise excluded from the analysis.
 			</div>
 		{:else if barrierType === 'combined_barriers'}
 			<div class="text-sm text-muted-foreground mt-12">
-				Note: These statistics are based on <i>inventoried</i> dams and road-related barriers.
+				Note: These statistics are based on inventoried dams and surveyed road/stream crossings.
 				Because the inventory is incomplete in many areas, areas with a high number of dams or
-				road-related barriers may simply represent areas that have a more complete inventory.
+				surveyed crossings may simply represent areas that have a more complete inventory.
 				<br />
 				<br />
 				{formatNumber(unrankedDams, 0)} dams and
-				{formatNumber(unrankedBarriers, 0)} road-related barriers could not be correctly located on the
-				aquatic network or were otherwise excluded from the analysis.
+				{formatNumber(unrankedBarriers, 0)} surveyed road/stream crossings could not be correctly located
+				on the aquatic network or were otherwise excluded from the analysis.
 			</div>
 		{/if}
 

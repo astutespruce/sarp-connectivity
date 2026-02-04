@@ -37,7 +37,7 @@
 
 		{#if barrierType === 'small_barriers' && totaldownstreamsmallbarriers >= 0}
 			<div>
-				<b>{formatNumber(totaldownstreamsmallbarriers)}</b> assessed road-related {pluralize(
+				<b>{formatNumber(totaldownstreamsmallbarriers)}</b> surveyed road/stream crossings {pluralize(
 					'barrier',
 					totaldownstreamsmallbarriers
 				)}

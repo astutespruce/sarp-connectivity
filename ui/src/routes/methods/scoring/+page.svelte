@@ -47,11 +47,11 @@
 				<ul class="mt-2">
 					<li>Waterfalls</li>
 					<li>Dams</li>
-					<li>Road-related barriers</li>
+					<li>Surveyed road/stream crossings</li>
 				</ul>
 				<p>
 					<br />
-					Where possible, human-made barriers have been assessed using field reconnaissance to determine
+					Where possible, human-made barriers have been surveyed using field reconnaissance to determine
 					their likely impact on aquatic organisms as well as their feasibility of removal. You can leverage
 					these characteristics to select a smaller number of barriers to prioritize.
 				</p>

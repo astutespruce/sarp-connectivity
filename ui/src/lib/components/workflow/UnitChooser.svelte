@@ -113,8 +113,8 @@
 						countMessage: `${formatNumber(dams)} ${pluralize(
 							'dam',
 							dams
-						)} and ${formatNumber(smallBarriers)} road-related ${pluralize(
-							'barrier',
+						)} and ${formatNumber(smallBarriers)} surveyed road/stream ${pluralize(
+							'crossing',
 							smallBarriers
 						)}`,
 						// always use plain ranked barriers vs count to determine off-network values

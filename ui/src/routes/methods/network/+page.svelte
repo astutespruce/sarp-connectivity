@@ -32,9 +32,9 @@
 		better.
 		<br />
 		<br />
-		The following methods represent our best attempt to correctly snap and analyze dams and road-related
-		barriers. If you see errors in the dam, road-related barrier, or waterfall locations used in the analysis,
-		or would like additional help interpreting the results of the analysis, please
+		The following methods represent our best attempt to correctly snap and analyze dams and surveyed road/stream
+		crossings. If you see errors in the dam, surveyed road/stream crossing, or waterfall locations used
+		in the analysis, or would like additional help interpreting the results of the analysis, please
 		<a href={`mailto:${CONTACT_EMAIL}`}>contact us</a>.
 	</p>
 
@@ -85,7 +85,7 @@
 		<li>
 			Waterfalls that were successfully snapped to the aquatic network were used to cut the aquatic
 			network. These networks formed the basis of aquatic networks that were further subdivided by
-			dams and road-related barriers below.
+			dams and surveyed road/stream crossings below.
 		</li>
 	</ol>
 
@@ -202,14 +202,14 @@
 
 	<hr />
 
-	<h2>Methods for road-related barriers</h2>
+	<h2>Methods for surveyed road/stream crossings</h2>
 
 	<p class="mt-2">
-		Only road-related barriers that have been formally assessed for impacts to aquatic organisms
+		Only road/stream crossings that have been formally surveyed for impacts to aquatic organisms
 		using a defined protocol and were determined to be a likely barrier to those organisms were
-		included in the network connectivity analysis. These represent a small subset of the road/stream
-		crossings (potential barriers) within the region. These barriers were analyzed within the
-		aquatic networks already subdivided by dams and waterfalls above.
+		included in the network connectivity analysis. These represent a small subset of the total
+		road/stream crossings within the region. These barriers were analyzed within the aquatic
+		networks already subdivided by dams and waterfalls above.
 	</p>
 	<ol class="mt-2">
 		<li>Barriers were snapped to the nearest flowline within a tolerance of 50 meters.</li>
@@ -240,7 +240,7 @@
 	<Alert title="Warning" class="mt-8">
 		<p class="text-base">
 			Not all barriers could be snapped properly. The snapping methods above do not include the
-			locations of road / stream crossings, which means that the snapped location of the barrier may
+			locations of road/stream crossings, which means that the snapped location of the barrier may
 			not be precisely located on the nearest road.
 		</p>
 	</Alert>

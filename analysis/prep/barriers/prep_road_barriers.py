@@ -242,14 +242,14 @@ for column in ("River", "Road"):
 
 # Fill name with road or name, if available
 ix = (df.Road != "") & (df.River != "")
-df.loc[ix, "Name"] = "Road barrier - " + df.loc[ix].Road + " / " + df.loc[ix].River
+df.loc[ix, "Name"] = "Surveyed road/stream crossing - " + df.loc[ix].Road + " / " + df.loc[ix].River
 df.Name = df.Name.fillna("")
 
 ix = (df.Name == "") & (df.Road != "")
-df.loc[ix, "Name"] = "Road barrier - " + df.loc[ix].Road
+df.loc[ix, "Name"] = "Surveyed road/stream crossing - " + df.loc[ix].Road
 
 ix = (df.Name == "") & (df.River != "")
-df.loc[ix, "Name"] = "Road barrier - " + df.loc[ix].River
+df.loc[ix, "Name"] = "Surveyed road/stream crossing - " + df.loc[ix].River
 
 # Fix issues with RoadType
 df.loc[df.RoadType.str.lower().isin(("no data", "nodata")), "RoadType"] = "Unknown"
@@ -357,7 +357,7 @@ df["unranked"] = False  # includes invasive and barriers with no upstream
 # removed: barriers was removed for conservation but we still want to track it
 df["removed"] = False
 
-# nobarrier: barriers that have been assessed and determined not to be a barrier
+# nobarrier: barriers that have been surveyed/reviewed and determined not to be a barrier
 df["nobarrier"] = df.BarrierSeverity == 8
 
 # invasive: records that are also unranked, but we want to track specfically as invasive for mapping
@@ -959,7 +959,7 @@ df.loc[ix, "River"] = df.loc[ix].GNIS_Name
 df = df.drop(columns=["GNIS_Name"])
 
 ix = (df.Name == "") & (df.River != "")
-df.loc[ix, "Name"] = "Road barrier - " + df.loc[ix].River
+df.loc[ix, "Name"] = "Surveyed road/stream crossing - " + df.loc[ix].River
 
 # calculate stream type
 df["stream_type"] = df.FCode.map(FCODE_TO_STREAMTYPE).fillna(0).astype("uint8")

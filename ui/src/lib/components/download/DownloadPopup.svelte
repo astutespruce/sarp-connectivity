@@ -214,7 +214,7 @@
 					{customRank ? ', ' : ' and'} any that have been removed
 					{customRank ? ', and any that you filtered out during your prioritization' : ''}.
 					{barrierType === 'small_barriers'
-						? '  These data only include road-related barriers that have been assessed for impacts to aquatic organisms.'
+						? '  These data only include road/stream crossings that have been surveyed for impacts to aquatic organisms.'
 						: ''}
 				</div>
 			{/if}

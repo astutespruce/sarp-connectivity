@@ -76,7 +76,7 @@
 	)
 
 	const networkStatsNote = $derived.by(() => {
-		let note = `Statistics are based on aquatic networks cut by ${networkType === 'dams' ? 'waterfalls and dams' : 'waterfalls, dams, and road-related barriers'}`
+		let note = `Statistics are based on aquatic networks cut by ${networkType === 'dams' ? 'waterfalls and dams' : 'waterfalls, dams, and surveyed road/stream crossings'}`
 		if (networkType === 'largefish_barriers') {
 			note += ' based on their passability for large-bodied fish'
 		} else if (networkType === 'smallfish_barriers') {

@@ -67,8 +67,8 @@
 	{:else}
 		<div class="mx-2 mt-4 text-muted-foreground text-sm">
 			State-level ranks are not available for this network type because there are not yet sufficient
-			assessed road-related barriers at the state level for all states. Instead, you can <a
-				href={resolve('/priority/')}>prioritize</a
+			surveyed road/stream crossings at the state level for all states. Instead, you can <a
+				href={resolve('/priority/', {})}>prioritize</a
 			>
 			barriers to calculate ranks for a selected area.
 		</div>

@@ -19,8 +19,8 @@
 
 <Entry>
 	{#if barrierType === 'road_crossings'}
-		This road-related barrier has not yet been assessed as a potential barrier for aquatic
-		organisms, and has not been analyzed for aquatic network connectivity.
+		This road/stream crossing has not yet been surveyed to determine if it is a potential barrier
+		for aquatic organisms, and has not been analyzed for aquatic network connectivity.
 	{:else if !snapped}
 		This {typeLabel} is off-network and has no functional network information.
 		<div class="text-xs text-muted-foreground mt-4">

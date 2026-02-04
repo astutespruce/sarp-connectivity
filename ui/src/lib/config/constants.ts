@@ -30,8 +30,8 @@ export const barrierTypeLabelSingular: { [key in BarrierTypePlural]: string } = 
 
 export const barrierNameWhenUnknown: { [key in BarrierTypePlural]: string } = {
 	dams: 'Dam (unknown name)',
-	small_barriers: 'Surveyed road / stream crossing (unknown name)',
-	road_crossings: 'Unsurveyed road / stream crossing',
+	small_barriers: 'Surveyed road/stream crossing (unknown name)',
+	road_crossings: 'Unsurveyed road/stream crossing',
 	waterfalls: 'Waterfall (unknown name)'
 }
 
@@ -779,7 +779,7 @@ export const RECON = {
 }
 
 export const PURPOSE = {
-	'-1': 'not applicable (road-related barrier)',
+	'-1': 'not applicable (road/stream crossing)',
 	0: 'unknown',
 	1: 'agriculture',
 	2: 'flood control',
@@ -796,7 +796,7 @@ export const PURPOSE = {
 }
 
 export const CONSTRUCTION = {
-	'-1': 'not applicable (road-related barrier)',
+	'-1': 'not applicable (road/stream crossing)',
 	0: 'unknown',
 	1: 'cement',
 	2: 'concrete/roller-compacted concrete',
@@ -822,7 +822,7 @@ export const CONDITION = {
 }
 
 export const FEASIBILITYCLASS = {
-	0: 'not applicable (road-related barrier)', // only when merged with small barriers
+	0: 'not applicable (road/stream crossing)', // only when merged with small barriers
 	1: 'unknown',
 	2: 'likely feasible',
 	3: 'possibly feasible',
@@ -839,7 +839,7 @@ export const FEASIBILITYCLASS = {
 }
 
 export const HEIGHT = {
-	0: 'Not applicable (road-related barrier)',
+	0: 'Not applicable (road/stream crossing)',
 	1: 'Unknown',
 	2: '< 5 feet',
 	3: '5 - 10 feet',
@@ -850,7 +850,7 @@ export const HEIGHT = {
 }
 
 export const YEARCOMPLETED = {
-	0: 'Not applicable (road-related barrier)',
+	0: 'Not applicable (road/stream crossing)',
 	1: 'Unknown',
 	2: '< 10 years',
 	3: '10 - 29 years',
@@ -954,7 +954,7 @@ export const DOWNSTREAM_OCEAN_DAMS_DOMAIN = {
 export const DOWNSTREAM_OCEAN_SMALL_BARRIERS_DOMAIN = {
 	0: 'not on an aquatic network known to flow into the ocean',
 	1: 'no dams or surveyed road/stream crossings',
-	2: '1 dam or road-related barrier',
+	2: '1 dam or surveyed road/stream crossing',
 	3: '2-4 dams or surveyed road/stream crossings',
 	4: '5-9 dams or surveyed road/stream crossings',
 	5: '>= 10 dams or surveyed road/stream crossings'
@@ -1027,7 +1027,7 @@ export const BARRIEROWNERTYPE = {
 }
 
 export const FERC_REGULATED = {
-	'-1': 'Not applicable (road-related barrier)', // small barriers only
+	'-1': 'Not applicable (road/stream crossing)', // small barriers only
 	0: 'Unknown',
 	1: 'Yes',
 	2: 'Preliminary permit',
@@ -1038,21 +1038,21 @@ export const FERC_REGULATED = {
 }
 
 export const STATE_REGULATED = {
-	'-1': 'Not applicable (road-related barrier)', // small barriers only
+	'-1': 'Not applicable (road/stream crossing)', // small barriers only
 	0: 'Unknown',
 	1: 'Yes',
 	2: 'No'
 }
 
 export const NRCSDAM = {
-	'-1': 'Not applicable (road-related barrier)', // small barriers only
+	'-1': 'Not applicable (road/stream crossing)', // small barriers only
 	// 0: 'Unknown', // not used
 	1: 'Yes',
 	2: 'No'
 }
 
 export const FEDREGULATORYAGENCYGROUP = {
-	'-1': 'Not applicable (road-related barrier)', // small barriers only
+	'-1': 'Not applicable (road/stream crossing)', // small barriers only
 	0: 'Unknown / not federally regulated',
 	1: 'Bureau of Indian Affairs',
 	2: 'Bureau of Land Management',
@@ -1068,14 +1068,14 @@ export const FEDREGULATORYAGENCYGROUP = {
 }
 
 export const WATER_RIGHT = {
-	'-1': 'Not applicable (road-related barrier)', // small barriers only
+	'-1': 'Not applicable (road/stream crossing)', // small barriers only
 	0: 'Unknown',
 	1: 'Yes',
 	2: 'No'
 }
 
 export const HAZARD = {
-	'-1': 'Not applicable (road-related barrier)',
+	'-1': 'Not applicable (road/stream crossing)',
 	0: 'Unknown',
 	1: 'High',
 	2: 'Significant',
@@ -1169,7 +1169,7 @@ export const SMALL_BARRIER_SEVERITY = {
 }
 
 export const LOWHEAD_DAM = {
-	'-1': 'not applicable (road-related barrier)',
+	'-1': 'not applicable (road/stream crossing)',
 	0: 'unknown',
 	1: 'lowhead dam',
 	2: 'likely lowhead dam',
@@ -1319,7 +1319,7 @@ export const DISADVANTAGED_COMMUNITY = {
 }
 
 export const COST_CLASS = {
-	0: 'not applicable (road-related barrier)',
+	0: 'not applicable (road/stream crossing)',
 	1: 'Unknown',
 	2: '<$100,000',
 	3: '$100,000 - $250,000',

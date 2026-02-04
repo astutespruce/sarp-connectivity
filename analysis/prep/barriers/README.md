@@ -20,7 +20,7 @@ WARNING: There are many duplicate dams within the inventory. Some occur very nea
 ## Data sources:
 
 - Dams: hosted on FWS ArcGIS Online
-- Surveyed road barriers: hosted on ArcGIS Online in FWS organization (public barriers) and SARP organization (private barriers); services include related crossing survey photos
+- Surveyed road/stream crossings: hosted on ArcGIS Online in FWS organization (public barriers) and SARP organization (private barriers); services include related crossing survey photos
 - Waterfalls: hosted on FWS ArcGIS Online
 - Modeled road crossings: downloaded from USGS in Feb 2022 and provided directly by Kat from USFS and 3rd party data sources.
 - National Anthropogenic Barriers Database (NABD): obtained by Kat and provided on 1/22/2021
@@ -252,7 +252,7 @@ Modeled crossings are dropped if they are within 10 meters of a snapped dam or w
 
 Surveyed road-related barriers (“surveyed barriers” hereafter) are cleaned and recoded to standardize data values.
 
-### Marking road barrier status for use in the data pipeline
+### Marking surveyed road/stream crossing status for use in the data pipeline
 
 Surveyed barriers are dropped from the analysis if any of the following are true:
 
@@ -275,7 +275,7 @@ Surveyed barriers are marked as removed barriers if any of the following are tru
 - reconnaissance indicates barrier was deliberately removed
 - manual review indicates barrier was deliberately removed
 
-### Marking road barrier ownership
+### Marking surveyed road/stream crossing ownership
 
 Surveyed barriers are joined to the nearest road in Census TIGER roads (2022 version) within a 50 meter tolerance to supplement barrier owner type if not otherwise available in the surveyed barriers data.
 

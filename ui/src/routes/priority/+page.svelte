@@ -19,7 +19,7 @@
 		{
 			label: 'Select area of interest',
 			description:
-				'You can select areas using state, county, and watershed boundaries.  Prioritization is limited to areas with dams or assessed barriers depending on the scenario.'
+				'You can select areas using state, county, and watershed boundaries.  Prioritization is limited to areas with dams or surveyed road/stream crossings depending on the scenario.'
 		},
 		{
 			label: 'Filter barriers',
@@ -49,28 +49,28 @@
 			id: 'small_barriers',
 			label: 'Surveyed crossings',
 			description:
-				'Prioritize surveyed road/stream crossings based on aquatic networks cut by dams, waterfalls, and road-related barriers with at least moderate barrier severity.',
+				'Prioritize surveyed road/stream crossings based on aquatic networks cut by dams, waterfalls, and crossings with at least moderate barrier severity.',
 			count: rankedSmallBarriers
 		},
 		{
 			id: 'combined_barriers',
 			label: 'Dams & surveyed crossings',
 			description:
-				'Prioritize dams and surveyed road/stream crossings based on aquatic networks cut by dams, waterfalls, and road-related barriers with at least moderate barrier severity.',
+				'Prioritize dams and surveyed road/stream crossings based on aquatic networks cut by dams, waterfalls, and crossings with at least moderate barrier severity.',
 			count: rankedDams + rankedSmallBarriers
 		},
 		{
 			id: 'largefish_barriers',
 			label: 'Large-bodied fish barriers',
 			description:
-				'Prioritize dams and surveyed road/stream crossings that are likely to impact large-bodied fish species based on aquatic networks cut by dams and waterfalls that do not have partial or seasonal passability to salmonids and non-salmonids, and road-related barriers with severe or significant barrier severity.',
+				'Prioritize dams and surveyed road/stream crossings that are likely to impact large-bodied fish species based on aquatic networks cut by dams and waterfalls that do not have partial or seasonal passability to salmonids and non-salmonids, and crossings with severe or significant barrier severity.',
 			count: rankedLargefishBarriersDams + rankedLargefishBarriersSmallBarriers
 		},
 		{
 			id: 'smallfish_barriers',
 			label: 'Small-bodied fish barriers',
 			description:
-				'Prioritize dams and surveyed road/stream crossings based on aquatic networks cut by dams, waterfalls, and road-related barriers with at least minor barrier severity.',
+				'Prioritize dams and surveyed road/stream crossings based on aquatic networks cut by dams, waterfalls, and crossings with at least minor barrier severity.',
 			count: rankedSmallfishBarriersDams + rankedSmallfishBarriersSmallBarriers
 		}
 	]

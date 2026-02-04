@@ -31,7 +31,7 @@ export const roadCrossings = [
 			{
 				field: 'surveyed',
 				title: 'Has crossing been surveyed?',
-				help: 'Road/stream crossings are likely surveyed if there is an inventoried road-related barrier within 50-100m (depends on data source)',
+				help: 'Road/stream crossings are likely surveyed if there is an surveyed crossing within 50-100m (depends on data source)',
 				sort: false,
 				hideIfEmpty: false,
 				...getEntries(SURVEYED)
@@ -101,7 +101,7 @@ export const roadCrossings = [
 	},
 	{
 		id: 'structure',
-		title: 'Road-related barrier characteristics',
+		title: 'Road/stream crossing characteristics',
 		filters: [
 			{
 				field: 'crossingtype',
@@ -187,7 +187,7 @@ export const roadCrossings = [
 				title: 'Barrier ownership type',
 				sort: true,
 				hideMissingValues: true,
-				help: 'This information is derived from the National Bridge Inventory, US Census TIGER Roads route type, and USFS National Forest road / stream crossings database ownership information, and may not be fully accurate.',
+				help: 'This information is derived from the National Bridge Inventory, US Census TIGER Roads route type, and USFS National Forest Road / Stream crossings database ownership information, and may not be fully accurate.',
 				...getEntries(BARRIEROWNERTYPE)
 			}
 		]

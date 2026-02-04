@@ -74,7 +74,7 @@
 		<div>
 			<h2>How are barriers prioritized within the Tool?</h2>
 			<p>
-				Within the tool, a user can prioritize dams, assessed road stream crossings, or both barrier
+				Within the tool, a user can prioritize dams, surveyed road/stream crossings, or both barrier
 				types together. Waterfalls are included within network analysis as well, but are not
 				prioritized. A priority barrier to remove would be one that reconnects high quality habitat.
 				<br />
@@ -154,7 +154,7 @@
 					<b>Explore & Download</b>
 				</a>
 				page to select one or more states, counties, or hydrologic units for your area of interest. You
-				can then download all dams, road-related barriers, or both types for that area.
+				can then download all dams, surveyed road/stream crossings, or both types for that area.
 			</p>
 		</div>
 
@@ -171,7 +171,7 @@
 				<a href={resolve('/restoration/', {})}>
 					<b>Restoration</b>
 				</a>
-				page to download all available dams and / or road-related barriers.
+				page to download all available dams and / or surveyed road/stream crossings.
 			</p>
 		</div>
 
@@ -220,15 +220,15 @@
 				</li>
 				<li>
 					<a href={MAP_SERVICES.small_barriers} target="_blank" rel="external">
-						Assessed road crossings
+						Surveyed road/stream crossings
 					</a>
-					based on networks that are cut by dams, waterfalls, and assessed crossings.
+					based on networks that are cut by dams, waterfalls, and surveyed road/stream crossings.
 				</li>
 				<li>
 					<a href={MAP_SERVICES.combined_barriers} target="_blank" rel="external">
-						Dams and assessed road crossings
+						Dams & surveyed road/stream crossings
 					</a>
-					based on networks that are cut by dams, waterfalls, and assessed crossings.
+					based on networks that are cut by dams, waterfalls, and surveyed road/stream crossings.
 				</li>
 			</ul>
 		</div>

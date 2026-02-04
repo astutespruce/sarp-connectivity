@@ -30,6 +30,7 @@ vite.config.ts.timestamp-*
 # production
 /build
 /ui/build
+/ui/public
 
 # misc
 .DS_Store

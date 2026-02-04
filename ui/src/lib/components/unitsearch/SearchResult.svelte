@@ -50,18 +50,18 @@
 
 			case 'small_barriers': {
 				if (totalSmallBarriers === 0) {
-					outWarning = `no road/stream crossings have been assessed in this area (${formatNumber(
+					outWarning = `no road/stream crossings have been surveyed in this area (${formatNumber(
 						totalRoadBarriers
-					)} road / stream ${pluralize('crossing', totalRoadBarriers)})`
+					)} road/stream ${pluralize('crossing', totalRoadBarriers)})`
 				} else if (rankedSmallBarriers === 0) {
-					outWarning = `no road-related barriers available for prioritization (${formatNumber(
+					outWarning = `no surveyed road/stream crossings available for prioritization (${formatNumber(
 						totalRoadBarriers
-					)} road / stream ${pluralize('crossing', totalRoadBarriers)})`
+					)} road/stream ${pluralize('crossing', totalRoadBarriers)})`
 				} else if (insufficientBarriers) {
 					const prefix =
 						totalSmallBarriers === 0
-							? 'no assessed road/stream crossings'
-							: `${formatNumber(totalSmallBarriers)} assessed road/stream ${pluralize(
+							? 'no surveyed road/stream crossings'
+							: `${formatNumber(totalSmallBarriers)} surveyed road/stream ${pluralize(
 									'crossing',
 									totalSmallBarriers
 								)} (${formatNumber(rankedSmallBarriers)} likely ${pluralize(
@@ -73,9 +73,7 @@
 						'has',
 						'have',
 						rankedSmallBarriers
-					)} been assessed out of ${formatNumber(
-						totalRoadBarriers
-					)} total road / stream ${pluralize(
+					)} been surveyed out of ${formatNumber(totalRoadBarriers)} total road/stream ${pluralize(
 						'crossing',
 						totalRoadBarriers
 					)}; this may not result in useful priorities`
@@ -83,7 +81,7 @@
 					outCountMessage = `${formatNumber(rankedSmallBarriers)} ${pluralize(
 						'barrier',
 						rankedSmallBarriers
-					)} (${formatNumber(totalSmallBarriers)} assessed road/stream ${pluralize(
+					)} (${formatNumber(totalSmallBarriers)} surveyed road/stream ${pluralize(
 						'crossing',
 						totalSmallBarriers
 					)} of ${formatNumber(totalRoadBarriers)} total road/stream ${pluralize(
@@ -120,8 +118,8 @@
 				} else if (rankedD > 0 && insufficientBarriers) {
 					const prefix =
 						totalSmallBarriers === 0
-							? 'no assessed road/stream crossings'
-							: `${formatNumber(totalSmallBarriers)} assessed road/stream ${pluralize(
+							? 'no surveyed road/stream crossings'
+							: `${formatNumber(totalSmallBarriers)} surveyed road/stream ${pluralize(
 									'crossing',
 									totalSmallBarriers
 								)} (${formatNumber(rankedSB)} likely ${pluralize('barrier', rankedSB)})`
@@ -129,9 +127,7 @@
 						'has',
 						'have',
 						totalSmallBarriers
-					)} been assessed out of ${formatNumber(
-						totalRoadBarriers
-					)} total road / stream ${pluralize(
+					)} been surveyed out of ${formatNumber(totalRoadBarriers)} total road/stream ${pluralize(
 						'crossing',
 						totalRoadBarriers
 					)}; this may not result in useful priorities`
@@ -143,7 +139,7 @@
 						rankedD
 					)} and ${formatNumber(rankedSB)} ${pluralize('likely barrier', rankedSB)} (${formatNumber(
 						totalSmallBarriers
-					)} assessed road/stream ${pluralize(
+					)} surveyed road/stream ${pluralize(
 						'crossing',
 						totalSmallBarriers
 					)} of ${formatNumber(totalRoadBarriers)} road/stream ${pluralize(
