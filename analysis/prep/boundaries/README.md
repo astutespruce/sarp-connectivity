@@ -67,9 +67,9 @@ County boundaries (2023 version) were downloaded from CENSUS Tiger website.
 
 ### Congressional districts
 
-Congressional districts (2023 version) were downloaded from Census TIGER from
-https://www2.census.gov/geo/tiger/TIGER2023/CD/ on 10/3/2024 using
-`analysis/prep/boundaries/prep_congressional_districts.py`.
+Congressional districts (2025 version / 119th congress) were downloaded from
+Census TIGER from https://www2.census.gov/geo/tiger/TIGER2025/CD/ on 01/27/2026
+using `analysis/prep/boundaries/prep_congressional_districts.py`.
 
 ### Protected areas / land ownership
 

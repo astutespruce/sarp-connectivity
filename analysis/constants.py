@@ -535,7 +535,7 @@ CROSSING_TYPE_TO_DOMAIN = {
     "tidegate": 9,
     "failed culvert": 8,
     "removed": 0,
-    # only for unassessed road crossings
+    # only for unsurveyed road crossings
     "assumed culvert": 99,
     # added per direction from Kat on 7/24/2025
     "temporary structure": 11,
@@ -620,7 +620,7 @@ FERCREGULATED_TO_DOMAIN = {
     2: 6,  # not a FERC dam
 }
 
-STATEREGULATED_TO_DOMAIN = {"": 0, "0": 0, "Yes": 1, "Y": 1, "1": 1, "No": 2, "N": 2, "2": 2}
+STATEREGULATED_TO_DOMAIN = {"": 0, "0": 0, "yes": 1, "y": 1, "1": 1, "no": 2, "n": 2, "2": 2}
 
 
 FEDREGULATORYAGENCY_TO_DOMAIN = {

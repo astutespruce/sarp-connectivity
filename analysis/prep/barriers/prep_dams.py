@@ -514,7 +514,7 @@ df.BarrierOwnerType = df.BarrierOwnerType.fillna(0).map(BARRIEROWNERTYPE_TO_DOMA
 df["FERCRegulated"] = df.FERCRegulated.fillna(0).astype("uint8").map(FERCREGULATED_TO_DOMAIN).astype("uint8")
 
 df["StateRegulated"] = df.StateRegulated.fillna("0")
-df["StateRegulated"] = df.StateRegulated.map(STATEREGULATED_TO_DOMAIN).astype("uint8")
+df["StateRegulated"] = df.StateRegulated.str.lower().map(STATEREGULATED_TO_DOMAIN).astype("uint8")
 
 # per direction from Kat (11/7/2024) fill all nulls with "No"
 df["NRCSDam"] = df.NRCSDam.fillna(2).astype("uint8")
@@ -544,7 +544,7 @@ df["excluded"] = False
 # unranked: records that should break the network but not be used for ranking
 df["invasive"] = False
 
-# nobarrier: barriers that have been assessed and determined not to be a barrier
+# nobarrier: barriers that have been surveyed/reviewed and determined not to be a barrier
 df["nobarrier"] = df.Passability == 7
 
 df["unranked"] = False  # combined from above fields

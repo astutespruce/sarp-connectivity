@@ -10,7 +10,7 @@ from analysis.constants import CRS
 from analysis.lib.util import append
 
 
-URL = "https://www2.census.gov/geo/tiger/TIGER2023/CD/tl_2023_{district:02d}_cd118.zip"
+URL = "https://www2.census.gov/geo/tiger/TIGER2025/CD/tl_2025_{district:02d}_cd119.zip"
 
 # NOTE: this is a discontiguous series between 01 and 78, some will be missing
 DISTRICTS = range(1, 79)
@@ -67,8 +67,8 @@ asyncio.run(download_districts())
 merged = None
 for filename in tmp_dir.glob("*.zip"):
     df = (
-        read_dataframe(filename, columns=["STATEFP", "CD118FP", "NAMELSAD"], use_arrow=True)
-        .rename(columns={"STATEFP": "STATEFIPS", "CD118FP": "District", "NAMELSAD": "name"})
+        read_dataframe(filename, columns=["STATEFP", "CD119FP", "NAMELSAD"], use_arrow=True)
+        .rename(columns={"STATEFP": "STATEFIPS", "CD119FP": "District", "NAMELSAD": "name"})
         .to_crs(CRS)
     )
     merged = append(merged, df)
