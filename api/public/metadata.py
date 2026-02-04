@@ -14,10 +14,7 @@ from api.constants import (
 )
 from api.data import dams, small_barriers
 from api.metadata import description, terms_of_use
-
-
-with open(Path(__file__).resolve().parent.parent.parent / "ui/package.json") as infile:
-    INFO = json.loads(infile.read())
+from api.settings import DATA_VERSION, DATA_DATE
 
 
 router = APIRouter()
@@ -26,11 +23,11 @@ router = APIRouter()
 def get_core_metadata(url):
     return {
         "url": str(url),
-        "data_version": INFO["version"],
-        "data_publish_date": INFO["date"],
+        "data_version": DATA_VERSION,
+        "data_publish_date": DATA_DATE,
         "contact_person": "Kat Hoenke (Spatial Ecologist, Southeast Aquatic Resources Partnership)",
         "contact_email": "kat@southeastaquatics.net",
-        "citation": f"Southeast Aquatic Resources Partnership (SARP). {date.today().year}. Comprehensive Aquatic Barrier Inventory. https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act. (downloaded {date.today().strftime('%m/%d/%Y')} from https://tool.aquaticbarriers.org). SARP/USFWS.",
+        "citation": f"National Aquatic Connectivity Collaborative (NACC). {date.today().year}. National Aquatic Barrier Inventory v{DATA_VERSION} ({DATA_DATE}). Compiled by the Southeast Aquatic Resources Partnership (https://southeastaquatics.net) and the National Fish Habitat Partnership (https://www.fishhabitat.org/).  [Downloaded {date.today().strftime('%m/%d/%Y')} from {url}].",
         "description": description,
         "terms_of_use": terms_of_use,
     }

@@ -1,9 +1,9 @@
-Comprehensive Aquatic Barrier Inventory - {type}
+National Aquatic Barrier Inventory - {type}
 --------------------------------------------------------
 
 Data version: {data_version}
 Data published: {data_date}
-Downloaded from: https://tool.aquaticbarriers.org
+Downloaded from: {url} on {date}
 Filename: {filename}
 
 Selected Area:

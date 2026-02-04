@@ -3,9 +3,6 @@ from pathlib import Path
 from enum import Enum
 
 
-LOGO_PATH = Path("ui/src/lib/assets/images/sarp_logo_highres.png").resolve()
-
-
 ### Enums for validating incoming request values
 class PublicAPIBarrierTypes(str, Enum):
     dams = "dams"
@@ -1685,7 +1682,7 @@ FIELD_DEFINITIONS = {
     "HUC12": "Hydrologic subwatershed identifier where the {type} occurs.",
     "County": "County where {type} occurs.",
     "State": "State where {type} occurs.",
-    "CongressionalDistrict": "Congressional District where {type} occurs (118th Congressional Districts).",
+    "CongressionalDistrict": "Congressional District where {type} occurs (119th Congressional Districts).",
     "StateWRA": "State water resource area ID, prefixed by 2-letter state code.  In Washington State, these are Water Resource Inventory Areas.",
     "HasNetwork": "indicates if this {type} was snapped to the aquatic network for analysis.  1 = on network, 0 = off network.  Note: network metrics and scores are not available for {type}s that are off network.",
     "Excluded": "this {type} was excluded from the connectivity analysis based on field reconnaissance or manual review of aerial imagery.",

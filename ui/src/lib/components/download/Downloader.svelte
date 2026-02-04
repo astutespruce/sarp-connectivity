@@ -2,7 +2,7 @@
 	import DownloadIcon from '@lucide/svelte/icons/download'
 	import { onMount } from 'svelte'
 
-	import { barrierTypeLabels } from '$lib/config/constants'
+	import { shortBarrierTypeLabels } from '$lib/config/constants'
 	import { getFromStorage } from '$lib/util/dom'
 
 	import { Button } from '$lib/components/ui/button'
@@ -20,6 +20,7 @@
 		disabled = false,
 		showOptions = true,
 		includeUnranked = false,
+		triggerLabel = null,
 		triggerClass = null
 	} = $props()
 
@@ -28,7 +29,7 @@
 	let needUserInfo: boolean = $state(true)
 
 	const barrierTypeLabel = $derived(
-		barrierTypeLabels[barrierType as keyof typeof barrierTypeLabels]
+		shortBarrierTypeLabels[barrierType as keyof typeof shortBarrierTypeLabels]
 	)
 
 	onMount(() => {
@@ -60,7 +61,7 @@
 
 <Button {disabled} onclick={show} class={cn('', triggerClass)}>
 	<DownloadIcon class="size-5" />
-	{label || `Download ${barrierTypeLabel}`}
+	{triggerLabel || barrierTypeLabel}
 </Button>
 
 {#if needUserInfo}

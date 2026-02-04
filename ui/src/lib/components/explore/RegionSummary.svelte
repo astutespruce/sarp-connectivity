@@ -217,7 +217,7 @@
 			>
 				<Downloader
 					{barrierType}
-					label={shortBarrierTypeLabels[barrierType as BarrierTypePlural]}
+					label={`Download ${shortBarrierTypeLabels[barrierType as BarrierTypePlural]}`}
 					showOptions={false}
 					triggerClass="text-sm h-auto py-1.5 px-2!"
 				/>
@@ -225,7 +225,7 @@
 				{#if barrierType === 'small_barriers'}
 					<Downloader
 						barrierType="road_crossings"
-						label={shortBarrierTypeLabels.road_crossings}
+						label={`Download ${shortBarrierTypeLabels.road_crossings}`}
 						showOptions={false}
 						triggerClass="text-sm h-auto py-1.5 px-2!"
 					/>

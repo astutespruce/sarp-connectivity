@@ -2,7 +2,7 @@
 	import FAQIcon from '@lucide/svelte/icons/circle-question-mark'
 
 	import { resolve } from '$app/paths'
-	import { CONTACT_EMAIL, NACC_HOME_URL, SITE_NAME } from '$lib/env'
+	import { CONTACT_EMAIL, NACC_HOME_URL, SITE_NAME, SITE_URL } from '$lib/env'
 	import { MAP_SERVICES, dataDate, dataVersion } from '$lib/config/constants'
 	import { HeaderImage } from '$lib/components/image'
 </script>
@@ -184,19 +184,22 @@
 				Alternatively, if citing the inventory in general, you may use the following citation:
 			</p>
 			<blockquote class="mt-4 ml-8">
-				Southeast Aquatic Resources Partnership (SARP). {dataDate.split('/')[2]}. Comprehensive
-				Aquatic Barrier Inventory v{dataVersion} ({dataDate}).
+				National Aquatic Connectivity Collaborative (NACC). {dataDate.split('/')[2]}. National
+				Aquatic Barrier Inventory v{dataVersion} ({dataDate}). Compiled by the
 				<a
 					href="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act"
 					target="_blank"
-					rel="external"
+					rel="external">Southeast Aquatic Resources Partnership</a
 				>
-					https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act
-				</a>. (downloaded {new Date().toLocaleDateString()} from
-				<a href="https://tool.aquaticbarriers.org" target="_blank" rel="external">
-					https://tool.aquaticbarriers.org
-				</a>
-				). SARP/USFWS.
+				(SARP) and the
+				<a href="https://www.fishhabitat.org/" target="_blank" rel="external"
+					>National Fish Habitat Partnership</a
+				>
+				(NFHP). [Downloaded {new Date().toLocaleDateString()}
+				from
+				<a href={SITE_URL} target="_blank" rel="external">
+					{SITE_URL}
+				</a>].
 			</blockquote>
 		</div>
 

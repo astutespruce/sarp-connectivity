@@ -61,7 +61,7 @@
 			>.
 
 			<br /><br />
-			You can also <a href={`mailto:${CONTACT_EMAIL}`}>Contact Us</a> for access to an ArcGIS Survey123
+			You can also <a href={`mailto:${CONTACT_EMAIL}`}>contact us</a> for access to an ArcGIS Survey123
 			data collector app that will help you collect survey data according to the NAACC's nontidal and
 			tidal protocols.
 		</div>
@@ -72,6 +72,7 @@
 		<Downloader
 			barrierType={networkType}
 			label="Download selected crossings"
+			triggerLabel="Download selected crossings"
 			disabled={crossfilter.filteredCount === 0}
 			{config}
 		/>

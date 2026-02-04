@@ -184,7 +184,7 @@
 			<div class="flex-none">
 				<Downloader
 					{barrierType}
-					label={shortBarrierTypeLabels[barrierType as BarrierTypePlural]}
+					label={`Download removed ${shortBarrierTypeLabels[barrierType as BarrierTypePlural]}`}
 					config={downloadConfig}
 					showOptions={false}
 					includeUnranked

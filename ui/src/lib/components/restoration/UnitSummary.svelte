@@ -365,7 +365,7 @@
 			{#if barrierType === 'dams'}
 				<Downloader
 					barrierType="dams"
-					label={shortBarrierTypeLabels.dams}
+					label={`Download removed ${shortBarrierTypeLabels.dams}`}
 					config={downloadConfig}
 					disabled={stats.dams === 0}
 					showOptions={false}
@@ -375,7 +375,7 @@
 			{:else if barrierType === 'small_barriers'}
 				<Downloader
 					barrierType="small_barriers"
-					label={shortBarrierTypeLabels.small_barriers}
+					label={`Download removed ${shortBarrierTypeLabels.small_barriers}`}
 					config={downloadConfig}
 					disabled={stats.totalSmallBarriers === 0}
 					showOptions={false}
@@ -385,7 +385,7 @@
 			{:else if barrierType === 'combined_barriers'}
 				<Downloader
 					barrierType="combined_barriers"
-					label={shortBarrierTypeLabels.combined_barriers}
+					label={`Download removed ${shortBarrierTypeLabels.combined_barriers}`}
 					config={downloadConfig}
 					disabled={stats.dams + stats.totalSmallBarriers === 0}
 					showOptions={false}

@@ -1,9 +1,10 @@
 This inventory is a growing and living database of dams and surveyed road/stream
 crossings (potential barriers) compiled by the Southeast Aquatic Resources
-Partnership with the generous support from many partners and funders.
-Information about network connectivity, landscape condition, and presence of
-threatened and endangered aquatic organisms are added to this inventory to help
-you investigate barriers at any scale for your desired purposes.
+Partnership and National Fish Habitat Partnership with the generous support from
+many partners and funders. Information about network connectivity, landscape
+condition, and presence of threatened and endangered aquatic organisms are added
+to this inventory to help you investigate barriers at any scale for your desired
+purposes.
 
 This inventory consists of datasets from local, state, and federal partners. It
 is supplemented with input from partners with on the ground knowledge of
@@ -17,25 +18,26 @@ All network analyses were conducted using the NHD High Resolution Plus dataset
 (https://www.usgs.gov/core-science-systems/ngp/national-hydrography/nhdplus-high-resolution).
 
 If you are able to help improve the inventory by sharing data or assisting with field
-reconnaissance, please contact us (https://southeastaquatics.net/about/contact-us).
+reconnaissance, please contact us at {contact_email}.
 
 Note: data come from a variety of sources and available descriptive information
 is not comprehensive.
 
 Also note: information on rare species is highly limited.
 
-The data made available through this tool represent substantial effort
-and investment from the Southeast Aquatic Resources Partnership
-(SARP) and SARP's funders, partners, and data contributors.
+These data represent substantial effort and investment from the National Aquatic
+Connectivity Collaborative (NACC; https://aquaticbarriers.org), Southeast Aquatic
+Resources Partnership (SARP; https://southeastaquatics.net), National Fish Habitat
+Partnership (NFHP; https://www.fishhabitat.org/), and their funders, partners, and
+data contributors.
 
 
 Credits:
 ------------
 This project was supported in part by grants from the U.S. Fish and Wildlife
-Service Fish Passage Program, American Rivers, the U.S. Department of
-Agriculture, Forest Service, the National Fish and Wildlife Foundation, The
-Nature Conservancy, Trout Unlimited the Gulf Coastal Plains and Ozarks Landscape
-Conservation Cooperative, and the Florida State Wildlife Grants Program.
+Service Fish Passage Program, American Rivers, the National Fish and Wildlife Foundation,
+the U.S. Department of Agriculture, Forest Service, , The Nature Conservancy,
+Trout Unlimited, and state wildlife grant funding from Florida and Texas.
 
 
 Network types:
