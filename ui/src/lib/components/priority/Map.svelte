@@ -354,7 +354,6 @@
 					? properties.barriertype
 					: source
 
-			console.log('network type here is', networkType)
 			const network = networkType === 'small_barriers' ? 'combined_barriers' : networkType
 
 			// promote network fields if clicking on a waterfall

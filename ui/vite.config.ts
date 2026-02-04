@@ -9,6 +9,18 @@ import { config as dotEnvConfig } from 'dotenv'
 dotEnvConfig({ path: `.env.${process.env.NODE_ENV}` })
 
 export default defineConfig({
+	build: {
+		rollupOptions: {
+			output: {
+				// split mapbox its own chunk; it is large
+				manualChunks: function (id) {
+					if (id.includes('mapbox-gl')) {
+						return 'map-vendor'
+					}
+				}
+			}
+		}
+	},
 	plugins: [tailwindcss(), enhancedImages(), sveltekit()],
 	resolve: {
 		alias: {
@@ -17,10 +29,7 @@ export default defineConfig({
 	},
 	server: {
 		fs: {
-			allow: [
-				path.resolve(__dirname, './package.json'),
-				path.resolve(__dirname, './data')
-			]
+			allow: [path.resolve(__dirname, './package.json'), path.resolve(__dirname, './data')]
 		}
 	}
 })

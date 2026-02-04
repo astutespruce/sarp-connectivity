@@ -10,7 +10,7 @@ staging.aquaticbarriers.org {
   header X-Content-Type-Options nosniff
 
   # redirect previous paths to tool
-  # TODO: switch to 301 redirects
+  # TODO: switch to 308 redirects
   # NOTE: backend endpoints will likely fail if used directly from frontend due to CORS
   @old_backend_paths {
     path /api/* /downloads/* /services/*
@@ -120,7 +120,7 @@ staging.tool.aquaticbarriers.org {
 
     # most files can be cached indefinitely, they are rebuilt with new names each time
     @cached_files {
-      path *.jpg *.jpeg *.png *.gif *.webp *.svg *.css *.js */static/*
+      path *.jpg *.jpeg *.png *.gif *.webp *.avif *.svg *.css *.js */static/*
       not path /favicon*
     }
     header @cached_files Cache-Control "public, max-age=31536000, immutable"

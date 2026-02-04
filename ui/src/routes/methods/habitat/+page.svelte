@@ -41,7 +41,7 @@
 	</p>
 
 	<Alert title="Warning" class="mt-8 mb-12 text-lg">
-		<p class="text-sm mt-2">
+		<p class="text-base mt-2">
 			These estimates should be used with caution due to the many inherent limitations of species
 			habitat data, including incomplete coverage of the current or potential distribution of a
 			species, lack of data within particular stream reaches, incorrect attribution of stream

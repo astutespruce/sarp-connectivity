@@ -89,7 +89,7 @@
 
 		let url = null
 
-		if (summaryUnits) {
+		if (Object.keys(summaryUnits).length > 0) {
 			const formattedIds = Object.entries(summaryUnits)
 				.map(([key, values]) => `${key}: ${(values as string[]).join(',')}`)
 				.join(';')
