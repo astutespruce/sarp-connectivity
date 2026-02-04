@@ -15,6 +15,7 @@
 	import { SummaryUnitManager } from '$lib/components/summaryunits'
 	import type { SummaryUnit } from '$lib/components/summaryunits/types'
 	import { SYSTEMS } from '$lib/config/constants'
+	import { logGAEvent } from '$lib/util/analytics'
 	import { cn } from '$lib/utils'
 
 	type System = 'ADM' | 'HUC'
@@ -43,21 +44,37 @@
 	let focalBarrierType: FocalBarrierType = $state('dams')
 	let selectedBarrier = $state.raw(null)
 
+	const handleSetFocalBarrierType = (newType: FocalBarrierType) => {
+		focalBarrierType = newType
+
+		logGAEvent(`explore - set barrier type`, newType)
+	}
+
 	const handleSetSystem = (newSystem: System) => {
 		system = newSystem
 		summaryUnits.clear()
+
+		logGAEvent(`explore ${focalBarrierType} - set system`, newSystem)
 	}
 
 	const handleSelectUnit = async (item: SummaryUnit) => {
 		selectedBarrier = null
 
 		await summaryUnits.toggleItem(item)
+
+		if (item) {
+			logGAEvent(`explore ${focalBarrierType} - select unit`, `${item.layer}: ${item.id}`)
+		}
 	}
 
 	// @ts-expect-error ignore typing here
 	const handleSelectBarrier = (feature) => {
 		selectedBarrier = feature
 		summaryUnits.clear()
+
+		if (selectedBarrier) {
+			logGAEvent(`explore ${focalBarrierType} - select barrier`, feature.sarpidname.split('|')[0])
+		}
 	}
 
 	const handleBarrierDetailsClose = () => {
@@ -137,9 +154,7 @@
 						class={cn('px-2 py-1 h-auto not-first:ml-px', {
 							'bg-blue-1 hover:bg-blue-2 text-foreground': option.value !== focalBarrierType
 						})}
-						onclick={() => {
-							focalBarrierType = option.value
-						}}>{option.label}</Button
+						onclick={() => handleSetFocalBarrierType(option.value)}>{option.label}</Button
 					>
 				{/each}
 			</ButtonGroup>

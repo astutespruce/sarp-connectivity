@@ -14,16 +14,14 @@ declare global {
 
 	// extend Window object to handle properties / functions added at runtime
 	interface Window {
-		/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-		dataLayer?: any[]
+		// gtag and dataLayer are added dynamically at runtime (Google Analytics)
+		gtag?: (...unknown) => void
+		dataLayer?: unknown[]
 
 		// sentry is dynamically defined at runtime
 		Sentry?: {
 			captureException: (any) => void
 		}
-
-		// gtag is added dynamically at runtime
-		gtag?: (...unknown) => void
 
 		// map is dynamically added to window on map pages
 		map?: Map

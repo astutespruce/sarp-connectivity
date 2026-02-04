@@ -2,11 +2,10 @@
 	import type { ColumnTable as Table } from 'arquero'
 	import LoadingIcon from '@lucide/svelte/icons/loader'
 	import WarningIcon from '@lucide/svelte/icons/triangle-alert'
-	import { SvelteSet } from 'svelte/reactivity'
 	import { getQueryClientContext } from '@tanstack/svelte-query'
 	import type { Map as MapboxGLMapType, LngLatBoundsLike } from 'mapbox-gl'
 
-	import { fetchBarrierInfo, fetchBarrierRanks, fetchUnitDetails } from '$lib/api'
+	import { fetchBarrierInfo, fetchBarrierRanks } from '$lib/api'
 	import { CONTACT_EMAIL } from '$lib/env'
 	import { getSingularUnitLabel } from '$lib/config/constants'
 	import { summaryStats } from '$lib/config/summaryStats'
@@ -22,8 +21,7 @@
 	import { Filters, LayerChooser, UnitChooser } from '$lib/components/workflow'
 	import type { Status, Step } from '$lib/components/workflow/types'
 	import { unitLayerConfig } from '$lib/components/workflow/config'
-	import { trackPrioritize } from '$lib/util/analytics'
-	import { captureException } from '$lib/util/log'
+	import { trackPrioritize, logGAEvent } from '$lib/util/analytics'
 	import { cn } from '$lib/utils'
 
 	import Map from './Map.svelte'
@@ -131,12 +129,18 @@
 		layer = newLayer
 		summaryUnits.clear()
 		step = 'select-units'
+
+		logGAEvent(`prioritize ${networkType} - set layer`, newLayer)
 	}
 
 	const handleSelectUnit = async (item: SummaryUnit) => {
 		selectedBarrier = null
 
 		await summaryUnits.toggleItem(item)
+
+		if (item) {
+			logGAEvent(`prioritize ${networkType} - select unit`, `${item.layer}: ${item.id}`)
+		}
 	}
 
 	const loadBarrierInfo = async () => {
@@ -238,11 +242,23 @@
 	// @ts-expect-error feature is valid here; don't want to bother typing
 	const handleSelectBarrier = (feature) => {
 		selectedBarrier = feature
+
+		if (selectedBarrier) {
+			logGAEvent(`prioritize ${networkType} - select barrier`, feature.sarpidname.split('|')[0])
+		}
 	}
 
 	const handleBarrierDetailsClose = () => {
 		selectedBarrier = null
 	}
+
+	$effect(() => {
+		crossfilter.filters
+
+		if (Object.keys(crossfilter.filters).length > 0) {
+			logGAEvent(`prioritize ${networkType} - set filters`, crossfilter.serializeFilters())
+		}
+	})
 </script>
 
 <div class="flex gap-0 h-full w-full">

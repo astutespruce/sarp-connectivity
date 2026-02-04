@@ -53,3 +53,10 @@ export const trackDownload = ({
 		eventLabel: details
 	})
 }
+
+export const logGAEvent = (event: string, details: string | null = null) => {
+	// NOTE: window.gtag only available in build mode
+	if (!(browser && window.gtag)) return
+
+	window.gtag('event', event, details ? { eventLabel: details } : undefined)
+}

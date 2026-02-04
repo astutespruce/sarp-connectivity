@@ -2,9 +2,11 @@
 	import { onMount } from 'svelte'
 	import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query'
 
+	import { browser } from '$app/environment'
+	import { GOOGLE_ANALYTICS_ID } from '$lib/env'
 	import { afterNavigate } from '$app/navigation'
 
-	import { Analytics, Footer, Header } from '$lib/components/layout'
+	import { Footer, Header } from '$lib/components/layout'
 
 	import '../app.css'
 	import { SITE_NAME } from '$lib/env'
@@ -34,9 +36,34 @@
 			`"${SITE_NAME} (${new Date().toLocaleDateString()})"`
 		)
 	})
+
+	const handleGTAGLoad = () => {
+		if (!window.dataLayer) {
+			console.warn('GTAG not properly initialized')
+			return
+		}
+
+		console.debug('setting up GTAG')
+
+		function gtag() {
+			dataLayer.push(arguments)
+		}
+
+		gtag('js', new Date())
+		gtag('config', GOOGLE_ANALYTICS_ID)
+		window.gtag = gtag
+	}
 </script>
 
-<Analytics />
+<svelte:head>
+	{#if browser && GOOGLE_ANALYTICS_ID}
+		<script
+			async
+			src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ANALYTICS_ID}`}
+			onload={handleGTAGLoad}
+		></script>
+	{/if}
+</svelte:head>
 
 <QueryClientProvider client={queryClient}>
 	<div class="flex flex-col h-full w-full overflow-none print:h-auto">

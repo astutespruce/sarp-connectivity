@@ -94,17 +94,17 @@ API_DATA_PATH=/data/api
 Create a `ui/.env.production` file with the following:
 
 ```
-GATSBY_MAPBOX_API_TOKEN = <token>
-GATSBY_SENTRY_DSN = <dsn>
-GATSBY_GOOGLE_ANALYTICS_ID = <ga id>
-GATSBY_API_HOST = <root URL of API host>
-GATSBY_TILE_HOST = <root URL of tile host>
-GATSBY_MAILCHIMP_URL=https://mc.us19.list-manage.com/subscribe/landing-page
-GATSBY_MAILCHIMP_USER_ID=<user id>
-GATSBY_MAILCHIMP_FORM_ID=<form id>
-GATSBY_MAILCHIMP_FORM_ID2=<form id2>
-GATSBY_SITE_URL=https://tool.aquaticbarriers.org  # or https://staging.tool.aquaticbarriers.org
-GATSBY_NACC_URL=https://aquaticbarriers.org  # or https://staging.aquaticbarriers.org
+PUBLIC_MAPBOX_API_TOKEN = <token>
+PUBLIC_SENTRY_DSN = <dsn>
+PUBLIC_GOOGLE_ANALYTICS_ID = <ga id>
+PUBLIC_API_HOST = <root URL of API host>
+PUBLIC_TILE_HOST = <root URL of tile host>
+PUBLIC_SITE_URL=https://tool.aquaticbarriers.org  # or https://staging.tool.aquaticbarriers.org
+PUBLIC_MAILCHIMP_URL=https://mc.us19.list-manage.com/subscribe/landing-page
+PUBLIC_MAILCHIMP_USER_ID=<user id>
+PUBLIC_MAILCHIMP_FORM_ID=<form id>
+PUBLIC_MAILCHIMP_FORM_ID2=<form id2>
+PUBLIC_NACC_URL=https://aquaticbarriers.org  # or https://staging.aquaticbarriers.org
 ```
 
 ## Clone NACC homepage repository and setup environment files
@@ -202,10 +202,8 @@ Exit and log back in as app user.
 cd ~/sarp-connectivity/ui
 nvm install
 npm install -g npm@latest
-npm run install-deps
+npm ci
 ```
-
-NOTE: the gatsby-cli version may need to be updated to match version of Gatsby in `package.json`
 
 Build it:
 

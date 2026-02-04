@@ -1,13 +1,10 @@
 <script lang="ts">
 	import LoadingIcon from '@lucide/svelte/icons/loader-circle'
 	import type { Map as MapboxGLMapType, LngLatBoundsLike } from 'mapbox-gl'
-	import { getQueryClientContext } from '@tanstack/svelte-query'
-	import { SvelteSet } from 'svelte/reactivity'
 
 	import { CONTACT_EMAIL, SITE_NAME } from '$lib/env'
 	import { Button } from '$lib/components/ui/button'
 
-	import { fetchUnitDetails } from '$lib/api'
 	import { Alert } from '$lib/components/alert'
 	import { BarrierDetails } from '$lib/components/barrierdetails'
 	import { Root as ButtonGroup } from '$lib/components/ui/button-group'
@@ -18,8 +15,7 @@
 	import { SummaryUnitManager } from '$lib/components/summaryunits'
 	import type { SummaryUnit } from '$lib/components/summaryunits/types'
 	import { SYSTEMS } from '$lib/config/constants'
-	import { captureException } from '$lib/util/log'
-	import { extractYearRemovedStats } from '$lib/util/stats'
+	import { logGAEvent } from '$lib/util/analytics'
 	import { cn } from '$lib/utils'
 	import type { MetricOptionValue } from './types'
 
@@ -50,20 +46,39 @@
 	let focalBarrierType: FocalBarrierType = $state('dams')
 	let selectedBarrier = $state.raw(null)
 
+	const handleSetFocalBarrierType = (newType: FocalBarrierType) => {
+		focalBarrierType = newType
+
+		logGAEvent(`restoration - set barrier type`, newType)
+	}
+
 	const handleSetSystem = (newSystem: System) => {
 		system = newSystem
 		summaryUnits.clear()
+
+		logGAEvent(`restoration ${focalBarrierType} - set system`, newSystem)
 	}
 
 	const handleSelectUnit = async (item: SummaryUnit) => {
 		selectedBarrier = null
 		await summaryUnits.toggleItem(item)
+
+		if (item) {
+			logGAEvent(`restoration ${focalBarrierType} - select unit`, `${item.layer}: ${item.id}`)
+		}
 	}
 
 	// @ts-expect-error ignore typing here
 	const handleSelectBarrier = (feature) => {
 		selectedBarrier = feature
 		summaryUnits.clear()
+
+		if (selectedBarrier) {
+			logGAEvent(
+				`restoration ${focalBarrierType} - select barrier`,
+				feature.sarpidname.split('|')[0]
+			)
+		}
 	}
 
 	const handleBarrierDetailsClose = () => {
@@ -151,9 +166,7 @@
 						class={cn('px-2 py-1 h-auto not-first:ml-px', {
 							'bg-blue-1 hover:bg-blue-2 text-foreground': option.value !== focalBarrierType
 						})}
-						onclick={() => {
-							focalBarrierType = option.value
-						}}>{option.label}</Button
+						onclick={() => handleSetFocalBarrierType(option.value)}>{option.label}</Button
 					>
 				{/each}
 			</ButtonGroup>
