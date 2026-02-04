@@ -7,9 +7,7 @@ from openpyxl.utils import get_column_letter
 from api.constants import DOMAINS
 from analysis.constants import SARP_STATES
 
-primary_col_style = NamedStyle(
-    name="PrimaryColumnStyle", alignment=Alignment(horizontal="left", wrap_text=True)
-)
+primary_col_style = NamedStyle(name="PrimaryColumnStyle", alignment=Alignment(horizontal="left", wrap_text=True))
 
 
 current_version = "Dec2022"
@@ -57,7 +55,7 @@ barrier_summary_fields = {
 
 for barrier_type in ["dams", "small_barriers"]:
     print(f"Summarizing {barrier_type}...")
-    type_label = "dams" if barrier_type == "dams" else "road-related barriers"
+    type_label = "dams" if barrier_type == "dams" else "surveyed road/stream crossings"
 
     status_fields = barrier_status_fields[barrier_type]
     summary_fields = barrier_summary_fields[barrier_type]
@@ -66,11 +64,7 @@ for barrier_type in ["dams", "small_barriers"]:
 
     df = pd.read_feather(
         data_dir / f"{barrier_type}.feather",
-        columns=["id"]
-        + summary_fields
-        + status_fields
-        + extra_fields
-        + ["State", "HUC2"],
+        columns=["id"] + summary_fields + status_fields + extra_fields + ["State", "HUC2"],
     )
     api_df = pd.read_feather(
         f"data/api/{barrier_type}.feather",
@@ -83,12 +77,8 @@ for barrier_type in ["dams", "small_barriers"]:
     df.loc[df.State == "", "State"] = "<outside region states>"
 
     df = df.join(api_df, on="id")
-    df["not_dropped_or_duplicate_or_removed"] = (
-        ~(df.dropped | df.duplicate | df.removed)
-    ).astype("uint8")
-    df["analyzed"] = (df.snapped & ~(df.duplicate | df.dropped | df.excluded)).astype(
-        "uint8"
-    )
+    df["not_dropped_or_duplicate_or_removed"] = (~(df.dropped | df.duplicate | df.removed)).astype("uint8")
+    df["analyzed"] = (df.snapped & ~(df.duplicate | df.dropped | df.excluded)).astype("uint8")
     df["manually_reviewed"] = df.ManualReview.isin(had_manual_review).astype("uint8")
     df["reconned"] = (df.Recon > 0).astype("uint8")
     df["removed_not_dropped_or_duplicate"] = df.removed & (~(df.dropped | df.duplicate))
@@ -96,13 +86,10 @@ for barrier_type in ["dams", "small_barriers"]:
     if barrier_type == "dams":
         # per guidance from Kat: confirmed unless within SARP states and not reconned or is error
         df["is_confirmed_estimated"] = df.is_estimated & ~(
-            df.State.isin(SARP_STATES)
-            & (df.Recon.isin([0, 5]) | df.ManualReview.isin([6, 11, 14]))
+            df.State.isin(SARP_STATES) & (df.Recon.isin([0, 5]) | df.ManualReview.isin([6, 11, 14]))
         ).astype("uint8")
     else:
-        df["proposed_project"] = df.PotentialProject.isin(["Proposed Project"]).astype(
-            "uint8"
-        )
+        df["proposed_project"] = df.PotentialProject.isin(["Proposed Project"]).astype("uint8")
         df["scored"] = df.SARP_Score != -1
 
     for col in status_fields + [
@@ -117,12 +104,10 @@ for barrier_type in ["dams", "small_barriers"]:
     states = sorted(x for x in df.State.unique() if x)
     huc2 = sorted(x for x in df.HUC2.unique() if x)
 
-    with pd.ExcelWriter(
-        out_dir / f"{barrier_type}_{current_version}_summary.xlsx"
-    ) as xlsx, open(
-        out_dir / f"{barrier_type}_{current_version}_summary.md", "w"
-    ) as md:
-
+    with (
+        pd.ExcelWriter(out_dir / f"{barrier_type}_{current_version}_summary.xlsx") as xlsx,
+        open(out_dir / f"{barrier_type}_{current_version}_summary.md", "w") as md,
+    ):
         ### Totals
         data = {
             "total": len(df),
@@ -133,9 +118,9 @@ for barrier_type in ["dams", "small_barriers"]:
 
         if barrier_type == "dams":
             data["estimated"] = df.is_estimated.sum()
-            data[
-                "confirmed_estimated (not in SARP states or in SARP state & not error)"
-            ] = df.is_confirmed_estimated.sum()
+            data["confirmed_estimated (not in SARP states or in SARP state & not error)"] = (
+                df.is_confirmed_estimated.sum()
+            )
         else:
             data["scored (SARP_Score>=0)"] = df.scored.sum()
             data["proposed_project"] = df.proposed_project.sum()
@@ -294,11 +279,7 @@ for barrier_type in ["dams", "small_barriers"]:
             stats = df.groupby(col).agg(agg).rename(columns=rename_cols)
 
             if col in DOMAINS:
-                stats.index = (
-                    stats.index.astype(str)
-                    + ": "
-                    + stats.index.map(DOMAINS[col]).fillna("")
-                )
+                stats.index = stats.index.astype(str) + ": " + stats.index.map(DOMAINS[col]).fillna("")
 
             sheet_name = f"{col} {type_label}"
             stats.to_excel(xlsx, sheet_name=sheet_name)
@@ -317,9 +298,7 @@ for barrier_type in ["dams", "small_barriers"]:
             ### Crosstab by state
             values = df[col].copy()
             if col in DOMAINS:
-                values = (
-                    df[col].astype(str) + ": " + df[col].map(DOMAINS[col]).fillna("")
-                )
+                values = df[col].astype(str) + ": " + df[col].map(DOMAINS[col]).fillna("")
 
             crosstab = pd.crosstab(
                 values,
@@ -341,18 +320,9 @@ for barrier_type in ["dams", "small_barriers"]:
             md.write("\n\n\n\n")
 
             ### Values by state
-            stats = (
-                df.groupby(["State", col])
-                .agg(agg)
-                .rename(columns=rename_cols)
-                .reset_index()
-            )
+            stats = df.groupby(["State", col]).agg(agg).rename(columns=rename_cols).reset_index()
             if col in DOMAINS:
-                stats[col] = (
-                    stats[col].astype(str)
-                    + ": "
-                    + stats[col].map(DOMAINS[col]).fillna("")
-                )
+                stats[col] = stats[col].astype(str) + ": " + stats[col].map(DOMAINS[col]).fillna("")
 
             sheet_name = f"{col} {type_label} by state"
             stats.to_excel(xlsx, sheet_name=sheet_name, index=False)
@@ -373,9 +343,7 @@ for barrier_type in ["dams", "small_barriers"]:
             ### Crosstab by HUC2
             values = df[col].copy()
             if col in DOMAINS:
-                values = (
-                    df[col].astype(str) + ": " + df[col].map(DOMAINS[col]).fillna("")
-                )
+                values = df[col].astype(str) + ": " + df[col].map(DOMAINS[col]).fillna("")
 
             crosstab = pd.crosstab(values, df.HUC2)
 
@@ -394,18 +362,9 @@ for barrier_type in ["dams", "small_barriers"]:
             md.write("\n\n\n\n")
 
             ### Values by HUC2
-            stats = (
-                df.groupby(["HUC2", col])
-                .agg(agg)
-                .rename(columns=rename_cols)
-                .reset_index()
-            )
+            stats = df.groupby(["HUC2", col]).agg(agg).rename(columns=rename_cols).reset_index()
             if col in DOMAINS:
-                stats[col] = (
-                    stats[col].astype(str)
-                    + ": "
-                    + stats[col].map(DOMAINS[col]).fillna("")
-                )
+                stats[col] = stats[col].astype(str) + ": " + stats[col].map(DOMAINS[col]).fillna("")
 
             sheet_name = f"{col} {type_label} by HUC2"
             stats.to_excel(xlsx, sheet_name=sheet_name, index=False)

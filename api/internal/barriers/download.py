@@ -22,7 +22,6 @@ from api.constants import (
     SB_EXPORT_FIELDS,
     COMBINED_EXPORT_FIELDS,
     ROAD_CROSSING_EXPORT_FIELDS,
-    LOGO_PATH,
 )
 from api.logger import log, log_request
 from api.dependencies import get_unit_ids, get_filter_params
@@ -30,7 +29,7 @@ from api.lib.download import extract_for_download
 from api.lib.extract import get_record_count
 from api.lib.progress import get_progress, set_progress
 from api.metadata import get_readme, get_terms
-from api.settings import MAX_IMMEDIATE_DOWNLOAD_RECORDS, CUSTOM_DOWNLOAD_DIR, REDIS, REDIS_QUEUE
+from api.settings import MAX_IMMEDIATE_DOWNLOAD_RECORDS, CUSTOM_DOWNLOAD_DIR, REDIS, REDIS_QUEUE, LOGO_PATH
 
 
 router = APIRouter()
@@ -40,12 +39,12 @@ router = APIRouter()
 async def download(
     request: Request,
     barrier_type: FullySupportedBarrierTypes,
-    format: Formats = "csv",
+    format: Formats = Formats.csv,
     unit_ids: get_unit_ids = Depends(),
     filters: get_filter_params = Depends(),
     custom_rank: bool = False,
     include_unranked: bool = False,
-    sort: Scenarios = "NCWC",
+    sort: Scenarios = Scenarios.NCWC,
 ):
     """Download subset of barrier_type data.
 
@@ -115,7 +114,7 @@ async def download(
             columns += COMBINED_EXPORT_FIELDS
         case "road_crossings":
             columns += ROAD_CROSSING_EXPORT_FIELDS
-            warnings = "this dataset includes road/stream crossings (potential barriers) derived\nfrom the USGS Road Crossings dataset (2022) or USFS National Road / Stream crossings dataset (2024)\nthat have not yet been assessed for impacts to aquatic organisms.  Unsurveyed\ncrossings are limited to those that were snapped to the aquatic network and should\nnot be taken as a comprehensive survey of all possible road-related barriers."
+            warnings = "this dataset includes road/stream crossings (potential barriers) derived\nfrom the USGS Road Crossings dataset (2022) or USFS National Road / Stream crossings dataset (2024)\nthat have not yet been surveyed for impacts to aquatic organisms.  Unsurveyed\ncrossings are limited to those that were snapped to the aquatic network and should\nnot be taken as a comprehensive survey of all possible road-related barriers."
 
     columns = [c for c in columns if c not in CUSTOM_TIER_FIELDS]
 
@@ -154,7 +153,7 @@ async def download(
                 zf.writestr(filename, csv_stream.getvalue())
                 zf.writestr("README.txt", readme)
                 zf.writestr("TERMS_OF_USE.txt", terms)
-                zf.write(LOGO_PATH, "SARP_logo.png")
+                zf.write(LOGO_PATH, LOGO_PATH.name)
 
         return JSONResponse(
             content={"status": "success", "path": f"/downloads/custom/{tmp_dir.name}/{barrier_type}.zip"}
@@ -188,7 +187,7 @@ async def custom_download_task(
             columns += COMBINED_EXPORT_FIELDS
         case "road_crossings":
             columns += ROAD_CROSSING_EXPORT_FIELDS
-            warnings = "this dataset includes road/stream crossings (potential barriers) derived\nfrom the USGS Road Crossings dataset (2022) or USFS National Road / Stream crossings dataset (2024)\nthat have not yet been assessed for impacts to aquatic organisms.  Unsurveyed\ncrossings are limited to those that were snapped to the aquatic network and should\nnot be taken as a comprehensive survey of all possible road-related barriers."
+            warnings = "this dataset includes road/stream crossings (potential barriers) derived\nfrom the USGS Road Crossings dataset (2022) or USFS National Road / Stream crossings dataset (2024)\nthat have not yet been surveyed for impacts to aquatic organisms.  Unsurveyed\ncrossings are limited to those that were snapped to the aquatic network and should\nnot be taken as a comprehensive survey of all possible road-related barriers."
 
     columns = [c for c in columns if c not in CUSTOM_TIER_FIELDS]
 
@@ -229,7 +228,7 @@ async def custom_download_task(
                 zf.writestr(filename, csv_stream.getvalue())
                 zf.writestr("README.txt", readme)
                 zf.writestr("TERMS_OF_USE.txt", terms)
-                zf.write(LOGO_PATH, "SARP_logo.png")
+                zf.write(LOGO_PATH, LOGO_PATH.name)
 
     await set_progress(ctx["redis"], ctx["job_id"], "100", "All done")
 

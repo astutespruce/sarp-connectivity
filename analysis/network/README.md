@@ -8,12 +8,14 @@ Once all the inputs are prepared (see `analysis/prep/README.md`), you now run th
 4. Export networks (if needed)
 
 The network analysis is run by default for the following network analysis types (`<type>` below):
+
 - `dams`: networks are broken by waterfalls and dams
 - `combined_barriers`: networks are broken by waterfalls, dams, and surveyed road-related barriers (excluding minor barriers)
 - `largefish_barriers`: large-bodied fish networks are broken by waterfalls (unless marked as passable to salmonids), dams (unless marked as passable to salmonids), and surveyed road-related barriers marked as severe or significant barriers, or potential or proposed projects
 - `smallfish_barriers`: small-bodied fish networks are broken by waterfalls, dams, and all surveyed road-related barriers (including minor barriers)
 
 During preparation of each barrier type (see [analysis/prep/barriers/README.md](../prep/barriers/README.md)), barriers of each type that can participate in the network analysis (snapped and not dropped, excluded, duplicate, or on network loops or off-network flowlines) are assigned to a particular network type that is used to filter them for use in the above network types:
+
 - `primary_network`: included in the default networks above
 - `largefish_network`: included in the large-bodied networks above
 - `smallfish_network`: included in the small-bodied networks above
@@ -24,20 +26,20 @@ This makes it possible to compose network scenarios by taking different subsets 
 
 See [analysis/constants.py::NETWORK_TYPES](../constants.py) for the network analysis scenario configuration.
 
-Additional network analyses can be run by configuring a different set of barriers against a particular network type.  For example, to run on only artificial barriers but break networks for all barrier severities, this would use dams and surveyed road barriers (but not waterfalls) and use the `smallfish_network`.
+Additional network analyses can be run by configuring a different set of barriers against a particular network type. For example, to run on only artificial barriers but break networks for all barrier severities, this would use dams and surveyed road/stream crossings (but not waterfalls) and use the `smallfish_network`.
 
 ## Cut flowlines by barriers
 
 Run `cut_flowlines.py` to aggregate all barriers and cut all flowlines.
 
-This uses the flowline joins to determine which HUC2s (NHD regions) are hydrologically connected to each other.  Networks are analyzed within the context of those hydrologically connected HUC2s.
+This uses the flowline joins to determine which HUC2s (NHD regions) are hydrologically connected to each other. Networks are analyzed within the context of those hydrologically connected HUC2s.
 
 This cuts the network at each barrier and associates each barrier with an
 upstream and downstream flowline segment ID. It automatically calculates a new
 unique ID for a segment if it is creating a new segment between two barriers on
 the same original flowline segment. The networks are then re-assembled in the next step by traversing upstream from the downstream-most points of the NHD flowlines or from each barrier.
 
-This cuts networks based on all snapped barriers that participate in any network analysis of all types including modeled road crossings.  While road crossings are not used to create networks, this allows us to calculate their position within the network, and count them as part of the upstream or downstream network of a given barrier.
+This cuts networks based on all snapped barriers that participate in any network analysis of all types including modeled road crossings. While road crossings are not used to create networks, this allows us to calculate their position within the network, and count them as part of the upstream or downstream network of a given barrier.
 
 This creates the following output files:
 
@@ -47,53 +49,50 @@ This creates the following output files:
 - `networks/raw/<HUC2>/flowline_joins.feather`: joins for above flowlines
 - `networks/raw/<HUC2>/barrier_joins.feather`: joins for lineIDs upstream / downstream of barriers
 
-
 ## Create networks and calculate statistics
 
 Run `run_network_analysis.py` to create networks for each network analysis type.
 The core logic for the network analysis is located in `analysis/network/lib/networks.py`.
 
-NOTE: All network loops and off-network flowlines are excluded from the network analysis.  The network analysis assumes that all flowlines are configured in a dendritic (branching rather than looping) network configuration facing in the upstream direction, and that all network loops are properly identified and removed before the analysis.  It is a known issue that NHD does not properly identify all loops correctly and pains are taken during preparation of the flowlines and joins to correct these issues.
+NOTE: All network loops and off-network flowlines are excluded from the network analysis. The network analysis assumes that all flowlines are configured in a dendritic (branching rather than looping) network configuration facing in the upstream direction, and that all network loops are properly identified and removed before the analysis. It is a known issue that NHD does not properly identify all loops correctly and pains are taken during preparation of the flowlines and joins to correct these issues.
 
+The core concept of this part of the network analysis is that there is a “join” between each upstream and downstream flowline that are hydrologically connected for purposes of the analysis. A join is a pair of downstream line ID and upstream line ID. This join is used to build an adjacency matrix that is the core of a directed graph data structure that can be used for traversing the network in the upstream dendritic (functional) or downstream linear direction. Joins can be removed to “break” the network at that location (for example, because of a barrier), because that prevents the network traversal algorithm from stepping across that point; removing a join converts a connected network into 2 (or more) disconnected subnetworks.
 
-The core concept of this part of the network analysis is that there is a “join” between each upstream and downstream flowline that are hydrologically connected for purposes of the analysis.  A join is a pair of downstream line ID and upstream line ID.  This join is used to build an adjacency matrix that is the core of a directed graph data structure that can be used for traversing the network in the upstream dendritic (functional) or downstream linear direction.  Joins can be removed to “break” the network at that location (for example, because of a barrier), because that prevents the network traversal algorithm from stepping across that point; removing a join converts a connected network into 2 (or more) disconnected subnetworks.
+Any flowline that is not upstream of another flowline becomes an “origin” point of a given network. Origins can be either the downstream-most point on a network (e.g., where it connects to the ocean) or because the network was broken at that join for a barrier. These types of network origins are treated separately in the analysis, but the traversal process is the same.
 
-Any flowline that is not upstream of another flowline becomes an “origin” point of a given network.  Origins can be either the downstream-most point on a network (e.g., where it connects to the ocean) or because the network was broken at that join for a barrier.  These types of network origins are treated separately in the analysis, but the traversal process is the same.
-
-IMPORTANT: there may be multiple upstream networks from a given origin point.  For example, two incoming tributaries join at the barrier. If this is encountered, the multiple networks are merged together into a single network.
+IMPORTANT: there may be multiple upstream networks from a given origin point. For example, two incoming tributaries join at the barrier. If this is encountered, the multiple networks are merged together into a single network.
 
 The script iterates over each network analysis type and removes joins between flowlines at the location of the barriers that are selected for that particular analysis.
 
 ### Create upstream functional networks
 
-This builds a directed graph facing in the upstream network for all flowlines.  It calculates the natural origin points that are not upstream of any other flowline and the barrier origin points that are at the barriers.  For each type of origin point, it traverses the directed graph starting from their downstream end and using a breadth-first search to traverse to the upstream-most points of that network.  This identifies the set of upstream line IDs that are associated with that origin point, and all line segments in that network are assigned the line ID of the origin point.  This provides the lookup table of each flowline to the functional network it belongs to.
+This builds a directed graph facing in the upstream network for all flowlines. It calculates the natural origin points that are not upstream of any other flowline and the barrier origin points that are at the barriers. For each type of origin point, it traverses the directed graph starting from their downstream end and using a breadth-first search to traverse to the upstream-most points of that network. This identifies the set of upstream line IDs that are associated with that origin point, and all line segments in that network are assigned the line ID of the origin point. This provides the lookup table of each flowline to the functional network it belongs to.
 
-This uses an optimized set of graph building and traversal algorithms developed using numba.  See `analysis/lib/graph/speedups/directedgraph.py` for implementation details.
+This uses an optimized set of graph building and traversal algorithms developed using numba. See `analysis/lib/graph/speedups/directedgraph.py` for implementation details.
 
 ### Create upstream mainstem networks
 
-Mainstem networks are based on flowlines that have at least 1 square mile of cumulative drainage area and are on the same stream order as their origin point.  To do this, it drops all joins where the upstream flowline has a lower stream order than the downstream flowline.  This therefore excludes any incoming tributaries of lower stream order.
+Mainstem networks are based on flowlines that have at least 1 square mile of cumulative drainage area and are on the same stream order as their origin point. To do this, it drops all joins where the upstream flowline has a lower stream order than the downstream flowline. This therefore excludes any incoming tributaries of lower stream order.
 
 This then builds a directed graph of the remaining flowline joins and traverses them from their downstream end to their upstream end in the same fashion as above.
 
 ### Create downstream linear networks
 
-Downstream linear networks are based on traversing flowlines facing in their downstream linear flow direction.  This builds a directed graph facing in the downstream direction.  Each barrier is an “origin” point for starting the traversal, and it then traverses each join in moving in the downstream direction.
+Downstream linear networks are based on traversing flowlines facing in their downstream linear flow direction. This builds a directed graph facing in the downstream direction. Each barrier is an “origin” point for starting the traversal, and it then traverses each join in moving in the downstream direction.
 
 A given flowline may belong to multiple downstream linear networks that originated upstream of it.
 
-This uses an optimized set of graph building and traversal algorithms developed using numba and further optimized for linear networks.  See `analysis/lib/graph/speedups/lineardirectedgraph.py` for implementation details.
+This uses an optimized set of graph building and traversal algorithms developed using numba and further optimized for linear networks. See `analysis/lib/graph/speedups/lineardirectedgraph.py` for implementation details.
 
 ### Calculate network statistics
 
 Network statistics are implemented in `analysis/network/lib/stats.py`.
 
-This uses the flowlines associated with each type of network (functional, mainstem, downstream linear) to calculate aggregated statistics based on characteristics associated with those flowlines.  For example, it sums the lengths of all flowlines associated with a given network to calculate its total length or calculates an average percent of natural landcover in the floodplains based on the size of the floodplain and amount of landcover in the floodplain for each catchment associated with each flowline.
+This uses the flowlines associated with each type of network (functional, mainstem, downstream linear) to calculate aggregated statistics based on characteristics associated with those flowlines. For example, it sums the lengths of all flowlines associated with a given network to calculate its total length or calculates an average percent of natural landcover in the floodplains based on the size of the floodplain and amount of landcover in the floodplain for each catchment associated with each flowline.
 
-This brings in several associated flowline attributes that are prepared in advance.  For example, it brings in all species habitat information that is associated with each NHD flowline, and uses that to calculate the total length of (possibly discontiguous) habitat within that network.
+This brings in several associated flowline attributes that are prepared in advance. For example, it brings in all species habitat information that is associated with each NHD flowline, and uses that to calculate the total length of (possibly discontiguous) habitat within that network.
 
 It also traverses the chain of downstream linear networks to determine if each network ultimately flows into the ocean or Great Lakes, in order to calculate the distance to that downstream endpoint, as well as the number of barriers of each type along the way.
-
 
 ### Outputs
 
@@ -104,7 +103,6 @@ This creates the following output files:
   each barrier type for networks that originate in this HUC2
 - `networks/clean/<HUC2>/<type>_downstream_linear_segments.feather`: lookup of lineID to linear downstream networkID for each barrier type for networks that originate in this HUC2
 - `networks/clean/<HUC2>/<type>_downstream_linear_network_stats.feather`: downstream linear network stats for each barrier type for networks that originate in this HUC2
-
 
 ## Calculate statistics for removed barriers
 
@@ -139,8 +137,8 @@ It produces the following outputs:
 
 These are the network lines dissolved to the network level, with functional network statistics attached.
 
-
 **Attributes:**
+
 - networkID: functional network identifier
 - total_miles: total miles in the network
 - perennial_miles: total perennial miles in the network based on perennial segments coded by NHD (i.e., not ephemeral / intermittent)
@@ -167,15 +165,14 @@ These are the network lines dissolved to the network level, with functional netw
 - barrier: barrier type at root of network
 - flows_to_ocean: true if the network flows - possibly through downstream networks - eventually to the ocean
 - flows_to_great_lakes: true if the network flows - possibly through downstream networks - eventually to one of the Great Lakes
-- miles_to_outlet: distance downstream to the root of the downstream-most network.  Where flows_to_ocean is true, this will be the miles to the ocean; where flows_to_great_lakes is true, this will be miles to the outlet into the Great Lakes.
-
-
+- miles_to_outlet: distance downstream to the root of the downstream-most network. Where flows_to_ocean is true, this will be the miles to the ocean; where flows_to_great_lakes is true, this will be miles to the outlet into the Great Lakes.
 
 ### `regionXX_artificial_barriers_segments.gdb`
 
 These are the undissolved network lines extracted from NHD.
 
 **Attributes:**
+
 - lineID: internal line ID; changes every version; don't use
 - intermittent: true if coded by NHD as an intermittent / ephemeral flowline type
 - altered: true if coded by NHD as a canal, pipeline, falls within a reservoir, or overlaps with an NWI river type with a special modifier that indicates alteration
@@ -190,8 +187,7 @@ These are the undissolved network lines extracted from NHD.
 - km: line length in km
 - miles: line length in miles
 
-
-It also includes  network attributes attached at flowline level (these apply to entire network not flowline):
+It also includes network attributes attached at flowline level (these apply to entire network not flowline):
 
 - networkID: functional network identifier
 - natfldkm2: area within floodplain that is in natural landcover types
@@ -200,10 +196,3 @@ It also includes  network attributes attached at flowline level (these apply to 
 - sizeclasses: number of unique sizeclasses in the network
 - flows_to_ocean: true if the network flows - possibly through downstream networks - eventually to the ocean
 - flows_to_great_lakes: true if the network flows - possibly through downstream networks - eventually to one of the Great Lakes
-
- 
-
-
-
-
-

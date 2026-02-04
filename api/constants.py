@@ -3,9 +3,6 @@ from pathlib import Path
 from enum import Enum
 
 
-LOGO_PATH = Path("ui/src/images/sarp_logo_highres.png").resolve()
-
-
 ### Enums for validating incoming request values
 class PublicAPIBarrierTypes(str, Enum):
     dams = "dams"
@@ -343,8 +340,8 @@ SPECIES_HABITAT_FIELD_METADATA = {}
 for spp, info in SPECIES_HABITAT.items():
     SPECIES_HABITAT_FIELD_METADATA.update(
         {
-            f"{spp}UpstreamMiles": f"number of miles in the upstream river network from this {{type}} that are attributed as {info['label']} habitat.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by {info['source']}; please see https://tool.aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
-            f"Free{spp}DownstreamMiles": f"number of free-flowing miles in the downstream river network from this {{type}} that are attributed as {info['label']} habitat.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by {info['source']}; please see https://tool.aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+            f"{spp}UpstreamMiles": f"number of miles in the upstream river network from this {{type}} that are attributed as {info['label']} habitat.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by {info['source']}; please see https://tool.aquaticbarriers.org/methods/habitat/ for more information. -1 = not available.",
+            f"Free{spp}DownstreamMiles": f"number of free-flowing miles in the downstream river network from this {{type}} that are attributed as {info['label']} habitat.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by {info['source']}; please see https://tool.aquaticbarriers.org/methods/habitat/ for more information. -1 = not available.",
         }
     )
 
@@ -832,7 +829,7 @@ SUMMARY_UNIT_FIELDS = [
 ### Domains for coded values in exported data
 BARRIERTYPE_DOMAIN = {
     "dams": "Dam",
-    "small_barriers": "Assessed road-related barrier",
+    "small_barriers": "Surveyed road/stream crossing",
 }
 
 
@@ -867,7 +864,7 @@ RECON_DOMAIN = {
 
 # Created here to capture values below
 FEASIBILITY_DOMAIN = {
-    -1: "Not applicable (road-related barrier)",
+    -1: "Not applicable (road/stream crossing)",
     0: "Not assessed",
     1: "Not feasible",
     2: "Likely infeasible",
@@ -890,7 +887,7 @@ FEASIBILITY_DOMAIN = {
 
 
 PURPOSE_DOMAIN = {
-    -1: "Not applicable (road-related barrier)",
+    -1: "Not applicable (road/stream crossing)",
     0: "Unknown",  # added
     1: "Agriculture",
     2: "Flood Control",
@@ -907,7 +904,7 @@ PURPOSE_DOMAIN = {
 }
 
 CONSTRUCTION_DOMAIN = {
-    -1: "Not applicable  (road-related barrier)",
+    -1: "Not applicable  (road/stream crossing)",
     0: "Unknown",  # added
     1: "Cement",
     2: "Concrete/Roller-compacted Concrete",
@@ -936,7 +933,7 @@ CONDITION_DOMAIN = {
 # Created here
 # Height in feet
 HEIGHT_DOMAIN = {
-    0: "Not applicable (road-related barrier)",
+    0: "Not applicable (road/stream crossing)",
     1: "Unknown",
     2: "< 5",
     3: "5 - 10",
@@ -947,7 +944,7 @@ HEIGHT_DOMAIN = {
 }
 
 YEARCOMPLETED_DOMAIN = {
-    0: "Not applicable (road-related barrier)",
+    0: "Not applicable (road/stream crossing)",
     1: "Unknown",
     2: "< 10 years",
     3: "10 - 29 years",
@@ -1053,7 +1050,7 @@ CONSTRICTION_DOMAIN = {
 }
 
 DIVERSION_DOMAIN = {
-    -1: "Not applicable (road-related barrier)",
+    -1: "Not applicable (road/stream crossing)",
     0: "Unknown",
     1: "Yes",
     2: "No",
@@ -1061,7 +1058,7 @@ DIVERSION_DOMAIN = {
 
 # NOTE: values do not match original domain; they are recoded
 LOWHEADDAM_DOMAIN = {
-    -1: "Not applicable (road-related barrier)",
+    -1: "Not applicable (road/stream crossing)",
     0: "Unknown",
     1: "Yes",
     2: "Likely",
@@ -1069,14 +1066,14 @@ LOWHEADDAM_DOMAIN = {
 }
 
 FISHSCREEN_DOMAIN = {
-    -1: "Not applicable (road-related barrier)",
+    -1: "Not applicable (road/stream crossing)",
     0: "Unknown",
     1: "Yes",
     2: "No",
 }
 
 SCREENTYPE_DOMAIN = {
-    -1: "Not applicable (road-related barrier)",
+    -1: "Not applicable (road/stream crossing)",
     0: "Unknown",
     1: "Horizontal",
     2: "Vertical",
@@ -1633,15 +1630,15 @@ FIELD_DEFINITIONS = {
     "NearestUSGSCrossingID": "The ID of the nearest road/stream crossing point in the USGS Database of Stream Crossings in the United States (2022), if any are found within 50 meters.  Will be blank for crossings from other sources",
     "Road": "road name, if available.",
     "RoadType": "type of road, if available.",
-    "CrossingType": "type of road / stream crossing, if known.",
-    "Constriction": "type of constriction at road / stream crossing, if known.",
+    "CrossingType": "type of road/stream crossing, if known.",
+    "Constriction": "type of constriction at road/stream crossing, if known.",
     "PotentialProject": "reconnaissance information about the crossing, including severity of the barrier and / or potential for removal project.",
     "BarrierSeverity": "barrier severity of the {type}, if known.   Note: assessment dates are not known.",
     "SARP_Score": "The best way to consider the aquatic passability scores is that they represent the degree to which crossings deviate from an ideal crossing. We assume that those crossings that are very close to the ideal (scores > 0.6) will present only a minor or insignificant barrier to aquatic organisms. Those structures that are farthest from the ideal (scores < 0.4) are likely to be either significant or severe barriers. These are, however, arbitrary distinctions imposed on a continuous scoring system and should be used with that in mind. -1 = not available.",
     "ProtocolUsed": "Name of survey protocol used",
     "Resurveyed": "indicates if barrier was known to have been resurveyed",
     # crossing-specific fields
-    "Surveyed": "Indicates if the crossing has likely been surveyed according to assessed road/stream crossing data.  'yes': inventoried barrier was linked to crossing at time of survey, 'likely': inventoried barrier within 50m, 'not likely': no inventoried barrier within 50m.",
+    "Surveyed": "Indicates if the crossing has likely been surveyed according to surveyed road/stream crossing records.  'yes': inventoried barrier was linked to crossing at time of survey, 'likely': inventoried barrier within 50m, 'not likely': no inventoried barrier within 50m.",
     "OnNetwork": "if yes, this {type} was snapped to the aquatic network and does not occur on a loop within the NHD High Resolution aquatic network and is not snapped to an off-network canal or ditch; if no, this {type} is either on a loop or an off-network canal or ditch considered off-network for purposes of network analysis and ranking",
     "USGSCrossingID": "The ID of the road/stream crossing point in the USGS Database of Stream Crossings in the United States (2022); will be blank for crossings from other sources.",
     # other general fields
@@ -1658,9 +1655,9 @@ FIELD_DEFINITIONS = {
     "StateSGCNSpp": "Number of state-listed Species of Greatest Conservation Need (SGCN), compiled from element occurrence data within the same subwatershed (HUC12) as the {type}.  Note: rare species information is based on occurrences within the same subwatershed as the {type}.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
     "RegionalSGCNSpp": "Number of regionally-listed Species of Greatest Conservation Need (SGCN), compiled from element occurrence data within the same subwatershed (HUC12) as the {type}.  Note: rare species information is based on occurrences within the same subwatershed as the {type}.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
     "Trout": "Identifies one or more interior or eastern native trout species (Apache, brook, bull, cutthroat, Gila, lake, and redband) that are present within the same subwatershed (HUC12) as the {type} based on in available natural heritage data and other data sources.  Note: absence means that occurrences were not present in the available natural heritage data and should not be interpreted as true absences.",
-    "DiadromousHabitat": "Indicates if the {type} occurs on a stream reach associated with the habitat of one or more anadromous or catadromous species, based on multiple data sources.  Please see https://tool.aquaticbarriers.org/habitat_methods for more information.  -1 = not available.",
+    "DiadromousHabitat": "Indicates if the {type} occurs on a stream reach associated with the habitat of one or more anadromous or catadromous species, based on multiple data sources.  Please see https://tool.aquaticbarriers.org/methods/habitat for more information.  -1 = not available.",
     "OwnerType": "Land ownership type. This information is derived from the USFS ownership parcels dataset and Protected Areas Database (PAD-US v4) to highlight ownership types of particular importance to partners.  NOTE: this does not include most private land.",
-    "BarrierOwnerType": "Barrier ownership type, if available.  For unsurveyed road / stream crossings, this information is derived from the National Bridge Inventory, US Census TIGER Roads route type, and USFS National Forest road / stream crossings database ownership information, and may not be fully accurate.",
+    "BarrierOwnerType": "Barrier ownership type, if available.  For unsurveyed road/stream crossings, this information is derived from the National Bridge Inventory, US Census TIGER Roads route type, and USFS National Forest Road / Stream crossings database ownership information, and may not be fully accurate.",
     "ProtectedLand": "Indicates if the {type} occurs on public land as represented within the USFS ownership parcels dataset and Protected Areas Database (PAD-US v4).",
     "WildScenicRiver": "Indicates if the {type} occurs within a designated or eligible / suitable Wild & Scenic River corridor in the Protected Areas Database of the United States (v4), or within 250 meters of a designated or eligible / suitable Wild & Scenic River.",
     "Wilderness": "Within a designated wilderness area in the Protected Areas Database of the United States (v4).",
@@ -1685,7 +1682,7 @@ FIELD_DEFINITIONS = {
     "HUC12": "Hydrologic subwatershed identifier where the {type} occurs.",
     "County": "County where {type} occurs.",
     "State": "State where {type} occurs.",
-    "CongressionalDistrict": "Congressional District where {type} occurs (118th Congressional Districts).",
+    "CongressionalDistrict": "Congressional District where {type} occurs (119th Congressional Districts).",
     "StateWRA": "State water resource area ID, prefixed by 2-letter state code.  In Washington State, these are Water Resource Inventory Areas.",
     "HasNetwork": "indicates if this {type} was snapped to the aquatic network for analysis.  1 = on network, 0 = off network.  Note: network metrics and scores are not available for {type}s that are off network.",
     "Excluded": "this {type} was excluded from the connectivity analysis based on field reconnaissance or manual review of aerial imagery.",
@@ -1743,7 +1740,7 @@ FIELD_DEFINITIONS = {
     "UnalteredMainstemUpstreamMiles": "number of unaltered miles in the upstream mainstem river network from this {type}, including miles in waterbodies.  See TotalMainstemUpstreamMiles for definition of mainstem and UnalteredUpstreamMiles for definition of unaltered reaches.  0 = no mainstem, -1 = not available.",
     "PerennialUnalteredMainstemUpstreamMiles": "number of unaltered perennial miles in the upstream mainstem river network from this {type}, including miles in waterbodies.  See TotalMainstemUpstreamMiles for definition of mainstem and PerennialUnalteredUpstreamMiles for definition of perennial unaltered reaches.   0 = no mainstem, -1 = not available.",
     "PercentMainstemUnaltered": "percent of the upstream mainstem river network length from this {type} that is not specifically identified in NHD or the National Wetlands Inventory as altered (canal / ditch, within a reservoir, or other channel alteration).  0 = no mainstem, -1 = not available.",
-    "MainstemUpstreamImpairment": "List of water quality impairments present in the upstream mainstem network for this {type}, derived from the EPA ATTAINS water quality dataset (https://www.epa.gov/waterdata/attains) associated with NHD HR flowlines.  Please see https://tool.aquaticbarriers.org/epa_methods for more information.  a=algal growth, b=impaired biota (cause unknown), f=fish kills (cause unknown), h=habitat alterations, o=oxygen depletion, t=temperature, y=hydrologic alteration.",
+    "MainstemUpstreamImpairment": "List of water quality impairments present in the upstream mainstem network for this {type}, derived from the EPA ATTAINS water quality dataset (https://www.epa.gov/waterdata/attains) associated with NHD HR flowlines.  Please see https://tool.aquaticbarriers.org/methods/epa/ for more information.  a=algal growth, b=impaired biota (cause unknown), f=fish kills (cause unknown), h=habitat alterations, o=oxygen depletion, t=temperature, y=hydrologic alteration.",
     # downstream mainstem network
     "TotalMainstemDownstreamMiles": "number of miles in the mainstem network from this {type}, including miles in waterbodies.  Note: this measures the length of the complete downstream network including all tributaries, and is not limited to the shortest downstream path.  0 = no mainstem, -1 = not available.",
     "FreeMainstemDownstreamMiles": "number of free-flowing miles in the downstream mainstem network.  Excludes miles in altered reaches in waterbodies.  0 = no mainstem, -1 = not available.",
@@ -1751,7 +1748,7 @@ FIELD_DEFINITIONS = {
     "FreeIntermittentMainstemDownstreamMiles": "number of free-flowing ephemeral and intermittent miles in the downstream mainstem network.  Excludes miles altered reaches in waterbodies.  See IntermittentUpstreamMiles for definition of intermittent reaches. 0 = no mainstem, -1 = not available.",
     "FreeAlteredMainstemDownstreamMiles": "number of free-flowing altered miles in the downstream mainstem network from this {type}.  Excludes miles in altered reaches in waterbodies.  See AlteredUpstreamMiles for definition of altered reaches. 0 = no mainstem,  -1 = not available.",
     "FreeUnalteredMainstemDownstreamMiles": "number of free-flowing altered miles in the downstream mainstem network from this {type}.  Excludes miles in altered reaches in waterbodies.  See UnalteredUpstreamMiles for definition of unaltered reaches.  0 = no mainstem,  -1 = not available.",
-    "MainstemDownstreamImpairment": "List of water quality impairments present in the downstream mainstem network for this {type}, derived from the EPA ATTAINS water quality dataset (https://www.epa.gov/waterdata/attains) associated with NHD HR flowlines.  Please see https://tool.aquaticbarriers.org/epa_methods for more information.  See MainstemUpstreamImpairment for definition of codes.",
+    "MainstemDownstreamImpairment": "List of water quality impairments present in the downstream mainstem network for this {type}, derived from the EPA ATTAINS water quality dataset (https://www.epa.gov/waterdata/attains) associated with NHD HR flowlines.  Please see https://tool.aquaticbarriers.org/methods/epa/ for more information.  See MainstemUpstreamImpairment for definition of codes.",
     # downstream linear networks (to next barrier or outlet)
     "FreeLinearDownstreamMiles": "number of miles in the linear downstream flow direction between this {type} and the next barrier downstream (if any) or downstream-most point (e.g., ocean, river outlet, interior basin, etc) on the full aquatic network on which it occurs. Excludes miles in altered reaches in waterbodies.  -1 = not available.",
     "FreePerennialLinearDownstreamMiles": "number of perennial miles in the linear downstream flow direction between this {type} and the next barrier downstream or downstream-most point on the full aquatic network on which it occurs.  Excludes miles in altered reaches in waterbodies.  See PerennialUpstreamMiles for definition of perennial reaches. -1 = not available.",
@@ -1766,17 +1763,17 @@ FIELD_DEFINITIONS = {
     # barrier counts upstream / downstream
     "UpstreamWaterfalls": "number of waterfalls at the upstream ends of the functional network for this {type}. -1 = not available.",
     "UpstreamDams": "number of dams at the upstream ends of the functional network for this {type}.",
-    "UpstreamSmallBarriers": "number of assessed road/stream crossings within the functional network if this barrier is a dam or at the upstream ends of the functional network if this barrier is a road/stream crossing. -1 = not available.",
+    "UpstreamSmallBarriers": "number of surveyed road/stream crossings within the functional network if this barrier is a dam or at the upstream ends of the functional network if this barrier is a road/stream crossing. -1 = not available.",
     "UpstreamRoadCrossings": "number of uninventoried estimated road crossings within the functional network for this {type}. -1 = not available.",
     "UpstreamHeadwaters": "number of headwaters within the functional network for this {type}. -1 = not available.",
     "TotalUpstreamWaterfalls": "total number of waterfalls upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
     "TotalUpstreamDams": "total number of dams upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
-    "TotalUpstreamSmallBarriers": "total number of assessed road/stream crossings upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
+    "TotalUpstreamSmallBarriers": "total number of surveyed road/stream crossings upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
     "TotalUpstreamRoadCrossings": "total number of uninventoried estimated road crossings upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
     "TotalUpstreamHeadwaters": "total number of headwaters upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
     "TotalDownstreamWaterfalls": "total number of waterfalls between this {type} and the downstream-most point the full aquatic network on which it occurs. -1 = not available.",
     "TotalDownstreamDams": "total number of dams between this {type} and the downstream-most point the full aquatic network on which it occurs (e.g., river mouth). -1 = not available.",
-    "TotalDownstreamSmallBarriers": "total number of assessed road/stream crossings between this {type} and the downstream-most point the full aquatic network on which it occurs. -1 = not available.",
+    "TotalDownstreamSmallBarriers": "total number of surveyed road/stream crossings between this {type} and the downstream-most point the full aquatic network on which it occurs. -1 = not available.",
     "TotalDownstreamRoadCrossings": "total number of uninventoried estimated road crossings between this {type} and the downstream-most point the full aquatic network on which it occurs. -1 = not available.",
     # properties of downstream linear network (to outlet)
     "MilesToOutlet": "miles between this {type} and the downstream-most point (e.g., ocean, river outlet, interior basin, etc) on the full aquatic network on which it occurs. -1 = not available.",
@@ -1791,9 +1788,9 @@ FIELD_DEFINITIONS = {
 }
 
 DAM_FIELD_DEFINITIONS = {k: v.replace("{type}", "dam") for k, v in FIELD_DEFINITIONS.items()}
-SB_FIELD_DEFINITIONS = {k: v.replace("{type}", "assessed road/stream crossing") for k, v in FIELD_DEFINITIONS.items()}
+SB_FIELD_DEFINITIONS = {k: v.replace("{type}", "surveyed road/stream crossing") for k, v in FIELD_DEFINITIONS.items()}
 COMBINED_FIELD_DEFINITIONS = {
-    k: v.replace("{type}", "dam or assessed road/stream crossing") for k, v in FIELD_DEFINITIONS.items()
+    k: v.replace("{type}", "dam or surveyed road/stream crossing") for k, v in FIELD_DEFINITIONS.items()
 }
 ROAD_CROSSING_FIELD_DEFINITIONS = {k: v.replace("{type}", "road/stream crossing") for k, v in FIELD_DEFINITIONS.items()}
 

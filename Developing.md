@@ -3,7 +3,7 @@
 To develop this application, you need:
 
 - Python 3.12+: required for `analysis` and `api` components
-- NodeJS 20+: required for user interface component in `ui`
+- NodeJS 22+: required for user interface component in `ui`
 - mbtileserver: required for interactive maps in the user interface component
 - redis: required for background task worker used by `api` component
 
@@ -117,29 +117,40 @@ npm ci
 Create `/ui/.env.development` with the following contents:
 
 ```
-GATSBY_MAPBOX_API_TOKEN = <token>
-GATSBY_API_HOST = <root URL of API host, likely http://localhost/:5000 for local fastapi server >
-GATSBY_TILE_HOST = <root URL of tile host, likely http://localhost:8001 for local mbtileserver >
+PUBLIC_MAPBOX_API_TOKEN=<token>
+PUBLIC_API_HOST=<root URL of API host, likely http://localhost/:5000 for local fastapi server >
+PUBLIC_TILE_HOST=<root URL of tile host, likely http://localhost:8001 for local mbtileserver >
+PUBLIC_SITE_URL=<root url of the develoment server, likely http://localhost:5173>
+PUBLIC_NACC_URL=<root URL to the NACC homepage, likely https://aquaticbarriers.org unless also running locally>
+PUBLIC_DEPLOY_ENV="local"
+PUBLIC_CONTACT_EMAIL=<email address of contact person used throughout site>
+
+GATSBY_MAILCHIMP_URL=https://mc.us19.list-manage.com/subscribe/landing-page
+PUBLIC_MAILCHIMP_USER_ID=<Mailchimp user ID>
+PUBLIC_MAILCHIMP_FORM_ID=<Mailchimp form ID 1>
+PUBLIC_MAILCHIMP_FORM_ID2=<Mailchimp form ID 2>
 ```
 
-The user interface is built using GatsbyJS.
+The user interface is built using SvelteJS.
 
-To start the development server (on port 8000, by default):
+To start the development server (on port 5173, by default):
 
 ```bash
-gatsby clean
-gatsby develop
+npm run dev -- --open
 ```
 
 #### Managing Javascript dependencies
 
-```bash
-# list outdated dependencies
-npm outdated
+To check for outdated dependencies and upgrade them:
 
-# install updated packages
-npm install --legacy-peer-deps <package>@latest ...
+```bash
+npm install -g npm-check-updates
+ncu -i --cooldown 3
 ```
+
+Note: this uses a 3 day "cooldown" to prevent upgrading to very recently released
+versions; modify this on a selective basis to pull in a newer version that resolves
+a vulnerability.
 
 ## mbtileserver
 

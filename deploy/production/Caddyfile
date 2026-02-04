@@ -1,4 +1,4 @@
-# redirect HTTP / HTTPS to bare domain
+# redirect legacy domain name
 connectivity.sarpdata.com:80 {
   log {
     level ERROR
@@ -6,7 +6,6 @@ connectivity.sarpdata.com:80 {
 
   redir https://aquaticbarriers.org{uri} 308
 }
-
 connectivity.sarpdata.com:443 {
   log {
     level ERROR
@@ -15,7 +14,7 @@ connectivity.sarpdata.com:443 {
   redir https://aquaticbarriers.org{uri} 308
 }
 
-# redirect HTTP / HTTPS to bare domain
+# redirect www subdomain HTTP / HTTPS to bare domain
 www.aquaticbarriers.org:80 {
   log {
     level ERROR
@@ -32,7 +31,6 @@ www.aquaticbarriers.org:443 {
   redir https://aquaticbarriers.org{uri} 308
 }
 
-
 aquaticbarriers.org {
   log {
     level ERROR
@@ -45,7 +43,7 @@ aquaticbarriers.org {
   header X-Content-Type-Options nosniff
 
   # redirect previous paths to tool
-  # TODO: switch to 301 redirects
+  # TODO: switch to 308 redirects
   # NOTE: backend endpoints will likely fail if used directly from frontend due to CORS
   @old_backend_paths {
     path /api/* /downloads/* /services/*
@@ -54,7 +52,7 @@ aquaticbarriers.org {
 
   # redirect page paths (note: have to include all terminal pages with and without trailing slash)
   @old_frontend_paths {
-    path /priority /priority/ /explore /explore/ /network_methods /network_methods/ /habitat_methods /habitat_methods/ /metrics/* /regions/* /states/* /fhp/* /report/*
+    path /priority/ /explore/ /methods/* /regions/* /states/* /fhp/* /report/*
   }
   redir @old_frontend_paths https://tool.aquaticbarriers.org{uri} 307
 
@@ -152,11 +150,11 @@ tool.aquaticbarriers.org {
 
   route /* {
     # redirect teams page
-    redir /teams https://aquaticbarriers.org/teams/ 301
+    redir /teams https://aquaticbarriers.org/teams/ 308
 
     # most files can be cached indefinitely, they are rebuilt with new names each time
     @cached_files {
-      path *.jpg *.jpeg *.png *.gif *.webp *.svg *.css *.js */static/*
+      path *.jpg *.jpeg *.png *.gif *.webp *.avif *.svg *.css *.js */static/*
       not path /favicon*
     }
     header @cached_files Cache-Control "public, max-age=31536000, immutable"
@@ -170,19 +168,18 @@ tool.aquaticbarriers.org {
 
     # page-data, html, and site root must be fetched each time
     @no_cache {
-      path *.html *.webmanifest */page-data/* / /priority /explore /network_methods /habitat_methods /metrics/* /regions/* /fhp/* /states/* /report/*
+      path *.html *.webmanifest */page-data/* / /priority/* /survey/* /explore/* /methods/* /regions/* /states/* /fhp/* /report/*
     }
     header @no_cache Cache-Control "public, max-age:0, must-revalidate"
+
 
     encode zstd gzip
 
     # Capture client only routes and route through correct page to force loading on client side
-    rewrite /states/* "states/[id]/index.html"
-    rewrite /fhp/* "fhp/[id]/index.html"
-    rewrite /report/dams/* "report/dams/[sarpid]/index.html"
-    rewrite /report/combined_barriers/* "report/combined_barriers/[sarpid]/index.html"
-    rewrite /report/largefish_barriers/* "report/largefish_barriers/[sarpid]/index.html"
-    rewrite /report/smallfish_barriers/* "report/smallfish_barriers/[sarpid]/index.html"
+    rewrite /report/dams/* "index.html"
+    rewrite /report/combined_barriers/* "index.html"
+    rewrite /report/largefish_barriers/* "index.html"
+    rewrite /report/smallfish_barriers/* "index.html"
 
     root * /var/www/sarp-connectivity
     file_server

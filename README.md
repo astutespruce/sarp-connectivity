@@ -29,7 +29,7 @@ There are 3 main parts to this tool, located in separate folders:
 - `api`: backend API, which serves data to the frontend and provides things like data downloads
 - `ui`: frontend user interface
 
-The user interface tier is stored in `/ui` and consists of a GatsbyJS and React (Javascript) application.
+The user interface tier is stored in `/ui` and consists of a SvelteJS (Javascript) application.
 The user interface is "built" in advance to create static web assets (HTML, Javascript, CSS, etc).
 These files are served via a development server locally or via a reverse proxy on the server.
 

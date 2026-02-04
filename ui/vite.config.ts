@@ -1,0 +1,35 @@
+import path from 'path'
+import tailwindcss from '@tailwindcss/vite'
+import { sveltekit } from '@sveltejs/kit/vite'
+import { defineConfig } from 'vite'
+import { enhancedImages } from '@sveltejs/enhanced-img'
+import { config as dotEnvConfig } from 'dotenv'
+
+// have to configure dotenv to load correct .env file
+dotEnvConfig({ path: `.env.${process.env.NODE_ENV}` })
+
+export default defineConfig({
+	build: {
+		rollupOptions: {
+			output: {
+				// split mapbox its own chunk; it is large
+				manualChunks: function (id) {
+					if (id.includes('mapbox-gl')) {
+						return 'map-vendor'
+					}
+				}
+			}
+		}
+	},
+	plugins: [tailwindcss(), enhancedImages(), sveltekit()],
+	resolve: {
+		alias: {
+			$data: path.resolve(__dirname, './data')
+		}
+	},
+	server: {
+		fs: {
+			allow: [path.resolve(__dirname, './package.json'), path.resolve(__dirname, './data')]
+		}
+	}
+})

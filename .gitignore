@@ -10,12 +10,27 @@
 # dependencies
 **/node_modules/*
 
+# Output
+**/.output
+**/.svelte-kit
+ui/build
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+
 # testing
 /coverage
 
 # production
 /build
 /ui/build
+/ui/public
 
 # misc
 .DS_Store
@@ -23,6 +38,8 @@
 .env.development.local
 .env.test.local
 .env.production.local
+.scratch/*
+.venv/*
 
 
 npm-debug.log*

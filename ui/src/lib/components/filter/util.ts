@@ -1,0 +1,142 @@
+import { addFunction, op, escape } from 'arquero'
+import type { ColumnTable as Table } from 'arquero'
+import type { RowObject } from 'arquero/dist/types/table/types'
+import { SvelteSet } from 'svelte/reactivity'
+
+import { reduceToObject } from '$lib/util/data'
+import type { Dimension, Dimensions, FilterConfig } from './types'
+
+/**
+ * Create object with dimensions
+ * @param {Object} filterConfig - nested object of filter groups and filters
+ * @returns Object
+ */
+export const createDimensions = (filterConfig: FilterConfig) => {
+	const dimensions: Dimensions = {}
+	filterConfig.forEach(({ filters }) => {
+		filters.forEach((filter) => {
+			dimensions[filter.field] = filter
+		})
+	})
+
+	return dimensions
+}
+
+/**
+ * Calculate the count for each value present in values for dimension;
+ * ignores count for any value that is not in values.
+ */
+export const getDimensionCount = (data: Table, dimension: Dimension) => {
+	const { field, isArray, values: rawValues } = dimension
+	const values = new Set(rawValues)
+
+	let grouped = data.groupby(field).rollup({ _count: (d) => op.sum(d._count) })
+
+	if (isArray) {
+		// split by commas into separate rows, then regroup
+		grouped = grouped
+			.unroll(field)
+			.groupby(field)
+			.rollup({ _count: (d) => op.sum(d._count) })
+	}
+
+	return (
+		grouped
+			.derive({ row: op.row_object() })
+			.array('row')
+			// drop any values in data not in values list
+			.filter(({ [field]: v }) => values.has(v))
+			// TODO: use builtin function to return object
+			.reduce(...reduceToObject(field, (d: RowObject) => d._count))
+	)
+}
+
+/**
+ * Calculates the count by value for each dimension based on the current filters
+ * @param {Object} data - arquero table
+ * @param {Object} dimensions - object of dimensions
+ */
+
+export const countByDimension = (data: Table, dimensions: Dimensions) =>
+	Object.values(dimensions)
+		.map((dimension) => ({
+			field: dimension.field,
+			total: getDimensionCount(data, dimension)
+		}))
+		.reduce(...reduceToObject('field', (d: RowObject) => d.total))
+
+/**
+ * Determine if record values contain any of the filterValues
+ * @param {Array} filterValues - values in filter that are being searched
+ * @param {Array} values - values on record
+ * @returns bool
+ */
+const hasAny = (filterValues: number[] | string[], values: number[] | string[]) => {
+	for (let i = 0; i < filterValues.length; i += 1) {
+		if (op.indexof(values, filterValues[i]) !== -1) {
+			return true
+		}
+	}
+	return false
+}
+
+// define hasAny filter for use in arquero
+// NOTE: overwrite is used to redefine this on window reload
+addFunction('hasAny', hasAny, { override: true })
+
+export const applyFilters = (
+	rawData: Table,
+	dimensions: Dimensions,
+	rawFilters: Record<string, SvelteSet<number | string>>
+) => {
+	let data = rawData
+	const dimensionCounts: Record<string, number> = {}
+
+	// do a first pass and apply all filters into derived columns
+	const filters = Object.entries(rawFilters)
+		/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+		.filter(([field, values]) => values && values.size > 0)
+		.map(([field, values]) => {
+			if (dimensions[field].isArray) {
+				data = data.derive({
+					// @ts-expect-error hasAny is defined dynamically
+					[`${field}_filter`]: escape((d: RowObject) => op.hasAny([...values], d[field]))
+				})
+			} else {
+				data = data.derive({
+					[`${field}_filter`]: escape((d: RowObject) => op.has(values, d[field]))
+				})
+			}
+
+			return field
+		})
+
+	// loop over filter in filters, apply all other filters except self and get count
+	filters.forEach((field) => {
+		const fields = filters
+			.filter((otherField) => otherField !== field)
+			.map((otherField) => `${otherField}_filter`)
+
+		const filtered = data.filter(
+			escape((d: RowObject) => fields.filter((f) => d[f]).length === fields.length)
+		)
+
+		dimensionCounts[field] = getDimensionCount(filtered, dimensions[field])
+	})
+
+	// apply all filters and update dimension counts for every dimension that
+	// doesn't have a filter
+	const fields = filters.map((field) => `${field}_filter`)
+	data = data.filter(escape((d: RowObject) => fields.filter((f) => d[f]).length === fields.length))
+
+	Object.values(dimensions)
+		.filter(({ field }) => !(rawFilters[field] && rawFilters[field].size > 0))
+		.forEach((dimension) => {
+			dimensionCounts[dimension.field] = getDimensionCount(data, dimension)
+		})
+
+	return {
+		data,
+		dimensionCounts
+	}
+}
