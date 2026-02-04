@@ -183,9 +183,8 @@
 					countMessage: `${formatNumber(totalRoadCrossings)} road/stream ${pluralize(
 						'crossing',
 						totalRoadCrossings
-					)} (${formatNumber(
-						unsurveyedRoadCrossings
-					)} have not yet been surveyed; ${formatNumber(totalSmallBarriers)} surveyed ${pluralize('crossing', totalSmallBarriers)} have been surveyed)`
+					)} (${formatNumber(totalSmallBarriers)} surveyed and
+					${formatNumber(unsurveyedRoadCrossings)} have not yet been surveyed)`
 				}
 			}
 		}
