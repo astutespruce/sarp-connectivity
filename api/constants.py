@@ -448,6 +448,7 @@ ROAD_CROSSING_FILTER_FIELDS = [
     "DiadromousHabitat",
     "FlowsToOcean",
     "FlowsToGreatLakes",
+    "BarrierSeverity",
     # "SlopeClass",
 ]
 ROAD_CROSSING_FILTER_FIELD_MAP = {f.lower(): f for f in ROAD_CROSSING_FILTER_FIELDS}
@@ -711,6 +712,8 @@ ROAD_CROSSING_CORE_FIELDS = (
         "Intermittent",
         "Canal",
         "StreamOrder",
+        # from surveyed crossings
+        "BarrierSeverity",
         # specific to crossings
         "Surveyed",
         "OnNetwork",
@@ -823,6 +826,7 @@ SUMMARY_UNIT_FIELDS = [
     "ranked_smallfish_barriers_small_barriers",
     "total_road_crossings",
     "unsurveyed_road_crossings",
+    "waterfalls",
 ]
 
 

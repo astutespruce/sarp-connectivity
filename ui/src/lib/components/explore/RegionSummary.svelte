@@ -28,6 +28,7 @@
 		removedSmallBarriers = 0,
 		removedSmallBarriersGainMiles = 0,
 		unsurveyedRoadCrossings = 0,
+		waterfalls = 0,
 		onSelectUnit
 	} = $props()
 
@@ -147,6 +148,10 @@
 				</li>
 			</ul>
 		{/if}
+
+		<div class="mt-6">
+			<b>{formatNumber(waterfalls, 0)}</b> or more waterfalls.
+		</div>
 
 		<hr class="my-6" />
 

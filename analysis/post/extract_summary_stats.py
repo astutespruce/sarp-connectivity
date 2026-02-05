@@ -102,7 +102,7 @@ crossings = pd.read_feather(src_dir / "road_crossings.feather", columns=["id", "
 
 
 ### Waterfalls
-waterfalls = pd.read_feather(src_dir / "waterfalls", columns=["id", "State", "primary_network"])
+waterfalls = pd.read_feather(src_dir / "waterfalls.feather", columns=["id", "State", "primary_network"])
 waterfalls = waterfalls.loc[waterfalls.primary_network].copy()
 
 

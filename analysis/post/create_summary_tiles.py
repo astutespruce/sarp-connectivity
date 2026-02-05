@@ -364,9 +364,6 @@ with duckdb.connect(api_dir / "api.db") as con:
     _ = con.execute("CREATE TABLE map_units as SELECT * from out")
     _ = con.execute("CREATE UNIQUE INDEX map_units_id on map_units (layer, id)")
 
-raise FOO
-
-
 ### Output minimal subset and join to tiles
 
 # create bitset field based on number of barriers present per unit; where false for a given barrier type,

@@ -96,6 +96,7 @@
 		let removedSmallBarriersGainMiles = 0
 		let totalRoadCrossings = 0
 		let unsurveyedRoadCrossings = 0
+		let waterfalls = 0
 
 		summaryUnits.items
 			.filter(({ id: i }: SummaryUnit) => !ignoreIds.has(i))
@@ -111,7 +112,8 @@
 					removedSmallBarriers: curRemovedSmallBarriers = 0,
 					removedSmallBarriersGainMiles: curRemovedSmallBarriersGainMiles = 0,
 					totalRoadCrossings: curRoadCrossings = 0,
-					unsurveyedRoadCrossings: curUnsurveyedCrossings = 0
+					unsurveyedRoadCrossings: curUnsurveyedCrossings = 0,
+					waterfalls: curWaterfalls = 0
 				}) => {
 					dams += curDams
 					rankedDams += curRankedDams
@@ -124,6 +126,7 @@
 					removedSmallBarriersGainMiles += curRemovedSmallBarriersGainMiles
 					totalRoadCrossings += curRoadCrossings
 					unsurveyedRoadCrossings += curUnsurveyedCrossings
+					waterfalls += curWaterfalls
 				}
 			)
 
@@ -141,7 +144,8 @@
 			removedSmallBarriersGainMiles,
 			totalRoadCrossings,
 			unsurveyedRoadCrossings,
-			totalRoadBarriers: totalSmallBarriers + unsurveyedRoadCrossings
+			totalRoadBarriers: totalSmallBarriers + unsurveyedRoadCrossings,
+			waterfalls
 		}
 	})
 
@@ -288,6 +292,10 @@
 					</div>
 				{/if}
 			{/if}
+
+			<div class="mt-6">
+				<b>{formatNumber(stats.waterfalls)}</b> or more waterfalls.
+			</div>
 
 			{#if summaryUnits.count > 1}
 				<div

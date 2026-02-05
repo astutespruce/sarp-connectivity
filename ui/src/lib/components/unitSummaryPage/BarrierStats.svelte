@@ -84,6 +84,10 @@
 				</li>
 			{/if}
 		</ul>
+
+		<div class="mt-6">
+			<b>{formatNumber(stats.waterfalls)}</b> or more waterfalls.
+		</div>
 	</div>
 </div>
 

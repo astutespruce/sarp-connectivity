@@ -90,21 +90,21 @@ export const smallBarriers = [
 				field: 'percentunalteredclass',
 				title: 'Percent of upstream network in unaltered stream channels',
 				sort: false,
-				help: 'Note: altered reaches are those specifically identified in NHD or the National Wetlands Inventory as altered (canal / ditch, within a reservoir, or other channel alteration); this status is not consistently available for all stream reaches.',
+				help: 'Altered reaches are those specifically identified in NHD or the National Wetlands Inventory as altered (canal / ditch, within a reservoir, or other channel alteration); this status is not consistently available for all stream reaches.',
 				...getEntries(PERCENT_UNALTERED)
 			},
 			{
 				field: 'wildscenicriver',
 				title: 'Near a Wild & Scenic River',
 				sort: false,
-				help: 'Note: Wild & Scenic river corridors are extracted from the Protected Areas Database of the U.S. (v4).  Barriers are considered near a Wild & Scenic River if they are within 250 meters but outside a corridor.',
+				help: 'Wild & Scenic river corridors are extracted from the Protected Areas Database of the U.S. (v4).  Barriers are considered near a Wild & Scenic River if they are within 250 meters but outside a corridor.',
 				...getEntries(WILDSCENIC_RIVER)
 			},
 			{
 				field: 'wilderness',
 				title: 'Within a designated wilderness area',
 				sort: false,
-				help: 'Note: wilderness areas are extracted from the Protected Areas Database of the U.S. (v4).',
+				help: 'Wilderness areas are extracted from the Protected Areas Database of the U.S. (v4).',
 				...getEntries(BOOLEAN_FIELD)
 			}
 		]
@@ -162,7 +162,7 @@ export const smallBarriers = [
 				title: 'Does it have a fish passage facility?',
 				sort: false,
 				hideMissingValues: false,
-				help: 'Note: fish passage facility information is only available for a small number of road/stream crossings.  Not all data sources recorded this information.',
+				help: 'Fish passage facility information is only available for a small number of road/stream crossings.  Not all data sources recorded this information.',
 				...getEntries(PASSAGEFACILITY_CLASS, (v) => v > 0)
 			},
 			{
@@ -193,42 +193,42 @@ export const smallBarriers = [
 			{
 				field: 'intermittent',
 				title: 'Located on an Intermittent / Ephemeral Stream',
-				help: 'Note: intermittent / ephemeral status is assigned in the underlying NHD data and is not consistently assigned for all stream reaches.  Non-intermittent reaches may have perennial flow or be assigned to a different stream reach type which precludes intermittent / ephemeral status.',
+				help: 'Intermittent / ephemeral status is assigned in the underlying NHD data and is not consistently assigned for all stream reaches.  Non-intermittent reaches may have perennial flow or be assigned to a different stream reach type which precludes intermittent / ephemeral status.',
 				...getEntries(INTERMITTENT)
 			},
 			{
 				field: 'canal',
 				title: 'Located on a canal or ditch',
 				sort: false,
-				help: 'Note: canal / ditch status is assigned in the underlying NHD data and is not necessarily assigned for all stream reaches.',
+				help: 'Canal / ditch status is assigned in the underlying NHD data and is not necessarily assigned for all stream reaches.',
 				...getEntries(CANAL)
 			},
 			{
 				field: 'annualflowclass',
 				title: 'Stream reach annual flow rate',
 				sort: false,
-				help: 'Note: annual flow rate is estimated at the downstream endpoint of the stream reach to which this barrier snapped and is not available for all reaches within the underlying NHD data.',
+				help: 'Annual flow rate is estimated at the downstream endpoint of the stream reach to which this barrier snapped and is not available for all reaches within the underlying NHD data.',
 				...getEntries(ANNUAL_FLOW)
 			},
 			{
 				field: 'unalteredwaterbodyclass',
 				title: 'Total area of all unaltered lakes and ponds',
 				sort: false,
-				help: 'Note: this metric is based on all unaltered lakes and ponds that intersect any stream reach in the upstream functional network.  Waterbodies are derived from NHD, the National Wetlands Inventory (NWI), and state waterbody datasets (where available) and exclude any specifically marked by the data provider as altered and those that are associated with dams in this inventory.',
+				help: 'Based on all unaltered lakes and ponds that intersect any stream reach in the upstream functional network.  Waterbodies are derived from NHD, the National Wetlands Inventory (NWI), and state waterbody datasets (where available) and exclude any specifically marked by the data provider as altered and those that are associated with dams in this inventory.',
 				...getEntries(UNALTERED_WATERBODY_CLASS)
 			},
 			{
 				field: 'unalteredwetlandclass',
 				title: 'Total area of all unaltered freshwater wetlands',
 				sort: false,
-				help: 'Note: this metric is based on all unaltered freshwater wetlands that intersect any stream reach in the upstream functional network.  Wetlands are derived from specific wetland types in the National Wetlands Inventory (freshwater scrub-shrub, freshwater forested, freshwater emergent) and NHD (swamp/marsh) and exclude any specifically marked by the data provider as altered.',
+				help: 'Based on all unaltered freshwater wetlands that intersect any stream reach in the upstream functional network.  Wetlands are derived from specific wetland types in the National Wetlands Inventory (freshwater scrub-shrub, freshwater forested, freshwater emergent) and NHD (swamp/marsh) and exclude any specifically marked by the data provider as altered.',
 				...getEntries(UNALTERED_WETLAND_CLASS)
 			},
 			{
 				field: 'mainstemupstreamimpairment',
 				title: 'Water quality impairments in the upstream mainstem network',
 				sort: false,
-				help: 'Note: based on data derived from EPA ATTAINS water quality data within the upstream mainstem network.  Water quality data are assigned to NHD flowlines and may not perfectly align with aquatic networks used in this analysis, and thus should be treated as a reasonable approximation.',
+				help: 'Based on data derived from EPA ATTAINS water quality data within the upstream mainstem network.  Water quality data are assigned to NHD flowlines and may not perfectly align with aquatic networks used in this analysis, and thus should be treated as a reasonable approximation.',
 				hideMissingValues: true,
 				hideIfEmpty: true,
 				isArray: true,
@@ -239,7 +239,7 @@ export const smallBarriers = [
 				field: 'mainstemdownstreamimpairment',
 				title: 'Water quality impairments in the downstream mainstem network',
 				sort: false,
-				help: 'Note: based on data derived from EPA ATTAINS water quality data within the downstream mainstem network.  Water quality data are assigned to NHD flowlines and may not perfectly align with aquatic networks used in this analysis, and thus should be treated as a reasonable approximation.',
+				help: 'Based on data derived from EPA ATTAINS water quality data within the downstream mainstem network.  Water quality data are assigned to NHD flowlines and may not perfectly align with aquatic networks used in this analysis, and thus should be treated as a reasonable approximation.',
 				hideMissingValues: true,
 				hideIfEmpty: true,
 				isArray: true,
@@ -257,14 +257,14 @@ export const smallBarriers = [
 				field: 'flowstoocean',
 				title: 'On a network that flows to ocean',
 				sort: false,
-				help: 'Note: this is limited to networks that are known to connect to marine areas identified by NHD for NHD regions included in this tool, and may not be set correctly for networks that flow through other NHD regions not included in the analysis or outside the U.S. before connecting to marine areas.',
+				help: 'Limited to networks that are known to connect to marine areas identified by NHD for NHD regions included in this tool, and may not be set correctly for networks that flow through other NHD regions not included in the analysis or outside the U.S. before connecting to marine areas.',
 				...getEntries(BOOLEAN_FIELD)
 			},
 			{
 				field: 'diadromoushabitat',
 				title: 'Located on a reach with anadromous / catadromous species habitat',
 				sort: false,
-				help: 'Note: information on habitat of anadromous / catadromous species is quite limited, is compiled from multiple data sources, and may include a mix of current versus potential habitat for those species.',
+				help: 'Information on habitat of anadromous / catadromous species is quite limited, is compiled from multiple data sources, and may include a mix of current versus potential habitat for those species.',
 				...getEntries(DIADROMOUS_HABITAT)
 			},
 			{
@@ -298,7 +298,7 @@ export const smallBarriers = [
 				title: 'Land ownership type',
 				sort: false,
 				hideMissingValues: true,
-				help: 'This information is derived from the USFS ownership parcels dataset and Protected Areas Database (PAD-US v4) to highlight ownership types of particular importance to partners.  NOTE: this does not include most private land.',
+				help: 'This information is derived from the USFS ownership parcels dataset and Protected Areas Database (PAD-US v4) to highlight ownership types of particular importance to partners.  Note: this does not include most private land.',
 				...getEntries(OWNERTYPE)
 			},
 			{
@@ -333,7 +333,7 @@ export const smallBarriers = [
 				field: 'tesppclass',
 				title: 'Number of Federally-Listed Threatened and Endangered Species',
 				hideMissingValues: true,
-				help: 'Note: This information is based on occurrences of one or more federally-listed threatened or endangered aquatic species within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
+				help: 'Based on occurrences of one or more federally-listed threatened or endangered aquatic species within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
 				url: '/methods/sgcn/',
 				...getEntries(RARESPP)
 			},
@@ -341,14 +341,14 @@ export const smallBarriers = [
 				field: 'statesgcnsppclass',
 				title: 'Number of State-listed Species of Greatest Conservation Need (SGCN)',
 				hideMissingValues: true,
-				help: 'Note: This information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
+				help: 'Based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
 				url: '/methods/sgcn/',
 				...getEntries(RARESPP)
 			},
 			{
 				field: 'trout',
 				title: 'Native trout present',
-				help: 'Note: This information is based on occurrences of Apache, brook, bull, cutthroat, Gila, lake, and redband trout species within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
+				help: 'Based on occurrences of Apache, brook, bull, cutthroat, Gila, lake, and redband trout species within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
 				sort: false,
 				hideMissingValues: true,
 				hideIfEmpty: true,
