@@ -45,6 +45,8 @@ SMALL_BARRIER_SURVEY_URLS = {
     "Southeast (pre 2019)": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/SARP_AOP_Road_Crossings_PriorTo2019/FeatureServer/0",
     "Southeast (coarse)": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/service_4b226787a3464f478602431383498138/FeatureServer/0",
     "Western (inland)": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/service_1da663f4b2ff45aeadbf5568829f40f6/FeatureServer/0",
+    # NOTE: combined protocols uses the private service token
+    "Combined protocols": "https://services9.arcgis.com/jLLC0IEfFUxV8nml/arcgis/rest/services/service_7eb5237fc3e24b61a3510be160f2338f/FeatureServer/0",
 }
 
 
@@ -202,10 +204,12 @@ async def download_small_barriers(token, private_token):
         return df
 
 
-async def download_small_barrier_survey_photo_urls(token):
+async def download_small_barrier_survey_photo_urls(token, private_token):
     async with httpx.AsyncClient(timeout=httpx.Timeout(60.0, connect=60.0), http2=True) as client:
         merged = None
         for id, survey_url in SMALL_BARRIER_SURVEY_URLS.items():
+            token = private_token if id == "Combined protocols" else token
+
             print(f"Downloading attachments from: {id}")
             df = await download_fs(
                 client,
@@ -239,6 +243,7 @@ async def download_waterfalls(token, private_token):
         df = await download_fs(client, WATERFALLS_URL, fields=WATERFALL_COLS, token=token)
         df["svc"] = "public"
         df["Private"] = "Public"
+
         private_df = await download_fs(client, PRIVATE_WATERFALLS_URL, fields=WATERFALL_COLS, token=private_token)
         private_df["svc"] = "private"
         private_df["Private"] = "Private"
@@ -349,7 +354,7 @@ print("\n")
 
 ### Download small barrier survey photo URLs
 download_start = time()
-df = asyncio.run(download_small_barrier_survey_photo_urls(TOKEN))
+df = asyncio.run(download_small_barrier_survey_photo_urls(TOKEN, PRIVATE_TOKEN))
 print(f"Downloaded {len(df):,} small records with photo URLs in {time() - download_start:.2f}s")
 
 df.to_feather(out_dir / "sarp_small_barrier_survey_urls.feather")
