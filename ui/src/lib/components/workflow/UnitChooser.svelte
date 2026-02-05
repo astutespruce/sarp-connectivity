@@ -186,6 +186,12 @@
 			class="mt-8"
 		/>
 
+		{#if layer === 'CongressionalDistrict'}
+			<div class="text-xs text-muted-foreground mt-2">
+				Search for congressional districts by state name and number. Example: "Virginia 1".
+			</div>
+		{/if}
+
 		{#if summaryUnits.count > 0 && offNetworkCount > 0}
 			<div class="text-muted-foreground mt-8 pb-8 text-sm">
 				Note: only {barrierTypeLabel} that have been evaluated for aquatic network connectivity are available

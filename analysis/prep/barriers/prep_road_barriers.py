@@ -215,6 +215,8 @@ df["PotentialProject"] = (
     .replace("Unknown", "Unassessed")
     .replace("Small Project", "Unassessed")
     .replace("Dry - Skipped", "Unassessed")
+    # temporary typo fix
+    .replace("Sevrere Barrier", "Severe Barrier")
 )
 
 # per guidance from Kat, anything where SARP_Score is 0 and potential project is
@@ -290,6 +292,12 @@ for column in ["PassageFacility", "Resurveyed"]:
 df.BarrierOwnerType = df.BarrierOwnerType.fillna(0).map(BARRIEROWNERTYPE_TO_DOMAIN).astype("uint8")
 
 # Calculate BarrierSeverity from PotentialProject
+missing = [
+    x for x in df.PotentialProject.str.replace("  ", " ").str.lower().unique() if x not in POTENTIALPROJECT_TO_SEVERITY
+]
+if len(missing):
+    raise ValueError(f"Unexpected PotentialProject values: {','.join(missing)}")
+
 df["BarrierSeverity"] = (
     df.PotentialProject.str.replace("  ", " ").str.lower().map(POTENTIALPROJECT_TO_SEVERITY).astype("uint8")
 )

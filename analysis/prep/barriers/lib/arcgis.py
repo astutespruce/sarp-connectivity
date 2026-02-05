@@ -87,7 +87,7 @@ async def get_json(client, url, params=None, token=None):
     content = response.json()
     if "error" in content:
         raise httpx.HTTPError(
-            f'Error making request to: {url}\n{content["error"]["message"]}\n{content["error"]["details"]}'
+            f"Error making request to: {url}\n{content['error']['message']}\n{content['error']['details']}"
         )
 
     return content

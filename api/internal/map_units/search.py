@@ -1,14 +1,16 @@
 from io import BytesIO
+from time import time
 
 from fastapi import APIRouter, HTTPException, Response
 from fastapi.requests import Request
-import pyarrow.compute as pc
-import pyarrow as pa
 from pyarrow.feather import write_feather
 
 from api.constants import UNIT_FIELDS, SUMMARY_UNIT_FIELDS
-from api.data import units
-from api.logger import log_request
+from api.data import db
+from api.logger import log_request, log
+
+
+NUM_UNIT_SEARCH_RESULTS = 10
 
 
 router = APIRouter()
@@ -32,40 +34,36 @@ async def search_units(request: Request, layer: str, query: str):
     log_request(request)
 
     layers = layer.split(",")
-    query = query.strip().replace(",", "")
+    query = query.lower().strip().replace(",", "")
 
     invalid_layers = set(layers).difference(UNIT_FIELDS)
     if invalid_layers:
         raise HTTPException(400, detail=f"invalid layers: {', '.join(invalid_layers)}")
 
-    # use case-insensitive search
-    matches = units.to_table(
-        filter=pc.field("layer").isin(layers) & pc.match_substring(pc.field("key"), query.lower(), ignore_case=True)
-    )
+    layers_placeholder = ", ".join(["?"] * len(layers))
 
-    total_count = len(matches)
+    start = time()
 
-    # find those where the substring is closest to the left of the name and
-    # have the shortest names, based on priority order of different unit types
+    total_count = db.sql(
+        f"SELECT count(*) FROM map_units WHERE layer IN ({layers_placeholder}) AND key LIKE ?",
+        params=(layers + [f"%{query.replace(' ', '%')}%"]),
+    ).fetchone()[0]
+
+    sql_query = f"""
+    SELECT *, instr(key, ?) AS ipos, length(key) as len
+    FROM map_units
+    WHERE layer IN ({layers_placeholder}) AND key LIKE ?
+    ORDER BY priority ASC, ipos ASC, len ASC, state ASC
+    LIMIT {NUM_UNIT_SEARCH_RESULTS}
+    """
     matches = (
-        pa.Table.from_pydict(
-            {
-                **{col: matches[col] for col in matches.column_names},
-                "name_ipos": pc.find_substring(matches["key"], query, ignore_case=True),
-                "name_len": pc.utf8_length(matches["name"]),
-            }
-        )
-        .sort_by(
-            [
-                ["priority", "ascending"],
-                ["name_ipos", "ascending"],
-                ["name_len", "ascending"],
-                ["state", "ascending"],
-            ]
-        )
-        .select(SUMMARY_UNIT_FIELDS)[:10]
-        .replace_schema_metadata({"count": str(total_count)})
+        db.sql(sql_query, params=[query] + layers + [f"%{query.replace(' ', '%')}%"]).to_arrow_table().combine_chunks()
     )
+
+    log.info(f"query by name: {time() - start}s")
+
+    # discard pandas metadata and store total count
+    matches = matches.select(SUMMARY_UNIT_FIELDS).replace_schema_metadata({"count": str(total_count)})
 
     stream = BytesIO()
     write_feather(

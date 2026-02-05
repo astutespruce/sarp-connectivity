@@ -100,6 +100,12 @@ smallfish_barriers = smallfish_barriers.loc[~smallfish_barriers.Private].copy()
 ### Read road / stream crossings
 crossings = pd.read_feather(src_dir / "road_crossings.feather", columns=["id", "State", "Surveyed"])
 
+
+### Waterfalls
+waterfalls = pd.read_feather(src_dir / "waterfalls", columns=["id", "State", "primary_network"])
+waterfalls = waterfalls.loc[waterfalls.primary_network].copy()
+
+
 bounds = (
     gp.read_feather(data_dir / "boundaries/region_boundary.feather")
     .set_index("id")
@@ -118,6 +124,7 @@ analysis_states = STATES.keys()
 analysis_dams = dams.loc[dams.State.isin(analysis_states)]
 analysis_barriers = barriers.loc[barriers.State.isin(analysis_states)]
 analysis_crossings = crossings.loc[crossings.State.isin(analysis_states)]
+analysis_waterfalls = waterfalls.loc[waterfalls.State.isin(analysis_states)]
 
 stats = {
     "bounds": bounds["total"],
@@ -147,6 +154,7 @@ stats = {
     "removed_small_barriers_by_year": pack_year_removed_stats(analysis_barriers),
     "total_road_crossings": int(len(analysis_crossings)),
     "unsurveyed_road_crossings": int((crossings.Surveyed == 0).sum()),
+    "waterfalls": int(len(waterfalls)),
 }
 
 with open(ui_data_dir / "summary_stats.json", "w") as outfile:

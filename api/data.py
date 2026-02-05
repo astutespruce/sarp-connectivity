@@ -26,8 +26,6 @@ try:
         "waterfalls": waterfalls,
     }
 
-    units = dataset(API_DATA_PATH / "map_units.feather", format="feather")
-
     # removed dams for public API; not used internally
     removed_dams = dataset(API_DATA_PATH / "removed_dams.feather", format="feather")
 

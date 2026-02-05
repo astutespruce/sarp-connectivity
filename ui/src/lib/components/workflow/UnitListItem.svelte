@@ -207,7 +207,7 @@
 
 		{#if layer.startsWith('HUC')}
 			<div
-				class={cn('text-xs', {
+				class={cn('text-sm', {
 					'italic text-muted-foreground': count === 0
 				})}
 			>
@@ -222,7 +222,7 @@
 		{/if}
 
 		{#if warning}
-			<div class="flex mt-1 text-destructive text-sm gap-2 leading-tight">
+			<div class="flex mt-1 text-accent text-sm gap-1 leading-tight">
 				<WarningIcon class="size-4 flex-none" />
 				<div class="flex-auto">
 					{warning}

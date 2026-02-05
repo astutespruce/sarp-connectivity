@@ -218,7 +218,7 @@ state_geo_df["in_region"] = state_geo_df.id.isin(STATES)
 state_geo_df["state"] = ""  # state_geo_df.id
 state_geo_df["layer"] = "State"
 state_geo_df["priority"] = np.uint8(1)
-state_geo_df["key"] = state_geo_df["name"]
+state_geo_df["key"] = state_geo_df["name"].str.lower()
 
 # Unwrap Alaska counties around antimeridian
 county_geo_df = (
@@ -246,7 +246,7 @@ county_geo_df["name"] = county_geo_df["name"] + " County"
 county_geo_df["bbox"] = encode_bbox(county_geo_df.geometry.values)
 county_geo_df["layer"] = "County"
 county_geo_df["priority"] = np.uint8(2)
-county_geo_df["key"] = county_geo_df["name"] + " " + county_geo_df.state_name
+county_geo_df["key"] = (county_geo_df["name"] + " " + county_geo_df.state_name).str.lower()
 
 
 print("Processing congressional districts")
@@ -268,7 +268,7 @@ district_geo_df = gp.GeoDataFrame(
 district_geo_df["bbox"] = encode_bbox(district_geo_df.geometry.values)
 district_geo_df["layer"] = "CongressionalDistrict"
 district_geo_df["priority"] = np.uint8(5)
-district_geo_df["key"] = district_geo_df.name + " " + district_geo_df.id
+district_geo_df["key"] = (district_geo_df.name + " " + district_geo_df.id).str.lower()
 
 print("Processing state water resource areas")
 state_wra_geo_df = state_wra.to_crs(GEO_CRS).explode(ignore_index=True)
@@ -276,7 +276,7 @@ state_wra_geo_df["bbox"] = encode_bbox(state_wra_geo_df.geometry.values)
 state_wra_geo_df["layer"] = "StateWRA"
 state_wra_geo_df["priority"] = np.uint8(6)
 # NOTE: trim state code from id
-state_wra_geo_df["key"] = state_wra_geo_df.name + " " + state_wra_geo_df.id.str[2:]
+state_wra_geo_df["key"] = (state_wra_geo_df.name + " " + state_wra_geo_df.id.str[2:]).str.lower()
 state_wra_geo_df["name"] = state_wra_geo_df["name"] + " (" + state_wra_geo_df.id.str[2:] + ")"
 
 
@@ -295,7 +295,7 @@ fhp_geo_df["in_region"] = True
 fhp_geo_df["state"] = ""  # not used
 fhp_geo_df["layer"] = "FishHabitatPartnership"
 fhp_geo_df["priority"] = np.uint8(99)  # not used in search
-fhp_geo_df["key"] = fhp_geo_df["name"]
+fhp_geo_df["key"] = fhp_geo_df["name"].str.lower()
 
 
 out = pd.concat(
@@ -361,7 +361,9 @@ for i, unit in enumerate(["HUC2", "HUC6", "HUC8", "HUC10", "HUC12"]):
 
     df = df.join(unit_states, on="id")
     df["state"] = df.state.fillna("").apply(lambda x: ",".join(x))
-    df["key"] = df.name + " " + df.id
+    df["key"] = df.id.str.lower()
+    ix = df.id != df.name
+    df.loc[ix, "key"] += " " + df.loc[ix].name.str.lower()
 
     out = pd.concat(
         [out, df[["layer", "priority", "id", "state", "name", "key", "bbox"]]],

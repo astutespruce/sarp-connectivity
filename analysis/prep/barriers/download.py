@@ -63,6 +63,7 @@ async def download_dams(token, private_token):
         df = await download_fs(client, DAMS_URL, fields=DAM_FS_COLS, token=token)
         df["svc"] = "public"
         df["Private"] = "Public"
+
         private_df = await download_fs(client, PRIVATE_DAMS_URL, fields=DAM_FS_COLS, token=private_token)
         private_df["svc"] = "private"
         private_df["Private"] = "Private"

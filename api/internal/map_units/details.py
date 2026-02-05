@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 import pyarrow.compute as pc
 
 from api.constants import Layers, SUMMARY_UNIT_FIELDS
-from api.data import units
+from api.data import db
 from api.logger import log_request
 
 
@@ -17,13 +17,13 @@ async def unit_details(request: Request, layer: Layers, id: str):
 
     layer = layer.value
 
-    filter = (pc.field("layer") == layer) & (pc.field("id") == id)
+    col_expr = ", ".join(SUMMARY_UNIT_FIELDS)
 
-    record = units.to_table(columns=SUMMARY_UNIT_FIELDS, filter=filter).slice(0)
+    match = db.sql(f"SELECT {col_expr} FROM map_units WHERE layer=? AND id=?", params=(layer, id)).fetch_arrow_table()
 
-    if not len(record):
+    if not len(match):
         raise HTTPException(404, detail=f"record not found for {layer}: {id}")
 
     # use the bulk converter to dict (otherwise float32 serialization issues)
     # and return singular first item
-    return JSONResponse(content=record.to_pylist()[0])
+    return JSONResponse(content=match.to_pylist()[0])

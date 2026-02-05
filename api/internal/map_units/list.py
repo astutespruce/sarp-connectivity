@@ -2,13 +2,11 @@ from io import BytesIO
 
 from fastapi import APIRouter, Response, HTTPException
 from fastapi.requests import Request
-import pyarrow as pa
-import pyarrow.compute as pc
 from pyarrow.feather import write_feather
 
 from api.constants import Layers, SUMMARY_UNIT_FIELDS
-from api.data import units
-from api.logger import log_request
+from api.data import db
+from api.logger import log_request, log
 
 
 MAX_RECORDS = 100
@@ -33,9 +31,13 @@ async def unit_list(request: Request, layer: Layers, id: str):
 
     layer = layer.value
 
-    filter = (pc.field("layer") == layer) & (pc.field("id").isin(pa.array(id.split(","))))
+    col_expr = ", ".join(SUMMARY_UNIT_FIELDS)
+    ids = id.split(",")
+    id_placeholder = ", ".join(["?"] * len(ids))
 
-    records = units.to_table(columns=SUMMARY_UNIT_FIELDS, filter=filter)
+    records = db.sql(
+        f"SELECT {col_expr} FROM map_units WHERE layer=? AND id IN ({id_placeholder})", params=[layer] + ids
+    ).fetch_arrow_table()
 
     if len(records) > MAX_RECORDS:
         raise HTTPException(400, "Too many records requested")

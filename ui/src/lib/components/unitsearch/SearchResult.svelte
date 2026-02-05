@@ -191,7 +191,7 @@
 		'italic text-muted-foreground': disabled
 	})}
 >
-	<div class={cn({ 'font-bold': !disabled })}>
+	<div class={cn({ 'font-bold text-wrap leading-tight': !disabled })}>
 		{name}
 
 		{#if stateId && layer !== 'CongressionalDistrict'}
@@ -219,14 +219,14 @@
 	{/if}
 
 	{#if countMessage}
-		<div class="text-xs text-muted-foreground">
+		<div class="text-xs text-muted-foreground text-wrap">
 			{countMessage}
 		</div>
 	{/if}
 
 	{#if warning}
-		<div class="mt-1 text-accent">
-			<WarningIcon class="size-4 flex-none inline mr-1" />
+		<div class="mt-1 text-accent flex gap-1 items-center text-xs text-wrap">
+			<WarningIcon class="size-4 flex-none inline" />
 			<div class="flex-auto">
 				{warning}
 			</div>

@@ -27,6 +27,7 @@ Outputs:
 from pathlib import Path
 import subprocess
 
+import duckdb
 import numpy as np
 import pandas as pd
 import pyarrow as pa
@@ -71,6 +72,7 @@ INT_COLS = [
     "ranked_largefish_barriers_small_barriers",
     "ranked_smallfish_barriers_dams",
     "ranked_smallfish_barriers_small_barriers",
+    "waterfalls",
 ]
 
 
@@ -192,6 +194,13 @@ crossings = pd.read_feather(src_dir / "road_crossings.feather", columns=["id", "
 crossings["FishHabitatPartnership"] = crossings.FishHabitatPartnership.str.split(",")
 crossings["Region"] = crossings.State.map(state_regions)
 
+### Read waterfalls
+waterfalls = pd.read_feather(src_dir / "waterfalls.feather", columns=["id", "primary_network"] + SUMMARY_UNITS)
+waterfalls = waterfalls.loc[waterfalls.primary_network].reset_index()
+waterfalls["FishHabitatPartnership"] = waterfalls.FishHabitatPartnership.str.split(",")
+waterfalls["Region"] = waterfalls.State.map(state_regions)
+
+
 # Calculate summary statistics for each type of summary unit
 # These are joined to vector tiles
 stats = None
@@ -203,6 +212,7 @@ for unit in SUMMARY_UNITS + ["Region"]:
     largefish_barriers_by_unit = largefish_barriers.copy()
     smallfishbarriers_by_unit = smallfish_barriers.copy()
     crossings_by_unit = crossings.copy()
+    waterfalls_by_unit = waterfalls.copy()
 
     if unit == "State":
         units = pd.read_feather(bnd_dir / "region_states.feather", columns=["id"]).set_index("id")
@@ -228,6 +238,7 @@ for unit in SUMMARY_UNITS + ["Region"]:
         largefish_barriers_by_unit = largefish_barriers_by_unit.explode(unit)
         smallfishbarriers_by_unit = smallfishbarriers_by_unit.explode(unit)
         crossings_by_unit = crossings_by_unit.explode(unit)
+        waterfalls_by_unit = waterfalls_by_unit.explode(unit)
 
     dam_stats = (
         dams_by_unit[[unit, "id", "Ranked", "Recon", "Removed", "RemovedGainMiles"]]
@@ -318,6 +329,8 @@ for unit in SUMMARY_UNITS + ["Region"]:
         .rename("unsurveyed_road_crossings")
     )
 
+    waterfalls_stats = waterfalls_by_unit[[unit, "id"]].groupby(unit).size().rename("waterfalls")
+
     merged = (
         units.join(dam_stats, how="left")
         .join(barriers_stats, how="left")
@@ -325,6 +338,7 @@ for unit in SUMMARY_UNITS + ["Region"]:
         .join(smallfish_stats, how="left")
         .join(total_crossing_stats, how="left")
         .join(unsurveyed_crossing_stats, how="left")
+        .join(waterfalls_stats, how="left")
     )
     merged[INT_COLS] = merged[INT_COLS].fillna(0).astype("uint32")
 
@@ -343,9 +357,14 @@ for unit in SUMMARY_UNITS + ["Region"]:
 
 ### output unit stats with bounds for API
 units = pd.read_feather(bnd_dir / "unit_bounds.feather").set_index(["layer", "id"])
-out = units.join(stats.set_index(["layer", "id"]))
+out = units.join(stats.set_index(["layer", "id"])).reset_index()
 
-out.reset_index().to_feather(api_dir / "map_units.feather")
+with duckdb.connect(api_dir / "api.db") as con:
+    _ = con.execute("DROP TABLE IF EXISTS map_units")
+    _ = con.execute("CREATE TABLE map_units as SELECT * from out")
+    _ = con.execute("CREATE UNIQUE INDEX map_units_id on map_units (layer, id)")
+
+raise FOO
 
 
 ### Output minimal subset and join to tiles

@@ -150,7 +150,7 @@
 		{#if query.length > 0 && query.length < minQueryLength}
 			<div class="italic text-muted-foreground text-sm mt-2">...keep typing...</div>
 		{:else if searchRequest.error}
-			<div class="flex gap-2 items-center text-accent">
+			<div class="flex gap-2 items-center text-accent mt-2">
 				<WarningIcon class="size-5" />
 				<div>Error retrieving results</div>
 			</div>
