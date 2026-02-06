@@ -33,6 +33,7 @@
 		ownertype = null,
 		barrierownertype = null,
 		fercregulated = null,
+		relicensingyear = null,
 		stateregulated = null,
 		nrcsdam = null,
 		fedregulatoryagency = null,
@@ -158,7 +159,13 @@
 		label="Regulated by the Federal Energy Regulatory Commission"
 		isUnknown={fercregulated === 0}
 	>
-		{FERC_REGULATED[fercregulated as keyof typeof FERC_REGULATED].toLowerCase()}
+		{FERC_REGULATED[fercregulated as keyof typeof FERC_REGULATED]}
+
+		{#if relicensingyear}
+			<div class="mt-2">
+				License expiration year: {relicensingyear}
+			</div>
+		{/if}
 	</Entry>
 {/if}
 

@@ -26,6 +26,7 @@
 		ownertype,
 		barrierownertype,
 		fercregulated,
+		relicensingyear,
 		stateregulated,
 		fedregulatoryagency,
 		nrcsdam,
@@ -76,6 +77,12 @@
 				<div>
 					Regulated by the Federal Energy Regulatory Commission:
 					{FERC_REGULATED[fercregulated as keyof typeof FERC_REGULATED].toLowerCase()}
+
+					{#if relicensingyear}
+						<div class="mt-2">
+							License expiration year: {relicensingyear}
+						</div>
+					{/if}
 				</div>
 			{/if}
 

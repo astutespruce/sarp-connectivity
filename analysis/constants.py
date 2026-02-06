@@ -259,6 +259,7 @@ DAM_FS_COLS = [
     "Active150",
     "KeepOnActiveList",
     "Year_Reconned",
+    "RelicensingDate",
 ]
 
 

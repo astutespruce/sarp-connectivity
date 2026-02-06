@@ -120,6 +120,26 @@ urls = (
 
 df = df.join(urls)
 
+
+### Read in photo attachments from Great Lakes survey
+# NOTE: join in SourceID, but then make sure distance is OK
+urls = gp.read_feather(
+    src_dir / "great_lakes_survey_urls.feather", columns=["globalid", "geometry", "attachments"]
+).set_index("globalid")
+tmp = df[["SARPID", "geometry", "SourceID"]].join(
+    urls.rename(columns={"geometry": "att_geom"}), on="SourceID", how="inner"
+)
+tmp["dist"] = shapely.distance(tmp.geometry.values, tmp.att_geom.values)
+tmp = tmp.loc[tmp.dist <= 50].sort_values("dist").groupby("SARPID").first()
+
+df = df.join(tmp.attachments.rename("gl_attachments"), on="SARPID")
+
+ix = df.attachments.isnull() & df.gl_attachments.notnull()
+df.loc[ix, "attachments"] = df.loc[ix].gl_attachments.values
+df = df.drop(columns=["gl_attachments"])
+
+
+### Read in crossing data
 crossings = gp.read_feather(src_dir / "road_crossings.feather").set_index("id", drop=False)
 
 # save original USGS ID because SourceID gets overwritten on match with road barrier

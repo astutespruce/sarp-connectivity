@@ -114,6 +114,15 @@ print("Reading dams in analysis region states")
 df = gp.read_feather(src_dir / "sarp_dams.feather")
 print(f"Read {len(df):,} dams in region states")
 
+### FIXME: remove on next data pull
+if "RelicensingDate" not in df.columns:
+    tmp_df = pd.read_feather(src_dir / "sarp_dams_updated.feather", columns=["SARPID", "RelicensingDate"]).set_index(
+        "SARPID"
+    )
+    df = df.join(tmp_df, on="SARPID")
+
+### END FIXME:
+
 
 # join in cost columns, but only where height is within tolerance because height
 # may have been updated for a given dam after it was run through the analysis
@@ -431,6 +440,24 @@ ix = df.FedRegulatoryAgency.str.contains("Federal Energy Regulatory Commission")
 df.loc[ix, "FERCRegulated"] = 1
 
 
+# cleanup FERC license expiration dates
+# 0 indicates unknown
+df["RelicensingYear"] = (
+    pd.to_datetime(
+        df.RelicensingDate.fillna("")
+        .replace("04-30/2013", "04/30/2013")
+        .replace("1/31/2026 and 4/30/2016", "1/31/2026")
+        .replace("10/31/2044 and 6/30/2054", "6/30/2054")
+        .replace("4/30/2034 and 1/31/2036", "1/31/2036")
+        .replace("2046", "12/31/2046")
+        .replace("8/27/56", "8/27/2056")
+    )
+    .dt.year.fillna(0)
+    .astype("uint16")
+)
+df = df.drop(columns=["RelicensingDate"])
+
+
 # Cleanup names
 # Standardize the casing of the name
 df.Name = df.Name.str.strip().str.title()
@@ -499,6 +526,24 @@ df["PassageFacilityClass"] = np.uint8(0)
 df.loc[(df.PassageFacility > 0) & (df.PassageFacility != 9), "PassageFacilityClass"] = 1
 
 df["FeasibilityClass"] = df.Feasibility.map(FEASIBILITY_TO_FEASIBILITYCLASS_DOMAIN).astype("uint8")
+
+
+# Add license expiration class: 0:unknown, 1:<0, 2:0-15, 3:15-30, 4:>= 30
+# NOTE: 0 is reserved for missing data
+# FIXME: make 0 = not applicable, 1=unknown, etc
+bins = [-5000, 0, 15, 30, 1000]
+df["LicenseExpirationClass"] = (
+    np.asarray(
+        pd.cut(
+            df.RelicensingYear.astype("int32") - datetime.today().year,
+            bins,
+            right=False,
+            labels=np.arange(0, len(bins) - 1),
+        )
+    )
+    + 1
+).astype("uint8")
+df.loc[df.RelicensingYear == 0, "LicenseExpirationClass"] = np.uint8(0)
 
 
 # Convert BarrierSeverity to a domain and call it Passability

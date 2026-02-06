@@ -82,8 +82,16 @@ async def get_json(client, url, params=None, token=None):
     if token is not None:
         params["token"] = token
 
-    response = await client.get(url, params=params)
+    response = await client.get(
+        url,
+        params=params,
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"},
+    )
     response.raise_for_status()
+
+    if response.status_code == 304:
+        raise RuntimeError("Received HTTP 304 response")
+
     content = response.json()
     if "error" in content:
         raise httpx.HTTPError(
@@ -158,7 +166,10 @@ async def download_fs(client, url, fields=None, token=None, target_wkid=None):
         await get_json(
             client,
             f"{url}/query",
+            # NOTE: when this fails with 'Unable to perform query. Please check your parameters.'
+            # can use objectID filter instead
             params={"where": "1=1", "returnCountOnly": "true"},
+            # params={"where": "ObjectID < 1e16", "returnCountOnly": "true"},
             token=token,
         )
     )["count"]
@@ -192,7 +203,7 @@ async def download_fs(client, url, fields=None, token=None, target_wkid=None):
     return merged
 
 
-async def get_attachments(client, url, token):
+async def get_attachments(client, url, token=None):
     """Get attachment URLs for a FeatureService
 
     URLS can be expanded to <prefix>/<id> for id in attachments.

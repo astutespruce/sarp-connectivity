@@ -113,10 +113,7 @@
 						countMessage: `${formatNumber(dams)} ${pluralize(
 							'dam',
 							dams
-						)} and ${formatNumber(smallBarriers)} surveyed road/stream ${pluralize(
-							'crossing',
-							smallBarriers
-						)}`,
+						)} and ${formatNumber(smallBarriers)} surveyed ${pluralize('crossing', smallBarriers)}`,
 						// always use plain ranked barriers vs count to determine off-network values
 						offNetworkCount: summaryUnits.items.reduce(
 							(out: number, v: SummaryUnit) =>

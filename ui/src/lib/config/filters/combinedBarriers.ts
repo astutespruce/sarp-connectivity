@@ -44,7 +44,8 @@ import {
 	DIADROMOUS_HABITAT,
 	WILDSCENIC_RIVER,
 	YEAR_SURVEYED_BINS,
-	EPA_CAUSE_CODES
+	EPA_CAUSE_CODES,
+	LICENSE_EXPIRATION
 } from '$lib/config/constants'
 
 import { getEntries, hasDiadromousData } from './common'
@@ -170,6 +171,13 @@ export const combinedBarriers = [
 				help: 'Regulatory information is only available for a small number of dams.',
 				hideMissingValues: true,
 				...getEntries(FERC_REGULATED)
+			},
+			{
+				field: 'licenseexpirationclass',
+				title: 'How soon does the FERC operating license expire?',
+				help: 'Based on the year of FERC license expiration, if known.',
+				hideMissingValues: false,
+				...getEntries(LICENSE_EXPIRATION)
 			},
 			{
 				field: 'fedregulatoryagencygroup',

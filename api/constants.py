@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from enum import Enum
 
 
@@ -405,6 +403,7 @@ DAM_FILTER_FIELDS = FILTER_FIELDS + [
     "CostClass",
     "IsPriority",
     "FatalityClass",
+    "LicenseExpirationClass",
 ]
 DAM_FILTER_FIELD_MAP = {f.lower(): f for f in DAM_FILTER_FIELDS}
 
@@ -544,6 +543,7 @@ DAM_CORE_FIELDS = (
         "StorageVolume",
         "WaterbodyAcres",
         "Fatality",
+        "RelicensingYear",
     ]
     + GENERAL_API_FIELDS2
 )
@@ -1603,6 +1603,7 @@ FIELD_DEFINITIONS = {
     "NIDFederalID": "National Inventory of Dams Federal Identifier (new ID) that can be used to join to the latest version of NID.",
     "SourceLink": "Link to additional information about this {type} provided by the data source.",
     "FERCRegulated": "Identifies if the {type} is regulated by the Federal Energy Regulatory Commission, if known.",
+    "RelicensingYear": "Identifies the year the FERC license expires, if known.  0 = data not available.",
     "StateRegulated": "Identifies if the {type} is regulated at the state level, if known.",
     "NRCSDam": "Identifies if the {type} is a flood control dam constructed in partnership with the USDA Natural Resources Conservation Service.",
     "FedRegulatoryAgency": "Identifies the federal regulatory agency for this {type}, if known",

@@ -5,6 +5,7 @@ from time import time
 
 from dotenv import load_dotenv
 import httpx
+from httpx import Limits
 import numpy as np
 import pandas as pd
 import shapely
@@ -45,10 +46,12 @@ SMALL_BARRIER_SURVEY_URLS = {
     "Southeast (pre 2019)": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/SARP_AOP_Road_Crossings_PriorTo2019/FeatureServer/0",
     "Southeast (coarse)": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/service_4b226787a3464f478602431383498138/FeatureServer/0",
     "Western (inland)": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/service_1da663f4b2ff45aeadbf5568829f40f6/FeatureServer/0",
-    # NOTE: combined protocols uses the private service token
-    "Combined protocols": "https://services9.arcgis.com/jLLC0IEfFUxV8nml/arcgis/rest/services/service_7eb5237fc3e24b61a3510be160f2338f/FeatureServer/0",
+    # NOTE: combined protocols uses the private service token; these are not currently used because photos are also inaccessible
+    # "Combined protocols": "https://services9.arcgis.com/jLLC0IEfFUxV8nml/arcgis/rest/services/service_7eb5237fc3e24b61a3510be160f2338f/FeatureServer/0",
 }
 
+# NOTE: this is joined on the service globalid to small barriers Source ID
+GREAT_LAKES_SURVEY_URL = "https://services3.arcgis.com/Jdnp1TjADvSDxMAX/ArcGIS/rest/services/Great_Lakes_Stream_Crossing_Inventory_Viewer/FeatureServer/0"
 
 # data from private map services can only be used in the analysis and not allowed to go into downloads / API
 PRIVATE_DAMS_URL = "https://services9.arcgis.com/jLLC0IEfFUxV8nml/ArcGIS/rest/services/National_Aquatic_Barrier_Inventory_Dams___Private_Service/FeatureServer/0"
@@ -238,6 +241,31 @@ async def download_small_barrier_survey_photo_urls(token, private_token):
         return merged.to_crs(CRS)
 
 
+async def download_great_lakes_barrier_survey_photo_urls():
+    async with httpx.AsyncClient(
+        timeout=httpx.Timeout(60.0, connect=60.0), http2=True, limits=Limits(max_connections=4)
+    ) as client:
+        print(f"Downloading Great Lakes survey attachments from: {GREAT_LAKES_SURVEY_URL}")
+        df = await download_fs(
+            client,
+            GREAT_LAKES_SURVEY_URL,
+            fields=["OBJECTID", "globalid", "CrossingType"],
+        )
+
+        df = df.rename(columns={"OBJECTID": "objectid"})
+
+        # drop duplicates
+        df = df.loc[df.geometry != shapely.Point(0, 0)].drop_duplicates(subset="geometry")
+
+        attachments = await get_attachments(client, GREAT_LAKES_SURVEY_URL)
+        df = df.join(attachments, on="objectid", how="inner").drop(columns=["objectid"])
+
+        # uppercase and wrap ID in braces to match formatting in SourceID
+        df["globalid"] = "{" + df.globalid.str.upper() + "}"
+
+        return df.to_crs(CRS)
+
+
 async def download_waterfalls(token, private_token):
     async with httpx.AsyncClient(timeout=httpx.Timeout(60.0, connect=60.0), http2=True) as client:
         df = await download_fs(client, WATERFALLS_URL, fields=WATERFALL_COLS, token=token)
@@ -355,9 +383,17 @@ print("\n")
 ### Download small barrier survey photo URLs
 download_start = time()
 df = asyncio.run(download_small_barrier_survey_photo_urls(TOKEN, PRIVATE_TOKEN))
-print(f"Downloaded {len(df):,} small records with photo URLs in {time() - download_start:.2f}s")
+print(f"Downloaded {len(df):,} small barrier records with photo URLs in {time() - download_start:.2f}s")
 
 df.to_feather(out_dir / "sarp_small_barrier_survey_urls.feather")
+
+
+### Download Great Lakes survey photo URLs
+download_start = time()
+df = asyncio.run(download_great_lakes_barrier_survey_photo_urls())
+print(f"Downloaded {len(df):,} Great Lakes survey records with photo URLs in {time() - download_start:.2f}s")
+
+df.to_feather(out_dir / "great_lakes_survey_urls.feather")
 
 
 ### Download waterfalls

@@ -369,6 +369,7 @@ fill_columns = [
     "YearCompleted",
     "Fatality",
     "FatalityClass",
+    "LicenseExpirationClass",
     "CostClass",  # limited to dams for now
     # small barrier columns
     "Constriction",
