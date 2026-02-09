@@ -65,6 +65,7 @@
 
 	let status: Status = $state({ isLoading: true, error: null })
 	let map: MapboxGLMapType | undefined = $state.raw()
+	let mapComponent = $state.raw()
 	let layer: string | null = $state(null)
 
 	let rankData = $state.raw([])
@@ -88,6 +89,9 @@
 		resultsType = 'full'
 		tierThreshold = 1
 		bounds = fullBounds
+
+		// @ts-expect-error clearSelectedBarrier is valid
+		mapComponent.clearSelectedBarrier()
 	}
 
 	const handleCreateMap = async () => {
@@ -135,6 +139,8 @@
 
 	const handleSelectUnit = async (item: SummaryUnit) => {
 		selectedBarrier = null
+		// @ts-expect-error clearSelectedBarrier is valid
+		mapComponent.clearSelectedBarrier()
 
 		await summaryUnits.toggleItem(item)
 
@@ -250,6 +256,8 @@
 
 	const handleBarrierDetailsClose = () => {
 		selectedBarrier = null
+		// @ts-expect-error clearSelectedBarrier is valid
+		mapComponent.clearSelectedBarrier()
 	}
 
 	$effect(() => {
@@ -322,13 +330,13 @@
 	</Sidebar>
 
 	<Map
+		bind:this={mapComponent}
 		bind:map
 		{networkType}
 		{crossfilter}
 		{bounds}
 		allowUnitSelect={step === 'select-units'}
 		activeLayer={layer}
-		{selectedBarrier}
 		{summaryUnits}
 		rankedBarriers={rankData}
 		{tierThreshold}

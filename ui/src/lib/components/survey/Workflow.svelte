@@ -37,6 +37,7 @@
 
 	let status: Status = $state({ isLoading: true, error: null })
 	let map: MapboxGLMapType | undefined = $state.raw()
+	let mapComponent = $state.raw()
 	let layer: string | null = $state(null)
 
 	let bounds = $state(fullBounds)
@@ -52,6 +53,9 @@
 		layer = null
 		summaryUnits.clear()
 		bounds = fullBounds
+
+		// @ts-expect-error clearSelectedBarrier is valid
+		mapComponent.clearSelectedBarrier()
 	}
 
 	const handleCreateMap = async () => {
@@ -99,6 +103,8 @@
 
 	const handleSelectUnit = async (item: SummaryUnit) => {
 		selectedBarrier = null
+		// @ts-expect-error clearSelectedBarrier is valid
+		mapComponent.clearSelectedBarrier()
 
 		await summaryUnits.toggleItem(item)
 
@@ -118,6 +124,8 @@
 
 	const handleBarrierDetailsClose = () => {
 		selectedBarrier = null
+		// @ts-expect-error clearSelectedBarrier is valid
+		mapComponent.clearSelectedBarrier()
 	}
 
 	const loadBarrierInfo = async () => {
@@ -217,13 +225,13 @@
 	</Sidebar>
 
 	<Map
+		bind:this={mapComponent}
 		bind:map
 		{networkType}
 		{crossfilter}
 		{bounds}
 		allowUnitSelect={step === 'select-units'}
 		activeLayer={layer}
-		{selectedBarrier}
 		{summaryUnits}
 		onSelectUnit={handleSelectUnit}
 		onSelectBarrier={handleSelectBarrier}

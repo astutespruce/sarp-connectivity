@@ -24,7 +24,6 @@
 		system,
 		focalBarrierType,
 		summaryUnits,
-		selectedBarrier = null,
 		onSelectUnit,
 		onSelectBarrier,
 		children
@@ -192,20 +191,20 @@
 			const [feature] = map.queryRenderedFeatures(point, {
 				layers: clickLayers
 			})
-			// always clear out prior feature
-			if (selectedFeature) {
-				setBarrierHighlight(map, selectedFeature, false)
-				selectedFeature = null
-				if (isEqual(selectedFeature, hoverFeature, ['id', 'layer'])) {
-					setBarrierHighlight(map, hoverFeature, false)
-					hoverFeature = null
-				}
+
+			if (isEqual(feature, selectedFeature, ['id', 'layer'])) {
+				// no change
+				return
 			}
+
+			// always clear out prior feature
+			clearSelectedBarrier()
+
 			if (!feature) {
-				// clear out any selected barriers
 				onSelectBarrier(null)
 				return
 			}
+
 			const { source, sourceLayer, properties } = feature
 
 			if (source === 'map_units') {
@@ -219,8 +218,7 @@
 					coordinates: [lon, lat]
 				}
 			} = feature
-			setBarrierHighlight(map, feature, true)
-			selectedFeature = feature
+
 			const removed = sourceLayer.startsWith('removed_')
 			const thisBarrierType = source === 'combined_barriers' ? properties.barriertype : source
 			// promote network fields if clicking on a waterfall
@@ -231,10 +229,20 @@
 				networkIDField = `${focalBarrierType}_upnetid`
 			}
 
-			// dam, barrier, waterfall
+			const networkID = properties[networkIDField] || Infinity
+
+			selectedFeature = feature
+			setBarrierHighlight(map, feature, true)
+			highlightNetwork(
+				map,
+				focalBarrierType === 'dams' ? 'dams' : 'combined_barriers',
+				networkID,
+				removed
+			)
+
 			onSelectBarrier({
 				...properties,
-				upnetid: properties[networkIDField] || Infinity,
+				upnetid: networkID,
 				barrierType: thisBarrierType,
 				// use combined barrier networks unless we are looking at only
 				// dams
@@ -297,33 +305,24 @@
 			map.setLayoutProperty(`removed_${t}`, 'visibility', visibility)
 		})
 
-		clearNetworkHighlight()
+		clearSelectedBarrier()
 	}
 
 	/**
-	 * Update highlight of selected barrier's network
+	 * reset selected barrier highlight and network highlight
+	 * NOTE: this is called from the parent component when the sidebar barrier entry is closed
 	 */
-	const updateSelectedBarrierNetwork = () => {
-		clearNetworkHighlight()
+	export const clearSelectedBarrier = () => {
+		if (selectedFeature) {
+			setBarrierHighlight(map, selectedFeature, false)
+			clearNetworkHighlight()
 
-		if (selectedBarrier) {
-			const { upnetid: networkID = Infinity } = selectedBarrier
-			highlightNetwork(
-				map,
-				focalBarrierType === 'dams' ? 'dams' : 'combined_barriers',
-				networkID,
-				selectedBarrier.removed
-			)
-		} else {
-			if (selectedFeature) {
-				setBarrierHighlight(map, selectedFeature, false)
+			if (isEqual(selectedFeature, hoverFeature, ['id', 'layer'])) {
+				setBarrierHighlight(map, hoverFeature, false)
 				hoverFeature = null
-
-				if (isEqual(selectedFeature, hoverFeature, ['id', 'layer'])) {
-					setBarrierHighlight(map, hoverFeature, false)
-					hoverFeature = null
-				}
 			}
+
+			selectedFeature = null
 		}
 	}
 
@@ -359,17 +358,6 @@
 		}
 
 		runOnceOnIdle(map, updateBarrierTypeVisibility)
-	})
-
-	// update highlight of selected barrier network on change of selected barrier
-	$effect.pre(() => {
-		selectedBarrier
-
-		if (!map) {
-			return
-		}
-
-		runOnceOnIdle(map, updateSelectedBarrierNetwork)
 	})
 
 	/**

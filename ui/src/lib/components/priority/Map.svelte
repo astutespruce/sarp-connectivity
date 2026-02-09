@@ -44,7 +44,6 @@
 		activeLayer,
 		summaryUnits,
 		allowUnitSelect,
-		selectedBarrier = null,
 		rankedBarriers,
 		tierThreshold,
 		scenario,
@@ -298,20 +297,14 @@
 
 			const [feature] = features
 
-			// always clear out prior feature
-			const prevFeature = selectedFeature
-			if (prevFeature) {
-				setBarrierHighlight(map, prevFeature, false)
-
-				selectedFeature = null
-
-				if (isEqual(prevFeature, hoverFeature, ['id', 'layer'])) {
-					setBarrierHighlight(map, hoverFeature, false)
-					hoverFeature = null
-				}
+			if (isEqual(feature, selectedFeature, ['id', 'layer'])) {
+				// no change
+				return
 			}
 
-			// only call handler if there was a feature
+			// always clear out prior feature
+			clearSelectedBarrier()
+
 			if (!feature) {
 				onSelectBarrier(null)
 				return
@@ -364,11 +357,14 @@
 				networkIDField = `${network}_upnetid`
 			}
 
-			setBarrierHighlight(map, feature, true)
+			const networkID = properties[networkIDField] || Infinity
+
 			selectedFeature = feature
+			setBarrierHighlight(map, feature, true)
+			highlightNetwork(map, network, networkID, removed)
 
 			onSelectBarrier({
-				upnetid: properties[networkIDField] || Infinity,
+				upnetid: networkID,
 				...properties,
 				tiers: rankedBarriersIndex[properties.id as keyof typeof rankedBarriersIndex] || null,
 				barrierType: thisBarrierType,
@@ -458,44 +454,22 @@
 	})
 
 	/**
-	 * Update barrier and network highlight on change of selectedBarrier
+	 * reset selected barrier highlight and network highlight
+	 * NOTE: this is called from the parent component when the sidebar barrier entry is closed
 	 */
-	const updateNetworkHighlight = () => {
-		clearNetworkHighlight()
+	export const clearSelectedBarrier = () => {
+		if (selectedFeature) {
+			setBarrierHighlight(map, selectedFeature, false)
+			clearNetworkHighlight()
 
-		const removed = selectedBarrier && selectedBarrier.removed
-		if (selectedBarrier) {
-			const networkIDField = removed ? 'id' : 'upnetid'
-			const { [networkIDField]: networkID = Infinity } = selectedBarrier
-
-			highlightNetwork(
-				map,
-				networkType === 'small_barriers' ? 'combined_barriers' : networkType,
-				networkID,
-				removed
-			)
-		} else {
-			const prevFeature = selectedFeature
-			if (prevFeature) {
-				setBarrierHighlight(map, prevFeature, false)
+			if (isEqual(selectedFeature, hoverFeature, ['id', 'layer'])) {
+				setBarrierHighlight(map, hoverFeature, false)
 				hoverFeature = null
-
-				if (isEqual(prevFeature, hoverFeature, ['id', 'layer'])) {
-					setBarrierHighlight(map, hoverFeature, false)
-					hoverFeature = null
-				}
 			}
+
+			selectedFeature = null
 		}
 	}
-
-	$effect.pre(() => {
-		selectedBarrier
-		networkType
-
-		if (!map) return
-
-		runOnceOnIdle(map, updateNetworkHighlight)
-	})
 
 	/**
 	 * if map allows filter, show selected vs unselected points, and make those without networks

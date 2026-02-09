@@ -39,6 +39,7 @@
 	const { type, data: regionData } = $props()
 
 	let map: MapboxGLMapType | undefined = $state.raw()
+	let mapComponent = $state.raw()
 	let system: System = $derived(
 		type === 'Region' || type === 'State' || type === 'FishHabitatPartnership' ? 'ADM' : 'HUC'
 	)
@@ -83,11 +84,12 @@
 
 	const handleBarrierDetailsClose = () => {
 		selectedBarrier = null
+		// @ts-expect-error clearSelectedBarrier is valid
+		mapComponent.clearSelectedBarrier()
 	}
 
 	const handleReset = () => {
 		summaryUnits.clear()
-		selectedBarrier = null
 	}
 
 	const handleZoomBounds = (newBounds: LngLatBoundsLike) => {
@@ -148,6 +150,7 @@
 		{/if}
 	</Sidebar>
 	<Map
+		bind:this={mapComponent}
 		bind:map
 		region={regionData}
 		{focalBarrierType}
