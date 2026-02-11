@@ -103,7 +103,7 @@
 
 	<div class="mx-8 mt-8 md:mt-0">
 		<h2 class="text-2xl mt-8">Prioritization scenarios available:</h2>
-		<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+		<div class="grid md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 gap-4 mt-4">
 			{#each networkTypes as networkType (networkType.id)}
 				<div class="bg-blue-1/40 rounded-lg pt-2 px-4 pb-4 border border-grey-2">
 					<div class="flex flex-col gap-2 h-full">

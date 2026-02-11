@@ -20,6 +20,7 @@
 	import { isEqual } from '$lib/util/data'
 
 	import { unitLayerConfig } from '$lib/components/workflow/config'
+	import { otherBarrierPointLayer } from '$lib/components/priority/layers'
 	import { unitLayers, unitHighlightLayers, parentOutline } from '$lib/components/workflow/layers'
 
 	import { excludedPointLayer, includedPointLayer, waterfallsLayer } from './layers'
@@ -423,7 +424,7 @@
 	})
 
 	const { legendEntries, footnote: legendFootnote } = $derived.by(() => {
-		const pointLayers = [includedPointLayer, excludedPointLayer]
+		const pointLayers = [includedPointLayer, excludedPointLayer, otherBarrierPointLayer]
 
 		const isWithinZoom = pointLayers.reduce(
 			(prev, { id, minzoom, maxzoom }) =>
@@ -433,44 +434,65 @@
 			{}
 		)
 
-		const { included: includedLegend, excluded: excludedLegend } = pointLegends
+		const {
+			included: includedLegend,
+			excluded: excludedLegend,
+			unrankedBarriers,
+			other
+		} = pointLegends
 
 		const circles: Circle[] = []
 		const patches: Patch[] = []
 
 		let footnote = null
 
-		// if no layer is selected for choosing summary areas
-		if (activeLayer === null) {
-			if (!isWithinZoom[includedPointLayer.id as keyof typeof isWithinZoom]) {
-				footnote = `zoom in to see ${barrierTypeLabel} available for download`
-			} else {
-				circles.push({
-					id: includedPointLayer.id,
-					...includedLegend.getSymbol(networkType),
-					label: `${barrierTypeLabel} selected for download`
-				} as Circle)
-			}
+		if (!isWithinZoom[includedPointLayer.id as keyof typeof isWithinZoom]) {
+			footnote = 'zoom in to see crossings available for download'
+		} else {
+			circles.push({
+				id: includedPointLayer.id,
+				...includedLegend.getSymbol(networkType),
+				label: 'surveyed/unsurveyed crossings selected for download'
+			} as Circle)
 		}
 
-		{
-			// either in select units or filter step
-			if (isWithinZoom[includedPointLayer.id as keyof typeof isWithinZoom]) {
-				circles.push({
-					id: includedPointLayer.id,
-					...includedLegend.getSymbol(networkType),
-					label: `${barrierTypeLabel} selected for download`
-				} as Circle)
-			} else {
-				footnote = `zoom in to see ${barrierTypeLabel} selected for download`
-			}
-
+		if (activeLayer !== null) {
 			if (isWithinZoom[excludedPointLayer.id as keyof typeof isWithinZoom]) {
 				circles.push({
 					id: `${networkType}-excluded`,
 					...excludedLegend.getSymbol(networkType),
-					label: `${barrierTypeLabel} not selected for download`
+					label: 'surveyed/unsurveyed crossings not selected for download'
 				} as Circle)
+			}
+
+			if (isWithinZoom[otherBarrierPointLayer.id as keyof typeof isWithinZoom]) {
+				unrankedBarriers.forEach(({ id, getSymbol, getLabel }) => {
+					let label =
+						id === 'default'
+							? 'surveyed crossings not located on aquatic network'
+							: getLabel(shortBarrierTypeLabels.small_barriers)
+					if (id === 'nonBarrier') {
+						label = `surveyed crossings that are ${label}`
+					} else if (id === 'minorBarrier') {
+						label = `surveyed crossings that are a ${label}`
+					}
+
+					circles.push({
+						id,
+						...getSymbol(networkType),
+						label
+					} as Circle)
+				})
+
+				other
+					.filter(({ id }) => id !== 'dams-secondary')
+					.forEach(({ id, getSymbol, getLabel }) => {
+						circles.push({
+							id,
+							...getSymbol(),
+							label: getLabel()
+						})
+					})
 			}
 
 			if (allowUnitSelect) {
@@ -479,7 +501,7 @@
 					entries: [
 						{
 							color: 'rgba(0,0,0,0.15)',
-							label: `area with no inventoried ${barrierTypeLabel}`
+							label: 'area with no inventoried crossings'
 						}
 					]
 				})

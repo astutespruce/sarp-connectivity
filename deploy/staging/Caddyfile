@@ -141,10 +141,11 @@ staging.tool.aquaticbarriers.org {
     encode zstd gzip
 
     # Capture client only routes and route through correct page to force loading on client side
-    rewrite /report/dams/* "index.html"
-    rewrite /report/combined_barriers/* "index.html"
-    rewrite /report/largefish_barriers/* "index.html"
-    rewrite /report/smallfish_barriers/* "index.html"
+    # NOTE: the 404 page is the pre-rended fallback, it will route correctly to the dynamic routes
+    rewrite /report/dams/* /404.html
+    rewrite /report/combined_barriers/* /404.html
+    rewrite /report/largefish_barriers/* /404.html
+    rewrite /report/smallfish_barriers/* /404.html
 
 
     root * /var/www/sarp-connectivity

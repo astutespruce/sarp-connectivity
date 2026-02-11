@@ -46,13 +46,12 @@
 	let zoom: number = $state(0)
 
 	const handleStartOver = () => {
-		crossfilter.data = null
-
 		step = 'select-layer'
 		selectedBarrier = null
 		layer = null
 		summaryUnits.clear()
 		bounds = fullBounds
+		crossfilter.data = null
 
 		// @ts-expect-error clearSelectedBarrier is valid
 		mapComponent.clearSelectedBarrier()

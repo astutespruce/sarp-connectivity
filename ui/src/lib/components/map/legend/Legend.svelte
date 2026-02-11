@@ -78,7 +78,7 @@
 											class="ml-1 h-4 w-5 flex-none border-grey-5 border-t-none border-l border-r border-b group-first-of-type:rounded-t-sm group-last-of-type:rounded-b-sm group-first-of-type:border-t"
 											style="background-color:{entry.color}"
 										></div>
-										<div class="text-xs leading-none text-foreground">{entry.label}</div>
+										<div class="text-xs leading-tight text-foreground">{entry.label}</div>
 									</div>
 								{/each}
 							</div>
@@ -106,7 +106,7 @@
 									<Circle {...circle} />
 								{/if}
 							</div>
-							<div class="text-xs leading-none text-foreground">{circle.label}</div>
+							<div class="text-xs leading-tight text-foreground">{circle.label}</div>
 						</div>
 					{/each}
 				</div>
@@ -127,7 +127,7 @@
 								style="border-bottom-color:{line.color}; border-bottom-width:{line.lineWidth ||
 									2}px; border-bottom-style:{line.lineStyle || 'solid'};"
 							></div>
-							<div class="text-xs leading-none text-foreground">{line.label}</div>
+							<div class="text-xs leading-tight text-foreground">{line.label}</div>
 						</div>
 					{/each}
 				</div>

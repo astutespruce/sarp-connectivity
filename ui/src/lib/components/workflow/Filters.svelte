@@ -43,12 +43,15 @@
 			case 'combined_barriers':
 			case 'largefish_barriers':
 			case 'smallfish_barriers': {
+				// during transitions between views, crossfilter.data may be briefly null
 				const { dams = 0, small_barriers: smallBarriers = 0 } = crossfilter.data
-					.groupby('barriertype')
-					.rollup({ _count: (d: RowObject) => op.sum(d._count) })
-					.derive({ row: op.row_object() })
-					.array('row')
-					.reduce(...reduceToObject('barriertype', (d: RowObject) => d._count))
+					? crossfilter.data
+							.groupby('barriertype')
+							.rollup({ _count: (d: RowObject) => op.sum(d._count) })
+							.derive({ row: op.row_object() })
+							.array('row')
+							.reduce(...reduceToObject('barriertype', (d: RowObject) => d._count))
+					: {}
 
 				return `${formatNumber(dams || 0)} ${pluralize(
 					'dam',
