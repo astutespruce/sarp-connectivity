@@ -33,6 +33,9 @@
 	const barrierTypeLabel = $derived(barrierTypeLabels[networkType as BarrierTypePlural])
 
 	const countMessage = $derived.by(() => {
+		// since filters are a deep object, we have to snapshot them here to detect change
+		$state.snapshot(crossfilter.filters)
+
 		switch (networkType) {
 			case 'dams': {
 				return `${formatNumber(crossfilter.filteredCount)} ${pluralize('dam', crossfilter.filteredCount)}`
@@ -44,8 +47,8 @@
 			case 'largefish_barriers':
 			case 'smallfish_barriers': {
 				// during transitions between views, crossfilter.data may be briefly null
-				const { dams = 0, small_barriers: smallBarriers = 0 } = crossfilter.data
-					? crossfilter.data
+				const { dams = 0, small_barriers: smallBarriers = 0 } = crossfilter.filteredData
+					? crossfilter.filteredData
 							.groupby('barriertype')
 							.rollup({ _count: (d: RowObject) => op.sum(d._count) })
 							.derive({ row: op.row_object() })

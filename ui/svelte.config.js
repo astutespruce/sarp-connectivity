@@ -7,7 +7,7 @@ dotEnvConfig({ path: `.env.${process.env.NODE_ENV}` })
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-	extensions: ['.svelte', '.md'],
+	extensions: ['.svelte'],
 	preprocess: [vitePreprocess()],
 	// compilerOptions: {
 	// 	experimental: {
