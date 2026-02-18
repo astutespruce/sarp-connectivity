@@ -130,9 +130,6 @@
 	const loadBarrierInfo = async () => {
 		status = { isLoading: true, error: null }
 
-		// only select units with non-zero ranked barriers
-		summaryUnits.dropEmptyUnits(({ totalRoadCrossings }) => totalRoadCrossings > 0)
-
 		const {
 			error,
 			data,

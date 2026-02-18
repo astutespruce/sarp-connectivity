@@ -106,11 +106,6 @@ export class SummaryUnitManager {
 		this.#items = this.#items.filter(({ id }) => id !== item.id)
 	}
 
-	dropEmptyUnits(keepPredicate: (item: SummaryUnit) => boolean): void {
-		this.#items = this.#items.filter(keepPredicate)
-		this.#ids = new SvelteSet(this.#items.map(({ id }) => id))
-	}
-
 	getUnitIdsByLayer(): Record<string, string[] | number[]> {
 		return this.#items.reduce((prev: Record<string, string[]>, item: SummaryUnit) => {
 			prev[item.layer] = [...(prev[item.layer] || []), item.id]

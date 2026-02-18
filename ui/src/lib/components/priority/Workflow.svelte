@@ -152,38 +152,6 @@
 		status = { isLoading: true, error: null }
 		rankData = []
 
-		// only select units with non-zero ranked barriers
-		switch (networkType) {
-			case 'dams': {
-				summaryUnits.dropEmptyUnits(({ rankedDams }) => rankedDams > 0)
-				break
-			}
-			case 'small_barriers': {
-				summaryUnits.dropEmptyUnits(({ rankedSmallBarriers }) => rankedSmallBarriers > 0)
-				break
-			}
-			case 'combined_barriers': {
-				summaryUnits.dropEmptyUnits(
-					({ rankedDams = 0, rankedSmallBarriers = 0 }) => rankedDams + rankedSmallBarriers > 0
-				)
-				break
-			}
-			case 'largefish_barriers': {
-				summaryUnits.dropEmptyUnits(
-					({ rankedLargefishBarriersDams = 0, rankedLargefishBarriersSmallBarriers = 0 }) =>
-						rankedLargefishBarriersDams + rankedLargefishBarriersSmallBarriers > 0
-				)
-				break
-			}
-			case 'smallfish_barriers': {
-				summaryUnits.dropEmptyUnits(
-					({ rankedSmallfishBarriersDams = 0, rankedSmallfishBarriersSmallBarriers = 0 }) =>
-						rankedSmallfishBarriersDams + rankedSmallfishBarriersSmallBarriers > 0
-				)
-				break
-			}
-		}
-
 		const {
 			error,
 			data,
