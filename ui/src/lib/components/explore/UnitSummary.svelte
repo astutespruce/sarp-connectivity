@@ -5,7 +5,7 @@
 
 	import { resolve } from '$app/paths'
 	import { Button } from '$lib/components/ui/button'
-	import { STATE_FIPS, STATES, shortBarrierTypeLabels } from '$lib/config/constants'
+	import { STATE_FIPS, STATES, barrierTypeLabels } from '$lib/config/constants'
 	import { formatNumber, pluralize, singularOrPlural } from '$lib/util/format'
 	import { Downloader } from '$lib/components/download'
 	import { summaryUnitLayers } from '$lib/components/explore/layers'
@@ -392,7 +392,9 @@
 	<Footer
 		class={cn('flex gap-4 items-center pt-4', { 'flex-wrap': barrierType === 'small_barriers' })}
 	>
-		<div class="leading-none flex-auto">Download:</div>
+		<div class="leading-none flex-auto">
+			Download{barrierType === 'small_barriers' ? ' road/stream crossings' : null}:
+		</div>
 		<div
 			class={cn('flex gap-4 justify-between flex-none', {
 				'w-full': barrierType === 'small_barriers'
@@ -401,7 +403,7 @@
 			{#if barrierType === 'dams'}
 				<Downloader
 					barrierType="dams"
-					label={`Download ${shortBarrierTypeLabels.dams}`}
+					label={`Download ${barrierTypeLabels.dams}`}
 					config={downloadConfig}
 					disabled={stats.dams === 0}
 					showOptions={false}
@@ -411,7 +413,8 @@
 			{:else if barrierType === 'small_barriers'}
 				<Downloader
 					barrierType="small_barriers"
-					label={`Download ${shortBarrierTypeLabels.small_barriers}`}
+					label={`Download ${barrierTypeLabels.small_barriers}`}
+					triggerLabel="surveyed"
 					config={downloadConfig}
 					disabled={stats.totalSmallBarriers === 0}
 					showOptions={false}
@@ -421,7 +424,8 @@
 
 				<Downloader
 					barrierType="road_crossings"
-					label={`Download ${shortBarrierTypeLabels.road_crossings}`}
+					label="Download surveyed & unsurveyed road/stream crossings"
+					triggerLabel="surveyed & unsurveyed"
 					config={{
 						summaryUnits: summaryUnitsForDownload
 					}}
@@ -433,7 +437,7 @@
 			{:else if barrierType === 'combined_barriers'}
 				<Downloader
 					barrierType="combined_barriers"
-					label={`Download ${shortBarrierTypeLabels.combined_barriers}`}
+					label={`Download ${barrierTypeLabels.combined_barriers}`}
 					config={downloadConfig}
 					disabled={stats.dams + stats.totalSmallBarriers === 0}
 					showOptions={false}

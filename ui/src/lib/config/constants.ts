@@ -4,6 +4,7 @@ export { version as dataVersion, date as dataDate } from '../../../package.json'
 export const barrierTypeLabels: { [key in NetworkType]: string } = {
 	dams: 'dams',
 	small_barriers: 'surveyed road/stream crossings',
+	// WARNING: there are several instances where road_crossings refers to surveyed + unsurveyed (e.g., download)
 	road_crossings: 'unsurveyed road/stream crossings',
 	waterfalls: 'waterfalls',
 	combined_barriers: 'dams & surveyed road/stream crossings',
@@ -14,6 +15,7 @@ export const barrierTypeLabels: { [key in NetworkType]: string } = {
 export const shortBarrierTypeLabels: { [key in NetworkType]: string } = {
 	dams: 'dams',
 	small_barriers: 'surveyed crossings',
+	// WARNING: there are several instances where road_crossings refers to surveyed + unsurveyed (e.g., download)
 	road_crossings: 'unsurveyed crossings',
 	waterfalls: 'waterfalls',
 	combined_barriers: 'dams & surveyed crossings',
@@ -24,6 +26,7 @@ export const shortBarrierTypeLabels: { [key in NetworkType]: string } = {
 export const barrierTypeLabelSingular: { [key in BarrierTypePlural]: string } = {
 	dams: 'dam',
 	small_barriers: 'surveyed road/stream crossing',
+	// WARNING: there are several instances where road_crossings refers to surveyed + unsurveyed (e.g., download)
 	road_crossings: 'unsurveyed road/stream crossing',
 	waterfalls: 'waterfall'
 }

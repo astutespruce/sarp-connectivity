@@ -22,7 +22,7 @@
 
 	const focalBarrierTypeOptions: { value: FocalBarrierType; label: string }[] = [
 		{ value: 'dams', label: 'dams' },
-		{ value: 'small_barriers', label: 'surveyed crossings' },
+		{ value: 'small_barriers', label: 'road/stream crossings' },
 		{ value: 'combined_barriers', label: 'both' }
 	]
 
@@ -148,7 +148,7 @@
 		onSelectBarrier={handleSelectBarrier}
 	>
 		<TopBar>
-			<div class="flex-none">Show networks for:</div>
+			<div class="flex-none">Show:</div>
 
 			<ButtonGroup class="flex-none">
 				{#each focalBarrierTypeOptions as option (option.value)}

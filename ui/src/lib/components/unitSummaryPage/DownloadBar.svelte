@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Downloader } from '$lib/components/download'
+	import { barrierTypeLabels } from '$lib/config/constants'
 	const { stats, config, areaName = null } = $props()
 </script>
 
@@ -9,14 +10,15 @@
 	<div class="flex-none">Download:</div>
 	<Downloader label="dams" barrierType="dams" {areaName} disabled={stats.dams === 0} {config} />
 	<Downloader
-		label="barriers"
+		label={`Download ${barrierTypeLabels.small_barriers}`}
 		barrierType="small_barriers"
 		{areaName}
 		disabled={stats.totalSmallBarriers === 0}
 		{config}
 	/>
 	<Downloader
-		label="road crossings"
+		label="Download surveyed & unsurveyed road/stream crossings"
+		triggerLabel="surveyed & unsurveyed crossings"
 		barrierType="road_crossings"
 		{areaName}
 		disabled={stats.totalRoadCrossings === 0}

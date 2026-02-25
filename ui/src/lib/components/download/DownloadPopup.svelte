@@ -249,7 +249,7 @@
 							<DownloadIcon class="size-5" />
 						{/if}
 
-						{label || `Download ${barrierTypeLabel}`}</Button
+						Download</Button
 					>
 				{/if}
 			{/if}

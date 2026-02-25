@@ -66,12 +66,17 @@ async def download(
             detail="At least one summary unit layer must have ids present or at least one filter must be defined",
         )
 
-    # ranking is not applicable to road crossings
-    ranked_only = not (include_unranked or barrier_type == "road_crossings")
-    count = get_record_count(barrier_type, unit_ids=unit_ids, filters=filters, ranked_only=ranked_only)
+    if barrier_type == "road_crossings":
+        download_message = f"selected {barrier_type.replace('_', ' ')}"
+        ranked_only = False
+    else:
+        ranked_only = not include_unranked
+        count = get_record_count(barrier_type, unit_ids=unit_ids, filters=filters, ranked_only=ranked_only)
+        download_message = f"selected {count:,} {barrier_type.replace('_', ' ')}"
 
-    if count > MAX_IMMEDIATE_DOWNLOAD_RECORDS:
-        log.info(f"selected {count:,} {barrier_type.replace('_', ' ')} for download via background task")
+    # always download road crossings in background task to avoid counting
+    if barrier_type == "road_crossings" or count > MAX_IMMEDIATE_DOWNLOAD_RECORDS:
+        log.info(f"{download_message} for download via background task")
 
         # create custom download task and do this in the background
         try:
@@ -97,7 +102,7 @@ async def download(
         finally:
             await redis.aclose()
 
-    log.info(f"selected {count:,} {barrier_type.replace('_', ' ')} for immediate download")
+    log.info(f"{download_message} for immediate download")
 
     barrier_type = barrier_type.value
     format = format.value
@@ -150,6 +155,10 @@ async def download(
             with ZipFile(out, "w", compression=ZIP_DEFLATED, compresslevel=5) as zf:
                 csv_stream = BytesIO()
                 write_csv(df, csv_stream)
+
+                # release memory
+                del df
+
                 zf.writestr(filename, csv_stream.getvalue())
                 zf.writestr("README.txt", readme)
                 zf.writestr("TERMS_OF_USE.txt", terms)
@@ -225,6 +234,9 @@ async def custom_download_task(
             with ZipFile(out, "w", compression=ZIP_DEFLATED, compresslevel=5) as zf:
                 csv_stream = BytesIO()
                 write_csv(df, csv_stream)
+
+                del df
+
                 zf.writestr(filename, csv_stream.getvalue())
                 zf.writestr("README.txt", readme)
                 zf.writestr("TERMS_OF_USE.txt", terms)

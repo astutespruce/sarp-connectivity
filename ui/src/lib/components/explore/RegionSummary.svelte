@@ -3,7 +3,7 @@
 	import { SvelteSet } from 'svelte/reactivity'
 
 	import { resolve } from '$app/paths'
-	import { MAP_SERVICES, shortBarrierTypeLabels } from '$lib/config/constants'
+	import { MAP_SERVICES, barrierTypeLabels } from '$lib/config/constants'
 	import type { BarrierTypePlural } from '$lib/config/types'
 	import { formatNumber } from '$lib/util/format'
 	import { Downloader } from '$lib/components/download'
@@ -214,23 +214,34 @@
 		<Footer
 			class={cn('flex gap-4 items-center pt-4', { 'flex-wrap': barrierType === 'small_barriers' })}
 		>
-			<div class="leading-none flex-auto">Download:</div>
+			<div class="leading-none flex-auto">
+				Download{barrierType === 'small_barriers' ? ' road/stream crossings' : null}:
+			</div>
 			<div
 				class={cn('flex gap-4 justify-between flex-none', {
 					'w-full': barrierType === 'small_barriers'
 				})}
 			>
-				<Downloader
-					{barrierType}
-					label={`Download ${shortBarrierTypeLabels[barrierType as BarrierTypePlural]}`}
-					showOptions={false}
-					triggerClass="text-sm h-auto py-1.5 px-2!"
-				/>
+				{#if barrierType === 'dams' || barrierType === 'combined_barriers'}
+					<Downloader
+						{barrierType}
+						label={`Download ${barrierTypeLabels[barrierType as BarrierTypePlural]}`}
+						showOptions={false}
+						triggerClass="text-sm h-auto py-1.5 px-2!"
+					/>
+				{:else if barrierType === 'small_barriers'}
+					<Downloader
+						{barrierType}
+						label={`Download ${barrierTypeLabels[barrierType as BarrierTypePlural]}`}
+						triggerLabel="surveyed"
+						showOptions={false}
+						triggerClass="text-sm h-auto py-1.5 px-2!"
+					/>
 
-				{#if barrierType === 'small_barriers'}
 					<Downloader
 						barrierType="road_crossings"
-						label={`Download ${shortBarrierTypeLabels.road_crossings}`}
+						label="Download surveyed & unsurveyed road/stream crossings"
+						triggerLabel="surveyed & unsurveyed"
 						showOptions={false}
 						triggerClass="text-sm h-auto py-1.5 px-2!"
 					/>

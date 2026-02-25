@@ -2,7 +2,7 @@
 	import ChevronsRightIcon from '@lucide/svelte/icons/chevrons-right'
 
 	import { resolve } from '$app/paths'
-	import { STATES, shortBarrierTypeLabels } from '$lib/config/constants'
+	import { STATES, barrierTypeLabels } from '$lib/config/constants'
 	import type { BarrierTypePlural } from '$lib/config/types'
 	import { formatNumber, pluralize } from '$lib/util/format'
 	import { Downloader } from '$lib/components/download'
@@ -184,7 +184,7 @@
 			<div class="flex-none">
 				<Downloader
 					{barrierType}
-					label={`Download removed ${shortBarrierTypeLabels[barrierType as BarrierTypePlural]}`}
+					label={`Download removed ${barrierTypeLabels[barrierType as BarrierTypePlural]}`}
 					config={downloadConfig}
 					showOptions={false}
 					includeUnranked

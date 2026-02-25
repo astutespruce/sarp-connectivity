@@ -51,6 +51,7 @@ The applications are managed by the `app` user account.
 ```bash
 sudo useradd --create-home app
 sudo usermod -a -G app ubuntu
+sudo usermod -a -G www-data ubuntu
 sudo chsh -s /bin/bash app
 sudo mkdir /var/www
 sudo mkdir /var/www/sarp-connectivity
