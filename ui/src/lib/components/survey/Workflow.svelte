@@ -24,6 +24,8 @@
 	import Map from './Map.svelte'
 	import Results from './Results.svelte'
 
+	const MAX_DOWNLOAD_COUNT = 1500000
+
 	const queryClient = getQueryClientContext()
 
 	const networkType = 'road_crossings'
@@ -202,6 +204,7 @@
 				{crossfilter}
 				title="Filter crossings"
 				nextStepLabel="Select crossings"
+				maxAllowed={MAX_DOWNLOAD_COUNT}
 				onBack={handleFilterBack}
 				onStartOver={handleStartOver}
 				onSubmit={handleFilterNext}

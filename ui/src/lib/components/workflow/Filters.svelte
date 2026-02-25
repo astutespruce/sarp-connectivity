@@ -128,11 +128,10 @@
 		</div>
 
 		{#if crossfilter.filteredCount > maxAllowed}
-			<div class="mb-4">
-				<Alert title="Too many barriers!">
-					You have selected too many barriers for analysis. The limit is {formatNumber(maxAllowed)}.
-					Please choose a smaller area of interest or filter your barriers of interest further.
-				</Alert>
+			<div class="text-xs text-accent flex gap-2 mb-4 leading-tight mt-2">
+				<WarningIcon class="size-4 flex-none" />
+				You have selected too many barriers (must be &lt;{formatNumber(maxAllowed)}). Please choose
+				a smaller area of interest or filter your barriers of interest further.
 			</div>
 		{:else if crossfilter.filteredCount === 0}
 			<div class="mt-1 mb-3 text-xs flex gap-2">
@@ -146,7 +145,7 @@
 			<StartOverButton {onStartOver} />
 
 			<NextButton
-				disabled={crossfilter.filteredCount === 0}
+				disabled={crossfilter.filteredCount === 0 || crossfilter.filteredCount > maxAllowed}
 				label={nextStepLabel}
 				onClick={onSubmit}
 			/>

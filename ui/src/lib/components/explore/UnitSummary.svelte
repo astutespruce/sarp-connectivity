@@ -1,6 +1,7 @@
 <script lang="ts">
 	import ChevronsRightIcon from '@lucide/svelte/icons/chevrons-right'
 	import CloseIcon from '@lucide/svelte/icons/circle-x'
+	import WarningIcon from '@lucide/svelte/icons/triangle-alert'
 	import { SvelteSet } from 'svelte/reactivity'
 
 	import { resolve } from '$app/paths'
@@ -15,6 +16,8 @@
 	import { cn } from '$lib/utils'
 
 	import ListItem from './UnitListItem.svelte'
+
+	const MAX_DOWNLOAD_COUNT = 1500000
 
 	const { barrierType, system, summaryUnits, onSelectUnit, onReset, onZoomBounds } = $props()
 
@@ -394,6 +397,14 @@
 	>
 		<div class="leading-none flex-auto">
 			Download{barrierType === 'small_barriers' ? ' road/stream crossings' : null}:
+			{#if barrierType === 'small_barriers' && stats.totalRoadCrossings > MAX_DOWNLOAD_COUNT}
+				<div class="flex gap-2 text-xs leading-tight text-accent mt-2">
+					<WarningIcon class="size-4 flex-none " />
+					Too many surveyed & unsurveyed crossings selected for download (must be &lt;{formatNumber(
+						MAX_DOWNLOAD_COUNT
+					)}). Choose a smaller area.
+				</div>
+			{/if}
 		</div>
 		<div
 			class={cn('flex gap-4 justify-between flex-none', {
@@ -429,7 +440,7 @@
 					config={{
 						summaryUnits: summaryUnitsForDownload
 					}}
-					disabled={stats.totalRoadCrossings === 0}
+					disabled={stats.totalRoadCrossings === 0 || stats.totalRoadCrossings > MAX_DOWNLOAD_COUNT}
 					showOptions={false}
 					includeUnranked
 					triggerClass="text-sm h-auto py-1.5 px-2!"
