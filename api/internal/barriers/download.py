@@ -67,15 +67,17 @@ async def download(
         )
 
     if barrier_type == "road_crossings":
-        download_message = f"selected {barrier_type.replace('_', ' ')}"
         ranked_only = False
     else:
         ranked_only = not include_unranked
-        count = get_record_count(barrier_type, unit_ids=unit_ids, filters=filters, ranked_only=ranked_only)
-        download_message = f"selected {count:,} {barrier_type.replace('_', ' ')}"
+
+    start = time()
+    count = get_record_count(barrier_type, unit_ids=unit_ids, filters=filters, ranked_only=ranked_only)
+    download_message = f"selected {count:,} {barrier_type.replace('_', ' ')}"
+    log.info(f"{download_message} in {time() - start:.3f}s")
 
     # always download road crossings in background task to avoid counting
-    if barrier_type == "road_crossings" or count > MAX_IMMEDIATE_DOWNLOAD_RECORDS:
+    if count > MAX_IMMEDIATE_DOWNLOAD_RECORDS:
         log.info(f"{download_message} for download via background task")
 
         # create custom download task and do this in the background
