@@ -97,7 +97,7 @@
 			}
 
 			case 'combined_barriers':
-			case 'largefish_barrhers':
+			case 'largefish_barriers':
 			case 'smallfish_barriers': {
 				// extract counts specific to network type
 				let rankedD = 0
