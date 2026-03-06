@@ -35,7 +35,7 @@
 		The following methods represent our best attempt to correctly snap and analyze dams and surveyed road/stream
 		crossings. If you see errors in the dam, surveyed road/stream crossing, or waterfall locations used
 		in the analysis, or would like additional help interpreting the results of the analysis, please
-		<a href={`mailto:${CONTACT_EMAIL}`}>contact us</a>.
+		<a href={`mailto:${CONTACT_EMAIL}`} target="_blank">contact us</a>.
 	</p>
 
 	<hr />

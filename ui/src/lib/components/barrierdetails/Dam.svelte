@@ -93,7 +93,8 @@
 			<div class="text-muted-foreground mt-4">
 				This dam is estimated from other data sources and may be incorrect; please
 				<a
-					href={`mailto:${CONTACT_EMAIL}subject=Problem with Estimated Dam ${sarpid} (data version: ${dataVersion})`}
+					href={`mailto:${CONTACT_EMAIL}?subject=Problem with Estimated Dam ${sarpid} (data version: ${dataVersion})`}
+					target="_blank"
 				>
 					let us know
 				</a>

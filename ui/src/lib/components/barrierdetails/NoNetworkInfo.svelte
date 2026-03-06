@@ -25,8 +25,9 @@
 		This {typeLabel} is off-network and has no functional network information.
 		<div class="text-xs text-muted-foreground mt-4">
 			Not all {barrierTypeLabels[barrierType as BarrierTypePlural]} could be correctly snapped to the
-			aquatic network for analysis. Please <a href={`mailto:${CONTACT_EMAIL}`}>contact us</a> to report
-			an error or for assistance interpreting these results.
+			aquatic network for analysis. Please
+			<a href={`mailto:${CONTACT_EMAIL}`} target="_blank">contact us</a> to report an error or for assistance
+			interpreting these results.
 		</div>
 	{:else if excluded}
 		This {typeLabel} was excluded from the connectivity analysis based on field reconnaissance, manual
@@ -39,7 +40,8 @@
 			way that primary versus secondary channels are identified within the NHD High Resolution Plus dataset.
 			This dam may need to be repositioned to occur on the primary channel in order to be included within
 			the connectivity analysis. Please
-			<a href={`mailto:${CONTACT_EMAIL}`}>contact us</a> to report an issue with this barrier.
+			<a href={`mailto:${CONTACT_EMAIL}`} target="_blank">contact us</a> to report an issue with this
+			barrier.
 		</div>
 	{:else if !in_network_type}
 		This {typeLabel} is not included in this network scenario based on its passability

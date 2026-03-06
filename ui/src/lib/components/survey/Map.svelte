@@ -1,10 +1,8 @@
 <script lang="ts">
 	import { Popup } from 'mapbox-gl'
 	import type { FeatureSelector, GeoJSONFeature, Point } from 'mapbox-gl'
-	import { untrack } from 'svelte'
 
 	import { shortBarrierTypeLabels, pointLegends } from '$lib/config/constants'
-	import type { BarrierTypePlural } from '$lib/config/types'
 	import {
 		Map,
 		setBarrierHighlight,
@@ -12,7 +10,6 @@
 		getInStringExpr,
 		getInMapUnitsExpr,
 		getBarrierTooltip,
-		getBitFromBitsetExpr,
 		runOnceOnIdle
 	} from '$lib/components/map'
 	import type { Circle, Patch } from '$lib/components/map/legend/types'
@@ -25,9 +22,13 @@
 
 	import { excludedPointLayer, includedPointLayer, waterfallsLayer } from './layers'
 
+	// IMPORTANT: all network results are in the context of combined_barriers, so we set that here
+	// different interpretation compared to how networkType is handled in caller
+	const networkType = 'combined_barriers'
+
 	let {
 		map = $bindable(),
-		networkType: networkTypeProp,
+		focalBarrierType,
 		crossfilter,
 		activeLayer,
 		summaryUnits,
@@ -39,11 +40,6 @@
 		children,
 		class: className = null
 	} = $props()
-
-	// only use initial value of network type when setting up layers (it is a route variable and does not change after mount)
-	const networkType = $state.snapshot(untrack(() => networkTypeProp))
-
-	const barrierTypeLabel = $derived(shortBarrierTypeLabels[networkType as BarrierTypePlural])
 
 	let zoom = $state(0)
 	let hoverFeature: (FeatureSelector & GeoJSONFeature) | null = $state.raw(null)
@@ -79,41 +75,13 @@
 		}
 
 		// Each layer has 2 display layers: outline, fill
-		// show grey fill when the map unit cannot be ranked
-		let bitPos = 0
-
-		switch (networkType) {
-			case 'dams': {
-				bitPos = 0
-				break
-			}
-			case 'small_barriers': {
-				bitPos = 1
-				break
-			}
-			case 'combined_barriers': {
-				bitPos = 2
-				break
-			}
-			case 'largefish_barriers': {
-				bitPos = 3
-				break
-			}
-			case 'smallfish_barriers': {
-				bitPos = 4
-				break
-			}
-		}
-
-		const fillExpr = ['case', ['==', getBitFromBitsetExpr('has_data', bitPos), 0], 0.25, 0]
-
 		// make all layers initially hidden; these are shown via an effect below
 		unitLayers.forEach(({ id, ...rest }) => {
 			const unitLayer = { ...config, ...rest, id: `${layer}-${id}`, layout: { visibility: 'none' } }
 
 			if (id === 'unit-fill') {
 				// @ts-expect-error fill-opacity is valid key
-				unitLayer.paint['fill-opacity'] = fillExpr
+				unitLayer.paint['fill-opacity'] = 0
 			}
 
 			layers.push(unitLayer)
@@ -258,15 +226,10 @@
 			const thisBarrierType =
 				properties.sarpidname && properties.sarpidname.startsWith('sm') ? 'small_barriers' : source
 
-			const network =
-				networkType === 'small_barriers' || networkType === 'road_crossings'
-					? 'combined_barriers'
-					: networkType
-
 			// promote network fields if clicking on a waterfall
 			let networkIDField = 'upnetid'
 			if (thisBarrierType === 'waterfalls') {
-				networkIDField = `${network}_upnetid`
+				networkIDField = `${networkType}_upnetid`
 			}
 
 			const networkID = properties[networkIDField] || Infinity
@@ -451,7 +414,7 @@
 		} else {
 			circles.push({
 				id: includedPointLayer.id,
-				...includedLegend.getSymbol(networkType),
+				...includedLegend.getSymbol(focalBarrierType),
 				label: 'surveyed/unsurveyed crossings selected for download'
 			} as Circle)
 		}
@@ -459,8 +422,8 @@
 		if (activeLayer !== null) {
 			if (isWithinZoom[excludedPointLayer.id as keyof typeof isWithinZoom]) {
 				circles.push({
-					id: `${networkType}-excluded`,
-					...excludedLegend.getSymbol(networkType),
+					id: `${focalBarrierType}-excluded`,
+					...excludedLegend.getSymbol(focalBarrierType),
 					label: 'surveyed/unsurveyed crossings not selected for download'
 				} as Circle)
 			}
@@ -479,7 +442,7 @@
 
 					circles.push({
 						id,
-						...getSymbol(networkType),
+						...getSymbol(focalBarrierType),
 						label
 					} as Circle)
 				})

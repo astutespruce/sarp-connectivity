@@ -48,8 +48,8 @@
 				with the inventory data in this tool.
 				<br />
 				<br />
-				<a href={`mailto:${CONTACT_EMAIL}`}>Contact us</a> to learn more about how you can help improve
-				this barrier inventory and tool.
+				<a href={`mailto:${CONTACT_EMAIL}`} target="_blank">Contact us</a> to learn more about how you
+				can help improve this barrier inventory and tool.
 			</p>
 		</div>
 
@@ -135,7 +135,7 @@
 				<br />
 				To report an invasive species barrier miscoded within the inventory, as with missing barriers,
 				please contact
-				<a href={`mailto:${CONTACT_EMAIL}`}>
+				<a href={`mailto:${CONTACT_EMAIL}`} target="_blank">
 					{CONTACT_EMAIL}
 				</a>
 				with the coordinates, or when prioritizing within the tool, scroll to the bottom of the sidebar

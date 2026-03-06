@@ -15,6 +15,7 @@
 			href={`mailto:${CONTACT_EMAIL}?subject=Problem with National Aquatic Barrier Inventory for ${
 				barrierType === 'dams' ? 'dam' : 'road/stream crossing'
 			}: ${sarpid} (data version: ${dataVersion})&body=I found the following problem with the Inventory for this barrier:`}
+			target="_blank"
 		>
 			let us know!
 		</a>
@@ -22,7 +23,7 @@
 		<br />
 		If you would like more information about this barrier or the aquatic connectivity analysis results
 		presented above, please
-		<a href={`mailto:${CONTACT_EMAIL}`}>contact us</a>.
+		<a href={`mailto:${CONTACT_EMAIL}`} target="_blank">contact us</a>.
 	</div>
 
 	<hr />

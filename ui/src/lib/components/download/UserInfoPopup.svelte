@@ -125,7 +125,8 @@
 					We're sorry, there was an unexpected error submitting your information. We'll try again
 					the next time you download.
 					<br /><br />
-					If this happens again, please <a href={`mailto:${CONTACT_EMAIL}`}>contact us</a>.
+					If this happens again, please
+					<a href={`mailto:${CONTACT_EMAIL}`} target="_blank">contact us</a>.
 				</p>
 			</Alert>
 

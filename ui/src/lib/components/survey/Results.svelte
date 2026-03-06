@@ -61,9 +61,9 @@
 			>.
 
 			<br /><br />
-			You can also <a href={`mailto:${CONTACT_EMAIL}`}>contact us</a> for access to an ArcGIS Survey123
-			data collector app that will help you collect survey data according to the NAACC's nontidal and
-			tidal protocols.
+			You can also <a href={`mailto:${CONTACT_EMAIL}`} target="_blank">contact us</a> for access to an
+			ArcGIS Survey123 data collector app that will help you collect survey data according to the NAACC's
+			nontidal and tidal protocols.
 		</div>
 	</div>
 

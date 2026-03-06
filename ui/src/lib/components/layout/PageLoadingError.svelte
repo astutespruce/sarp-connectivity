@@ -8,7 +8,7 @@
 		We're sorry, there was an unexpected error loading this page. Please reload this page in your
 		browser.
 		<br /><br />
-		If that doesn't fix the problem, please <a href={`mailto:${CONTACT_EMAIL}`}>contact us</a> to let
-		us know!
+		If that doesn't fix the problem, please
+		<a href={`mailto:${CONTACT_EMAIL}`} target="_blank">contact us</a> to let us know!
 	</p>
 </Alert>

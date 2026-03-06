@@ -25,7 +25,7 @@
 		<div class="mt-4 text-xl">
 			Please try again in a few minutes. <br />
 			If that still doesn't work, please
-			<a href={`mailto:${CONTACT_EMAIL}`}> let us know</a>!
+			<a href={`mailto:${CONTACT_EMAIL}`} target="_blank"> let us know</a>!
 		</div>
 	</div>
 {/if}

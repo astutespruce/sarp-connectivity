@@ -95,6 +95,7 @@
 				in order to be included within the connectivity analysis. Please
 				<a
 					href={`mailto:${CONTACT_EMAIL}?subject=Problem with National Aquatic Barrier Inventory for ${barrierTypeLabel}: ${sarpid} (data version: ${dataVersion})&body=I found the following problem with the SARP Inventory for this barrier:`}
+					target="_blank"
 				>
 					contact us
 				</a>
@@ -115,6 +116,7 @@
 				Not all dams could be correctly snapped to the aquatic network for analysis. Please
 				<a
 					href={`mailto:${CONTACT_EMAIL}?subject=Problem with National Aquatic Barrier Inventory for ${barrierTypeLabel}: ${sarpid} (data version: ${dataVersion})&body=I found the following problem with the SARP Inventory for this barrier:`}
+					target="_blank"
 				>
 					contact us
 				</a>

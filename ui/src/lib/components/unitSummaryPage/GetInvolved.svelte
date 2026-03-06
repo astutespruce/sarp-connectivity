@@ -42,8 +42,8 @@
 		</a>.
 		<br />
 		<br />
-		<a href={`mailto:${CONTACT_EMAIL}`}>Contact us</a> to learn more about how you can help improve aquatic
-		connectivity.
+		<a href={`mailto:${CONTACT_EMAIL}`} target="_blank">Contact us</a> to learn more about how you can
+		help improve aquatic connectivity.
 	</p>
 
 	{#if team}

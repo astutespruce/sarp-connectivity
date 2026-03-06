@@ -13,6 +13,7 @@
 <SidebarFooter class="flex-none">
 	<a
 		href={`mailto:${CONTACT_EMAIL}?subject=Problem with National Barrier Inventory for ${typeLabel}: ${sarpid} (data version: ${dataVersion})&body=I found the following problem with the National Barrier Inventory for this barrier:`}
+		target="_blank"
 		class="flex justify-center items-center gap-2 no-underline hover:underline"
 	>
 		<EmailIcon class="size-5" /> Report an error with this barrier

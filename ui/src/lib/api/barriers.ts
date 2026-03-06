@@ -144,7 +144,13 @@ export const fetchBarrierDetails = async (networkType: string, sarpid: string) =
 
 	const response = await fetch(url)
 	if (response.status === 404) {
-		return null // not found
+		// null signals not found to caller
+		return null
+	}
+
+	if (response.status === 422) {
+		// 422 is an implementation error
+		throw new Error(await response.json())
 	}
 
 	const data = await response.json()

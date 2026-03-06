@@ -87,7 +87,7 @@
 	{#if barrierType === 'dams' || barrierType === 'small_barriers'}
 		<a
 			href={resolve(
-				`/report/${networkType === 'small_barriers' ? 'combined_barriers' : networkType}/${sarpid}`,
+				`/report/${networkType === 'small_barriers' || networkType === 'road_crossings' ? 'combined_barriers' : networkType}/${sarpid}`,
 				{ id: sarpid }
 			)}
 			target="_blank"

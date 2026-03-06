@@ -112,7 +112,7 @@
 					<div>
 						There was an error loading these data. Please try clicking on a different area in the
 						map or refresh this page in your browser. If it happens again, please
-						<a href={`mailto:${CONTACT_EMAIL}`}>contact us</a>.
+						<a href={`mailto:${CONTACT_EMAIL}`} target="_blank">contact us</a>.
 					</div>
 				</Alert>
 			</div>

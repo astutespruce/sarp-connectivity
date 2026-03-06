@@ -99,7 +99,7 @@
 			<div class="text-muted-foreground">
 				A downloadable version of the logo can be obtained by clicking on the logo to the left to
 				open it in a new browser tab or window. If you need it in a different format, please use an
-				image conversion tool or <a href={`mailto:${CONTACT_EMAIL}`}>contact us</a>.
+				image conversion tool or <a href={`mailto:${CONTACT_EMAIL}`} target="_blank">contact us</a>.
 			</div>
 		</div>
 	</div>

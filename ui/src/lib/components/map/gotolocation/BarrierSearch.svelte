@@ -119,7 +119,7 @@
 		<div class="flex gap-1 text-destructive">Error loading search results</div>
 		<div class="mt-4 text-xs">
 			Please try a different search term. If the error continues, please
-			<a href={`mailto:${CONTACT_EMAIL}`}> let us know </a>.
+			<a href={`mailto:${CONTACT_EMAIL}`} target="_blank"> let us know </a>.
 		</div>
 	{:else if searchRequest.isSuccess}
 		{#if results && results.length > 0}

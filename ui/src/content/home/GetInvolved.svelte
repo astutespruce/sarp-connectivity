@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { NACC_HOME_URL } from '$lib/env'
+	import { NACC_HOME_URL, CONTACT_EMAIL } from '$lib/env'
 </script>
 
 <h2 class="text-2xl sm:text-3xl">Get involved!</h2>
@@ -12,10 +12,10 @@
 	</a>, or even by reporting issues with the inventory data in this tool.
 	<br />
 	<br />
-	<a href="mailto:kat@southeastaquatics.net">Contact us</a> to learn more about how you can help
-	improve this barrier inventory and tool.
+	<a href={`mailto:${CONTACT_EMAIL}`} target="_blank">Contact us</a> to learn more about how you can
+	help improve this barrier inventory and tool.
 	<br />
 	<br />
 	If you are not able to get what you need from this tool or if you need to report an issue, please&nbsp;
-	<a href="mailto:kat@southeastaquatics.net">let us know</a>!
+	<a href={`mailto:${CONTACT_EMAIL}`} target="_blank">let us know</a>!
 </p>

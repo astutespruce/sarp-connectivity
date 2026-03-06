@@ -42,7 +42,7 @@
 		enabled: sarpid !== null
 	}))
 
-	const data = $derived({ ...coreData, ...dataRequest.data })
+	const data = $derived({ ...coreData, sarpid, ...dataRequest.data })
 
 	const hasTabs = $derived(
 		data.ranked && (data.barrierType !== 'waterfalls' || data.barrierType === 'road_crossings')
@@ -174,12 +174,15 @@
 		</div>
 	</div>
 {:else}
-	<Alert title="Whoops!">
-		There was an error loading these data. Please try clicking on a different barrier or refresh
-		this page in your browser.
-		<div class="text-sm">
-			If it happens again, please
-			<a href={`mailto:${CONTACT_EMAIL}`}>contact us</a>.
-		</div>
-	</Alert>
+	<div class="p-4">
+		<Alert title="Whoops!">
+			There was an error loading these data. Please try clicking on a different barrier or refresh
+			this page in your browser.
+			<br />
+			<div class="text-sm">
+				If it happens again, please
+				<a href={`mailto:${CONTACT_EMAIL}`} target="_blank">contact us</a>.
+			</div>
+		</Alert>
+	</div>
 {/if}

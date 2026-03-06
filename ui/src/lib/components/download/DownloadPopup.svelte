@@ -170,7 +170,8 @@
 				<p class="text-base">
 					We're sorry, there was an unexpected error creating your download. Please try again.
 					<br /><br />
-					If this happens again, please <a href={`mailto:${CONTACT_EMAIL}`}>contact us</a>.
+					If this happens again, please
+					<a href={`mailto:${CONTACT_EMAIL}`} target="_blank">contact us</a>.
 				</p>
 			</Alert>
 		{:else if status.inProgress}

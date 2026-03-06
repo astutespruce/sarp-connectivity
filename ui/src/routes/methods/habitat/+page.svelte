@@ -53,7 +53,7 @@
 			<br />
 			<br />
 			If you find a major error in the habitat lengths associated with barriers in this tool, please
-			<a href={`mailto:${CONTACT_EMAIL}`} class="text-destructive">contact us</a>.
+			<a href={`mailto:${CONTACT_EMAIL}`} target="_blank" class="text-destructive">contact us</a>.
 		</p>
 	</Alert>
 

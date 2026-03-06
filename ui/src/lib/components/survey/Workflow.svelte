@@ -161,7 +161,7 @@
 		crossfilter.filters
 
 		if (Object.keys(crossfilter.filters).length > 0) {
-			logGAEvent(`survey ${networkType} - set filters`, crossfilter.serializeFilters())
+			logGAEvent('survey road crossings - set filters', crossfilter.serializeFilters())
 		}
 	})
 </script>
@@ -174,7 +174,7 @@
 					<div>
 						There was an error loading these data. Please try clicking on a different area in the
 						map or refresh this page in your browser. If it happens again, please
-						<a href={`mailto:${CONTACT_EMAIL}`}>contact us</a>.
+						<a href={`mailto:${CONTACT_EMAIL}`} target="_blank">contact us</a>.
 					</div>
 				</Alert>
 			</div>
@@ -226,7 +226,7 @@
 	<Map
 		bind:this={mapComponent}
 		bind:map
-		{networkType}
+		focalBarrierType={networkType}
 		{crossfilter}
 		{bounds}
 		allowUnitSelect={step === 'select-units'}
