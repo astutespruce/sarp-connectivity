@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths'
 	import { HeaderImage } from '$lib/components/image'
-	import { CONTACT_EMAIL, SITE_NAME } from '$lib/env'
+	import { CONTACT_EMAIL, SITE_NAME, NACC_HOME_URL } from '$lib/env'
 </script>
 
 <svelte:head>
@@ -87,7 +87,7 @@
 		Collaborative, and scores crossings based on the degree of which they deviate from an ideal
 		crossing (which would span full channel and banks and mimic a natural stream within). To learn
 		more, view the road stream crossing <a
-			href="https://drive.google.com/drive/folders/1Llo71hn8a902VLwz_dyGhqpJGZL2wByd?usp=sharing"
+			href={`${NACC_HOME_URL}/survey-forms/`}
 			target="_blank"
 			rel="external">manuals and forms</a
 		>. To participate in road/stream crossing training, partners need to be trained on the method

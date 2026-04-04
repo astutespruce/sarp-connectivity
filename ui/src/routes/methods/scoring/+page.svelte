@@ -175,7 +175,7 @@
 		</div>
 	</div>
 
-	<p class="mt-4">
+	<p class="mt-8">
 		Barrier ranks are calculated for each of these metrics using the following methods:
 	</p>
 	<ol class="mt-2">
