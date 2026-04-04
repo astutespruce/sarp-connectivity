@@ -175,6 +175,30 @@
 		</div>
 	</div>
 
+	<p class="mt-4">
+		Barrier ranks are calculated for each of these metrics using the following methods:
+	</p>
+	<ol class="mt-2">
+		<li>
+			Any geographic and attribute filters specified by the user are applied to select barriers for
+			ranking.
+		</li>
+		<li>
+			The unique values for that metric are calculated across all selected barriers. This is so that
+			all barriers with the same value for a given metric are assigned the same rank for that
+			metric.
+		</li>
+		<li>
+			The unique values are sorted into ascending order and their integer index within this sorted
+			order is converted to a 0-1 scale based on the total number of unique values. This means that
+			the lowest metric value corresponds to the lowest index value. This is used to assign a rank
+			for that metric to each barrier.
+			<br /><br />
+			Note: channel alteration is measured based on the percent of the channel that is unaltered, so that
+			it follows the same ordering as the other metrics.
+		</li>
+	</ol>
+
 	<hr />
 
 	<div>
@@ -214,28 +238,45 @@
 	</div>
 
 	<p class="mt-8">
-		To reduce the impact of outliers, such as very long functional networks, barriers are scored
-		based on their relative rank within the overall range of unique values for a given metric. Many
-		barriers have the same value for a given metric and are given the same relative score; this
-		causes the distribution of values among scores to be highly uneven in certain areas.
+		To reduce the impact of outliers, such as very long functional networks, barriers are assigned
+		tiers based on their relative rank within the overall range of unique values for a given metric.
+		Many barriers have the same value for a given metric and are given the same relative rank; this
+		causes the distribution of values among ranks to be highly uneven in certain areas.
 		<br />
 		<br />
-		Once barriers have been scored for each of the above scenarios, they are binned into 20 tiers to simplify
-		interpretation and use. To do this, barriers that fall in the best 5% of the range of scores for that
+		Once barriers have been ranked for each of the above scenarios, they are binned into 20 tiers to simplify
+		interpretation and use. To do this, barriers that fall in the best 5% of the range of ranks for that
 		metric are assigned to Tier 1 (top tier), whereas barriers that fall in the worst 5% of the range
-		of scores for that metric are assigned Tier 20 (bottom tier).
+		of ranks for that metric are assigned Tier 20 (bottom tier).
 		<br />
 		<br />
+		Barrier tiers are calculated for these scenarios using the following methods:
 	</p>
+	<ol class="mt-2">
+		<li>
+			The ranks for each individual metric are combined into a weighted average using equal weights
+			to calculate a composite rank. That is, if there are 3 metric ranks that contribute to a
+			composite rank, then each metric is assigned a weight of 1/3.
+		</li>
+		<li>
+			This composite rank is then converted into a relative rank that falls between the minimum and
+			maximum rank values across all selected barriers. This puts all barriers on a 0-100% scale.
+		</li>
+		<li>
+			This scale is then subdivided into 5% increments, which correspond to the 20 tiers used in
+			this analysis. The lowest 5% of ranks corresponds to Tier 20, and the highest 5% of ranks
+			corresponds to Tier 1.
+		</li>
+	</ol>
 
 	<Alert title="Warning" class="mt-8 text-lg">
 		<p class="text-base">
-			Tiers are based on position within the range of observed scores for a given area. They are <i
+			Tiers are based on position within the range of observed ranks for a given area. They are <i
 				>not</i
-			> based on the frequency of scores, such as percentiles, and therefore may have a highly uneven
-			number of barriers per tier depending on the area. In general, there are fewer barriers in the top
-			tiers than there are in the bottom tiers. This is largely because many barriers share the same value
-			for a given metric.
+			> based on the frequency of ranks, such as percentiles, and therefore may have a highly uneven number
+			of barriers per tier depending on the area. In general, there are fewer barriers in the top tiers
+			than there are in the bottom tiers. This is largely because many barriers share the same value for
+			a given metric.
 		</p>
 	</Alert>
 </div>

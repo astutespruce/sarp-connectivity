@@ -2,6 +2,7 @@
 	import ArrowIcon from '@lucide/svelte/icons/corner-down-right'
 	import FAQIcon from '@lucide/svelte/icons/circle-question-mark'
 	import HabitatIcon from '@lucide/svelte/icons/fish'
+	import InventoryIcon from '@lucide/svelte/icons/ruler-dimension-line'
 	import NetworkMethodsIcon from '@lucide/svelte/icons/waypoints'
 	import ScoringIcon from '@lucide/svelte/icons/search-alert'
 	import SGCNIcon from '@lucide/svelte/icons/scroll-text'
@@ -10,6 +11,19 @@
 
 	const items = [
 		{ id: 'faq', url: '/faq/', label: 'Frequently asked questions', icon: FAQIcon },
+		{
+			id: 'inventory',
+			url: '/methods/inventory/',
+			label: 'Barrier inventory methods',
+			icon: InventoryIcon,
+			children: [
+				{
+					id: 'estimated',
+					url: '/methods/estimated-dams/',
+					label: 'Estimated dam methods'
+				}
+			]
+		},
 		{
 			id: 'network',
 			url: '/methods/network/',
