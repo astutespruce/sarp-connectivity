@@ -413,6 +413,7 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
     new_joins = (
         grouped.id.apply(pd.Series)
         .stack()
+        .dropna()
         .astype("uint32")
         .reset_index()
         .rename(columns={"lineID": "origLineID", "level_1": "position", 0: "id"})
@@ -1300,6 +1301,7 @@ def repair_disconnected_subnetworks(flowlines, joins, next_lineID):
     new_joins = (
         grouped.src_id.apply(pd.Series)
         .stack()
+        .dropna()
         .astype("uint32")
         .rename("src_id")
         .reset_index()

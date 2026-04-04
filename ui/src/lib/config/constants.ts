@@ -77,6 +77,10 @@ export const pointColors = {
 		// combined scenario:
 		damsColor: '#09cad7'
 	},
+	plannedProject: {
+		color: '#159601',
+		strokeColor: '#000000'
+	},
 	minorBarrier: {
 		color: '#fec44f',
 		strokeColor: '#b27701'
@@ -295,6 +299,7 @@ export const pointLegends = {
 			},
 			getLabel: (barrierTypeLabel: string) => `${barrierTypeLabel} removed for conservation`
 		},
+
 		{
 			id: 'minorBarrier',
 			getSymbol: () => ({
@@ -409,6 +414,42 @@ export const pointLegends = {
 			getLabel: (barrierTypeLabel: string) => `${barrierTypeLabel} not available for prioritization`
 		}
 	],
+
+	// these are duplicative of other types above and are only shown in restoration view
+	plannedProjectBarriers: {
+		id: 'planned_project',
+		getSymbol: (barrierType: NetworkType) => {
+			if (
+				barrierType === 'combined_barriers' ||
+				barrierType === 'largefish_barriers' ||
+				barrierType === 'smallfish_barriers'
+			) {
+				return {
+					symbols: [
+						{
+							radius: 5,
+							color: pointColors.plannedProject.color,
+							borderColor: pointColors.plannedProject.strokeColor,
+							borderWidth: 0.5
+						},
+						{
+							radius: 3,
+							color: pointColors.plannedProject.color,
+							borderColor: pointColors.plannedProject.strokeColor,
+							borderWidth: 0.5
+						}
+					]
+				}
+			}
+			return {
+				radius: 5,
+				color: pointColors.plannedProject.color,
+				borderColor: pointColors.plannedProject.strokeColor,
+				borderWidth: 0.5
+			}
+		},
+		getLabel: (barrierTypeLabel: string) => `${barrierTypeLabel} planned for removal or mitigation`
+	},
 
 	other: [
 		{

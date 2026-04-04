@@ -71,10 +71,8 @@ async def download(
     else:
         ranked_only = not include_unranked
 
-    start = time()
     count = get_record_count(barrier_type, unit_ids=unit_ids, filters=filters, ranked_only=ranked_only)
     download_message = f"selected {count:,} {barrier_type.replace('_', ' ')}"
-    log.info(f"{download_message} in {time() - start:.3f}s")
 
     # always download road crossings in background task to avoid counting
     if count > MAX_IMMEDIATE_DOWNLOAD_RECORDS:

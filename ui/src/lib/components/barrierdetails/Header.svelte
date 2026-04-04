@@ -1,6 +1,7 @@
 <script lang="ts">
 	import PriorityBarrierIcon from '@lucide/svelte/icons/map-plus'
 	import RemovedBarrierIcon from '@lucide/svelte/icons/waves'
+	import PlannedProjectIcon from '@lucide/svelte/icons/waves-arrow-up'
 	import SurveyedIcon from '@lucide/svelte/icons/drafting-compass'
 	import CloseIcon from '@lucide/svelte/icons/circle-x'
 	import ReportIcon from '@lucide/svelte/icons/file-input'
@@ -23,6 +24,7 @@
 		lon,
 		removed,
 		yearremoved,
+		plannedproject,
 		isPriority,
 		isSurveyed,
 		onClose
@@ -55,6 +57,16 @@
 				<div class="flex items-center gap-2 mt-1">
 					<PriorityBarrierIcon class="text-blue-8 size-5" />
 					<div class="font-bold">Identified as a priority by resource managers</div>
+				</div>
+			{:else if plannedproject}
+				<div class="flex gap-1 items-center my-1">
+					<div class="flex gap-2 items-center">
+						<PlannedProjectIcon class="text-blue-8 size-5" />
+					</div>
+
+					<div class="font-bold font-sm text-muted-foreground">
+						Planned for removal / mitigation
+					</div>
 				</div>
 			{/if}
 

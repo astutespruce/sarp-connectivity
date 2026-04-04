@@ -23,7 +23,7 @@ def get_col_types(df, bool_cols=None):
 
         out.append("-T")
         out_type = dtype
-        if dtype == "object":
+        if dtype in {"object", "str"}:
             out_type = "string"
         elif "int" in dtype:
             out_type = "int"

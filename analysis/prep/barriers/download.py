@@ -47,7 +47,7 @@ SMALL_BARRIER_SURVEY_URLS = {
     "Southeast (coarse)": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/service_4b226787a3464f478602431383498138/FeatureServer/0",
     "Western (inland)": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/service_1da663f4b2ff45aeadbf5568829f40f6/FeatureServer/0",
     # NOTE: combined protocols uses the private service token; these are not currently used because photos are also inaccessible
-    # "Combined protocols": "https://services9.arcgis.com/jLLC0IEfFUxV8nml/arcgis/rest/services/service_7eb5237fc3e24b61a3510be160f2338f/FeatureServer/0",
+    # "Combined protocols": "https://services9.arcgis.com/jLLC0IEfFUxV8nml/arcgis/rest/services/service_6980dce03c10452d85537f12479a1026/FeatureServer/0"
 }
 
 # NOTE: this is joined on the service globalid to small barriers Source ID
@@ -310,82 +310,82 @@ out_dir = Path("data/barriers/source")
 
 start = time()
 
-### Download national dams
-print("\n---- Downloading National Dams ----")
-download_start = time()
-df = asyncio.run(download_dams(TOKEN, PRIVATE_TOKEN))
-print(f"Downloaded {len(df):,} dams in {time() - download_start:.2f}s")
+# ### Download national dams
+# print("\n---- Downloading National Dams ----")
+# download_start = time()
+# df = asyncio.run(download_dams(TOKEN, PRIVATE_TOKEN))
+# print(f"Downloaded {len(df):,} dams in {time() - download_start:.2f}s")
 
-for svc in ["public", "private"]:
-    ix = (df.SARPID.isnull() | (df.SARPID == "")) & (df.svc == svc)
-    if ix.any():
-        print(
-            f"--------------------------\nWARNING: {ix.sum():,} {svc} dams are missing SARPID\n----------------------------"
-        )
-        print(df.loc[ix].groupby("SourceState", dropna=False).size())
+# for svc in ["public", "private"]:
+#     ix = (df.SARPID.isnull() | (df.SARPID == "")) & (df.svc == svc)
+#     if ix.any():
+#         print(
+#             f"--------------------------\nWARNING: {ix.sum():,} {svc} dams are missing SARPID\n----------------------------"
+#         )
+#         print(df.loc[ix].groupby("SourceState", dropna=False).size())
 
-
-# DEBUG ONLY - SARPID must be present; follow up with SARP if not
-df.SARPID = df.SARPID.fillna("").astype("str")
-
-
-for svc in ["public", "private"]:
-    s = df.loc[df.svc == svc].groupby("SARPID").size()
-    ids = s[s > 1].index
-    if len(ids):
-        print(f"WARNING: multiple {svc.upper()} dams with same SARPID: {', '.join(ids)}")
-
-
-df.to_feather(out_dir / "sarp_dams.feather")
-
-
-# ### Download manually snapped dams
-print("\n---- Downloading Snapped Dams ----")
-download_start = time()
-df = asyncio.run(download_snapped_dams(TOKEN))
-print(f"Downloaded {len(df):,} snapped dams in {time() - download_start:.2f}s")
-
-s = df.groupby("SARPID").size()
-if s.max() > 1:
-    print("WARNING: multiple dams with same SARPID in snapped dataset")
-    print(", ".join(sorted(s[s > 1].index.tolist())))
-
-df.to_feather(out_dir / "manually_snapped_dams.feather")
-
-### Download small barriers
-print("\n---- Downloading Small Barriers ----")
-download_start = time()
-df = asyncio.run(download_small_barriers(TOKEN, PRIVATE_TOKEN))
-print(f"Downloaded {len(df):,} small barriers in {time() - download_start:.2f}s")
-
-for svc in ["public", "private"]:
-    ix = (df.SARPID.isnull() | (df.SARPID == "")) & (df.svc == svc)
-    if ix.max():
-        print(
-            f"--------------------------\nWARNING: {ix.sum():,} {svc} small barriers are missing SARPID\n----------------------------"
-        )
 
 # # DEBUG ONLY - SARPID must be present; follow up with SARP if not
-df.SARPID = df.SARPID.fillna("").astype("str")
-
-for svc in ["public", "private"]:
-    s = df.loc[df.svc == svc].groupby("SARPID").size()
-    ids = s[s > 1].index
-    if len(ids):
-        print(f"WARNING: multiple {svc.upper()} small barriers with same SARPID: {', '.join(ids)}\n")
+# df.SARPID = df.SARPID.fillna("").astype("str")
 
 
-df.to_feather(out_dir / "sarp_small_barriers.feather")
+# for svc in ["public", "private"]:
+#     s = df.loc[df.svc == svc].groupby("SARPID").size()
+#     ids = s[s > 1].index
+#     if len(ids):
+#         print(f"WARNING: multiple {svc.upper()} dams with same SARPID: {', '.join(ids)}")
 
-print("\n")
+
+# df.to_feather(out_dir / "sarp_dams.feather")
 
 
-### Download small barrier survey photo URLs
-download_start = time()
-df = asyncio.run(download_small_barrier_survey_photo_urls(TOKEN, PRIVATE_TOKEN))
-print(f"Downloaded {len(df):,} small barrier records with photo URLs in {time() - download_start:.2f}s")
+# # ### Download manually snapped dams
+# print("\n---- Downloading Snapped Dams ----")
+# download_start = time()
+# df = asyncio.run(download_snapped_dams(TOKEN))
+# print(f"Downloaded {len(df):,} snapped dams in {time() - download_start:.2f}s")
 
-df.to_feather(out_dir / "sarp_small_barrier_survey_urls.feather")
+# s = df.groupby("SARPID").size()
+# if s.max() > 1:
+#     print("WARNING: multiple dams with same SARPID in snapped dataset")
+#     print(", ".join(sorted(s[s > 1].index.tolist())))
+
+# df.to_feather(out_dir / "manually_snapped_dams.feather")
+
+# ### Download small barriers
+# print("\n---- Downloading Small Barriers ----")
+# download_start = time()
+# df = asyncio.run(download_small_barriers(TOKEN, PRIVATE_TOKEN))
+# print(f"Downloaded {len(df):,} small barriers in {time() - download_start:.2f}s")
+
+# for svc in ["public", "private"]:
+#     ix = (df.SARPID.isnull() | (df.SARPID == "")) & (df.svc == svc)
+#     if ix.max():
+#         print(
+#             f"--------------------------\nWARNING: {ix.sum():,} {svc} small barriers are missing SARPID\n----------------------------"
+#         )
+
+# # # DEBUG ONLY - SARPID must be present; follow up with SARP if not
+# df.SARPID = df.SARPID.fillna("").astype("str")
+
+# for svc in ["public", "private"]:
+#     s = df.loc[df.svc == svc].groupby("SARPID").size()
+#     ids = s[s > 1].index
+#     if len(ids):
+#         print(f"WARNING: multiple {svc.upper()} small barriers with same SARPID: {', '.join(ids)}\n")
+
+
+# df.to_feather(out_dir / "sarp_small_barriers.feather")
+
+# print("\n")
+
+
+# ### Download small barrier survey photo URLs
+# download_start = time()
+# df = asyncio.run(download_small_barrier_survey_photo_urls(TOKEN, PRIVATE_TOKEN))
+# print(f"Downloaded {len(df):,} small barrier records with photo URLs in {time() - download_start:.2f}s")
+
+# df.to_feather(out_dir / "sarp_small_barrier_survey_urls.feather")
 
 
 ### Download Great Lakes survey photo URLs
@@ -396,28 +396,28 @@ print(f"Downloaded {len(df):,} Great Lakes survey records with photo URLs in {ti
 df.to_feather(out_dir / "great_lakes_survey_urls.feather")
 
 
-### Download waterfalls
-download_start = time()
-print("\n---- Downloading waterfalls ----")
-df = asyncio.run(download_waterfalls(TOKEN, PRIVATE_TOKEN))
-print(f"Downloaded {len(df):,} waterfalls in {time() - download_start:.2f}s")
+# ### Download waterfalls
+# download_start = time()
+# print("\n---- Downloading waterfalls ----")
+# df = asyncio.run(download_waterfalls(TOKEN, PRIVATE_TOKEN))
+# print(f"Downloaded {len(df):,} waterfalls in {time() - download_start:.2f}s")
 
-ix = df.SARPID.isnull() | (df.SARPID == "")
-if ix.max():
-    print(
-        f"--------------------------\nWARNING: {ix.sum():,} waterfalls are missing SARPID\n----------------------------"
-    )
+# ix = df.SARPID.isnull() | (df.SARPID == "")
+# if ix.max():
+#     print(
+#         f"--------------------------\nWARNING: {ix.sum():,} waterfalls are missing SARPID\n----------------------------"
+#     )
 
-df.SARPID = df.SARPID.fillna("").astype("str")
+# df.SARPID = df.SARPID.fillna("").astype("str")
 
-for svc in ["public", "private"]:
-    s = df.loc[df.svc == svc].groupby("SARPID").size()
-    ids = s[s > 1].index
-    if len(ids):
-        print(f"WARNING: multiple {svc.upper()} waterfalls with same SARPID: {', '.join(ids)}")
+# for svc in ["public", "private"]:
+#     s = df.loc[df.svc == svc].groupby("SARPID").size()
+#     ids = s[s > 1].index
+#     if len(ids):
+#         print(f"WARNING: multiple {svc.upper()} waterfalls with same SARPID: {', '.join(ids)}")
 
 
-df.to_feather(out_dir / "waterfalls.feather")
+# df.to_feather(out_dir / "waterfalls.feather")
 
 
 print(f"---------------\nAll done in {time() - start:.2f}s")

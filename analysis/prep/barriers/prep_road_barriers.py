@@ -47,9 +47,11 @@ from analysis.constants import (
     KEEP_POTENTIAL_PROJECT,
     DROP_POTENTIAL_PROJECT,
     UNRANKED_POTENTIAL_PROJECT,
+    PLANNED_PROJECT_POTENTIAL_PROJECT,
     REMOVED_POTENTIAL_PROJECT,
     DROP_RECON,
     EXCLUDE_RECON,
+    PLANNED_PROJECT_RECON,
     REMOVED_RECON,
     DROP_MANUALREVIEW,
     EXCLUDE_MANUALREVIEW,
@@ -66,6 +68,7 @@ from analysis.constants import (
     BARRIEROWNERTYPE_TO_DOMAIN,
     YEAR_SURVEYED_BINS,
 )
+from api.constants import verify_domains
 
 ### Custom tolerance values for dams
 SNAP_TOLERANCE = {
@@ -150,6 +153,7 @@ crossings["YearSurveyedClass"] = np.uint8(0)
 crossings["Resurveyed"] = np.uint8(0)
 crossings["excluded"] = False
 crossings["removed"] = False
+crossings["planned_project"] = False
 crossings["invasive"] = False
 crossings["YearRemoved"] = np.uint16(0)
 crossings["EJTract"] = crossings.EJTract.astype("bool")
@@ -237,6 +241,7 @@ df["PotentialProject"] = (
     .replace("Dry - Skipped", "Unassessed")
     # temporary typo fix
     .replace("Sevrere Barrier", "Severe Barrier")
+    .replace("Completed Projct", "Completed Project")
 )
 
 # per guidance from Kat, anything where SARP_Score is 0 and potential project is
@@ -385,6 +390,9 @@ df["unranked"] = False  # includes invasive and barriers with no upstream
 # removed: barriers was removed for conservation but we still want to track it
 df["removed"] = False
 
+# planned_project: barrier removal is proposed / in progress
+df["planned_project"] = False
+
 # nobarrier: barriers that have been surveyed/reviewed and determined not to be a barrier
 df["nobarrier"] = df.BarrierSeverity == 8
 
@@ -454,6 +462,13 @@ for field, values in dropped_fields.items():
     ix = df[field].isin(values) & (~(df.dropped | df.removed))
     df.loc[ix, "dropped"] = True
     df.loc[ix, "log"] = format_log("dropped", field, sorted(df.loc[ix][field].unique().tolist()))
+
+
+### Mark any that are proposed to be removed so that we can show these on the map
+planned_project_fields = {"Recon": PLANNED_PROJECT_RECON, "PotentialProject": PLANNED_PROJECT_POTENTIAL_PROJECT}
+for field, values in planned_project_fields.items():
+    ix = df[field].isin(values) & (~(df.dropped | df.removed))
+    df.loc[ix, "planned_project"] = True
 
 
 ### Exclude barriers that should not be analyzed or prioritized based on Recon or ManualReview
@@ -795,6 +810,7 @@ copy_cols = [
     "invasive",
     "removed",
     "YearRemoved",
+    "planned_project",
     "BarrierSeverity",
     "PotentialProject",
     "Constriction",
@@ -831,6 +847,7 @@ for col in [
     "invasive",
     "removed",
     "YearRemoved",
+    "planned_project",
     "BarrierSeverity",
     "PotentialProject",
     "Constriction",
@@ -1058,6 +1075,10 @@ df["largefish_network"] = can_break_networks & (
     )
 )
 df["smallfish_network"] = can_break_networks  # includes minor barriers
+
+### verify that all domains are clean
+# NOTE: passability is backfilled elsewhere, so skip check of it here
+verify_domains(df.loc[df.State != ""].drop(columns=["Passability"]))
 
 
 print("\n--------------\n")

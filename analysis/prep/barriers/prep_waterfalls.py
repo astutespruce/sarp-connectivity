@@ -41,6 +41,7 @@ from analysis.prep.species.lib.diadromous import get_diadromous_ids
 from analysis.prep.barriers.lib.snap import snap_to_flowlines
 from analysis.prep.barriers.lib.duplicates import find_duplicates
 from analysis.prep.barriers.lib.spatial_joins import get_huc2, add_spatial_joins
+from api.constants import verify_domains
 
 
 # Snap waterfalls by 100 meters
@@ -391,6 +392,9 @@ df["primary_network"] = can_break_networks
 df["largefish_network"] = can_break_networks & (~(df.Passability.isin([2, 3, 4, 5, 6])))
 df["smallfish_network"] = can_break_networks
 
+
+### verify that all domains are clean
+verify_domains(df.loc[df.State != ""])
 
 ### All done processing!
 print("\n--------------\n")

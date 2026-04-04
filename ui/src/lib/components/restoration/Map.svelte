@@ -14,7 +14,7 @@
 	import { shortBarrierTypeLabels, pointLegends, SUMMARY_UNIT_COLORS } from '$lib/config/constants'
 	import type { BarrierTypePlural, FocalBarrierType } from '$lib/config/types'
 	import { isEqual } from '$lib/util/data'
-	import { summaryUnitLayers, removedBarrierPointLayer } from './layers'
+	import { summaryUnitLayers, removedBarrierPointLayer, plannedProjectPointLayer } from './layers'
 
 	const barrierTypes: FocalBarrierType[] = ['dams', 'small_barriers', 'combined_barriers']
 
@@ -112,6 +112,15 @@
 				visibility: 'none'
 			}
 		})
+		layers.push({
+			id: `planned_project_${t}`,
+			source: t,
+			'source-layer': `planned_project_${t}`,
+			...plannedProjectPointLayer,
+			layout: {
+				visibility: 'none'
+			}
+		})
 	})
 
 	const clearNetworkHighlight = () => {
@@ -131,7 +140,9 @@
 			zoom = map.getZoom()
 		})
 
-		const pointLayers = barrierTypes.map((t) => `removed_${t}`)
+		const pointLayers = barrierTypes
+			.map((t) => `removed_${t}`)
+			.concat(barrierTypes.map((t) => `planned_project_${t}`))
 		const clickLayers = pointLayers.concat(summaryUnitLayers.map(({ id }) => `${id}-fill`))
 
 		// add hover and tooltip to point layers
@@ -303,6 +314,7 @@
 		barrierTypes.forEach((t) => {
 			const visibility = focalBarrierType === t ? 'visible' : 'none'
 			map.setLayoutProperty(`removed_${t}`, 'visibility', visibility)
+			map.setLayoutProperty(`planned_project_${t}`, 'visibility', visibility)
 		})
 
 		clearSelectedBarrier()
@@ -421,11 +433,18 @@
 
 		const circles: Circle[] = []
 		if (map && map.getZoom() >= 8) {
-			const { unrankedBarriers } = pointLegends
-			const removedLegend = unrankedBarriers.filter(({ id }) => id === 'removed')[0]
+			const { unrankedBarriers, plannedProjectBarriers } = pointLegends
+			const removedBarrierLegend = unrankedBarriers.filter(({ id }) => id === 'removed')[0]
 			circles.push({
-				...removedLegend.getSymbol(focalBarrierType),
-				label: removedLegend.getLabel(barrierTypeLabel)
+				id: removedBarrierLegend.id,
+				...removedBarrierLegend.getSymbol(focalBarrierType),
+				label: removedBarrierLegend.getLabel(barrierTypeLabel)
+			} as Circle)
+
+			circles.push({
+				id: plannedProjectBarriers.id,
+				...plannedProjectBarriers.getSymbol(focalBarrierType),
+				label: plannedProjectBarriers.getLabel(barrierTypeLabel)
 			} as Circle)
 		}
 

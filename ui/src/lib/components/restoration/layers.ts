@@ -333,3 +333,40 @@ export const removedBarrierPointLayer = {
 		}
 	}
 }
+
+export const plannedProjectPointLayer = {
+	// id: '' // provided by specific layer
+	// source: "" // provided by specific layer
+	// 'source-layer': '', // provided by specific layer
+	type: 'circle',
+	minzoom: 6,
+	maxzoom: 24,
+	paint: {
+		'circle-color': getHighlightExpr(pointColors.plannedProject.color, pointColors.highlight.color),
+		'circle-radius': [
+			'interpolate',
+			['linear'],
+			['zoom'],
+			6,
+			getHighlightExpr(['match', ['get', 'barriertype'], 'small_barriers', 0.5, 1], 6),
+			8,
+			getHighlightExpr(['match', ['get', 'barriertype'], 'small_barriers', 2, 3], 12),
+			12,
+			getHighlightExpr(['match', ['get', 'barriertype'], 'small_barriers', 4, 5], 14),
+			16,
+			getHighlightExpr(['match', ['get', 'barriertype'], 'small_barriers', 6, 8], 14)
+		],
+		'circle-opacity': 1,
+		'circle-stroke-color': getHighlightExpr(
+			pointColors.plannedProject.strokeColor,
+			pointColors.highlight.strokeColor
+		),
+		'circle-stroke-width': {
+			stops: [
+				[6, 0.25],
+				[10, 1],
+				[14, 2]
+			]
+		}
+	}
+}

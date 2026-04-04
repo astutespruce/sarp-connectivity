@@ -51,6 +51,7 @@ from analysis.constants import (
     GEO_CRS,
     DROP_FEASIBILITY,
     EXCLUDE_FEASIBILITY,
+    PLANNED_PROJECT_FEASIBILITY,
     REMOVED_FEASIBILITY,
     INVASIVE_FEASIBILITY,
     DROP_MANUALREVIEW,
@@ -61,6 +62,7 @@ from analysis.constants import (
     INVASIVE_MANUALREVIEW,
     DROP_RECON,
     EXCLUDE_RECON,
+    PLANNED_PROJECT_RECON,
     REMOVED_RECON,
     INVASIVE_RECON,
     RECON_TO_FEASIBILITY,
@@ -78,6 +80,7 @@ from analysis.constants import (
     YEAR_SURVEYED_BINS,
 )
 from analysis.lib.io import read_arrow_tables
+from api.constants import verify_domains
 
 
 ### Custom tolerance values for dams
@@ -289,6 +292,17 @@ df["Source"] = (
     .replace("NID May312023", "NID May 31 2023")
     .replace("Field Assessment", "Field assessment")
     .replace("Field Assessments", "Field assessment")
+)
+
+# Temporary fix: fix URLs for WA barrier reports (Kat is planning to fix in master)
+df["SourceLink"] = df.SourceLink.str.replace(
+    "https://apps.wdfw.wa.gov/fishpassagephotos/Reports",
+    "https://fortress.wa.gov/dfw/public/fishpassagephotos/reports",
+    regex=False,
+).str.replace(
+    "http://apps.wdfw.wa.gov/fishpassagephotos/Reports",
+    "https://fortress.wa.gov/dfw/public/fishpassagephotos/reports",
+    regex=False,
 )
 
 
@@ -564,6 +578,8 @@ df["StateRegulated"] = df.StateRegulated.str.lower().map(STATEREGULATED_TO_DOMAI
 # per direction from Kat (11/7/2024) fill all nulls with "No"
 df["NRCSDam"] = df.NRCSDam.fillna(2).astype("uint8")
 
+# TEMPORARY fix of unexpected value
+df.loc[df.NRCSDam == 234, "NRCSDam"] = np.uint8(0)
 
 df["WaterRight"] = df.WaterRight.fillna(0).astype("uint8")
 
@@ -596,6 +612,9 @@ df["unranked"] = False  # combined from above fields
 
 # removed: dam was removed for conservation but we still want to track it
 df["removed"] = False
+
+# planned_project: dam removal is proposed / in progress
+df["planned_project"] = False
 
 # nostructure: diversion point without associated structure
 df["nostructure"] = False
@@ -691,6 +710,13 @@ df.loc[ix, "YearRemoved"] = df.loc[ix].YearFishPass
 # but don't reset if Feasibility indicates it wasn't completely removed, per direction from Kat on 1/7/2024
 ix = df.removed & (~(df.Feasibility.isin([11, 14]) | df.Recon.isin([22, 23])))
 df.loc[ix, "Passability"] = np.uint8(0)  # unknown
+
+
+### Mark any that are proposed to be removed so that we can show these on the map
+planned_project_fields = {"Recon": PLANNED_PROJECT_RECON, "Feasibility": PLANNED_PROJECT_FEASIBILITY}
+for field, values in planned_project_fields.items():
+    ix = df[field].isin(values) & (~(df.dropped | df.removed))
+    df.loc[ix, "planned_project"] = True
 
 
 ### Exclude dams that should not be analyzed or prioritized based on manual QA
@@ -879,7 +905,7 @@ treatment_ix = (
     (~exclude_snap_ix)
     & (~df.ManualReview.isin([4, 13, 15]))
     & df.Name.str.lower().apply(
-        lambda x: (("pond" in x or "lagoon" in x) and any(keyword in x for keyword in treatment_keywords))
+        lambda x: ("pond" in x or "lagoon" in x) and any(keyword in x for keyword in treatment_keywords)
     )
 )
 df.loc[treatment_ix, "snap_log"] = "not snapped: name indicates off-network wastewater treatment lagoon/pond"
@@ -1174,6 +1200,10 @@ df["primary_network"] = can_break_networks
 # based on direction from Kat, exclude any with partial or seasonal passability
 df["largefish_network"] = can_break_networks & (~(df.Passability.isin([2, 3, 4, 5, 6])))
 df["smallfish_network"] = can_break_networks
+
+
+### verify that all domains are clean
+verify_domains(df.loc[df.State != ""])
 
 
 ### All done processing!

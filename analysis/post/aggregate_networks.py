@@ -71,6 +71,7 @@ rename_cols = {
     "snapped": "Snapped",
     "excluded": "Excluded",
     "removed": "Removed",
+    "planned_project": "PlannedProject",
     "is_estimated": "Estimated",
     "invasive": "Invasive",
     "unranked": "Unranked",

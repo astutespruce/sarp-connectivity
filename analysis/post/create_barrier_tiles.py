@@ -64,9 +64,7 @@ start = time()
 ####################################################################
 print("-----------------Creating dam tiles------------------------\n\n")
 df = (
-    gp.read_feather(
-        results_dir / "dams.feather",
-    )
+    gp.read_feather(results_dir / "dams.feather")
     .to_crs("EPSG:4326")
     .drop(columns=["County"])
     .rename(columns={"COUNTYFIPS": "County"})
@@ -194,6 +192,33 @@ ret = subprocess.run(
 )
 ret.check_returncode()
 outfilename.unlink()
+
+
+### Create tiles for planned project dams
+# NOTE: these are redundant with dams in other groups above (and may be unranked / off network)
+planned_project_dams = df.loc[df.PlannedProject, ["geometry", "id", "SARPIDName"]]
+print(f"Creating tiles for {len(planned_project_dams):,} planned project dams")
+
+outfilename = tmp_dir / "planned_project_dams.fgb"
+mbtiles_filename = tmp_dir / "planned_project_dams.mbtiles"
+mbtiles_files.append(mbtiles_filename)
+planned_project_dams = to_lowercase(planned_project_dams)
+write_dataframe(planned_project_dams.reset_index(drop=True), outfilename)
+coltypes = get_col_types(planned_project_dams)
+
+del planned_project_dams
+
+ret = subprocess.run(
+    tippecanoe_args
+    + ["-Z6", f"-z{MAX_ZOOM}", "-B6"]
+    + ["-l", "planned_project_dams"]
+    + ["-o", f"{str(mbtiles_filename)}"]
+    + coltypes
+    + [str(outfilename)]
+)
+ret.check_returncode()
+outfilename.unlink()
+
 
 ### Create tiles for all other dams
 # these include remaining off-network / excluded dams; these are not filtered
@@ -366,6 +391,33 @@ ret = subprocess.run(
 ret.check_returncode()
 outfilename.unlink()
 
+
+### Create tiles for planned project small barriers
+# NOTE: these are redundant with dams in other groups above (and may be unranked / off network)
+planned_project_barriers = df.loc[df.PlannedProject, ["geometry", "id", "SARPIDName"]]
+print(f"Creating tiles for {len(planned_project_barriers):,} planned project barriers")
+
+outfilename = tmp_dir / "planned_project_barriers.fgb"
+mbtiles_filename = tmp_dir / "planned_project_barriers.mbtiles"
+mbtiles_files.append(mbtiles_filename)
+planned_project_barriers = to_lowercase(planned_project_barriers)
+write_dataframe(planned_project_barriers.reset_index(drop=True), outfilename)
+coltypes = get_col_types(planned_project_barriers)
+
+del planned_project_barriers
+
+ret = subprocess.run(
+    tippecanoe_args
+    + ["-Z6", f"-z{MAX_ZOOM}", "-B6"]
+    + ["-l", "planned_project_small_barriers"]
+    + ["-o", f"{str(mbtiles_filename)}"]
+    + coltypes
+    + [str(outfilename)]
+)
+ret.check_returncode()
+outfilename.unlink()
+
+
 ### Create tiles all other small barriers
 other_barriers = df.loc[(~df.HasNetwork) & (~df.Removed), ["geometry", "id", "SARPIDName", "symbol"]]
 
@@ -531,6 +583,30 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
         tippecanoe_args
         + ["-Z6", f"-z{MAX_ZOOM}", "-B6"]
         + ["-l", f"removed_{network_type}"]
+        + ["-o", f"{str(mbtiles_filename)}"]
+        + coltypes
+        + [str(outfilename)]
+    )
+    ret.check_returncode()
+    outfilename.unlink()
+
+    ### Create tiles for planned project barriers
+    planned_project_barriers = df.loc[df.PlannedProject, ["geometry", "id", "SARPIDName", "BarrierType"]]
+    print(f"Creating tiles for {len(planned_project_barriers):,} planned project barriers")
+
+    outfilename = tmp_dir / f"planned_project_{network_type}.fgb"
+    mbtiles_filename = tmp_dir / f"planned_project_{network_type}.mbtiles"
+    mbtiles_files.append(mbtiles_filename)
+    planned_project_barriers = to_lowercase(planned_project_barriers)
+    write_dataframe(planned_project_barriers.reset_index(drop=True), outfilename)
+    coltypes = get_col_types(planned_project_barriers)
+
+    del planned_project_barriers
+
+    ret = subprocess.run(
+        tippecanoe_args
+        + ["-Z6", f"-z{MAX_ZOOM}", "-B6"]
+        + ["-l", f"planned_project_{network_type}"]
         + ["-o", f"{str(mbtiles_filename)}"]
         + coltypes
         + [str(outfilename)]

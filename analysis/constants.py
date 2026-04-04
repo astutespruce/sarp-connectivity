@@ -337,7 +337,7 @@ KEEP_POTENTIAL_PROJECT = [
 
 UNRANKED_POTENTIAL_PROJECT = ["No Upstream Channel", "No Upstream Habitat"]
 REMOVED_POTENTIAL_PROJECT = ["Past Project", "Completed Project", "Removed Crossing"]
-
+PLANNED_PROJECT_POTENTIAL_PROJECT = ["Proposed Project"]
 # These are DROPPED from all analysis and mapping
 # NA are modeled road / stream crossings from WDFW, drop them per direction from Kat (8/1/2024)
 DROP_POTENTIAL_PROJECT = ["No Crossing", "NA"]
@@ -382,7 +382,7 @@ OFFSTREAM_MANUALREVIEW = [
 # based on guidance from Kat
 DROP_RECON = [
     5,  # Dam may be removed or error (no longer visible)
-    19,  # Proposed dam
+    19,  # Proposed dam (dam is proposed to be added not removed)
 ]
 
 DROP_FEASIBILITY = [
@@ -394,11 +394,21 @@ REMOVED_RECON = [
     7,  # Dam was deliberately removed
 ]
 
+PLANNED_PROJECT_RECON = [
+    11,  # Removal planned
+]
+
 EXCLUDE_RECON = []
 
 REMOVED_FEASIBILITY = [
     8,  # Dam removed for conservation benefit
     14,  # Fish passage installed for conservation benefit
+    15,  # Treatment completed (removal vs fishway unspecified)
+]
+
+PLANNED_PROJECT_FEASIBILITY = [
+    12,  # Removal planned
+    16,  # Treatment planned
 ]
 
 EXCLUDE_FEASIBILITY = [

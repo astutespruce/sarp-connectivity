@@ -1,6 +1,7 @@
 <script lang="ts">
 	import PriorityBarrierIcon from '@lucide/svelte/icons/map-plus'
 	import RemovedBarrierIcon from '@lucide/svelte/icons/waves'
+	import PlannedProjectIcon from '@lucide/svelte/icons/waves-arrow-up'
 
 	import { barrierTypeLabelSingular, STATES } from '$lib/config/constants'
 	import { formatNumber } from '$lib/util/format'
@@ -14,6 +15,7 @@
 		lon,
 		removed,
 		yearremoved,
+		plannedproject,
 		yearsurveyed,
 		resurveyed,
 		ispriority,
@@ -68,6 +70,11 @@
 		<div class="flex items-center gap-2 mt-1 mb-4">
 			<PriorityBarrierIcon class="text-blue-8 size-5" />
 			<div class="font-bold">Identified as a priority by resource managers</div>
+		</div>
+	{:else if plannedproject}
+		<div class="flex items-center gap-2 mt-1 mb-4">
+			<PlannedProjectIcon class="text-blue-8 size-5" />
+			<div class="font-bold">Planned for removal / mitigation</div>
 		</div>
 	{/if}
 
