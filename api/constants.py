@@ -556,6 +556,7 @@ DAM_EXPORT_FIELDS = unique(DAM_CORE_FIELDS + STATE_TIER_FIELDS + HUC8_TIER_FIELD
 
 DAM_API_FIELDS = unique(
     DAM_CORE_FIELDS
+    + ["PlannedProject"]
     + STATE_TIER_FIELDS
     + HUC8_TIER_FIELDS
     + DAM_FILTER_FIELDS
@@ -579,18 +580,7 @@ DAM_PUBLIC_EXPORT_FIELDS = DAM_CORE_FIELDS + ["URL"]
 
 
 DAM_TILE_FILTER_FIELDS = unique(
-    DAM_FILTER_FIELDS
-    + [
-        f
-        for f in UNIT_FIELDS
-        if f
-        not in {
-            "HUC2",
-            "HUC6",
-            "HUC8",
-            "HUC10",
-        }
-    ]
+    DAM_FILTER_FIELDS + [f for f in UNIT_FIELDS if f not in {"HUC2", "HUC6", "HUC8", "HUC10"}]
 )
 
 
@@ -626,6 +616,7 @@ SB_EXPORT_FIELDS = unique(SB_CORE_FIELDS + HUC8_TIER_FIELDS + CUSTOM_TIER_FIELDS
 
 SB_API_FIELDS = unique(
     SB_CORE_FIELDS
+    + ["PlannedProject"]
     + HUC8_TIER_FIELDS
     + SB_FILTER_FIELDS
     + ["upNetID", "downNetID", "COUNTYFIPS", "Unranked", "in_network_type", "attachments"]
@@ -730,18 +721,7 @@ ROAD_CROSSING_EXPORT_FIELDS = [f for f in ROAD_CROSSING_CORE_FIELDS if f not in 
 
 # only need HUC12 for filtering
 ROAD_CROSSING_TILE_FILTER_FIELDS = unique(
-    ROAD_CROSSING_FILTER_FIELDS
-    + [
-        f
-        for f in UNIT_FIELDS
-        if f
-        not in {
-            "HUC2",
-            "HUC6",
-            "HUC8",
-            "HUC10",
-        }
-    ]
+    ROAD_CROSSING_FILTER_FIELDS + [f for f in UNIT_FIELDS if f not in {"HUC2", "HUC6", "HUC8", "HUC10"}]
 )
 
 

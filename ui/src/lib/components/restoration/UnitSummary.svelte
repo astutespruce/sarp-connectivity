@@ -238,10 +238,8 @@
 							{pluralize('dam', stats.removedDams)}
 						</b>
 						that
-						{stats.removedDams === 1
-							? 'has been or is actively being'
-							: 'have been or are actively being'}
-						removed or mitigated, gaining
+						{stats.removedDams === 1 ? 'has' : 'have'}
+						been removed or mitigated, gaining
 						<b>{formatNumber(stats.removedDamsGainMiles)} miles</b> of reconnected rivers and streams.
 					{:else}
 						<b>0</b> dams that are known to have been removed or mitigated.
@@ -254,10 +252,8 @@
 					{#if stats.removedSmallBarriers > 0}
 						<b>{formatNumber(stats.removedSmallBarriers, 0)}</b>
 						surveyed road/stream {pluralize('crossing', stats.removedSmallBarriers)} that
-						{stats.removedSmallBarriers === 1
-							? 'has been or is actively being'
-							: 'have been or are actively being'}
-						removed or mitigated, gaining
+						{stats.removedSmallBarriers === 1 ? 'has' : 'have'}
+						been removed or mitigated, gaining
 						<b>{formatNumber(stats.removedSmallBarriersGainMiles)} miles</b> of reconnected rivers and
 						streams.
 					{:else}
@@ -321,10 +317,9 @@
 		{#if barrierType === 'dams'}
 			<div class="text-sm text-muted-foreground">
 				Note: These statistics are based on {formatNumber(stats.dams, 0)}
-				inventoried {pluralize('dam', stats.dams)} and available information on dams that have been or
-				are actively being removed or mitigated, including projects starting in 2026. Because the inventory
-				is incomplete in many areas, areas with a high number of dams may simply represent areas that
-				have a more complete inventory.
+				inventoried {pluralize('dam', stats.dams)} and available information on dams that have been removed
+				or mitigated, including projects starting in 2026. Because the inventory is incomplete in many
+				areas, areas with a high number of dams may simply represent areas that have a more complete inventory.
 			</div>
 		{:else if barrierType === 'small_barriers'}
 			<div class="text-sm text-muted-foreground">
@@ -340,10 +335,9 @@
 				inventoried {pluralize('dam', stats.dams)} and
 				{formatNumber(stats.totalSmallBarriers, 0)}
 				road/stream {pluralize('crossing', stats.totalSmallBarriers)} that have been surveyed for impacts
-				to aquatic organisms, and available information on barriers that have been or are actively being
-				removed or mitigated, including projects starting in 2026. Because the inventory is incomplete
-				in many areas, areas with a high number of barriers may simply represent areas that have a more
-				complete inventory.
+				to aquatic organisms, and available information on barriers that have been removed or mitigated,
+				including projects starting in 2026. Because the inventory is incomplete in many areas, areas
+				with a high number of barriers may simply represent areas that have a more complete inventory.
 			</div>
 		{/if}
 

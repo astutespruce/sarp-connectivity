@@ -97,8 +97,8 @@
 				{#if removedDams > 0}
 					<b>{formatNumber(removedDams, 0)}</b>
 					{pluralize('dam', removedDams)} that
-					{removedDams === 1 ? 'has been or is actively being' : 'have been or are actively being'}
-					removed or mitigated, gaining
+					{removedDams === 1 ? 'has' : 'have'}
+					been removed or mitigated, gaining
 					<b>{formatNumber(removedDamsGainMiles)} miles</b> of reconnected rivers and streams.
 				{:else}
 					<b>0</b> dams that are known to have been removed or mitigated.
@@ -138,10 +138,10 @@
 		{#if barrierType === 'dams'}
 			<div class="mt-12 text-sm text-muted-foreground">
 				Note: These statistics are based on <b>{formatNumber(dams, 0)}</b>
-				inventoried {pluralize('dam', dams)}, and available information on dams that have been or
-				are actively being removed or mitigated, including projects starting in 2026. Because the
-				inventory is incomplete in many areas, areas with a high number of dams may simply represent
-				areas that have a more complete inventory.
+				inventoried {pluralize('dam', dams)}, and available information on dams that have been
+				removed or mitigated, including projects starting in 2026. Because the inventory is
+				incomplete in many areas, areas with a high number of dams may simply represent areas that
+				have a more complete inventory.
 			</div>
 		{:else if barrierType === 'small_barriers'}
 			<div class="mt-12 text-sm text-muted-foreground">
@@ -149,10 +149,10 @@
 				<b>{formatNumber(totalSmallBarriers, 0)}</b> surveyed {pluralize(
 					'crossing',
 					totalSmallBarriers
-				)}, and available information on barriers that have been or are actively being removed or
-				mitigated, including projects starting in 2026. Because the inventory is incomplete in many
-				areas, areas with a high number of surveyed crossings may simply represent areas that have a
-				more complete inventory.
+				)}, and available information on barriers that have been removed or mitigated, including
+				projects starting in 2026. Because the inventory is incomplete in many areas, areas with a
+				high number of surveyed crossings may simply represent areas that have a more complete
+				inventory.
 			</div>
 		{:else if barrierType === 'combined_barriers'}
 			<div class="mt-12 text-sm text-muted-foreground">
@@ -161,10 +161,10 @@
 				<b>{formatNumber(totalSmallBarriers, 0)}</b> surveyed {pluralize(
 					'crossing',
 					totalSmallBarriers
-				)}, and available information on dams and barriers that have been or are actively being
-				removed or mitigated, including projects starting in 2026. Because the inventory is
-				incomplete in many areas, areas with a high number of dams or surveyed crossings may simply
-				represent areas that have a more complete inventory.
+				)}, and available information on dams and barriers that have been removed or mitigated,
+				including projects starting in 2026. Because the inventory is incomplete in many areas,
+				areas with a high number of dams or surveyed crossings may simply represent areas that have
+				a more complete inventory.
 			</div>
 		{/if}
 
