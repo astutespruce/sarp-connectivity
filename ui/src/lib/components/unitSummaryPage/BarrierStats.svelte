@@ -5,7 +5,7 @@
 
 	const { areaName, map, stats } = $props()
 
-	let metric: MetricOptionValue = $state('gainmiles')
+	let metric: MetricOptionValue = $state('upstream')
 
 	const hasRemovedBarriers = $derived(
 		stats && stats.removedBarriersByYear

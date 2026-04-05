@@ -84,11 +84,7 @@ export class SummaryUnitManager {
 					...this.#items,
 					{
 						...item,
-						...data,
-						removedBarriersByYear: extractYearRemovedStats(
-							data.removedDamsByYear,
-							data.removedSmallBarriersByYear
-						)
+						...data
 					}
 				]
 				this.#isLoading = false

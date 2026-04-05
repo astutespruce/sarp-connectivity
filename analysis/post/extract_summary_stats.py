@@ -35,13 +35,20 @@ dams = dams.loc[~dams.Private].copy()
 removed_dam_networks = (
     pd.read_feather(
         data_dir / "networks/clean/removed/removed_dams_networks.feather",
-        columns=["id", "EffectiveGainMiles"],
+        columns=["id", "EffectiveGainMiles", "EffectiveTotalUpstreamMiles", "FreeDownstreamMiles"],
     )
     .set_index("id")
-    .rename(columns={"EffectiveGainMiles": "RemovedGainMiles"})
+    .rename(
+        columns={
+            "EffectiveGainMiles": "RemovedGainMiles",
+            "EffectiveTotalUpstreamMiles": "RemovedUpstreamMiles",
+            "FreeDownstreamMiles": "RemovedDownstreamMiles",
+        }
+    )
 )
 dams = dams.join(removed_dam_networks)
-dams["RemovedGainMiles"] = dams.RemovedGainMiles.fillna(0)
+for col in ["RemovedGainMiles", "RemovedUpstreamMiles", "RemovedDownstreamMiles"]:
+    dams[col] = dams[col].fillna(0)
 
 # fix YearRemoved and bin
 dams.loc[~dams.Removed, "YearRemoved"] = np.nan
@@ -65,13 +72,20 @@ barriers = barriers.loc[~barriers.Private].copy()
 removed_barrier_networks = (
     pd.read_feather(
         data_dir / "networks/clean/removed/removed_combined_barriers_networks.feather",
-        columns=["id", "EffectiveGainMiles"],
+        columns=["id", "EffectiveGainMiles", "EffectiveTotalUpstreamMiles", "FreeDownstreamMiles"],
     )
     .set_index("id")
-    .rename(columns={"EffectiveGainMiles": "RemovedGainMiles"})
+    .rename(
+        columns={
+            "EffectiveGainMiles": "RemovedGainMiles",
+            "EffectiveTotalUpstreamMiles": "RemovedUpstreamMiles",
+            "FreeDownstreamMiles": "RemovedDownstreamMiles",
+        }
+    )
 )
 barriers = barriers.join(removed_barrier_networks)
-barriers["RemovedGainMiles"] = barriers.RemovedGainMiles.fillna(0)
+for col in ["RemovedGainMiles", "RemovedUpstreamMiles", "RemovedDownstreamMiles"]:
+    barriers[col] = barriers[col].fillna(0)
 
 barriers.loc[~barriers.Removed, "YearRemoved"] = np.nan
 barriers.loc[(barriers.YearRemoved > 0) & (barriers.YearRemoved < 1900), "YearRemoved"] = np.uint16(0)

@@ -16,7 +16,7 @@ def pack_year_removed_stats(df, unit=None):
     Parameters:
     -----------
     df: DataFrame
-        has columns for HasNetwork, YearRemoved, RemovedGainMiles
+        has columns for HasNetwork, YearRemoved, RemovedUpstreamMiles, RemovedDownstreamMiles
     unit: str, optional (default: None)
         if present, is used as the top-level grouping of results; otherwise
         a single packed string is returned
@@ -24,7 +24,7 @@ def pack_year_removed_stats(df, unit=None):
 
     bins = range(len(YEAR_REMOVED_BINS) - 1)
 
-    cols = ["YearRemoved", "RemovedGainMiles", "HasNetwork"]
+    cols = ["YearRemoved", "RemovedUpstreamMiles", "RemovedDownstreamMiles", "HasNetwork"]
     group_key = ["YearRemoved"]
     if unit:
         cols.insert(0, unit)
@@ -35,9 +35,18 @@ def pack_year_removed_stats(df, unit=None):
 
     stats = (
         tmp.groupby(group_key, observed=True)
-        .agg({"id": "count", "RemovedGainMiles": "sum", "NoNetwork": "sum"})
+        .agg(
+            {
+                "id": "count",
+                "RemovedUpstreamMiles": "sum",
+                "RemovedDownstreamMiles": "sum",
+                "NoNetwork": "sum",
+            }
+        )
         .apply(
-            lambda row: f"{int(row.id)}{f'/{int(row.NoNetwork)}' if row.NoNetwork>0 else ''}|{row.RemovedGainMiles:.2f}",
+            lambda row: (
+                f"{int(row.id)}{f'/{int(row.NoNetwork)}' if row.NoNetwork > 0 else ''}|{row.RemovedUpstreamMiles:.2f}/{row.RemovedDownstreamMiles:.2f}"
+            ),
             axis=1,
         )
     )

@@ -454,12 +454,15 @@ for network_type in network_types:
             }
         )
 
-        # Set effective gain miles to gain miles since gain miles are recalculated
-        # below for sibling barriers, and mark which side a given network is used
-        # to derive its gain miles
+        # Set effective functional upstream / gain miles since these miles are
+        # recalculated below for sibling barriers, and mark which side a given
+        # network is used to derive its gain miles
+        # NOTE: downstream we don't need to track downstream separately because
+        # it isn't updated below
         other_stats = pa.Table.from_pydict(
             {
                 "id": cur_barrier_networks["id"],
+                "EffectiveTotalUpstreamMiles": cur_barrier_networks["TotalUpstreamMiles"],
                 "EffectiveGainMiles": cur_barrier_networks["GainMiles"],
                 "GainMilesUpstreamSide": pc.if_else(
                     pc.or_(
@@ -469,23 +472,12 @@ for network_type in network_types:
                     True,
                     False,
                 ),
-                "EffectivePerennialGainMiles": cur_barrier_networks["PerennialGainMiles"],
-                "PerennialGainMilesUpstreamSide": pc.if_else(
-                    pc.or_(
-                        pc.equal(cur_barrier_networks["upNetID"], 0),
-                        np.isclose(
-                            cur_barrier_networks["PerennialGainMiles"], cur_barrier_networks["PerennialUpstreamMiles"]
-                        ),
-                    ),
-                    True,
-                    False,
-                ),
             }
         )
         cur_barrier_networks = cur_barrier_networks.join(other_stats, "id")
 
         cur_segments = (
-            flowlines.select(["lineID", "sizeclass", "intermittent"])
+            flowlines.select(["lineID", "HUC2", "sizeclass", "intermittent"])
             .join(
                 upstream_functional_networks.join(
                     cur_barrier_networks.select(["id", "upNetID", "YearRemoved"]),
@@ -544,7 +536,7 @@ for network_type in network_types:
             upstream_cols = [
                 c
                 for c in cur_barrier_networks.column_names
-                if "Upstream" in c and (c.endswith("Acres") or c.endswith("Miles"))
+                if "Upstream" in c and not c.startswith("Effective") and (c.endswith("Acres") or c.endswith("Miles"))
             ] + ["FloodplainAcres", "NatFloodplainAcres"]
             upstream_stats = (
                 pairs.join(cur_barrier_networks.select(["id"] + upstream_cols), "upstream_barrier_id", "id")
@@ -562,18 +554,29 @@ for network_type in network_types:
                 .join(upstream_stats, "id", "downstream_barrier_id")
             )
 
-            updated = {
-                # recalculate gain miles
-                "GainMiles": pc.if_else(
-                    sibling_networks["TerminatesDownstream"],
-                    sibling_networks["TotalUpstreamMiles"],
-                    pc.if_else(
-                        pc.equal(sibling_networks["upNetID"], 0),
-                        0,
-                        pc.min_element_wise(
-                            sibling_networks["TotalUpstreamMiles"], sibling_networks["FreeDownstreamMiles"]
-                        ),
+            # recalculate gain miles
+            updated_gain_miles = pc.if_else(
+                sibling_networks["TerminatesDownstream"],
+                sibling_networks["TotalUpstreamMiles"],
+                pc.if_else(
+                    pc.equal(sibling_networks["upNetID"], 0),
+                    0,
+                    pc.min_element_wise(
+                        sibling_networks["TotalUpstreamMiles"], sibling_networks["FreeDownstreamMiles"]
                     ),
+                ),
+            )
+
+            updated = {
+                "GainMiles": updated_gain_miles,
+                "EffectiveGainMiles": updated_gain_miles,
+                "GainMilesUpstreamSide": pc.if_else(
+                    pc.or_(
+                        pc.equal(sibling_networks["upNetID"], 0),
+                        np.isclose(updated_gain_miles, sibling_networks["TotalUpstreamMiles"]),
+                    ),
+                    True,
+                    False,
                 ),
                 "FunctionalNetworkMiles": pc.add(
                     sibling_networks["TotalUpstreamMiles"], sibling_networks["FreeDownstreamMiles"]
@@ -620,29 +623,6 @@ for network_type in network_types:
                     )
                 ),
             }
-
-            updated.update(
-                {
-                    "EffectiveGainMiles": updated["GainMiles"],
-                    "GainMilesUpstreamSide": pc.if_else(
-                        pc.or_(
-                            pc.equal(sibling_networks["upNetID"], 0),
-                            np.isclose(updated["GainMiles"], sibling_networks["TotalUpstreamMiles"]),
-                        ),
-                        True,
-                        False,
-                    ),
-                    "EffectivePerennialGainMiles": updated["PerennialGainMiles"],
-                    "PerennialGainMilesUpstreamSide": pc.if_else(
-                        pc.or_(
-                            pc.equal(sibling_networks["upNetID"], 0),
-                            np.isclose(updated["PerennialGainMiles"], sibling_networks["PerennialUpstreamMiles"]),
-                        ),
-                        True,
-                        False,
-                    ),
-                }
-            )
 
             sibling_networks = pa.Table.from_pydict(
                 {c: updated.get(c, sibling_networks[c]) for c in sibling_networks.column_names}
@@ -706,36 +686,13 @@ for network_type in network_types:
                 # drop self-pairs; all calculations below rely on using only non-self upstream values
                 pairs.filter(pc.not_equal(pairs["downstream_barrier_id"], pairs["upstream_barrier_id"]))
                 .join(
-                    cur_barrier_networks.select(
-                        [
-                            "id",
-                            "GainMiles",
-                            "GainMilesUpstreamSide",
-                            "PerennialGainMiles",
-                            "PerennialGainMilesUpstreamSide",
-                        ]
-                    ),
+                    cur_barrier_networks.select(["id", "GainMiles", "GainMilesUpstreamSide"]),
                     "downstream_barrier_id",
                     "id",
                 )
-                .rename_columns(
-                    {
-                        "GainMiles": "GainMiles_prev",
-                        "PerennialGainMiles": "PerennialGainMiles_prev",
-                        "downstream_barrier_id": "id",
-                    }
-                )
-                .join(
-                    cur_barrier_networks.select(["id", "GainMiles", "PerennialGainMiles"]),
-                    "upstream_barrier_id",
-                    "id",
-                )
-                .rename_columns(
-                    {
-                        "GainMiles": "GainMiles_upstream",
-                        "PerennialGainMiles": "PerennialGainMiles_upstream",
-                    }
-                )
+                .rename_columns({"GainMiles": "GainMiles_prev", "downstream_barrier_id": "id"})
+                .join(cur_barrier_networks.select(["id", "GainMiles"]), "upstream_barrier_id", "id")
+                .rename_columns({"GainMiles": "GainMiles_upstream"})
             )
 
             # only adjust gain miles that were from the upstream side of each downstream barrier in question
@@ -756,29 +713,7 @@ for network_type in network_types:
                 pc.subtract(gain_miles_adj["GainMiles_prev"], gain_miles_adj["GainMiles_upstream"]),
             )
 
-            # do the same thing for perennial miles, which might gain from a different side
-            perennial_gain_miles_adj = (
-                pairs.filter(pairs["PerennialGainMilesUpstreamSide"])
-                .group_by("id", use_threads=False)
-                .aggregate([("PerennialGainMiles_prev", "first"), ("PerennialGainMiles_upstream", "sum")])
-                .rename_columns(
-                    {
-                        "PerennialGainMiles_prev_first": "PerennialGainMiles_prev",
-                        "PerennialGainMiles_upstream_sum": "PerennialGainMiles_upstream",
-                    }
-                )
-            )
-            perennial_gain_miles_adj = perennial_gain_miles_adj.append_column(
-                "PerennialGainMiles_updated",
-                pc.subtract(
-                    perennial_gain_miles_adj["PerennialGainMiles_prev"],
-                    perennial_gain_miles_adj["PerennialGainMiles_upstream"],
-                ),
-            )
-
-            cur_barrier_networks = cur_barrier_networks.join(
-                gain_miles_adj.select(["id", "GainMiles_updated"]), "id"
-            ).join(perennial_gain_miles_adj.select(["id", "PerennialGainMiles_updated"]), "id")
+            cur_barrier_networks = cur_barrier_networks.join(gain_miles_adj.select(["id", "GainMiles_updated"]), "id")
 
             updated = {
                 "EffectiveGainMiles": pc.if_else(
@@ -786,30 +721,23 @@ for network_type in network_types:
                     pc.cast(cur_barrier_networks["GainMiles_updated"], pa.float32()),
                     cur_barrier_networks["EffectiveGainMiles"],
                 ),
-                "EffectivePerennialGainMiles": pc.if_else(
-                    pc.is_valid(cur_barrier_networks["PerennialGainMiles_updated"]),
-                    pc.cast(cur_barrier_networks["PerennialGainMiles_updated"], pa.float32()),
-                    cur_barrier_networks["EffectivePerennialGainMiles"],
-                ),
             }
             cur_barrier_networks = pa.Table.from_pydict(
                 {
                     c: updated.get(c, cur_barrier_networks[c])
                     for c in cur_barrier_networks.column_names
-                    if c not in {"GainMiles_updated", "PerennialGainMiles_updated"}
+                    if c not in {"GainMiles_updated"}
                 }
             )
 
-        cur_barrier_networks = cur_barrier_networks.drop(
-            ["GainMilesUpstreamSide", "PerennialGainMilesUpstreamSide", "TerminatesDownstream"]
-        )
+        cur_barrier_networks = cur_barrier_networks.drop(["GainMilesUpstreamSide", "TerminatesDownstream"])
 
         if merged_networks is None:
             merged_networks = cur_barrier_networks
         else:
             merged_networks = pa.concat_tables([merged_networks, cur_barrier_networks])
 
-        cur_segments = cur_segments.select(["id", "networkID", "lineID", "YearRemoved"])
+        cur_segments = cur_segments.select(["id", "networkID", "lineID", "YearRemoved", "HUC2"])
         if merged_segments is None:
             merged_segments = cur_segments
         else:

@@ -43,7 +43,7 @@
 	let system: System = $derived(
 		type === 'Region' || type === 'State' || type === 'FishHabitatPartnership' ? 'ADM' : 'HUC'
 	)
-	let metric: MetricOptionValue = $state('gainmiles')
+	let metric: MetricOptionValue = $state('upstream')
 	let focalBarrierType: FocalBarrierType = $state('dams')
 	let selectedBarrier = $state.raw(null)
 

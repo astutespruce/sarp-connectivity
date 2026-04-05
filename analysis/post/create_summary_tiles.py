@@ -119,13 +119,20 @@ dams["Region"] = dams.State.map(state_regions)
 removed_dam_networks = (
     pd.read_feather(
         data_dir / "networks/clean/removed/removed_dams_networks.feather",
-        columns=["id", "EffectiveGainMiles"],
+        columns=["id", "EffectiveGainMiles", "EffectiveTotalUpstreamMiles", "FreeDownstreamMiles"],
     )
     .set_index("id")
-    .rename(columns={"EffectiveGainMiles": "RemovedGainMiles"})
+    .rename(
+        columns={
+            "EffectiveGainMiles": "RemovedGainMiles",
+            "EffectiveTotalUpstreamMiles": "RemovedUpstreamMiles",
+            "FreeDownstreamMiles": "RemovedDownstreamMiles",
+        }
+    )
 )
 dams = dams.join(removed_dam_networks)
-dams["RemovedGainMiles"] = dams.RemovedGainMiles.fillna(0)
+for col in ["RemovedGainMiles", "RemovedUpstreamMiles", "RemovedDownstreamMiles"]:
+    dams[col] = dams[col].fillna(0)
 
 # fix YearRemoved and bin
 dams.loc[~dams.Removed, "YearRemoved"] = np.nan
@@ -158,13 +165,20 @@ barriers["Region"] = barriers.State.map(state_regions)
 removed_barrier_networks = (
     pd.read_feather(
         data_dir / "networks/clean/removed/removed_combined_barriers_networks.feather",
-        columns=["id", "EffectiveGainMiles"],
+        columns=["id", "EffectiveGainMiles", "EffectiveTotalUpstreamMiles", "FreeDownstreamMiles"],
     )
     .set_index("id")
-    .rename(columns={"EffectiveGainMiles": "RemovedGainMiles"})
+    .rename(
+        columns={
+            "EffectiveGainMiles": "RemovedGainMiles",
+            "EffectiveTotalUpstreamMiles": "RemovedUpstreamMiles",
+            "FreeDownstreamMiles": "RemovedDownstreamMiles",
+        }
+    )
 )
 barriers = barriers.join(removed_barrier_networks)
-barriers["RemovedGainMiles"] = barriers.RemovedGainMiles.fillna(0)
+for col in ["RemovedGainMiles", "RemovedUpstreamMiles", "RemovedDownstreamMiles"]:
+    barriers[col] = barriers[col].fillna(0)
 
 barriers.loc[~barriers.Removed, "YearRemoved"] = np.nan
 barriers.loc[(barriers.YearRemoved > 0) & (barriers.YearRemoved < 1900), "YearRemoved"] = np.uint16(0)
@@ -263,7 +277,8 @@ for unit in SUMMARY_UNITS + ["Region"]:
         )
         .join(
             pack_year_removed_stats(
-                dams_by_unit[[unit, "HasNetwork", "YearRemoved", "RemovedGainMiles"]], unit=unit
+                dams_by_unit[[unit, "HasNetwork", "YearRemoved", "RemovedUpstreamMiles", "RemovedDownstreamMiles"]],
+                unit=unit,
             ).rename("removed_dams_by_year")
         )
     )
@@ -292,7 +307,8 @@ for unit in SUMMARY_UNITS + ["Region"]:
         )
         .join(
             pack_year_removed_stats(
-                barriers_by_unit[[unit, "HasNetwork", "YearRemoved", "RemovedGainMiles"]], unit=unit
+                barriers_by_unit[[unit, "HasNetwork", "YearRemoved", "RemovedUpstreamMiles", "RemovedDownstreamMiles"]],
+                unit=unit,
             ).rename("removed_small_barriers_by_year")
         )
     )

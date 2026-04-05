@@ -13,10 +13,12 @@
 		label: string
 		totalCount: number
 		totalNoNetworkCount: number
-		totalGainMiles: number
+		totalUpstreamMiles: number
+		totalDownstreamMiles: number
 		dams: number
 		smallBarriers: number
-		smallBarriersGainMiles: number
+		smallBarriersUpstreamMiles: number
+		smallBarriersDownstreamMiles: number
 	}
 
 	const entries = $derived(
@@ -26,38 +28,48 @@
 					label = '',
 					dams = 0,
 					damsNoNetwork = 0,
-					damsGainMiles = 0,
+					damsUpstreamMiles = 0,
+					damsDownstreamMiles = 0,
 					smallBarriers = 0,
 					smallBarriersNoNetwork = 0,
-					smallBarriersGainMiles = 0
+					smallBarriersUpstreamMiles = 0,
+					smallBarriersDownstreamMiles = 0
 				}) => {
 					let totalCount = dams + smallBarriers
 
 					let totalNoNetworkCount = damsNoNetwork + smallBarriersNoNetwork
-					let totalGainMiles = damsGainMiles + smallBarriersGainMiles
+					let totalUpstreamMiles = damsUpstreamMiles + smallBarriersUpstreamMiles
+					let totalDownstreamMiles = damsDownstreamMiles + smallBarriersDownstreamMiles
 					if (barrierType === 'dams') {
 						totalCount = dams
 						totalNoNetworkCount = damsNoNetwork
-						totalGainMiles = damsGainMiles
+						totalUpstreamMiles = damsUpstreamMiles
+						totalDownstreamMiles = damsDownstreamMiles
 					} else if (barrierType === 'small_barriers') {
 						totalCount = smallBarriers
 						totalNoNetworkCount = smallBarriersNoNetwork
-						totalGainMiles = smallBarriersGainMiles
+						totalUpstreamMiles = smallBarriersUpstreamMiles
+						totalDownstreamMiles = smallBarriersDownstreamMiles
 					}
 
 					const out: ChartEntry = {
 						label,
 						totalCount,
 						totalNoNetworkCount,
-						totalGainMiles,
+						totalUpstreamMiles,
+						totalDownstreamMiles,
 						dams,
 						smallBarriers,
-						smallBarriersGainMiles
+						smallBarriersUpstreamMiles,
+						smallBarriersDownstreamMiles
 					}
 
-					if (metric === 'gainmiles') {
-						out.dams = damsGainMiles
-						out.smallBarriers = smallBarriersGainMiles
+					if (metric === 'upstream') {
+						out.dams = damsUpstreamMiles
+						out.smallBarriers = smallBarriersUpstreamMiles
+					} else if (metric === 'downstream') {
+						out.dams = damsDownstreamMiles
+						out.smallBarriers = smallBarriersDownstreamMiles
 					}
 
 					return out
@@ -69,9 +81,14 @@
 
 	const max = $derived(
 		Math.max(
-			...entries.map(({ totalCount, totalGainMiles }: ChartEntry) =>
-				metric === 'gainmiles' ? totalGainMiles : totalCount
-			)
+			...entries.map(({ totalCount, totalUpstreamMiles, totalDownstreamMiles }: ChartEntry) => {
+				if (metric === 'upstream') {
+					return totalUpstreamMiles
+				} else if (metric === 'downstream') {
+					return totalDownstreamMiles
+				}
+				return totalCount
+			})
 		)
 	)
 
@@ -87,16 +104,16 @@
 	)
 
 	const metrics: MetricOption[] = [
-		{ id: 'gainmiles', label: 'miles gained' },
+		{ id: 'upstream', label: 'upstream' },
+		{ id: 'downstream', label: 'downstream' },
 		{ id: 'count', label: 'number removed' }
 	]
 </script>
 
 {#if max > 0}
 	<div class="flex items-center text-xs mt-2">
-		<div class="pr-2 text-right basis-26">year removed</div>
+		<div class="pr-2 text-right basis-26 flex-none">year</div>
 		<div class="flex gap-1 items-center border-l border-l-grey-2 pl-2">
-			<div class="flex-auto">show:</div>
 			{#each metrics as metricOption, i (metricOption.id)}
 				{#if i > 0}
 					<div>|</div>
@@ -143,9 +160,14 @@
 					{/if}
 
 					<div class="flex-none text-xs text-muted-foreground pl-1">
-						{metric === 'gainmiles'
-							? `${formatNumber(entry.totalGainMiles)} miles`
-							: formatNumber(entry.totalCount)}{#if entry.totalNoNetworkCount}<sup>*</sup>{/if}
+						{#if metric === 'upstream'}
+							{formatNumber(entry.totalUpstreamMiles)} miles
+						{:else if metric === 'downstream'}
+							{formatNumber(entry.totalDownstreamMiles)} miles
+						{:else}
+							{formatNumber(entry.totalCount)}
+						{/if}
+						{#if entry.totalNoNetworkCount}<sup>*</sup>{/if}
 					</div>
 				</div>
 			</div>
@@ -176,7 +198,7 @@
 			{/if}
 			{#if showSmallBarriers}{barrierTypeLabels.small_barriers}{/if}
 			that could not be correctly located on the aquatic network or were otherwise excluded from the analysis;
-			these contribute toward the count but not the miles gained.
+			these contribute toward the count but not the upstream / downstream miles gained.
 		</div>
 	{/if}
 {/if}

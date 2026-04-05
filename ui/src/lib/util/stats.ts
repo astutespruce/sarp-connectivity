@@ -6,7 +6,8 @@ const unpackYearRemoved = (text: string) => {
 		return Object.keys(YEAR_REMOVED_BINS).map(() => ({
 			count: 0,
 			countNoNetwork: 0,
-			gainmiles: 0
+			upstreammiles: 0,
+			downstreammiles: 0
 		}))
 	}
 
@@ -14,12 +15,14 @@ const unpackYearRemoved = (text: string) => {
 		if (!part) {
 			return { count: 0, gainmiles: 0 }
 		}
-		const [rawCount = '0', gainmiles = '0'] = part.split('|')
+		const [rawCount = '0', miles = '0/0'] = part.split('|')
 		const [count, countNoNetwork] = rawCount.split('/')
+		const [upstreammiles = '0', downstreammiles = '0'] = miles.split('/')
 		return {
 			count: parseFloat(count),
 			countNoNetwork: countNoNetwork !== undefined ? parseFloat(countNoNetwork) : 0,
-			gainmiles: parseFloat(gainmiles)
+			upstreammiles: parseFloat(upstreammiles),
+			downstreammiles: parseFloat(downstreammiles)
 		}
 	})
 }
@@ -27,7 +30,8 @@ const unpackYearRemoved = (text: string) => {
 type YearRemovedBinStat = {
 	count: number
 	countNoNetwork: number
-	gainmiles: number
+	upstreammiles: number
+	downstreammiles: number
 }
 
 export const extractYearRemovedStats = (
@@ -42,22 +46,26 @@ export const extractYearRemovedStats = (
 			const {
 				count: dams = 0,
 				countNoNetwork: damsNoNetwork = 0,
-				gainmiles: damsGainMiles = 0
+				upstreammiles: damsUpstreamMiles = 0,
+				downstreammiles: damsDownstreamMiles = 0
 			} = (removedDamsByYear[bin as keyof typeof removedDamsByYear] || {}) as YearRemovedBinStat
 			const {
 				count: smallBarriers = 0,
 				countNoNetwork: smallBarriersNoNetwork = 0,
-				gainmiles: smallBarriersGainMiles = 0
+				upstreammiles: smallBarriersUpstreamMiles = 0,
+				downstreammiles: smallBarriersDownstreamMiles = 0
 			} = (removedSmallBarriersByYear[bin as keyof typeof removedSmallBarriersByYear] ||
 				{}) as YearRemovedBinStat
 			return {
 				label,
 				dams,
 				damsNoNetwork,
-				damsGainMiles,
+				damsUpstreamMiles,
+				damsDownstreamMiles,
 				smallBarriers,
 				smallBarriersNoNetwork,
-				smallBarriersGainMiles
+				smallBarriersUpstreamMiles,
+				smallBarriersDownstreamMiles
 			}
 		})
 		.reverse()

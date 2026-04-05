@@ -24,9 +24,11 @@ export type SummaryUnit = {
 		label: string
 		dams: number
 		damsNoNetwork: number
-		damsGainMiles: number
+		damsUpstreamMiles: number
+		damsDownstreamMiles: number
 		smallBarriers: number
 		smallBarriersNoNetwork: number
-		smallBarriersGainMiles: number
+		smallBarriersUpstreamMiles: number
+		smallBarriersDownstreamMiles: number
 	}[]
 }
