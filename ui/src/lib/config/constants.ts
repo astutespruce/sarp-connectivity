@@ -475,39 +475,6 @@ export const pointLegends = {
 	]
 }
 
-export const priorityAreasLegend = {
-	color: '#3182bd99',
-	entries: [
-		{
-			id: 'hifhp_gfa',
-			label: 'Hawaii Fish Habitat Partnership geographic focus areas',
-			showName: true
-		},
-
-		{
-			id: 'sarp_coa',
-			label: 'SARP conservation opportunity areas',
-			showName: true
-		},
-		{
-			id: 'wsr_designated_corridor',
-			label: 'Designated Wild & Scenic River corridor'
-		},
-		{
-			id: 'wsr_eligible_suitable_corridor',
-			label: 'Eligible / suitable Wild & Scenic River corridor'
-		},
-		{
-			id: 'wsr_designated_buffer',
-			label: 'Near designated Wild & Scenic River (outside corridor)'
-		},
-		{
-			id: 'wsr_eligible_suitable_buffer',
-			label: 'Near eligible / suitable Wild & Scenic River (outside corridor)'
-		}
-	]
-}
-
 export const SUMMARY_UNIT_COLORS = {
 	YlOrRed: {
 		// http://colorbrewer2.org/#type=sequential&scheme=YlOrRd&n=8
@@ -1941,3 +1908,44 @@ export const attachmentKeywords = [
 ]
 
 export const METRICS = ['nc', 'wc', 'ncwc', 'pnc', 'pwc', 'pncwc', 'mnc', 'mwc', 'mncwc']
+
+// have to define this after OWNER_TYPE above
+export const priorityAreasLegend = {
+	color: '#3182bd99',
+	entries: [
+		{
+			id: 'hifhp_gfa',
+			label: 'Hawaii Fish Habitat Partnership geographic focus areas',
+			showName: true
+		},
+
+		{
+			id: 'sarp_coa',
+			label: 'SARP conservation opportunity areas',
+			showName: true
+		},
+		{
+			id: 'wsr_designated_corridor',
+			label: 'Designated Wild & Scenic River corridor'
+		},
+		{
+			id: 'wsr_eligible_suitable_corridor',
+			label: 'Eligible / suitable Wild & Scenic River corridor'
+		},
+		{
+			id: 'wsr_designated_buffer',
+			label: 'Near designated Wild & Scenic River (outside corridor)'
+		},
+		{
+			id: 'wsr_eligible_suitable_buffer',
+			label: 'Near eligible / suitable Wild & Scenic River (outside corridor)'
+		}
+	].concat(
+		Object.entries(OWNERTYPE)
+			.filter(([id]) => id !== '0' && id !== '7')
+			.map(([id, label]) => ({
+				id: `pa_${id}`,
+				label
+			}))
+	)
+}

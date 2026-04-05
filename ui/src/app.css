@@ -49,6 +49,8 @@
 
 	--radius: 0.5rem;
 	--input: var(--grey-8);
+
+	--bits-scroll-area-thumb-width: 0.5rem;
 }
 
 @theme inline {

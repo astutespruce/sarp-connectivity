@@ -36,10 +36,7 @@ def dissolve(df, by, grid_size=None, agg=None, allow_multi=True, op="union"):
 
     agg["geometry"] = lambda g: union_or_combine(g.values, grid_size=grid_size, op=op)
 
-    # Note: this method is 5x faster than geopandas.dissolve (until it is migrated to use pygeos)
-    dissolved = gp.GeoDataFrame(
-        df.groupby(by).agg(agg).reset_index(), geometry="geometry", crs=df.crs
-    )
+    dissolved = gp.GeoDataFrame(df.groupby(by).agg(agg).reset_index(), geometry="geometry", crs=df.crs)
 
     if not allow_multi:
         # flatten any multipolygons
@@ -83,9 +80,7 @@ def union_or_combine(geometries, grid_size=None, op="union"):
     elif geom_types[0] == 3:
         multi_type = shapely.multipolygons
     else:
-        raise ValueError(
-            f"Aggregate geometry type not supported for GeometryType {geom_types[0]}"
-        )
+        raise ValueError(f"Aggregate geometry type not supported for GeometryType {geom_types[0]}")
 
     if len(geometries) == 1:
         return multi_type(geometries)
@@ -110,17 +105,11 @@ def union_or_combine(geometries, grid_size=None, op="union"):
 
     if op == "coverage_union":
         for group in groups:
-            parts.extend(
-                shapely.get_parts(shapely.coverage_union_all(geometries[list(group)]))
-            )
+            parts.extend(shapely.get_parts(shapely.coverage_union_all(geometries[list(group)])))
 
     else:
         for group in groups:
-            parts.extend(
-                shapely.get_parts(
-                    shapely.union_all(geometries[list(group)], grid_size=grid_size)
-                )
-            )
+            parts.extend(shapely.get_parts(shapely.union_all(geometries[list(group)], grid_size=grid_size)))
 
     parts.extend(shapely.get_parts(geometries[discontiguous]))
 
