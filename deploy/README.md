@@ -15,7 +15,7 @@ The staging server prefixes those hostnames with `staging.`
 
 - Create an EC2 T4g.medium server based on Ubuntu 24.04 LTS (Arm64)
 - Set root volume to have 30 GB (GP3) of space
-- Add a second volume with 50 GB (GP3) of space for tiles
+- Add a second volume with 60 GB (GP3) of space for tiles
 - Create an elastic IP and assign to that instance
 
 NOTE: the same overall configuration is used for staging, but staging is deployed
@@ -32,7 +32,7 @@ sudo swapon /swapfile
 
 Add this to `/etc/fstab`: `/swapfile none swap sw 0 0`
 
-### Format and mount 50 GB secondary volume, used for tiles
+### Format and mount 60 GB secondary volume, used for tiles
 
 se `lsblk` to list volumes; it may be listed as `nvme1n1`
 
