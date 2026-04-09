@@ -139,7 +139,7 @@ for col in nonremoved_dam_networks.columns:
     elif orig_dtype.name == "category":
         # blank must already exist as a category in series
         dams[col] = dams[col].fillna("")
-    elif orig_dtype == "object":
+    elif orig_dtype == "str":
         dams[col] = dams[col].fillna("")
     else:
         dams[col] = dams[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
@@ -254,7 +254,7 @@ for col in nonremoved_small_barrier_networks.columns:
         small_barriers[col] = small_barriers[col].fillna(0).astype(orig_dtype)
     elif orig_dtype.name == "category":
         small_barriers[col] = small_barriers[col].fillna("")
-    elif orig_dtype == "object":
+    elif orig_dtype == "str":
         small_barriers[col] = small_barriers[col].fillna("")
     else:
         small_barriers[col] = small_barriers[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
@@ -428,7 +428,7 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
         if orig_dtype.name == "category":
             scenario_results[col] = scenario_results[col].fillna("")
 
-        elif orig_dtype == "object":
+        elif orig_dtype == "str":
             scenario_results[col] = scenario_results[col].fillna("")
 
         elif orig_dtype == bool or col.endswith("Class"):  # noqa: E721
@@ -527,7 +527,7 @@ for network_type in network_types:
         if orig_dtype.name == "category":
             scenario_results[col] = scenario_results[col].fillna("")
 
-        elif orig_dtype == "object":
+        elif orig_dtype == "str":
             scenario_results[col] = scenario_results[col].fillna("")
 
         elif orig_dtype == bool or col.endswith("Class"):  # noqa: E721

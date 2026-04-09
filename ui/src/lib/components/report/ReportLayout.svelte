@@ -85,7 +85,7 @@
 
 	<IDInfo {...data} />
 
-	{#if data.barrierType === 'small_barriers' && data.attachments.length > 0}
+	{#if data.attachments && data.attachments.length > 0}
 		<SurveyPhotos {...data} />
 	{/if}
 
