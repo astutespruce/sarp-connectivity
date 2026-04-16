@@ -117,16 +117,6 @@ print("Reading dams in analysis region states")
 df = gp.read_feather(src_dir / "sarp_dams.feather")
 print(f"Read {len(df):,} dams in region states")
 
-### FIXME: remove on next data pull
-if "RelicensingDate" not in df.columns:
-    tmp_df = pd.read_feather(src_dir / "sarp_dams_updated.feather", columns=["SARPID", "RelicensingDate"]).set_index(
-        "SARPID"
-    )
-    df = df.join(tmp_df, on="SARPID")
-
-### END FIXME:
-
-
 # join in cost columns, but only where height is within tolerance because height
 # may have been updated for a given dam after it was run through the analysis
 cost = pd.read_feather(src_dir / "sarp_dam_costpred_v2.feather").set_index("SARPID")

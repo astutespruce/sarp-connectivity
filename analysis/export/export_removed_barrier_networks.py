@@ -36,7 +36,7 @@ for col in ["flows_to_ocean", "flows_to_great_lakes", "invasive_network"]:
 
 
 segments = pd.read_feather(
-    src_dir / f"clean/removed/removed_{scenario}_network_segments.feather", columns=["lineID", "HUC2", "barrier_id"]
+    src_dir / f"clean/removed/removed_{scenario}_network_segments.feather", columns=["lineID", "HUC2", "id"]
 )
 
 huc2s = sorted(segments.HUC2.unique())
@@ -62,6 +62,6 @@ flowlines = (
 flowlines["geometry"] = shapely.from_wkb(flowlines.geometry.values)
 
 merged = merge_lines(
-    gp.GeoDataFrame(segments.join(flowlines, on="lineID"), geometry="geometry", crs=CRS), by="barrier_id"
-).join(networks, on="barrier_id")
+    gp.GeoDataFrame(segments.join(flowlines, on="lineID"), geometry="geometry", crs=CRS), by="id"
+).join(networks, on="id")
 write_dataframe(merged, out_dir / f"removed_{scenario}_networks.{ext}")
