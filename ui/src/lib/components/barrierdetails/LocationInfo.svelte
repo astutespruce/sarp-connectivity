@@ -223,8 +223,12 @@
 		</div>
 
 		<div class="text-xs text-muted-foreground mt-4">
-			Costs are modeled based on dam characteristics (Jumani et. al. in prep) and are a veryrough
-			estimate only; please use with caution
+			Cost estimates are modeled outputs based on Jumani et al. (2026) and Duda et al. (2024), and
+			are not intended to replace detailed engineering assessments. All values are in 2020 USD and
+			should be appropriately adjusted for current inflation. Estimates reflect the mean modeled
+			cost with 95% prediction ranges, and may be less reliable for structures exceeding 5 m in
+			height due to limited data. Costs related to stakeholder consultations or litigation, if any,
+			are not included in this model.
 		</div>
 	</Entry>
 {/if}
