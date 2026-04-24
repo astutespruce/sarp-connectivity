@@ -411,22 +411,37 @@ usfs_admin["sort"] = 2
 df = read_dataframe(
     src_dir / "pad_us4.1.gpkg",
     layer="PADUS4_1Combined_Proclamation_Marine_Fee_Designation_Easement",
-    columns=[
-        "Category",
-        "Own_Type",
-        "Own_Name",
-        "Des_Tp",
-    ],
-    # drop marine, and unknown owner (not useful)
-    where="Category != 'Marine' AND Own_Type != 'UNK' AND Own_Name != 'UNK'",
+    columns=["Category", "Own_Type", "Own_Name", "Des_Tp", "Mang_Type", "Mang_Name", "Loc_Ds"],
     use_arrow=True,
 ).to_crs(CRS)
 df["sort"] = 3
+
+# drop marine areas; we don't use them here
+df = df.loc[df.Category != "Marine"].copy()
+
+# correctly mark DOD proclamation lands
+ix = (df.Category == "Proclamation") & (df.Des_Tp == "MIL")
+df.loc[ix, "Own_Type"] = "FED"
+df.loc[ix, "Own_Name"] = "DOD"
 
 # mark easements to keep separate from other private conservation lands
 ix = df.Category == "Easement"
 df.loc[ix, "Own_Type"] = "Easement"
 df.loc[ix, "Own_Name"] = "Easement"
+
+### Try to fix other areas marked as DESG
+# fix National Wildlife Refuges, National Historical Parks, USACE managed reservoirs,
+# tribal lands (e.g., off-reservation trust lands, joint management areas, etc)
+# excluding USFS and BLM because those are stacked designations (wilderness, RNAs, ACECs, etc)
+ix = (
+    (df.Category == "Designation")
+    & (df.Own_Type == "DESG")
+    & (df.Des_Tp != "WA")
+    & (df.Loc_Ds.fillna("").str.upper() != "CLOSING ORDER BOUNDARY")
+    & (df.Mang_Name.isin(["FWS", "NPS", "USACE", "TRIB"]))
+)
+df.loc[ix, "Own_Type"] = df.loc[ix].Mang_Type
+df.loc[ix, "Own_Name"] = df.loc[ix].Mang_Name
 
 
 # select those that are within the boundary
@@ -443,6 +458,7 @@ wilderness.to_feather(out_dir / "wilderness.feather")
 
 # remove all USFS areas; they are handled above via specific USFS layers
 df = df.loc[df.Own_Name != "USFS"].copy()
+
 
 df["otype"] = df.Own_Name.map(
     {
@@ -478,18 +494,22 @@ df["otype"] = df.Own_Name.map(
     }
 )
 
-# drop proclamation boundaries but retain military lands that only show up as
-# proclamation
+# drop other proclamation boundaries and areas where owner type and name are unknown; these are not useful
 # NOTE: this specifically drops designation types (Own_Type=="DESG") that are used
 # for things like wilderness and wild & scenic river corridors, because they are
 # either contained in other boundaries (e.g., wilderness) or not necessarily indicative
 # of ownership (e.g., wild & scenic river corridors)
-# drop duplicates (there are some)
 df = (
-    df.loc[(df.Category != "Proclamation") | (df.Des_Tp == "MIL") & (df.Own_Type != "DESG")]
-    .drop(columns=["Category", "Own_Type", "Own_Name", "Des_Tp"])
+    df.loc[
+        ((df.Category != "Proclamation") | (df.Des_Tp == "MIL"))
+        & (df.Own_Type != "DESG")
+        & (df.Own_Type != "UNK")
+        & (df.Own_Name != "UNK")
+    ]
+    .drop(columns=["Category", "Own_Type", "Own_Name", "Des_Tp", "Mang_Type", "Mang_Name", "Loc_Ds"])
     .drop_duplicates()
 )
+
 
 # this takes a while...
 print("Making geometries valid, this might take a while")
@@ -497,7 +517,7 @@ df["geometry"] = make_valid(df.geometry.values)
 
 
 # Extract Hawaii reserves
-hifr = read_dataframe(src_dir / "HI_Reserves", use_arrow=True).to_crs(CRS)
+hifr = read_dataframe(src_dir / "HI_Reserves/Reserves.shp", use_arrow=True).to_crs(CRS)
 hifr = hifr.take(shapely.STRtree(hifr.geometry.values).query(bnd, predicate="intersects")).reset_index(drop=True)
 
 # drop any already completely contained by others
@@ -565,6 +585,7 @@ df["ProtectedLand"] = df.OwnerType.map(OWNERTYPE_TO_PUBLIC_LAND).fillna(0).astyp
 # only save owner type and protected land status
 df = df[["geometry", "OwnerType", "ProtectedLand"]].explode(ignore_index=True)
 df.to_feather(out_dir / "protected_areas.feather")
+
 
 ################################################################################
 ### Wild & scenic rivers - combine corridors and buffers

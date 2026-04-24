@@ -216,7 +216,7 @@ export const dams = [
 			{
 				field: 'costclass',
 				title: 'Estimated cost of removal (average)',
-				help: 'Estimated removal cost is modeled based on dam characteristics and is only available for a small number of dams.  Filter is based on the average estimated cost, but estimated costs may have a wide range so please use this with caution.  Source: Jumani et. al. (in prep).',
+				help: 'Estimated removal cost is modeled based on dam characteristics and is only available for a small number of dams.  Cost estimates are modeled outputs based on Jumani et al. (2026) and Duda et al. (2024), and are not intended to replace detailed engineering assessments. All values are in 2020 USD and should be appropriately adjusted for current inflation. Estimates reflect the mean modeled cost with 95% prediction ranges, and may be less reliable for structures exceeding 5 m in height due to limited data. Costs related to stakeholder consultations or litigation, if any, are not included in this model.',
 				...getEntries(COST_CLASS, (v) => v > 0)
 			}
 		]
@@ -401,7 +401,7 @@ export const dams = [
 				field: 'ownertype',
 				title: 'Land ownership type',
 				hideMissingValues: true,
-				help: 'This information is derived from the USFS ownership parcels dataset and Protected Areas Database (PAD-US v4) to highlight ownership types of particular importance to partners.  Note: this does not include most private land.',
+				help: 'This information is derived from the USFS ownership parcels dataset and Protected Areas Database (PAD-US v4.1) to highlight ownership types of particular importance to partners; it may include areas managed by but not owned by certain federal entities.  Note: this does not include most private land.',
 				...getEntries(OWNERTYPE)
 			},
 			{

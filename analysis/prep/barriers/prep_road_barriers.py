@@ -194,7 +194,7 @@ print(
 )
 
 
-### Make sure there are not any duplicates
+### Make sure there are not any duplicate SARPIDs
 s = df.groupby("SARPID").size()
 if s.max() > 1:
     print(s[s > 1].index)
@@ -676,9 +676,9 @@ df = snap_to_flowlines(
     df,
     to_snap.loc[to_snap.CrossingType == 8].copy(),
     find_nearest_nonloop=False,
+    # TODO: we could probably allow stream order in 1a,1b, 2 here too, and canals
     filter=(pc.field("StreamOrder") < 7) | (pc.field("loop") == True),  # noqa
 )[0]
-
 
 # snap everything else to all flowlines
 print("Snapping non-culverts")

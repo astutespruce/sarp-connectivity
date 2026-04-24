@@ -1014,7 +1014,7 @@ export const OWNERTYPE = {
 	2: 'Bureau of Reclamation',
 	3: 'Department of Defense',
 	4: 'National Park Service',
-	5: 'US Fish and Wildlife Service land',
+	5: 'US Fish and Wildlife Service',
 	6: 'USDA Forest Service (ownership boundary)',
 	7: 'USDA Forest Service (admin boundary)',
 	8: 'Other Federal land',
