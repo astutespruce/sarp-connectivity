@@ -216,7 +216,7 @@ export const dams = [
 			{
 				field: 'costclass',
 				title: 'Estimated cost of removal (average)',
-				help: 'Estimated removal cost is modeled based on dam characteristics and is only available for a small number of dams.  Cost estimates are modeled outputs based on Jumani et al. (2026) and Duda et al. (2024), and are not intended to replace detailed engineering assessments. All values are in 2020 USD and should be appropriately adjusted for current inflation. Estimates reflect the mean modeled cost with 95% prediction ranges, and may be less reliable for structures exceeding 5 m in height due to limited data. Costs related to stakeholder consultations or litigation, if any, are not included in this model.',
+				help: 'Estimated removal cost is modeled based on dam characteristics and is only available for a small number of dams.  Cost estimates are modeled outputs based on Jumani et al. (2026) and Duda et al. (2024), and are not intended to replace detailed engineering assessments. All values are in 2020 USD and should be appropriately adjusted for current inflation. Estimates reflect the mean modeled cost with 50% prediction ranges, and may be less reliable for structures exceeding 5 m in height due to limited data. Costs related to stakeholder consultations or litigation, if any, are not included in this model.',
 				...getEntries(COST_CLASS, (v) => v > 0)
 			}
 		]

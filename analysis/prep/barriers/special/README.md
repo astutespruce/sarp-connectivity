@@ -61,8 +61,13 @@ Estimated dams are crosschecked against dams in the master inventory. Dams that 
 Estimated dam costs were modeled by Suman Jumani (TNC) and provided to Kat Hoenke on 1/16/2024,
 saved to `data/barriers/source/sarp_dam_costpred_V2.xlsx`.
 
-We extracted Mean and 95% upper / lower prediction intervals and saved to a Feather file for faster joins later.
+We extracted Mean and 50% upper / lower prediction intervals and saved to a Feather file for faster joins later.
 These were post-processed using `analysis/prep/barriers/special/extract_cost_estimates.py`.
+
+References:
+Duda, J.J., Johnson, R.C., Jensen, B.L., Wagner, E.J., Richards, K., and Wieferich, D.J., 2023, Compilation of cost estimates for dam removal projects in the United States: U.S. Geological Survey data release, https://doi.org/10.5066/P9G8V371. (https://www.sciencebase.gov/catalog/item/632a18b3d34e71c6d67b9081)
+
+Jumani, S., McKay, S. K., Moberg, T., Hoenke, K., & Wenger, S. J. (2026). Estimating the Monetary Costs of Aging Dam Removals in the United States. Environmental Challenges, 101472. https://doi.org/10.1016/j.envc.2026.101472
 
 ## Modeled road crossings
 
@@ -70,17 +75,17 @@ Modeled road crossings are prepared using `analysis/prep/barriers/special/prep_r
 
 NOTE: this needs to be rerun each time the underlying network data are updated or any of the data used in the spatial joins are updated.
 
-Modeled road crossings are derived from USGS road / stream crossings and USFS road / stream crossings.  They are used as snapping targets for surveyed road-related barriers and to help mark which ones have been surveyed.
+Modeled road crossings are derived from USGS road / stream crossings and USFS road / stream crossings. They are used as snapping targets for surveyed road-related barriers and to help mark which ones have been surveyed.
 
 USGS crossing ownership is joined from the associated crossing observation data table packaged with the crossings based on shared identifiers, if the modeled point and observed point are within 100 meters.
 
 Census TIGER roads (2022 version) are spatially joined to the modeled crossings and used to supplement ownership information, based on the road type recorded in the TIGER roads dataset.
 
-USGS and USFS modeled road crossings are combined into a single dataset, with preference given to USGS crossings.  They are assigned a crossing code based on methods from the North Atlantic Aquatic Connectivity Collaborative, and then deduplicated based on that crossing code.  This removes duplicate crossings at exactly the same location that result from overlapping road types at the same crossing point.
+USGS and USFS modeled road crossings are combined into a single dataset, with preference given to USGS crossings. They are assigned a crossing code based on methods from the North Atlantic Aquatic Connectivity Collaborative, and then deduplicated based on that crossing code. This removes duplicate crossings at exactly the same location that result from overlapping road types at the same crossing point.
 
-Crossings are then deduplicated based on clustering crossings that are individually no more than 5 meters apart.  This finds all clusters of crossings where any pair of crossing in the cluster is less than 5 meters apart, even though some members of the cluster may be more than 5 meters apart from other barriers.  This uses a connected components graph algorithm.  The purpose of this is to deduplicate chains of very close crossings into a single representative point for the overall crossing.
+Crossings are then deduplicated based on clustering crossings that are individually no more than 5 meters apart. This finds all clusters of crossings where any pair of crossing in the cluster is less than 5 meters apart, even though some members of the cluster may be more than 5 meters apart from other barriers. This uses a connected components graph algorithm. The purpose of this is to deduplicate chains of very close crossings into a single representative point for the overall crossing.
 
-Crossings are then snapped to the nearest flowline in the network based on a 10 meter tolerance.  
+Crossings are then snapped to the nearest flowline in the network based on a 10 meter tolerance.
 
 Crossings are spatially joined to a variety of contextual datasets after snapping.
 
