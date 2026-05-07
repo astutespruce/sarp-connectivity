@@ -402,7 +402,8 @@ EXCLUDE_RECON = []
 
 REMOVED_FEASIBILITY = [
     8,  # Dam removed for conservation benefit
-    14,  # Fish passage installed for conservation benefit
+    # NOTE: 14 is handled specifically because we have to check Passability at same time
+    # 14,  # Fish passage installed for conservation benefit
     15,  # Treatment completed (removal vs fishway unspecified)
 ]
 

@@ -663,20 +663,36 @@ removed_fields = {
 
 # make sure that any with YearRemoved > current year are not marked as removed
 for field, values in removed_fields.items():
-    ix = df[field].isin(values) & (df.YearRemoved <= datetime.today().year) & (~(df.dropped | df.removed))
+    ix = (
+        df[field].isin(values)
+        & (df.YearRemoved <= datetime.today().year)
+        & (df.YearFishPass <= datetime.today().year)
+        & (~(df.dropped | df.removed))
+    )
     df.loc[ix, "removed"] = True
     df.loc[ix, "log"] = format_log("removed", field, sorted(df.loc[ix][field].unique().tolist()))
 
+# mark fish passages based on passability (per direction from Kat 5/6/2026)
+ix = (
+    (df.Feasibility == 14)
+    & (df.Passability.isin([0, 7]))
+    & (df.YearRemoved <= datetime.today().year)
+    & (df.YearFishPass <= datetime.today().year)
+    & (~(df.dropped | df.removed))
+)
+df.loc[ix, "removed"] = True
+df.loc[ix, "log"] = format_log("removed", "Feasibility", ["14 (Passability does not indicate barrier)"])
 
 # if YearRemoved is set, mark it as removed (per direction from Kat 3/11/2024)
-ix = (df.YearRemoved > 0) & (df.YearRemoved <= datetime.today().year) & ~(df.dropped | df.removed)
+# but only if not a fish passage that still indicates barrier (per direction from Kat 5/6/2026)
+ix = (
+    (df.YearRemoved > 0)
+    & (df.YearRemoved <= datetime.today().year)
+    & ~(df.dropped | df.removed)
+    & (~((df.Feasibility == 14) & (df.Passability.isin([1, 2, 3, 4, 5, 6]))))
+)
 df.loc[ix, "removed"] = True
 df.loc[ix, "log"] = f"removed: YearRemoved is set and <= {datetime.today().year}"
-
-# clear out cost columns for removed dams since they are no longer applicable
-for col in ["CostMean", "CostUpper", "CostLower"]:
-    df.loc[df.removed, col] = np.nan
-
 
 # if YearFishPass is set and Passability indicates no barrier, mark as removed (fully mitigated)
 # (per direction from Kat 3/12/2024)
@@ -700,6 +716,10 @@ df.loc[ix, "YearRemoved"] = df.loc[ix].YearFishPass
 # but don't reset if Feasibility indicates it wasn't completely removed, per direction from Kat on 1/7/2024
 ix = df.removed & (~(df.Feasibility.isin([11, 14]) | df.Recon.isin([22, 23])))
 df.loc[ix, "Passability"] = np.uint8(0)  # unknown
+
+# clear out cost columns for removed dams since they are no longer applicable
+for col in ["CostMean", "CostUpper", "CostLower"]:
+    df.loc[df.removed, col] = np.nan
 
 
 ### Mark any that are proposed to be removed so that we can show these on the map
