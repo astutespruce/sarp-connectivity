@@ -11,7 +11,7 @@
 		WATERBODY_SIZECLASS,
 		FISH_HABITAT_PARTNERSHIPS,
 		STATES,
-		TNC_COLDWATER_STATUS,
+		// TNC_COLDWATER_STATUS,
 		TNC_RESILIENCE,
 		TU_BROOK_TROUT_PORTFOLIO,
 		WILDSCENIC_RIVER_LONG_LABELS
@@ -57,7 +57,7 @@
 		yearsurveyed = null,
 		resurveyed = null,
 		fatality = null,
-		cold = null,
+		// cold = null,
 		resilience = null,
 		brooktroutportfolio = null,
 		hasnetwork = false,
@@ -233,7 +233,7 @@
 	</Entry>
 {/if}
 
-{#if cold}
+<!-- {#if cold}
 	<Entry label="Ability of the watershed to maintain cold water habitat">
 		{TNC_COLDWATER_STATUS[cold as keyof typeof TNC_COLDWATER_STATUS]}
 
@@ -242,7 +242,7 @@
 			March 2024).
 		</div>
 	</Entry>
-{/if}
+{/if} -->
 
 {#if resilience}
 	<Entry label="Freshwater resilience">

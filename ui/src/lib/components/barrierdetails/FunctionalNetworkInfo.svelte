@@ -17,15 +17,15 @@
 		alteredupstreammiles = 0,
 		unalteredupstreammiles = 0,
 		resilientupstreammiles = 0,
-		coldupstreammiles = 0,
+		// coldupstreammiles = 0,  TEMP: to be updated with new data source
 		freedownstreammiles = 0,
 		freeperennialdownstreammiles = 0,
 		freealtereddownstreammiles = 0,
 		freeunaltereddownstreammiles = 0,
 		freeresilientdownstreammiles = 0,
-		freecolddownstreammiles = 0,
+		// freecolddownstreammiles = 0,  TEMP: to be updated with new data source
 		percentresilient = 0,
-		percentcold = 0,
+		// percentcold = 0,  TEMP: to be updated with new data source
 		sizeclasses = 0,
 		landcover = 0,
 		invasive = false,
@@ -225,7 +225,7 @@
 			<td>{formatNumber(freeresilientdownstreammiles, 2, true)}</td>
 		</tr>
 
-		<tr>
+		<!-- <tr>
 			<td>
 				<InfoTooltip title="Coldwater habitat miles">
 					Total coldwater habitat miles upstream is the sum of all reach lengths that are within
@@ -240,7 +240,7 @@
 			</td>
 			<td>{formatNumber(coldupstreammiles, 2, true)}</td>
 			<td>{formatNumber(freecolddownstreammiles, 2, true)}</td>
-		</tr>
+		</tr> -->
 
 		{#if barrierType !== 'waterfalls'}
 			<tr class="border-t-2 border-t-grey-4">
@@ -300,9 +300,9 @@
 		{formatPercent(percentresilient)}%
 	</Entry>
 
-	<Entry label="Percent of the upstream network in coldwater habitat watersheds">
+	<!-- <Entry label="Percent of the upstream network in coldwater habitat watersheds">
 		{formatPercent(percentcold)}%
-	</Entry>
+	</Entry> -->
 {/if}
 
 <Entry

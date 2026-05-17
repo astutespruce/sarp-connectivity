@@ -14,13 +14,13 @@
 		alteredupstreammiles,
 		unalteredupstreammiles,
 		resilientupstreammiles,
-		coldupstreammiles,
+		// coldupstreammiles,  TEMP: to be updated with new data source
 		freedownstreammiles,
 		freeperennialdownstreammiles,
 		freealtereddownstreammiles,
 		freeunaltereddownstreammiles,
 		freeresilientdownstreammiles,
-		freecolddownstreammiles,
+		// freecolddownstreammiles,  TEMP: to be updated with new data source
 		sizeclasses,
 		landcover,
 		excluded,
@@ -228,11 +228,11 @@
 					<td>{formatNumber(freeresilientdownstreammiles, 2, true)}</td>
 				</tr>
 
-				<tr>
+				<!-- <tr>
 					<td>Coldwater habitat miles</td>
 					<td>{formatNumber(coldupstreammiles, 2, true)}</td>
 					<td>{formatNumber(freecolddownstreammiles, 2, true)}</td>
-				</tr>
+				</tr> -->
 			</tbody>
 		</table>
 
@@ -287,8 +287,10 @@
 			<a href="https://www.maps.tnc.org/resilientrivers/#/explore" target="_blank" rel="external">
 				The Nature Conservancy's Freshwater Resilience
 			</a>
-			dataset (v0.44). Coldwater habitat miles are the total length of stream reaches that are within
-			watersheds with slighly above average or greater cold temperature scores (TNC, March 2024).
+			dataset (v0.44).
+
+			<!-- Coldwater habitat miles are the total length of stream reaches that are within
+			watersheds with slighly above average or greater cold temperature scores (TNC, March 2024). -->
 			<br />
 			<br />
 			Unaltered lakes and ponds include any that intersect a stream reach in the upstream functional network,

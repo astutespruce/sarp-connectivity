@@ -612,9 +612,10 @@ for network_type in network_types:
                 "PercentResilient": percent(
                     pc.divide(sibling_networks["ResilientUpstreamMiles"], sibling_networks["TotalUpstreamMiles"])
                 ),
-                "PercentCold": percent(
-                    pc.divide(sibling_networks["ColdUpstreamMiles"], sibling_networks["TotalUpstreamMiles"])
-                ),
+                # TEMP: to be updated with new data source
+                # "PercentCold": percent(
+                #     pc.divide(sibling_networks["ColdUpstreamMiles"], sibling_networks["TotalUpstreamMiles"])
+                # ),
                 "Landcover": percent(
                     pc.if_else(
                         pc.greater(sibling_networks["FloodplainAcres"], 0),

@@ -15,7 +15,7 @@ from analysis.rank.lib.metrics import (
     classify_downstream_miles,
     classify_percent_unaltered,
     classify_percent_resilient,
-    classify_percent_cold,
+    # classify_percent_cold,
     classify_downstream_barriers,
     classify_unaltered_waterbody_area,
     classify_unaltered_wetland_area,
@@ -41,7 +41,7 @@ NETWORK_COLUMNS = [
     "UnalteredUpstreamMiles",
     "PerennialUnalteredUpstreamMiles",
     "ResilientUpstreamMiles",
-    "ColdUpstreamMiles",
+    # "ColdUpstreamMiles",  TEMP: to be updated with new data source
     "TotalDownstreamMiles",
     "FreeDownstreamMiles",
     "FreePerennialDownstreamMiles",
@@ -50,7 +50,7 @@ NETWORK_COLUMNS = [
     "FreeUnalteredDownstreamMiles",
     # "FreePerennialUnalteredDownstreamMiles", # not used
     "FreeResilientDownstreamMiles",
-    "FreeColdDownstreamMiles",
+    # "FreeColdDownstreamMiles",  TEMP: to be updated with new data source
     "GainMiles",
     "FunctionalNetworkMiles",
     "PerennialGainMiles",
@@ -59,7 +59,7 @@ NETWORK_COLUMNS = [
     "PercentUnaltered",
     "PercentPerennialUnaltered",
     "PercentResilient",
-    "PercentCold",
+    # "PercentCold",  TEMP: to be updated with new data source
     "Landcover",
     "SizeClasses",
     "PerennialSizeClasses",
@@ -232,7 +232,7 @@ def get_network_results(df, network_type, state_ranks=False, huc8_ranks=False):
 
     networks["PercentUnalteredClass"] = classify_percent_unaltered(networks.PercentUnaltered)
     networks["PercentResilientClass"] = classify_percent_resilient(networks.PercentResilient)
-    networks["PercentColdClass"] = classify_percent_cold(networks.PercentCold)
+    # networks["PercentColdClass"] = classify_percent_cold(networks.PercentCold)  TEMP: to be updated with new data source
 
     networks["UnalteredWaterbodyClass"] = classify_unaltered_waterbody_area(networks.UnalteredWaterbodyAcres)
     networks["UnalteredWetlandClass"] = classify_unaltered_wetland_area(networks.UnalteredWetlandAcres)

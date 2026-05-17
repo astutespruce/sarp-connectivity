@@ -2,14 +2,14 @@
 	import {
 		FISH_HABITAT_PARTNERSHIPS,
 		STATES,
-		TNC_COLDWATER_STATUS,
+		// TNC_COLDWATER_STATUS,
 		TNC_RESILIENCE,
 		TU_BROOK_TROUT_PORTFOLIO
 	} from '$lib/config/constants'
 
 	const {
 		brooktroutportfolio,
-		cold,
+		// cold,  TEMP: to be updated with new data source
 		congressionaldistrict,
 		ejtract,
 		ejtribal,
@@ -23,7 +23,7 @@
 	<h2>Landscape context</h2>
 
 	<div class="report-entries">
-		{#if cold}
+		<!-- {#if cold}
 			<div>
 				Ability of the watershed to maintain cold water habitat:
 				{TNC_COLDWATER_STATUS[cold as keyof typeof TNC_COLDWATER_STATUS]}
@@ -32,7 +32,7 @@
 					(TNC; March 2024).
 				</div>
 			</div>
-		{/if}
+		{/if} -->
 
 		{#if resilience}
 			<div>

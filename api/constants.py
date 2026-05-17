@@ -145,9 +145,9 @@ METRIC_FIELDS = [
     "PerennialUnalteredUpstreamMiles",
     "PercentPerennialUnaltered",
     "ResilientUpstreamMiles",
-    "ColdUpstreamMiles",
+    # "ColdUpstreamMiles",  TEMP: will be replaced by different source of cold data
     "PercentResilient",
-    "PercentCold",
+    # "PercentCold",  TEMP: will be replaced by different source of cold data
     "UpstreamDrainageAcres",
     "UnalteredWaterbodyAcres",
     "UnalteredWetlandAcres",
@@ -161,7 +161,7 @@ METRIC_FIELDS = [
     "FreeAlteredDownstreamMiles",
     "FreeUnalteredDownstreamMiles",
     "FreeResilientDownstreamMiles",
-    "FreeColdDownstreamMiles",
+    # "FreeColdDownstreamMiles",  TEMP: will be replaced by different source of cold data
     # upstream / downstream functional network
     "GainMiles",
     "PerennialGainMiles",
@@ -359,7 +359,7 @@ FILTER_FIELDS = [
     "AnnualFlowClass",
     "PercentUnalteredClass",
     "PercentResilientClass",
-    "PercentColdClass",
+    # "PercentColdClass",  TEMP: will be replaced by different source of cold data
     "OwnerType",
     "BarrierOwnerType",
     "Intermittent",
@@ -490,7 +490,7 @@ GENERAL_API_FIELDS2 = (
         "EJTribal",
         "NativeTerritories",
         "Resilience",
-        "Cold",
+        # "Cold",  TEMP: will be replaced by different source of cold data
         "BrookTroutPortfolio",
         "WildScenicRiver",
         "Wilderness",
@@ -689,7 +689,7 @@ ROAD_CROSSING_CORE_FIELDS = (
         "EJTribal",
         "NativeTerritories",
         "Resilience",
-        "Cold",
+        # "Cold",  TEMP: will be replaced by different source of cold data
         "BrookTroutPortfolio",
         "WildScenicRiver",
         "Wilderness",
@@ -746,7 +746,7 @@ WF_CORE_FIELDS = (
         "ProtectedLand",
         "NativeTerritories",
         "Resilience",
-        "Cold",
+        # "Cold",  # TEMP: will be replaced by different source of data
         "BrookTroutPortfolio",
         "WildScenicRiver",
         "Wilderness",
@@ -1446,15 +1446,16 @@ TNC_RESILIENCE_DOMAIN = {
     7: "Far above average",
 }
 
-TNC_COLDWATER_DOMAIN = {
-    0: "Not assessed",
-    2: "Below average",
-    3: "Slightly below Aaverage",
-    4: "Average",
-    5: "Slightly above average",
-    6: "Above average",
-    7: "Far above average",
-}
+# FIXME: remove; superseded by new data source
+# TNC_COLDWATER_DOMAIN = {
+#     0: "Not assessed",
+#     2: "Below average",
+#     3: "Slightly below Aaverage",
+#     4: "Average",
+#     5: "Slightly above average",
+#     6: "Above average",
+#     7: "Far above average",
+# }
 
 TU_BROOK_TROUT_PORTFOLIO_TO_DOMAIN = {
     0: "Not assessed / not a brook trout population",
@@ -1507,7 +1508,7 @@ DOMAINS = {
     "HasLinearDownstreamEJTribal": BOOLEAN_OFFNETWORK_DOMAIN,
     "DiadromousHabitat": DIADROMOUS_HABITAT_DOMAIN,
     "Resilience": TNC_RESILIENCE_DOMAIN,
-    "Cold": TNC_COLDWATER_DOMAIN,
+    # "Cold": TNC_COLDWATER_DOMAIN,
     "BrookTroutPortfolio": TU_BROOK_TROUT_PORTFOLIO_TO_DOMAIN,
     "WildScenicRiver": WILD_SCENIC_RIVER_DOMAIN,
     "Wilderness": BOOLEAN_DOMAIN,
@@ -1654,7 +1655,7 @@ FIELD_DEFINITIONS = {
     "HasLinearDownstreamEJTribal": "Downstream linear network overlaps with a disadvantaged tribal community as defined by the Climate and Environmental Justice Screening tool.  See EJTribal for more information.  -1 = not available.",
     "NativeTerritories": "Native / indigenous people's territories as mapped by Native Land Digital (https://native-land.ca/",
     "Resilience": "The Nature Conservancy's freshwater resilience category of the watershed where the {type} occurs (v0.44).",
-    "Cold": "Ability of the watershed to maintain cold water habitat based on The Nature Conservancy's cold water temperature score where this {type} occurs (TNC; March 2024).",
+    # "Cold": "Ability of the watershed to maintain cold water habitat based on The Nature Conservancy's cold water temperature score where this {type} occurs (TNC; March 2024).",
     "BrookTroutPortfolio": "Eastern Brook Trout Conservation Portfolio category for the watershed where the {type} occurs, based on the most recent Brook Trout Conservation Portfolio dataset provided by Trout Unlimited (last updated 7/4/2022).  See https://www.tu.org/science/conservation-planning-and-assessment/conservation-portfolio/ for more information.",
     "FishHabitatPartnership": "Fish Habitat Partnerships working in the area where the {type} occurs.  See https://www.fishhabitat.org/the-partnerships for more information.",
     "Basin": "Name of the hydrologic basin (HUC6) where the {type} occurs.",
@@ -1698,9 +1699,9 @@ FIELD_DEFINITIONS = {
     "PercentUnaltered": "percent of the total upstream functional river network length from this {type} that is not specifically identified in NHD or the National Wetlands Inventory as altered (canal / ditch, within a reservoir, or other channel alteration).  -1 = not available.",
     "PercentPerennialUnaltered": "percent of the perennial upstream functional river network length from this {type} that is not specifically identified in NHD or the National Wetlands Inventory as altered (canal / ditch, within a reservoir, or other channel alteration).  See PerennialUpstreamMiles.  -1 = not available.",
     "ResilientUpstreamMiles": "number of miles in the upstream functional river network from this {type} that are within watersheds identified by The Nature Conservancy with slightly above average or greater freshwater resilience (v0.44), including miles in waterbodies.  -1 = not available.  See https://www.maps.tnc.org/resilientrivers/#/explore for more information.",
-    "ColdUpstreamMiles": "number of miles in the upstream functional river network from this {type} that are within watersheds identified by The Nature Conservancy with above average or greater cold water temperature scores (March 2024), including miles in waterbodies.  -1 = not available.  See https://www.maps.tnc.org/resilientrivers/#/explore for more information.",
+    # "ColdUpstreamMiles": "number of miles in the upstream functional river network from this {type} that are within watersheds identified by The Nature Conservancy with above average or greater cold water temperature scores (March 2024), including miles in waterbodies.  -1 = not available.  See https://www.maps.tnc.org/resilientrivers/#/explore for more information.",
     "PercentResilient": "percent of the the upstream functional river network length from this {type} that is within watersheds identified by The Nature Conservancy with slightly above average or greater freshwater resilience (v0.44), including miles in waterbodies.  -1 = not available.  See https://www.maps.tnc.org/resilientrivers/#/explore for more information.",
-    "PercentCold": "percent of the the upstream functional river network length from this {type} that is within watersheds identified by The Nature Conservancy with above average or greater cold water temperature scores (March 2024), including miles in waterbodies.  -1 = not available.  See https://www.maps.tnc.org/resilientrivers/#/explore for more information.",
+    # "PercentCold": "percent of the the upstream functional river network length from this {type} that is within watersheds identified by The Nature Conservancy with above average or greater cold water temperature scores (March 2024), including miles in waterbodies.  -1 = not available.  See https://www.maps.tnc.org/resilientrivers/#/explore for more information.",
     "UpstreamDrainageAcres": "approximate drainage area in acres of all NHD High Resolution catchments within upstream functional network of {type}.  Includes the total catchment area of any NHD High Resolution flowlines that are cut by barriers in the analysis, which may overrepresent total drainage area of the network. -1 = not available.",
     "TotalDownstreamMiles": "number of miles in the complete downstream functional river network from this {type}, including miles in waterbodies.  Note: this measures the length of the complete downstream network including all tributaries, and is not limited to the shortest downstream path.  -1 = not available.",
     "FreeDownstreamMiles": "number of free-flowing miles in the downstream functional river network.  Excludes miles in altered reaches in waterbodies.  -1 = not available.",
@@ -1708,7 +1709,7 @@ FIELD_DEFINITIONS = {
     "FreeIntermittentDownstreamMiles": "number of free-flowing ephemeral and intermittent miles in the downstream functional river network.  Excludes miles altered reaches in waterbodies.  See IntermittentUpstreamMiles for definition of intermittent reaches. -1 = not available.",
     "FreeAlteredDownstreamMiles": "number of free-flowing altered miles in the downstream functional river network from this {type}.  Excludes miles in altered reaches in waterbodies.  See AlteredUpstreamMiles for definition of altered reaches.  -1 = not available.",
     "FreeUnalteredDownstreamMiles": "number of free-flowing altered miles in the downstream functional river network from this {type}.  Excludes miles in altered reaches in waterbodies.  See UnalteredUpstreamMiles for definition of unaltered reaches.  -1 = not available.",
-    "FreeColdDownstreamMiles": "number of free-flowing miles in the downstream functional river network length from this {type} that is within watersheds identified by The Nature Conservancy with above average or greater cold water temperature scores (March 2024).  Excludes miles in altered reaches in waterbodies.  -1 = not available.  See https://www.maps.tnc.org/resilientrivers/#/explore for more information.",
+    # "FreeColdDownstreamMiles": "number of free-flowing miles in the downstream functional river network length from this {type} that is within watersheds identified by The Nature Conservancy with above average or greater cold water temperature scores (March 2024).  Excludes miles in altered reaches in waterbodies.  -1 = not available.  See https://www.maps.tnc.org/resilientrivers/#/explore for more information.",
     "FreeResilientDownstreamMiles": "number of free-flowing miles in the downstream functional river network length from this {type} that is within watersheds identified by The Nature Conservancy with slightly above average or greater freshwater resilience (v0.44).  Excludes miles in altered reaches in waterbodies.  -1 = not available.  See https://www.maps.tnc.org/resilientrivers/#/explore for more information.",
     "UnalteredWaterbodyAcres": "area in acres of all unaltered lakes and ponds that intersect any reach in upstream functional network; these waterbodies are not specifically marked by data sources as altered and are not associated with dams in this inventory.  Use with caution because waterbodies may not be correctly subdivided by dams in the data sources, and altered waterbodies may not be marked as such. -1 = not available.",
     "UnalteredWetlandAcres": "area in acres of all unaltered freshwater wetlands that intersect any reach in the upstream functional network. Wetlands are derived from specific wetland types in the National Wetlands Inventory (freshwater scrub-shrub, freshwater forested, freshwater emergent) and NHD (swamp/marsh) and exclude any specifically marked by the data provider as altered.  Use with caution because wetlands may not be correctly subdivided by dams or dikes in the data sources, and altered wetlands may not be marked as such. -1 = not available.",

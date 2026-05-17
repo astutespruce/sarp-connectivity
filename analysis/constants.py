@@ -881,15 +881,17 @@ TNC_RESILIENCE_TO_DOMAIN = {
     "Above Average": 6,
     "Far Above Average": 7,
 }
-# same as above but missing Far Below Average
-TNC_COLDWATER_TO_DOMAIN = {
-    "Below Average": 2,
-    "Slightly Below Average": 3,
-    "Average": 4,
-    "Slightly Above Average": 5,
-    "Above Average": 6,
-    "Far Above Average": 7,
-}
+
+# FIXME: remove; superseded by new data source
+# # same as above but missing Far Below Average
+# TNC_COLDWATER_TO_DOMAIN = {
+#     "Below Average": 2,
+#     "Slightly Below Average": 3,
+#     "Average": 4,
+#     "Slightly Above Average": 5,
+#     "Above Average": 6,
+#     "Far Above Average": 7,
+# }
 
 
 EPA_CAUSE_TO_CODE = {

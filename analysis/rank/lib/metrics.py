@@ -65,14 +65,15 @@ def classify_percent_resilient(series):
     return np.asarray(pd.cut(series, bins, right=False, labels=np.arange(0, len(bins) - 1))).astype("uint8")
 
 
-def classify_percent_cold(series):
-    """classify percent cold into bins 1...6: 0 is reserved for missing values"""
-    bins = [-1, 0, 10, 50, 90]
-    last_bin = series.max() + 1
-    if last_bin > bins[-1]:
-        bins.append(last_bin)
+# TEMP: to be updated with new data source
+# def classify_percent_cold(series):
+#     """classify percent cold into bins 1...6: 0 is reserved for missing values"""
+#     bins = [-1, 0, 10, 50, 90]
+#     last_bin = series.max() + 1
+#     if last_bin > bins[-1]:
+#         bins.append(last_bin)
 
-    return np.asarray(pd.cut(series, bins, right=False, labels=np.arange(0, len(bins) - 1))).astype("uint8")
+#     return np.asarray(pd.cut(series, bins, right=False, labels=np.arange(0, len(bins) - 1))).astype("uint8")
 
 
 def classify_downstream_miles(series):

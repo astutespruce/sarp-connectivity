@@ -181,11 +181,12 @@ def add_spatial_joins(df):
     df = sjoin_points_to_poly(df, tnc_res)
     df["Resilience"] = df.Resilience.fillna(0).astype("uint8")
 
-    tnc_cold = gp.read_feather(
-        data_dir / "tnc_resilience/derived/tnc_coldwater_refugia_watersheds.feather", columns=["geometry", "cold"]
-    ).rename(columns={"cold": "Cold"})
-    df = sjoin_points_to_poly(df, tnc_cold)
-    df["Cold"] = df.Cold.fillna(0).astype("uint8")
+    # TEMP: to be updated with new data source
+    # tnc_cold = gp.read_feather(
+    #     data_dir / "tnc_resilience/derived/tnc_coldwater_refugia_watersheds.feather", columns=["geometry", "cold"]
+    # ).rename(columns={"cold": "Cold"})
+    # df = sjoin_points_to_poly(df, tnc_cold)
+    # df["Cold"] = df.Cold.fillna(0).astype("uint8")
 
     brook_trout_portfolio = gp.read_feather(
         boundaries_dir / "brook_trout_portfolio.feather", columns=["geometry", "category"]

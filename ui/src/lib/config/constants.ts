@@ -1213,13 +1213,14 @@ export const PERCENT_RESILIENT = {
 	4: '90 - 100%'
 }
 
-export const PERCENT_COLD = {
-	// 0: no network // filtered out
-	1: '0 - 9%',
-	2: '10 - 49%',
-	3: '50 - 89%',
-	4: '90 - 100%'
-}
+// TEMP: will be replaced by different source of cold data
+// export const PERCENT_COLD = {
+// 	// 0: no network // filtered out
+// 	1: '0 - 9%',
+// 	2: '10 - 49%',
+// 	3: '50 - 89%',
+// 	4: '90 - 100%'
+// }
 
 export const STREAM_SIZECLASS = {
 	'1a': 'headwaters',
@@ -1351,15 +1352,16 @@ export const COST_CLASS = {
 	8: '>=$2M'
 }
 
-export const TNC_COLDWATER_STATUS = {
-	0: 'not assessed',
-	2: 'below average',
-	3: 'slightly below average',
-	4: 'average',
-	5: 'slightly above average',
-	6: 'above average',
-	7: 'far above average'
-}
+// TEMP: will be replaced by different source of cold data
+// export const TNC_COLDWATER_STATUS = {
+// 	0: 'not assessed',
+// 	2: 'below average',
+// 	3: 'slightly below average',
+// 	4: 'average',
+// 	5: 'slightly above average',
+// 	6: 'above average',
+// 	7: 'far above average'
+// }
 
 export const TNC_RESILIENCE = {
 	0: 'not assessed',

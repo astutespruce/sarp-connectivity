@@ -216,7 +216,14 @@ def load_flowlines(huc2s):
             data_dir / "tnc_resilience/derived/tnc_resilient_flowlines.feather",
             format="feather",
         )
-        .to_table(filter=pc.field("HUC2").isin(huc2s), columns=["NHDPlusID", "resilient", "cold"])
+        .to_table(
+            filter=pc.field("HUC2").isin(huc2s),
+            columns=[
+                "NHDPlusID",
+                "resilient",
+                # "cold"  TEMP: to be updated with new data source
+            ],
+        )
         .combine_chunks()
     )
 
@@ -264,7 +271,12 @@ def load_flowlines(huc2s):
 
         if col in ["floodplain_km2", "nat_floodplain_km2"]:
             out[col] = pc.cast(pc.fill_null(flowlines[col], 0), pa.float32())
-        elif col in ["resilient", "cold", "EJTract", "EJTribal"] + habitat_cols + list(EPA_CAUSE_TO_CODE.keys()):
+        elif col in [
+            "resilient",
+            #  "cold",   TEMP: to be updated with new data source
+            "EJTract",
+            "EJTribal",
+        ] + habitat_cols + list(EPA_CAUSE_TO_CODE.keys()):
             out[col] = pc.fill_null(flowlines[col], False)
 
     flowlines = pa.Table.from_pydict(out)

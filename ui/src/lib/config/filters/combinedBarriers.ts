@@ -23,7 +23,7 @@ import {
 	WATERBODY_SIZECLASS,
 	PERCENT_UNALTERED,
 	PERCENT_RESILIENT,
-	PERCENT_COLD,
+	// PERCENT_COLD,
 	PASSAGEFACILITY_CLASS,
 	OWNERTYPE,
 	BARRIEROWNERTYPE,
@@ -151,14 +151,14 @@ export const combinedBarriers = [
 				help: "Resilient watersheds are those with above average or greater freshwater resilience within The Nature Conservancy's Freshwater Resilience dataset (v0.44).  Note: not available for Alaska, far southern Florida, Puerto Rico, or the U.S. Virgin Islands.",
 				url: 'https://www.maps.tnc.org/resilientrivers/#/explore',
 				...getEntries(PERCENT_RESILIENT)
-			},
-			{
-				field: 'percentcoldclass',
-				title: 'Percent of upstream network classified as coldwater habitat',
-				sort: false,
-				help: "Watersheds with coldwater habitat are those with slighly above average or greater cold temperature scores within The Nature Conservancy's Freshwater Resilience dataset (March 2024).",
-				...getEntries(PERCENT_COLD)
 			}
+			// {
+			// 	field: 'percentcoldclass',
+			// 	title: 'Percent of upstream network classified as coldwater habitat',
+			// 	sort: false,
+			// 	help: "Watersheds with coldwater habitat are those with slighly above average or greater cold temperature scores within The Nature Conservancy's Freshwater Resilience dataset (March 2024).",
+			// 	...getEntries(PERCENT_COLD)
+			// }
 		]
 	},
 	{

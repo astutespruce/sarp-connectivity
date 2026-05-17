@@ -135,7 +135,7 @@ def calculate_upstream_functional_flowline_stats(network_flowlines):
         "intermittent",
         "free_flowing",
         "resilient",
-        "cold",
+        # "cold",  TEMP: to be updated with new data source
         "sizeclass",
         "AreaSqKm",
         "floodplain_km2",
@@ -170,7 +170,7 @@ def calculate_upstream_functional_flowline_stats(network_flowlines):
             pc.or_(network_flowlines["intermittent"], network_flowlines["altered"]), 0, miles
         ),
         "fn_resilient_miles": pc.if_else(network_flowlines["resilient"], miles, 0),
-        "fn_cold_miles": pc.if_else(network_flowlines["cold"], miles, 0),
+        # "fn_cold_miles": pc.if_else(network_flowlines["cold"], miles, 0),  TEMP: to be updated with new data source
         "fn_free_miles": free_miles,
         "fn_free_perennial_miles": pc.if_else(network_flowlines["intermittent"], 0, free_miles),
         "fn_free_intermittent_miles": pc.if_else(network_flowlines["intermittent"], free_miles, 0),
@@ -180,7 +180,7 @@ def calculate_upstream_functional_flowline_stats(network_flowlines):
             pc.or_(network_flowlines["intermittent"], network_flowlines["altered"]), 0, free_miles
         ),
         "fn_free_resilient_miles": pc.if_else(network_flowlines["resilient"], free_miles, 0),
-        "fn_free_cold_miles": pc.if_else(network_flowlines["cold"], free_miles, 0),
+        # "fn_free_cold_miles": pc.if_else(network_flowlines["cold"], free_miles, 0),  TEMP: to be updated with new data source
         "fn_floodplain_acres": pc.multiply(network_flowlines["floodplain_km2"], KM2_TO_ACRES),
         "fn_nat_floodplain_acres": pc.multiply(network_flowlines["nat_floodplain_km2"], KM2_TO_ACRES),
         "fn_has_ej_tract": network_flowlines["EJTract"],
@@ -243,7 +243,7 @@ def calculate_upstream_functional_flowline_stats(network_flowlines):
             "fn_pct_resilient": percent(
                 pc.divide(network_stats["fn_resilient_miles"], network_stats["fn_total_miles"])
             ),
-            "fn_pct_cold": percent(pc.divide(network_stats["fn_cold_miles"], network_stats["fn_total_miles"])),
+            # "fn_pct_cold": percent(pc.divide(network_stats["fn_cold_miles"], network_stats["fn_total_miles"])),  TEMP: to be updated with new data source
             "fn_natfldpln": percent(
                 pc.if_else(
                     pc.greater(network_stats["fn_floodplain_acres"], 0),
