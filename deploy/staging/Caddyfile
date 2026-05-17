@@ -134,7 +134,7 @@ staging.tool.aquaticbarriers.org {
 
     # page-data, html, and site root must be fetched each time
     @no_cache {
-      path *.html *.webmanifest */page-data/* / /priority/* /survey/* /explore/* /methods/* /regions/* /states/* /fhp/* /report/*
+      path *.html *.webmanifest */page-data/* / /priority/* /survey/* /explore/* /methods/* /regions/* /states/* /fhp/* /report/* /terms-of-use/*
     }
     header @no_cache Cache-Control "public, max-age:0, must-revalidate"
 

@@ -63,6 +63,15 @@
 
 	<ol class="mt-2">
 		<li>
+			you agree to the National Aquatic Connectivity Collaborative <a
+				href="https://aquaticbarriers.org/terms-of-use/"
+				target="_blank"
+				rel="external"
+			>
+				Terms of Use
+			</a>.
+		</li>
+		<li>
 			you will credit NACC, SARP, and NFHP in anything produced using the data provided by this tool
 			including, but not limited to, peer-reviewed publications via acknowledgments, presentations
 			and reports via logo placement, and newsletter or interview articles via logo and/or verbal
