@@ -32,77 +32,35 @@ src_dir = data_dir / "species/source"
 nhd_dir = data_dir / "nhd/raw"  # must use raw data to be able to join on NHDPlusID later
 out_dir = data_dir / "species/derived"
 
-infilename = src_dir / "NHFlowline_within_BKT_patches_TU.gdb"
 
 # manually-identified keep lines (NHDPlusIDs):
-keep_line_ids = np.array(
-    [
-        60000200071259,
-        60000200050220,
-        60000200090093,
-        60000200013138,
-        60000200062019,
-        60000200115026,
-        60000200115298,
-        60000200021005,
-        60000200033029,
-        60000200025324,
-        60000200022945,
-        60000200028202,
-        60000200055303,
-        60000200003014,
-        60000200064048,
-        60000200024481,
-        60000200011248,
-        60000200072396,
-        60000200068350,
-        60000200073523,
-        60000200012468,
-        60000200036476,
-        60000200061823,
-        60000200000761,
-        60000200043958,
-        60000200034424,
-        60000200045385,
-        60000200031696,
-        60000200042847,
-        60000200017336,
-        60000200025959,
-        60000200008862,
-        60000200020977,
-        60000200060623,
-        60000200055448,
-        60000200004701,
-        60000200059665,
-        60000200008903,
-        60000200018297,
-        60000200056808,
-        10000700063933,
-        10000700064319,
-        10000900091410,
-        5000300010501,
-        5000400030741,
-        60000600082943,
-        60000600064073,
-        60000600088404,
-        60000600070393,
-        60000600084159,
-        60000600061235,
-        60000600083182,
-        60000600089711,
-        60000600092705,
-        60000600088405,
-        60000600065693,
-        60000600057947,
-        60000600061236,
-    ]
-)
+keep_line_ids = np.array([])
 
 
-df = read_dataframe(infilename, use_arrow=True, columns=["REACHCODE"])
+# New data for Northeast as of 2025 / 2026
+new_df = read_dataframe(
+    src_dir / "EBTJV2025_NHDFlowlines.gdb",
+    use_arrow=True,
+    # keep codes for predicted and present patches of brook trout per direction from Kat 5/22/2026
+    where="EBTJV_CODE in ('1.1', '1.2', '1.3', '1.4', '1.5', '1.1P', '1.2P', '1.3P', '1.4P', '1.5P')",
+    columns=["REACHCODE", "EBTJV_CODE"],
+).drop(columns=["EBTJV_CODE"])
+new_df["geometry"] = shapely.force_2d(new_df.geometry.values)
+new_df = new_df.to_crs(CRS)
 
-df["geometry"] = shapely.force_2d(df.geometry.values)
-df = df.to_crs(CRS)
+# Previous data; only use these for Midwest
+prev_df = read_dataframe(
+    src_dir / "NHFlowline_within_BKT_patches_TU.gdb",
+    use_arrow=True,
+    where="TU_Assessment = 'Great Lakes Portfolio 2021'",
+    columns=["REACHCODE", "TU_Assessment"],
+).drop(columns=["TU_Assessment"])
+prev_df["geometry"] = shapely.force_2d(prev_df.geometry.values)
+prev_df = prev_df.to_crs(CRS)
+
+df = pd.concat([new_df, prev_df])
+del new_df
+del prev_df
 
 # merge up to reach code level
 df = merge_lines(df.explode(ignore_index=True), by="REACHCODE").set_index("REACHCODE")
@@ -139,7 +97,7 @@ flowlines = read_arrow_tables(
     ],
     filter=pc.is_in(pc.field("HUC4"), pa.array(huc4s)),
     new_fields={"HUC2": huc2s},
-).filter(pc.field("offnetwork") == False)
+).filter(pc.field("offnetwork") == False)  # noqa: E712
 
 flowlines = gp.GeoDataFrame(
     flowlines.select([c for c in flowlines.column_names if c not in {"geometry", "offnetwork"}]).to_pandas(),
@@ -245,10 +203,10 @@ remaining_flowlines = flowlines.loc[~flowlines.index.isin(keep_line_ids)].copy()
 df["buf"] = shapely.buffer(df.geometry.values, SELECTION_TOLERANCE, cap_style="flat")
 
 # DEBUG:
-# write_dataframe(
-#     gp.GeoDataFrame(geometry=df.buf, crs=CRS),
-#     "/tmp/eastern_brook_trout_habitat_source_buffer.fgb",
-# )
+write_dataframe(
+    gp.GeoDataFrame(geometry=df.buf, crs=CRS),
+    "/tmp/eastern_brook_trout_habitat_source_buffer.fgb",
+)
 
 # add upstream / downstream points
 remaining_flowlines["nhd_upstream_pt"] = shapely.get_point(remaining_flowlines.geometry.values, 0)
@@ -488,7 +446,10 @@ path_pairs["overlap_ratio"] = (
 
 # we can use low overlap because the downstream lines are lower resolution
 # but generally we are tracing the right general direction
-keep_paths = path_pairs.overlap_ratio.loc[path_pairs.overlap_ratio >= 0.1].index
+# NOTE: with brook trout in particular, we don't want to backfill larger flowlines
+# between habitat patches, so we require a somewhat higher overlap ratio than
+# for other species that are more habitat connected
+keep_paths = path_pairs.overlap_ratio.loc[path_pairs.overlap_ratio >= 0.25].index
 keep_ids = paths.loc[paths.path.isin(keep_paths)].NHDPlusID.unique()
 print(f"adding {len(keep_ids):,} filler lines between disconnected upstream and downstream habitat")
 

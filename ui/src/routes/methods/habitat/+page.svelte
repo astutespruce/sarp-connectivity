@@ -344,8 +344,9 @@
 				Eastern brook trout habitat data were derived from nonpublic data provided by Trout
 				Unlimited. These data are based on NHDPlus medium-resolution flowlines that intersect with
 				brook trout population patches, which were compiled from assessments by Trout Unlimited
-				(2017-2022). These data are intended to provide a best guess estimate of brook trout
-				instream habitat based on available data.
+				(2017-2025). These data are intended to provide a best guess estimate of brook trout
+				instream habitat based on available data. Brook trout habitat data are currently under
+				development for Wisconsin and Iowa and may be incomplete.
 			</p>
 			<figure>
 				<enhanced:img

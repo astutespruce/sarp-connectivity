@@ -267,6 +267,7 @@ SMALL_BARRIER_COLS = [
     "SARPUniqueID",
     "UNIQUE_ID",  # PartnerID
     "LocalID",
+    "SurveyID",  # NAACC specific survey ID
     "Recon",
     "ManualReview",
     "Crossing_Code",

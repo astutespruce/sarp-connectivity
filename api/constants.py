@@ -570,6 +570,7 @@ DAM_API_FIELDS = unique(
         "CostLower",
         "CostMean",
         "CostUpper",
+        "CostPredictionOutOfBounds",
         # Size class is used for display
         "WaterbodySizeClass",
     ]
@@ -589,6 +590,7 @@ SB_CORE_FIELDS = (
     + [
         "CrossingCode",
         "PartnerID",
+        "SurveyID",
         "NearestCrossingID",
         "NearestUSGSCrossingID",
         "AnnualVelocity",
@@ -1612,6 +1614,7 @@ FIELD_DEFINITIONS = {
     "Fatality": "number of fatalities recorded at this location from Locations of Fatalities at Submerged Hydraulic Jumps (https://krcproject.groups.et.byu.net/browse.php)",
     # barrier-specific fields
     "CrossingCode": "crossing identifier.",
+    "SurveyID": "NAACC-specific Survey ID for this {type}",
     "NearestCrossingID": "The SARPID of the nearest road/stream crossing point, if any are found within 50 meters",
     "NearestUSGSCrossingID": "The ID of the nearest road/stream crossing point in the USGS Database of Stream Crossings in the United States (2022), if any are found within 50 meters.  Will be blank for crossings from other sources",
     "Road": "road name, if available.",
@@ -1640,7 +1643,7 @@ FIELD_DEFINITIONS = {
     "TESpp": "Number of federally-listed threatened or endangered aquatic species, compiled from element occurrence data within the same subwatershed (HUC12) as the {type}. Note: rare species information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
     "StateSGCNSpp": "Number of state-listed Species of Greatest Conservation Need (SGCN), compiled from element occurrence data within the same subwatershed (HUC12) as the {type}.  Note: rare species information is based on occurrences within the same subwatershed as the {type}.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
     "RegionalSGCNSpp": "Number of regionally-listed Species of Greatest Conservation Need (SGCN), compiled from element occurrence data within the same subwatershed (HUC12) as the {type}.  Note: rare species information is based on occurrences within the same subwatershed as the {type}.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
-    "Trout": "Identifies one or more interior or eastern native trout species (Apache, brook, bull, cutthroat, Gila, lake, and redband) that are present within the same subwatershed (HUC12) as the {type} based on in available natural heritage data and other data sources.  Note: absence means that occurrences were not present in the available natural heritage data and should not be interpreted as true absences.",
+    "Trout": "Identifies one or more interior or eastern native trout species (Apache, brook, bull, cutthroat, Gila, lake, and redband) that are present within the same subwatershed (HUC12) as the {type} based on in available natural heritage data and other data sources.  Brook trout habitat data are currently under development for Wisconsin and Iowa and may be incomplete.  Note: absence means that occurrences were not present in the available natural heritage data and should not be interpreted as true absences.",
     "DiadromousHabitat": "Indicates if the {type} occurs on a stream reach associated with the habitat of one or more anadromous or catadromous species, based on multiple data sources.  Please see https://tool.aquaticbarriers.org/methods/habitat for more information.  -1 = not available.",
     "OwnerType": "Land ownership type. This information is derived from the USFS ownership parcels dataset and Protected Areas Database (PAD-US v4.1) to highlight ownership types of particular importance to partners; it may include areas managed by but not owned by certain federal entities.  Note: this does not include most private land.",
     "BarrierOwnerType": "Barrier ownership type, if available.  For unsurveyed road/stream crossings, this information is derived from the National Bridge Inventory, US Census TIGER Roads route type, and USFS National Forest Road / Stream crossings database ownership information, and may not be fully accurate.",

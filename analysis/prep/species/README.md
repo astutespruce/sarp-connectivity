@@ -32,8 +32,14 @@ by `analysis/prep/network/prepare_flowlines_waterbodies.py`.
 ### Eastern Brook Trout
 
 Eastern Brook Trout potential distribution data were compiled by Trout Unlimited
-and provided to SARP on 8/30/2023. These are based on NHD medium resolution
-flowlines. These data are prepared and associated with NHD high resolution
+and provided to SARP on 8/30/2023 (`NHFlowline_within_BKT_patches_TU.gdb`).
+
+Kat provided updated data for the Northeast (but not Midwest) on 4/22/2026
+(`EBTJV2025_NHDFlowlines.gdb`).
+
+These are based on NHD medium resolution flowlines.
+
+These data are prepared and associated with NHD high resolution
 flowlines using `analysis/prep/species/prep_eastern_brook_trout.py`.
 
 ### StreamNet salmonid species

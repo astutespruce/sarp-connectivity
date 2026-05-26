@@ -450,7 +450,7 @@ export const dams = [
 			{
 				field: 'trout',
 				title: 'Native trout present',
-				help: 'Based on occurrences of Apache, brook, bull, cutthroat, Gila, lake, and redband trout species within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
+				help: 'Based on occurrences of Apache, brook, bull, cutthroat, Gila, lake, and redband trout species within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Brook trout habitat data are currently under development for Wisconsin and Iowa and may be incomplete.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
 				sort: false,
 				hideMissingValues: true,
 				hideIfEmpty: true,

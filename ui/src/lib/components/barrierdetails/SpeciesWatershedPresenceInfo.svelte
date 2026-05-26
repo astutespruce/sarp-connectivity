@@ -57,6 +57,11 @@
 		{:else}
 			<div class="text-muted-foreground">none recorded</div>
 		{/if}
+		<div class="text-muted-foreground">
+			Information on these species is limited and comprehensive information has not been provided
+			for all states at this time. Brook trout habitat data are currently under development for
+			Wisconsin and Iowa and may be incomplete.
+		</div>
 	</Entry>
 
 	{#if salmonidesu}

@@ -438,7 +438,7 @@ name_to_code = {spp: f"{i + 1:02d}" for i, spp in enumerate(sorted(trout_df.SNAM
 code_to_name = {v: k for k, v in name_to_code.items()}
 code_to_common_name = {v: sname_to_cname[k] for k, v in name_to_code.items()}
 print("------------------------------------------------------------------------")
-print("update ui/src/config.js::TROUT variable with the following entries:")
+print("update ui/src/lib/config/constants.ts::TROUT variable with the following entries:")
 print(code_to_common_name)
 print("------------------------------------------------------------------------")
 

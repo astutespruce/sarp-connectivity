@@ -20,7 +20,8 @@
 	flowlines; these estimates do not fully account for elevation gradients or other natural barriers
 	that may have been present in the source data. Habitat data are limited to available data sources
 	and are not comprehensive and do not fully capture all current or potential habitat for a given
-	species or group across its range. For more information, please see the
+	species or group across its range. Brook trout habitat data are currently under development for
+	Wisconsin and Iowa and may be incomplete. For more information, please see the
 	<a href={resolve('/methods/habitat/', {})}>analysis methods</a>.
 </ExpandableParagraph>
 
