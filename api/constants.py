@@ -570,7 +570,7 @@ DAM_API_FIELDS = unique(
         "CostLower",
         "CostMean",
         "CostUpper",
-        "CostPredictionOutOfBounds",
+        "CostOutOfBounds",
         # Size class is used for display
         "WaterbodySizeClass",
     ]
@@ -1614,7 +1614,7 @@ FIELD_DEFINITIONS = {
     "Fatality": "number of fatalities recorded at this location from Locations of Fatalities at Submerged Hydraulic Jumps (https://krcproject.groups.et.byu.net/browse.php)",
     # barrier-specific fields
     "CrossingCode": "crossing identifier.",
-    "SurveyID": "NAACC-specific Survey ID for this {type}",
+    "SurveyID": "NACC Survey ID for this {type}; includes NAACC Survey ID",
     "NearestCrossingID": "The SARPID of the nearest road/stream crossing point, if any are found within 50 meters",
     "NearestUSGSCrossingID": "The ID of the nearest road/stream crossing point in the USGS Database of Stream Crossings in the United States (2022), if any are found within 50 meters.  Will be blank for crossings from other sources",
     "Road": "road name, if available.",

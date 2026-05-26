@@ -1,4 +1,5 @@
 <script lang="ts">
+	import WarningIcon from '@lucide/svelte/icons/triangle-alert'
 	import {
 		barrierTypeLabelSingular,
 		OWNERTYPE,
@@ -41,6 +42,7 @@
 		costlower = null,
 		costmean = null,
 		costupper = null,
+		costoutofbounds = false,
 		ejtract = null,
 		ejtribal = null,
 		fishhabitatpartnership = null,
@@ -221,6 +223,14 @@
 			<br />
 			range: ${formatNumber(costlower)} - ${formatNumber(costupper)}
 		</div>
+
+		{#if costoutofbounds}
+			<div class="flex gap-1 mt-2 text-accent text-xs">
+				<WarningIcon class="flex-none size-4" />
+				Warning: dam attributes are outside the range of the data used for training the cost prediction
+				model. Interpret cost estimates with caution.
+			</div>
+		{/if}
 
 		<div class="text-xs text-muted-foreground mt-4">
 			Cost estimates are modeled outputs based on Jumani et al. (2026) and Duda et al. (2024), and

@@ -12,6 +12,7 @@
 		source,
 		sourceid,
 		partnerid,
+		surveyid,
 		sourcelink,
 		nearestusgscrossingid,
 		estimated
@@ -73,6 +74,10 @@
 				More information:
 				<a href={sourcelink} target="_blank" rel="external">{sourcelink}</a>
 			</div>
+		{/if}
+
+		{#if !isEmptyString(surveyid)}
+			<div>NACC/NAACC Survey ID: {surveyid}</div>
 		{/if}
 
 		{#if !isEmptyString(nearestusgscrossingid)}

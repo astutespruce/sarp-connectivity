@@ -11,6 +11,7 @@
 		source = '',
 		sourceid = '',
 		partnerid = '',
+		surveyid = '',
 		nearestusgscrossingid = null,
 		sourcelink = null,
 		lat,
@@ -70,6 +71,11 @@
 						Click here for more information about this barrier
 					</a>
 				{/if}
+			{/if}
+
+			{#if surveyid !== ''}
+				<br />
+				NACC/NAACC Survey ID: {surveyid}
 			{/if}
 		</div>
 

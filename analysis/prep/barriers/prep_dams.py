@@ -125,6 +125,7 @@ df["height_m"] = df.Height.fillna(0) * (1 / 3.281)
 ix = ~(df.CostMean.notnull() & np.isclose(df.height_m, df.DamHt_m, atol=1))
 for col in ["CostMean", "CostUpper", "CostLower"]:
     df.loc[ix, col] = np.nan
+df["CostOutOfBounds"] = df.CostOutOfBounds.fillna(False).astype("bool")
 
 df = df.drop(columns=["height_m", "DamHt_m"])
 
@@ -532,9 +533,8 @@ df.loc[(df.PassageFacility > 0) & (df.PassageFacility != 9), "PassageFacilityCla
 df["FeasibilityClass"] = df.Feasibility.map(FEASIBILITY_TO_FEASIBILITYCLASS_DOMAIN).astype("uint8")
 
 
-# Add license expiration class: 0:unknown, 1:<0, 2:0-15, 3:15-30, 4:>= 30
-# NOTE: 0 is reserved for missing data
-# FIXME: make 0 = not applicable, 1=unknown, etc
+# Add license expiration class: 0:unknown, 1:<0 (e.g., already expired) , 2:0-15, 3:15-30, 4:>= 30
+# NOTE: 0 is reserved for missing data (unknown)
 bins = [-5000, 0, 15, 30, 1000]
 df["LicenseExpirationClass"] = (
     np.asarray(
@@ -880,8 +880,10 @@ df.loc[ix, "snap_tolerance"] = SNAP_TOLERANCE["likely off network"]
 print(f"Setting snap tolerance to {SNAP_TOLERANCE['likely off network']}m for {ix.sum():,} dams likely off network")
 
 
-# use tight tolerance for dams manually moved in snapping dataset
-ix = df.ManualReview == 15
+# use tight tolerance for dams manually moved in snapping dataset or where we're sure they are at right place
+# NOTE: we don't use ManualReview = 4 here; it is an older code and not always indicative that the point is really
+# in the right place
+ix = df.ManualReview.isin([13, 15])
 df.loc[ix, "snap_group"] = 0
 df.loc[ix, "snap_tolerance"] = SNAP_TOLERANCE["manually snapped"]
 

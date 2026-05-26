@@ -1,4 +1,5 @@
 <script lang="ts">
+	import WarningIcon from '@lucide/svelte/icons/triangle-alert'
 	import {
 		HAZARD,
 		CONDITION,
@@ -50,6 +51,7 @@
 		costlower,
 		costmean,
 		costupper,
+		costoutofbounds,
 		fatality,
 		protocolused
 	} = $props()
@@ -130,6 +132,15 @@
 				<div>
 					Average estimated cost of removal: ${formatNumber(costmean)}
 					<br /> (${formatNumber(costlower)} - ${formatNumber(costupper)})
+
+					{#if costoutofbounds}
+						<div class="text-xs text-accent mt-2 flex gap-1">
+							<WarningIcon class="flex-none size-4" />
+							Warning: dam attributes are outside the range of the data used for training the cost prediction
+							model. Interpret cost estimates with caution.
+						</div>
+					{/if}
+
 					<div class="text-xs text-muted-foreground mt-2 leading-tight">
 						Cost estimates are modeled outputs based on Jumani et al. (2026) and Duda et al. (2024),
 						and are not intended to replace detailed engineering assessments. All values are in 2020

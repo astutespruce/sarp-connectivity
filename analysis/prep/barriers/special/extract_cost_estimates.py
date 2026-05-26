@@ -24,7 +24,7 @@ df = pd.read_excel(
     }
 )
 
-df["CostPredictionOutOfBounds"] = (df.OutOfBoundPrediction_HtDis == "yes") | (df.OutOfBoundPrediction_All == "yes")
+df["CostOutOfBounds"] = (df.OutOfBoundPrediction_HtDis == "yes") | (df.OutOfBoundPrediction_All == "yes")
 df = df.drop(columns=["OutOfBoundPrediction_HtDis", "OutOfBoundPrediction_All"])
 
 df.to_feather(src_dir / "sarp_dam_costpred_v2.feather")

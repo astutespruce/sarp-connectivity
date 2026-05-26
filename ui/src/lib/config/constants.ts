@@ -1049,9 +1049,8 @@ export const FERC_REGULATED = {
 }
 
 export const LICENSE_EXPIRATION = {
-	// FIXME: on next rerun
-	// '-1': 'Not applicable (road/stream crossing)', // small barriers only
-	0: 'Unknown / not applicable',
+	'-1': 'Not applicable (road/stream crossing)', // small barriers only
+	0: 'Unknown',
 	1: 'Expired',
 	2: '<15 years',
 	3: '15-30 years',

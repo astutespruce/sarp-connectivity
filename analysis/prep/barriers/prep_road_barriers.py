@@ -298,6 +298,9 @@ df["YearSurveyedClass"] = np.asarray(
 
 
 #########  Fill NaN fields and set data types
+df["SurveyID"] = df.SurveyID.astype("Int64").astype("str").fillna("")
+
+
 for column in ["SourceID", "PartnerID", "CrossingCode", "Source", "SourceLink", "ProtocolUsed"]:
     df[column] = df[column].fillna("").str.strip().replace("<Null>", "")
 
