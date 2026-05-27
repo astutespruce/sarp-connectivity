@@ -1,4 +1,4 @@
-import type { Map } from 'mapbox-gl'
+import type { Map } from 'mapbox-gl/esm'
 import { Crossfilter } from '$lib/components/filter'
 
 // See https://svelte.dev/docs/kit/types#app.d.ts

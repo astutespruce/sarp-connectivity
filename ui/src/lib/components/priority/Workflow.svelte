@@ -3,7 +3,7 @@
 	import LoadingIcon from '@lucide/svelte/icons/loader'
 	import WarningIcon from '@lucide/svelte/icons/triangle-alert'
 	import { getQueryClientContext } from '@tanstack/svelte-query'
-	import type { Map as MapboxGLMapType, LngLatBoundsLike } from 'mapbox-gl'
+	import type { Map as MapboxGLMapType, LngLatBoundsLike } from 'mapbox-gl/esm'
 
 	import { fetchBarrierInfo, fetchBarrierRanks } from '$lib/api'
 	import { CONTACT_EMAIL } from '$lib/env'

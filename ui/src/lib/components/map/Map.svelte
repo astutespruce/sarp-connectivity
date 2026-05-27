@@ -1,7 +1,11 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte'
-	import { Map as MapboxGLMap, NavigationControl, Popup } from 'mapbox-gl'
-	import type { Map as MapboxGLMapType, SourceSpecification, LayerSpecification } from 'mapbox-gl'
+	import mapboxgl from 'mapbox-gl/esm'
+	import type {
+		Map as MapboxGLMapType,
+		SourceSpecification,
+		LayerSpecification
+	} from 'mapbox-gl/esm'
 	import 'mapbox-gl/dist/mapbox-gl.css'
 	import { untrack } from 'svelte'
 
@@ -46,7 +50,7 @@
 		const { center, zoom: initZoom } = getCenterAndZoom(mapNode, bounds, 0.05)
 		const { styleID, minZoom, maxZoom, projection } = mapConfig
 
-		map = new MapboxGLMap({
+		map = new mapboxgl.Map({
 			container: mapNode,
 			accessToken: MAPBOX_TOKEN,
 			style: `mapbox://styles/mapbox/${styleID}`,
@@ -58,10 +62,10 @@
 		})
 		window.map = map
 
-		map.addControl(new NavigationControl({ showCompass: false }), 'top-right')
+		map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
 		map.dragRotate.disable()
 
-		const tooltip = new Popup({
+		const tooltip = new mapboxgl.Popup({
 			closeButton: false,
 			closeOnClick: false,
 			anchor: 'left',

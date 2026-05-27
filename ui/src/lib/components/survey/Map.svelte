@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Popup } from 'mapbox-gl'
-	import type { FeatureSelector, GeoJSONFeature, Point } from 'mapbox-gl'
+	import mapboxgl from 'mapbox-gl/esm'
+	import type { FeatureSelector, GeoJSONFeature, Point } from 'mapbox-gl/esm'
 
 	import { shortBarrierTypeLabels, pointLegends } from '$lib/config/constants'
 	import {
@@ -45,7 +45,7 @@
 	let hoverFeature: (FeatureSelector & GeoJSONFeature) | null = $state.raw(null)
 	let selectedFeature: (FeatureSelector & GeoJSONFeature) | null = $state.raw(null)
 
-	const tooltip = new Popup({
+	const tooltip = new mapboxgl.Popup({
 		closeButton: false,
 		closeOnClick: false,
 		anchor: 'left',

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { FeatureSelector, GeoJSONFeature, Point } from 'mapbox-gl'
+	import type { FeatureSelector, GeoJSONFeature, Point } from 'mapbox-gl/esm'
 
 	import {
 		Map,

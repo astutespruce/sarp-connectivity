@@ -1,6 +1,6 @@
 <script lang="ts">
 	import LoadingIcon from '@lucide/svelte/icons/loader-circle'
-	import type { Map as MapboxGLMapType, LngLatBoundsLike } from 'mapbox-gl'
+	import type { Map as MapboxGLMapType, LngLatBoundsLike } from 'mapbox-gl/esm'
 
 	import { CONTACT_EMAIL, SITE_NAME } from '$lib/env'
 	import { Button } from '$lib/components/ui/button'

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Popup } from 'mapbox-gl'
-	import type { FeatureSelector, GeoJSONFeature, Point } from 'mapbox-gl'
+	import mapboxgl from 'mapbox-gl/esm'
+	import type { FeatureSelector, GeoJSONFeature, Point } from 'mapbox-gl/esm'
 	import { untrack } from 'svelte'
 
 	import { shortBarrierTypeLabels, pointLegends } from '$lib/config/constants'
@@ -69,7 +69,7 @@
 	let rankedBarriersIndex = $state.raw({})
 	let timeout = $state()
 
-	const tooltip = new Popup({
+	const tooltip = new mapboxgl.Popup({
 		closeButton: false,
 		closeOnClick: false,
 		anchor: 'left',

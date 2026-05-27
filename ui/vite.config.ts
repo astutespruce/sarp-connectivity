@@ -10,13 +10,11 @@ dotEnvConfig({ path: `.env.${process.env.NODE_ENV}` })
 
 export default defineConfig({
 	build: {
-		rollupOptions: {
+		rolldownOptions: {
 			output: {
 				// split mapbox its own chunk; it is large
-				manualChunks: function (id) {
-					if (id.includes('mapbox-gl')) {
-						return 'map-vendor'
-					}
+				codeSplitting: {
+					groups: [{ test: /mapbox-gl/, name: 'mapbox-gl' }]
 				}
 			}
 		}
