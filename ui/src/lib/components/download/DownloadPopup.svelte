@@ -229,6 +229,9 @@
 				<br />
 				<br />
 				Coordinates are in WGS 1984.
+				<br />
+				<br />
+				Private dams and surveyed road/stream crossings are not included in downloads.
 			</div>
 		{/if}
 

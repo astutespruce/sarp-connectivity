@@ -21,7 +21,8 @@
 		showOptions = true,
 		includeUnranked = false,
 		triggerLabel = null,
-		triggerClass = null
+		triggerClass = null,
+		triggerVariant = 'default'
 	} = $props()
 
 	let isUserInfoPopupOpen: boolean = $state(false)
@@ -59,7 +60,7 @@
 	}
 </script>
 
-<Button {disabled} onclick={show} class={cn('', triggerClass)}>
+<Button variant={triggerVariant} {disabled} onclick={show} class={cn('', triggerClass)}>
 	<DownloadIcon class="size-5" />
 	{triggerLabel || barrierTypeLabel}
 </Button>

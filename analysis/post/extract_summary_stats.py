@@ -21,15 +21,33 @@ ui_data_dir = Path("ui/data")
 ### Read dams
 dams = pd.read_feather(
     results_dir / "dams.feather",
-    columns=["id", "HUC2", "HasNetwork", "Ranked", "Removed", "YearRemoved", "Private", "State"],
+    columns=[
+        "id",
+        "HUC2",
+        "HasNetwork",
+        "Ranked",
+        "Removed",
+        "YearRemoved",
+        "State",
+        "LowheadDam",
+        "Purpose",
+        "Condition",
+        "Hazard",
+        "Fatality",
+        "TESpp",
+        "DiadromousHabitat",
+        "TotalUpstreamMiles",
+        "TotalDownstreamWaterfalls",
+        "TotalDownstreamDams",
+        "TotalDownstreamSmallBarriers",
+    ],
 ).set_index("id", drop=False)
 # Get recon from master
-dams_master = pd.read_feather(src_dir / "dams.feather", columns=["id", "Recon"]).set_index("id")
+dams_master = pd.read_feather(
+    src_dir / "dams.feather",
+    columns=["id", "Recon"],
+).set_index("id")
 dams = dams.join(dams_master)
-
-
-# do not include private barriers in top-level stats
-dams = dams.loc[~dams.Private].copy()
 
 # get stats for removed dams
 removed_dam_networks = (
@@ -60,14 +78,12 @@ dams["YearRemoved"] = calc_year_removed_bin(dams.YearRemoved)
 ### Read road-related barriers
 barriers = pd.read_feather(
     results_dir / "small_barriers.feather",
-    columns=["id", "HasNetwork", "Ranked", "Removed", "YearRemoved", "Private", "State"],
+    columns=["id", "HasNetwork", "Ranked", "Removed", "YearRemoved", "State"],
 ).set_index("id", drop=False)
 barriers_master = pd.read_feather(
     "data/barriers/master/small_barriers.feather", columns=["id", "dropped", "excluded"]
 ).set_index("id")
 barriers = barriers.join(barriers_master)
-
-barriers = barriers.loc[~barriers.Private].copy()
 
 removed_barrier_networks = (
     pd.read_feather(
@@ -100,15 +116,13 @@ barriers["Included"] = ~barriers.excluded
 
 largefish_barriers = pd.read_feather(
     results_dir / "largefish_barriers.feather",
-    columns=["id", "BarrierType", "Ranked", "Private"],
+    columns=["id", "BarrierType", "Ranked"],
 )
-largefish_barriers = largefish_barriers.loc[~largefish_barriers.Private].copy()
 
 smallfish_barriers = pd.read_feather(
     results_dir / "smallfish_barriers.feather",
-    columns=["id", "BarrierType", "Ranked", "Private"],
+    columns=["id", "BarrierType", "Ranked"],
 )
-smallfish_barriers = smallfish_barriers.loc[~smallfish_barriers.Private].copy()
 
 
 ### Read road / stream crossings
@@ -142,6 +156,7 @@ analysis_waterfalls = waterfalls.loc[waterfalls.State.isin(analysis_states)]
 
 stats = {
     "bounds": bounds["total"],
+    # dam stats
     "dams": len(analysis_dams),
     "ranked_dams": int(analysis_dams.Ranked.sum()),
     "recon_dams": int((analysis_dams.Recon > 0).sum()),
@@ -154,6 +169,26 @@ stats = {
     "removed_dams": int(analysis_dams.Removed.sum()),
     "removed_dams_gain_miles": round(analysis_dams.RemovedGainMiles.sum().item(), 1),
     "removed_dams_by_year": pack_year_removed_stats(analysis_dams),
+    # special-purpose dam stats
+    # true and likely lowhead dams
+    "lowhead_dams": int(analysis_dams.LowheadDam.isin([1, 2]).sum()),
+    "fatality_dams": int((analysis_dams.Fatality > 0).sum()),
+    # hydropower dams
+    "hydro_dams": int((analysis_dams.Purpose == 6).sum()),
+    # high and significant hazard dams
+    "high_hazard_dams": int(analysis_dams.Hazard.isin([1, 2]).sum()),
+    "poor_condition_dams": int(analysis_dams.Condition.isin([3, 4]).sum()),
+    "te_spp_dams": int((analysis_dams.TESpp > 0).sum()),
+    "diadromous_habitat_dams": int((analysis_dams.DiadromousHabitat == 1).sum()),
+    "no_downstream_barrier_dams": int(
+        (
+            (analysis_dams.TotalDownstreamDams == 0)
+            & (analysis_dams.TotalDownstreamWaterfalls == 0)
+            & (analysis_dams.TotalDownstreamSmallBarriers == 0)
+        ).sum()
+    ),
+    "total_dam_upstream_miles": round(analysis_dams.TotalUpstreamMiles.sum().item(), 1),
+    # surveyed road crossing stats
     "total_small_barriers": len(analysis_barriers),
     "small_barriers": int(analysis_barriers.Included.sum()),
     "ranked_small_barriers": int(analysis_barriers.Ranked.sum()),
@@ -166,8 +201,10 @@ stats = {
     "removed_small_barriers": int(analysis_barriers.Removed.sum()),
     "removed_small_barriers_gain_miles": round(analysis_barriers.RemovedGainMiles.sum().item(), 1),
     "removed_small_barriers_by_year": pack_year_removed_stats(analysis_barriers),
+    # road crossing stats
     "total_road_crossings": int(len(analysis_crossings)),
     "unsurveyed_road_crossings": int((crossings.Surveyed == 0).sum()),
+    # waterfall stats
     "waterfalls": int(len(waterfalls)),
 }
 

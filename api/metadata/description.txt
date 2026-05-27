@@ -12,7 +12,7 @@ specific structures. The information on barriers is not complete or
 comprehensive across the region, and depends on the availability and
 completeness of existing data and level of partner feedback. Some areas of the
 region are more complete than others but none should be considered 100%
-complete.
+complete.  Downloads do not include private dams or surveyed road/stream crossings.
 
 All network analyses were conducted using the NHD High Resolution Plus dataset
 (https://www.usgs.gov/core-science-systems/ngp/national-hydrography/nhdplus-high-resolution).
