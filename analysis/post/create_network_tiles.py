@@ -10,7 +10,7 @@ import pyarrow.compute as pc
 import shapely
 from pyogrio import write_dataframe
 
-from analysis.constants import GEO_CRS, NETWORK_TYPES, CRS
+from analysis.constants import GEO_CRS, CRS
 from analysis.lib.io import read_arrow_tables
 from analysis.lib.geometry.lines import merge_lines
 from analysis.post.lib.tiles import get_col_types
@@ -22,8 +22,7 @@ bnd_dir = data_dir / "boundaries"
 out_dir = Path("tiles")
 tmp_dir = Path("/tmp")
 
-# NOTE: no need to make tiles for full / dams-only networks
-network_cols = [t for t in NETWORK_TYPES.keys() if t not in {"full", "dams_only"}]
+network_cols = ["dams", "combined_barriers", "largefish_barriers", "smallfish_barriers"]
 
 # map sizeclasses
 sizeclasses = [0, 2, 5, 25, 100, 250, 500, 5000, 25000, 50000, 500000, 2000000]

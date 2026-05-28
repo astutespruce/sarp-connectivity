@@ -37,7 +37,6 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(version="1.0", root_path=API_ROOT_PATH, docs_url=False, redoc_url=False, lifespan=lifespan)
-path_prefix = "/api/v1" if API_ROOT_PATH is None else ""
 
 
 ### Setup middleware
@@ -77,8 +76,8 @@ app.add_middleware(
 
 
 ### Add the routes to the main app
-app.include_router(internal_router, prefix=f"{path_prefix}/internal", include_in_schema=False)
-app.include_router(public_router, prefix=f"{path_prefix}/public")
+app.include_router(internal_router, prefix="/internal", include_in_schema=False)
+app.include_router(public_router, prefix="/public")
 
 
 # Add endpoints for downloading zip files in local development

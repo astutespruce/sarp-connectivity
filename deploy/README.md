@@ -87,7 +87,6 @@ Create a `.env` in the root of the repository with the following:
 ```
 SENTRY_DSN=<sentry DSN>
 ALLOWED_ORIGINS=<domain of tool>
-API_ROOT_PATH=/api/v1
 CUSTOM_DOWNLOAD_DIR=/downloads/custom
 API_DATA_PATH=/data/api
 ```

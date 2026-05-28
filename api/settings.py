@@ -17,7 +17,7 @@ with open(Path(__file__).resolve().parent.parent / "ui/package.json") as infile:
 LOGGING_LEVEL = os.getenv("LOGGING_LEVEL", "DEBUG")
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
 SENTRY_DSN = os.getenv("SENTRY_DSN", None)
-API_ROOT_PATH = os.getenv("API_ROOT_PATH", None)
+API_ROOT_PATH = "/api/v1"
 MAX_DOWNLOAD_JOBS = int(os.getenv("MAX_JOBS", 1))
 
 API_DATA_PATH = Path(os.getenv("API_DATA_PATH", "data/api"))
