@@ -6,7 +6,7 @@
 
 <div
 	class={cn(
-		'max-h-64 overflow-hidden relative flex flex-col items-center justify-center',
+		'max-h-64 overflow-hidden relative flex flex-col items-center justify-center print:hidden',
 		className
 	)}
 >

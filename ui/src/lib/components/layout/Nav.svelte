@@ -12,10 +12,7 @@
 <Root class="flex-none hidden lg:block" viewport={false}>
 	<List>
 		<Item>
-			<Trigger>
-				<!-- <ExploreIcon class="size-5 text-white" />  -->
-				Explore & Download
-			</Trigger>
+			<Trigger>Explore & Download</Trigger>
 			<Content>
 				<div class="w-[600px]">
 					<ExploreNav />

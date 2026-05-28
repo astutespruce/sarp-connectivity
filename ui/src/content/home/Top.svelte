@@ -1,10 +1,17 @@
 <script lang="ts">
+	import ChartIcon from '@lucide/svelte/icons/chart-no-axes-combined'
+
+	import { resolve } from '$app/paths'
+	import { Button } from '$lib/components/ui/button'
 	import { summaryStats } from '$lib/config/summaryStats'
 	import { formatNumber } from '$lib/util/format'
 
 	const {
 		dams,
 		removedDams,
+		lowheadDams,
+		highHazardDams,
+		poorConditionDams,
 		smallBarriers,
 		totalSmallBarriers,
 		removedSmallBarriers,
@@ -21,7 +28,13 @@
 				</span> <span class="text-lg">inventoried dams</span>
 			</div>
 			<div class="mt-1 text-sm text-muted-foreground">
-				<b>{formatNumber(removedDams)}</b> removed for conservation
+				<b>{formatNumber(highHazardDams)}</b> are rated as high hazards
+				<br />
+				<b>{formatNumber(poorConditionDams)}</b> dams are in poor condition
+				<br />
+				<b>{formatNumber(lowheadDams)}</b> known and likely lowhead dams
+				<br />
+				<b>{formatNumber(removedDams)}</b> dams removed for conservation
 			</div>
 		</div>
 		<div class="bg-blue-0 py-2 sm:py-1 px-4">
@@ -34,10 +47,16 @@
 				<b>{formatNumber(totalSmallBarriers)}</b> surveyed for impacts to aquatic organisms
 				<br />
 				<b>{formatNumber(smallBarriers - removedSmallBarriers)}</b>
-				surveyed barriers likely to impact aquatic organisms
+				surveyed crossings likely to impact aquatic organisms
 				<br />
-				<b>{formatNumber(removedSmallBarriers)}</b> removed for conservation
+				<b>{formatNumber(removedSmallBarriers)}</b> surveyed crossings removed for conservation
 			</div>
 		</div>
 	</div>
+</div>
+<div class="flex justify-center py-2 bg-grey-1 border-b border-b-grey-2">
+	<Button href={resolve('/statistics', {})} class="">
+		<ChartIcon class="size-4" />
+		See more statistics here</Button
+	>
 </div>

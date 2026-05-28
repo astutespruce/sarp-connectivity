@@ -151,7 +151,7 @@
 	}
 
 	blockquote {
-		@apply p-4 bg-blue-1/50 rounded-md;
+		@apply p-4 bg-blue-1/50 border-l-4 border-l-grey-4;
 	}
 
 	.page-content {

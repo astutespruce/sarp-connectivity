@@ -6,6 +6,7 @@
 	import NetworkMethodsIcon from '@lucide/svelte/icons/waypoints'
 	import ScoringIcon from '@lucide/svelte/icons/search-alert'
 	import SGCNIcon from '@lucide/svelte/icons/scroll-text'
+	import ChartIcon from '@lucide/svelte/icons/chart-no-axes-combined'
 
 	import { resolve } from '$app/paths'
 
@@ -53,6 +54,12 @@
 			url: '/methods/scoring/',
 			label: 'How are barriers prioritized?',
 			icon: ScoringIcon
+		},
+		{
+			id: 'statistics',
+			url: '/statistics',
+			label: 'Aquatic barrier statistics',
+			icon: ChartIcon
 		}
 	]
 </script>

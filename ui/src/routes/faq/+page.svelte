@@ -183,7 +183,7 @@
 				When downloading the data, you can find the citation within the Terms of Use text file.
 				Alternatively, if citing the inventory in general, you may use the following citation:
 			</p>
-			<blockquote class="mt-4 ml-8">
+			<blockquote class="mt-4">
 				National Aquatic Connectivity Collaborative (NACC). {dataDate.split('/')[2]}. National
 				Aquatic Barrier Inventory v{dataVersion} ({dataDate}). Compiled by the
 				<a

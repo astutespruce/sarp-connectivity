@@ -28,9 +28,11 @@ dams = pd.read_feather(
         "Ranked",
         "Removed",
         "YearRemoved",
+        "Estimated",
         "State",
         "LowheadDam",
         "Purpose",
+        "FERCRegulated",
         "Condition",
         "Hazard",
         "Fatality",
@@ -78,7 +80,18 @@ dams["YearRemoved"] = calc_year_removed_bin(dams.YearRemoved)
 ### Read road-related barriers
 barriers = pd.read_feather(
     results_dir / "small_barriers.feather",
-    columns=["id", "HasNetwork", "Ranked", "Removed", "YearRemoved", "State"],
+    columns=[
+        "id",
+        "HasNetwork",
+        "Ranked",
+        "Removed",
+        "YearRemoved",
+        "State",
+        "TotalUpstreamMiles",
+        "TotalDownstreamWaterfalls",
+        "TotalDownstreamDams",
+        "TotalDownstreamSmallBarriers",
+    ],
 ).set_index("id", drop=False)
 barriers_master = pd.read_feather(
     "data/barriers/master/small_barriers.feather", columns=["id", "dropped", "excluded"]
@@ -126,11 +139,30 @@ smallfish_barriers = pd.read_feather(
 
 
 ### Read road / stream crossings
-crossings = pd.read_feather(src_dir / "road_crossings.feather", columns=["id", "State", "Surveyed"])
+crossings = pd.read_feather(
+    src_dir / "road_crossings.feather",
+    columns=[
+        "id",
+        "State",
+        "Surveyed",
+        "TESpp",
+        "DiadromousHabitat",
+    ],
+)
 
 
 ### Waterfalls
-waterfalls = pd.read_feather(src_dir / "waterfalls.feather", columns=["id", "State", "primary_network"])
+waterfalls = pd.read_feather(
+    src_dir / "waterfalls.feather",
+    columns=[
+        "id",
+        "State",
+        "primary_network",
+        "Passability",
+        "TESpp",
+        "DiadromousHabitat",
+    ],
+)
 waterfalls = waterfalls.loc[waterfalls.primary_network].copy()
 
 
@@ -174,7 +206,7 @@ stats = {
     "lowhead_dams": int(analysis_dams.LowheadDam.isin([1, 2]).sum()),
     "fatality_dams": int((analysis_dams.Fatality > 0).sum()),
     # hydropower dams
-    "hydro_dams": int((analysis_dams.Purpose == 6).sum()),
+    "hydro_dams": int(((analysis_dams.Purpose == 6) | (dams.FERCRegulated.isin([1, 2, 3, 4]))).sum()),
     # high and significant hazard dams
     "high_hazard_dams": int(analysis_dams.Hazard.isin([1, 2]).sum()),
     "poor_condition_dams": int(analysis_dams.Condition.isin([3, 4]).sum()),
@@ -188,6 +220,7 @@ stats = {
         ).sum()
     ),
     "total_dam_upstream_miles": round(analysis_dams.TotalUpstreamMiles.sum().item(), 1),
+    "estimated_dams": int(analysis_dams.Estimated.sum()),
     # surveyed road crossing stats
     "total_small_barriers": len(analysis_barriers),
     "small_barriers": int(analysis_barriers.Included.sum()),
@@ -201,11 +234,25 @@ stats = {
     "removed_small_barriers": int(analysis_barriers.Removed.sum()),
     "removed_small_barriers_gain_miles": round(analysis_barriers.RemovedGainMiles.sum().item(), 1),
     "removed_small_barriers_by_year": pack_year_removed_stats(analysis_barriers),
+    "total_small_barrier_upstream_miles": round(analysis_barriers.TotalUpstreamMiles.sum().item(), 1),
+    "no_downstream_barrier_small_barriers": int(
+        (
+            (analysis_barriers.TotalDownstreamDams == 0)
+            & (analysis_barriers.TotalDownstreamWaterfalls == 0)
+            & (analysis_barriers.TotalDownstreamSmallBarriers == 0)
+        ).sum()
+    ),
     # road crossing stats
     "total_road_crossings": int(len(analysis_crossings)),
     "unsurveyed_road_crossings": int((crossings.Surveyed == 0).sum()),
+    "te_spp_road_crossings": int((analysis_crossings.TESpp > 0).sum()),
+    "diadromous_habitat_road_crossings": int((analysis_crossings.DiadromousHabitat == 1).sum()),
     # waterfall stats
     "waterfalls": int(len(waterfalls)),
+    "passability_waterfalls": int((waterfalls.Passability > 0).sum()),
+    "passable_waterfalls": int((waterfalls.Passability >= 2).sum()),
+    "te_spp_waterfalls": int((waterfalls.TESpp > 0).sum()),
+    "diadromous_habitat_waterfalls": int((waterfalls.DiadromousHabitat == 1).sum()),
 }
 
 with open(ui_data_dir / "summary_stats.json", "w") as outfile:
