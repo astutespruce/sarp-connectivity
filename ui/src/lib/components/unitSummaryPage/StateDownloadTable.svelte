@@ -25,6 +25,7 @@
 			<th class="w-48">Inventoried dams</th>
 			<th class="w-48">Surveyed road/stream crossings</th>
 			<th class="w-48">Unsurveyed road/stream crossings</th>
+			<th class="w-48">Waterfalls</th>
 			<th aria-label="download link column" class="w-24"> </th>
 		</tr>
 	</thead>
@@ -37,6 +38,7 @@
 				<td>{formatNumber(state.dams)} </td>
 				<td>{formatNumber(state.totalSmallBarriers)} </td>
 				<td>{formatNumber(state.unsurveyedRoadCrossings)} </td>
+				<td>{formatNumber(state.waterfalls)} </td>
 				<td>
 					<DropdownMenu.Root>
 						<DropdownMenu.Trigger class="flex gap-1 items-center text-link cursor-pointer ">
@@ -89,6 +91,7 @@
 			<td class="font-bold">{formatNumber(total.dams)} </td>
 			<td class="font-bold">{formatNumber(total.totalSmallBarriers)} </td>
 			<td class="font-bold">{formatNumber(total.unsurveyedRoadCrossings)} </td>
+			<td class="font-bold">{formatNumber(total.waterfalls)} </td>
 			<td>
 				<DropdownMenu.Root>
 					<DropdownMenu.Trigger class="flex gap-1 items-center text-link cursor-pointer">
