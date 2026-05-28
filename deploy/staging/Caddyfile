@@ -47,6 +47,8 @@ staging.aquaticbarriers.org {
 
     root * /var/www/nacc-home
     file_server
+
+    try_files {path} 404.html
   }
 
   # Redirect all errors to 404.html
@@ -140,13 +142,6 @@ staging.tool.aquaticbarriers.org {
 
     encode zstd gzip
 
-    # Capture client only routes and route through correct page to force loading on client side
-    # NOTE: the 404 page is the pre-rended fallback, it will route correctly to the dynamic routes
-    # rewrite /report/dams/* /404.html
-    # rewrite /report/combined_barriers/* /404.html
-    # rewrite /report/largefish_barriers/* /404.html
-    # rewrite /report/smallfish_barriers/* /404.html
-
     root * /var/www/sarp-connectivity
     file_server
 
@@ -199,6 +194,8 @@ staging.training.aquaticbarriers.org {
 
     root * /var/www/nacc-training
     file_server
+
+    try_files {path} 404.html
   }
 
   # Redirect all errors to 404.html

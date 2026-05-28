@@ -73,7 +73,7 @@
 				{/if}
 			{/if}
 
-			{#if surveyid !== ''}
+			{#if !isEmptyString(surveyid)}
 				<br />
 				NACC/NAACC Survey ID: {surveyid}
 			{/if}

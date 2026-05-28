@@ -57,18 +57,12 @@ aquaticbarriers.org {
   redir @old_frontend_paths https://tool.aquaticbarriers.org{uri} 307
 
   route /* {
-    # most files can be cached indefinitely, they are rebuilt with new names each time
-    @cached_files {
-      path *.jpg *.jpeg *.png *.gif *.webp *.avif *.svg *.css *.js /_app/immutable/*
-      not path /favicon*
+    # files marked immutable by vite can be cached indefinitely, they are rebuilt
+    # with new names each time
+    @immutable_files {
+      path */_app/immutable/*
     }
-    header @cached_files Cache-Control "public, max-age=31536000, immutable"
-
-    # make sure favicons are not cached too long
-    @short_cached_files {
-      path /favicon*
-    }
-    header @short_cached_files Cache-Control "public, max-age=3600"
+    header @immutable_files Cache-Control "public,max-age=31536000,immutable"
 
     # pages must be fetched each time
     @no_cache {
@@ -76,10 +70,18 @@ aquaticbarriers.org {
     }
     header @no_cache Cache-Control "public, max-age:0, must-revalidate"
 
+    # IMPORTANT: must contain all of the above routes
+    @default_files {
+      not path */_app/immutable/* *.html / /inventory/ /teams/ /training/ /faq/
+    }
+    header @default_files Cache-Control "public,max-age=3600,must-revalidate"
+
     encode zstd gzip
 
     root * /var/www/nacc-home
     file_server
+
+    try_files {path} 404.html
   }
 
   # Redirect all errors to 404.html
@@ -132,7 +134,8 @@ tool.aquaticbarriers.org {
   }
 
   route /api/v1* {
-    uri strip_prefix /api/v1
+    header Cache-Control "public, max-age:300, must-revalidate"
+
     @encode_paths {
       path */query/* */rank/* */public/* */docs/* */details/*
     }
@@ -152,37 +155,32 @@ tool.aquaticbarriers.org {
     # redirect teams page
     redir /teams https://aquaticbarriers.org/teams/ 308
 
-    # most files can be cached indefinitely, they are rebuilt with new names each time
-    @cached_files {
-      path *.jpg *.jpeg *.png *.gif *.webp *.avif *.svg *.css *.js */static/*
-      not path /favicon*
+    # files marked immutable by vite can be cached indefinitely, they are rebuilt
+    # with new names each time
+    @immutable_files {
+      path */_app/immutable/*
     }
-    header @cached_files Cache-Control "public, max-age=31536000, immutable"
+    header @immutable_files Cache-Control "public,max-age=31536000,immutable"
 
-    # make sure favicons are not cached too long
-    @short_cached_files {
-      path /favicon*
-    }
-    header @short_cached_files Cache-Control "public, max-age=3600"
-
-
-    # page-data, html, and site root must be fetched each time
+    # site root, routes, and HTML files must be fetched each time
     @no_cache {
-      path *.html *.webmanifest */page-data/* / /priority/* /survey/* /explore/* /methods/* /regions/* /states/* /fhp/* /report/* /terms-of-use/*
+      path *.html *.webmanifest */page-data/* / /priority/* /survey/* /explore/* /methods/* /regions/* /states/* /fhp/* /report/* /terms-of-use/* /statistics/*
     }
     header @no_cache Cache-Control "public, max-age:0, must-revalidate"
 
+    # IMPORTANT: must contain all of the above routes
+    @default_files {
+      not path */_app/immutable/* *.html *.webmanifest */page-data/* / /priority/* /survey/* /explore/* /methods/* /regions/* /states/* /fhp/* /report/* /terms-of-use/* /statistics/*
+    }
+    header @default_files Cache-Control "public,max-age=3600,must-revalidate"
 
     encode zstd gzip
 
-    # Capture client only routes and route through correct page to force loading on client side
-    rewrite /report/dams/* /404.html
-    rewrite /report/combined_barriers/* /404.html
-    rewrite /report/largefish_barriers/* /404.html
-    rewrite /report/smallfish_barriers/* /404.html
-
     root * /var/www/sarp-connectivity
     file_server
+
+    # route through 404 to force loading on client side
+    try_files {path} 404.html
   }
 
   # Redirect all errors to 404.html
