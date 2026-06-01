@@ -4,7 +4,6 @@
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down'
 	import { SvelteSet } from 'svelte/reactivity'
 
-	import { resolve } from '$app/paths'
 	import { Button } from '$lib/components/ui/button'
 	import { cn } from '$lib/utils'
 	import FilterBars from './FilterBars.svelte'
@@ -126,7 +125,7 @@
 						{help}
 
 						{#if url}
-							<a href={resolve(url)} target="_blank" class="block">Read more.</a>
+							<a href={url} target="_blank" class="block">Read more.</a>
 						{/if}
 					</div>
 				{/if}
