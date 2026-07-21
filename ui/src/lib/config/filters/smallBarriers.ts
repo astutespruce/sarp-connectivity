@@ -16,6 +16,7 @@ import {
 	PERCENT_UNALTERED,
 	PERCENT_RESILIENT,
 	// PERCENT_COLD,
+	HASPASSAGEFACILITY_CLASS,
 	PASSAGEFACILITY_CLASS,
 	CONDITION,
 	OWNERTYPE,
@@ -158,12 +159,20 @@ export const smallBarriers = [
 				...getEntries(CONDITION, (v) => v <= 4)
 			},
 			{
-				field: 'passagefacilityclass',
+				field: 'haspassagefacilityclass',
 				title: 'Does it have a fish passage facility?',
 				sort: false,
 				hideMissingValues: false,
 				help: 'Fish passage facility information is only available for a small number of road/stream crossings.  Not all data sources recorded this information.',
-				...getEntries(PASSAGEFACILITY_CLASS, (v) => v > 0)
+				...getEntries(HASPASSAGEFACILITY_CLASS)
+			},
+			{
+				field: 'passagefacilityclass',
+				title: 'Type of fish passage facility',
+				sort: false,
+				hideMissingValues: true,
+				help: 'Fish passage facility information is only available for a small number of dams.  Not all data sources recorded this information.',
+				...getEntries(PASSAGEFACILITY_CLASS)
 			},
 			{
 				field: 'yearsurveyedclass',

@@ -372,6 +372,7 @@ FILTER_FIELDS = [
     "DownstreamGreatLakesBarriersClass",
     "InvasiveNetwork",
     "CoastalHUC8",
+    "HasPassageFacilityClass",
     "PassageFacilityClass",
     "DisadvantagedCommunity",
     "WildScenicRiver",

@@ -23,6 +23,7 @@ import {
 	PERCENT_UNALTERED,
 	PERCENT_RESILIENT,
 	// PERCENT_COLD,
+	HASPASSAGEFACILITY_CLASS,
 	PASSAGEFACILITY_CLASS,
 	OWNERTYPE,
 	BARRIEROWNERTYPE,
@@ -267,10 +268,18 @@ export const dams = [
 				...getEntries(LOWHEAD_DAM, (v) => v >= 0)
 			},
 			{
-				field: 'passagefacilityclass',
+				field: 'haspassagefacilityclass',
 				title: 'Does it have a fish passage facility?',
 				sort: false,
 				hideMissingValues: false,
+				help: 'Fish passage facility information is only available for a small number of dams.  Not all data sources recorded this information.',
+				...getEntries(HASPASSAGEFACILITY_CLASS)
+			},
+			{
+				field: 'passagefacilityclass',
+				title: 'Type of fish passage facility',
+				sort: false,
+				hideMissingValues: true,
 				help: 'Fish passage facility information is only available for a small number of dams.  Not all data sources recorded this information.',
 				...getEntries(PASSAGEFACILITY_CLASS)
 			}

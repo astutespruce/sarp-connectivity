@@ -756,6 +756,37 @@ OWNERTYPE_TO_DOMAIN = {
 OWNERTYPE_TO_PUBLIC_LAND = {1: True, 2: True, 3: True, 4: True, 5: True, 6: True, 7: True, 8: True, 9: True, 10: True}
 
 
+PASSAGEFACILITY_TO_PASSAGEFACILITYCLASS = {
+    0: 0,  # "Unknown or none",
+    1: 13,  # "Trap & truck",
+    2: 1,  # "Fish ladder - unspecified",
+    3: 11,  # "Locking",
+    4: 9,  # "Rock rapids",
+    5: 16,  # "Eelway",
+    6: 8,  # "Alaskan steeppass",
+    7: 17,  # "Herring passage",
+    8: 0,  # "Reservation",
+    9: 0,  # "Exemption",
+    10: 2,  # "Notch",
+    11: 7,  # "Denil fishway",
+    12: 12,  # "Fish lift",
+    13: 2,  # "Partial breach",
+    14: 0,  # "Removal",
+    15: 4,  # "Pool and weir fishway",
+    16: 3,  # "Vertical slot fishway",
+    17: 14,  # "Nature-like fishway",
+    18: 5,  # "Bypass channel fishway",
+    19: 6,  # "Crossvane",
+    20: 5,  # "Screen bypass",
+    21: 1,  # "Fishway unspecified",
+    22: 10,  # "Roughened channel",
+    23: 15,  # "Hybrid / multiple",
+    24: 0,  # "None (confirmed)",
+    # 25: "Submerged orifice", # not present in data
+    26: 1,  # "Other",
+}
+
+
 # Map of NHD FCode to stream type
 FCODE_TO_STREAMTYPE = {
     -1: 0,  # not a stream / river or not snapped to one

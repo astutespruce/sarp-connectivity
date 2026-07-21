@@ -78,6 +78,7 @@ from analysis.constants import (
     STATEREGULATED_TO_DOMAIN,
     FEDREGULATORYAGENCY_TO_DOMAIN,
     YEAR_SURVEYED_BINS,
+    PASSAGEFACILITY_TO_PASSAGEFACILITYCLASS,
 )
 from analysis.lib.io import read_arrow_tables
 from api.constants import verify_domains
@@ -527,8 +528,11 @@ df["HeightClass"] = (np.asarray(pd.cut(df.Height, bins, right=False, labels=np.a
 )
 
 # Convert PassageFacility to class
-df["PassageFacilityClass"] = np.uint8(0)
-df.loc[(df.PassageFacility > 0) & (df.PassageFacility != 9), "PassageFacilityClass"] = 1
+df["HasPassageFacilityClass"] = np.uint8(0)
+df.loc[(~df.PassageFacility.isin([0, 9, 24])), "HasPassageFacilityClass"] = 1
+
+df["PassageFacilityClass"] = df.PassageFacility.map(PASSAGEFACILITY_TO_PASSAGEFACILITYCLASS).astype("uint8")
+
 
 df["FeasibilityClass"] = df.Feasibility.map(FEASIBILITY_TO_FEASIBILITYCLASS_DOMAIN).astype("uint8")
 

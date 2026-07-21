@@ -1103,9 +1103,30 @@ export const HAZARD = {
 	4: 'Low'
 }
 
-export const PASSAGEFACILITY_CLASS = {
+export const HASPASSAGEFACILITY_CLASS = {
 	0: 'no known fish passage structure',
 	1: 'fish passage structure present'
+}
+
+export const PASSAGEFACILITY_CLASS = {
+	0: 'unknown or none',
+	1: 'fish passage, unknown type',
+	2: 'partial breach',
+	3: 'vertical slot fishway',
+	4: 'pool and weir fishway',
+	5: 'bypass channel fishway',
+	6: 'crossvane',
+	7: 'Denil fishway',
+	8: 'Alaskan steeppass',
+	9: 'rock rapids',
+	10: 'roughened channel',
+	11: 'locking',
+	12: 'fish lift',
+	13: 'trap & truck',
+	14: 'nature-like fishway',
+	15: 'hybrid / multiple',
+	16: 'eelway',
+	17: 'herring passage'
 }
 
 export const PASSAGEFACILITY = {

@@ -67,6 +67,7 @@ from analysis.constants import (
     CONSTRICTION_TO_DOMAIN,
     BARRIEROWNERTYPE_TO_DOMAIN,
     YEAR_SURVEYED_BINS,
+    PASSAGEFACILITY_TO_PASSAGEFACILITYCLASS,
 )
 from api.constants import verify_domains
 
@@ -365,8 +366,10 @@ df.loc[~df.ProtocolUsed.str.contains("SARP"), "SARP_Score"] = -1
 
 
 # Calculate PassageFacility class
-df["PassageFacilityClass"] = np.uint8(0)
-df.loc[(df.PassageFacility > 0) & (df.PassageFacility != 9), "PassageFacilityClass"] = 1
+df["HasPassageFacilityClass"] = np.uint8(0)
+df.loc[(~df.PassageFacility.isin([0, 9, 24])), "HasPassageFacilityClass"] = 1
+
+df["PassageFacilityClass"] = df.PassageFacility.map(PASSAGEFACILITY_TO_PASSAGEFACILITYCLASS).astype("uint8")
 
 # Code Condition to use same domain as dams
 df["Condition"] = df.Condition.fillna("").str.strip().str.lower().map(BARRIER_CONDITION_TO_DOMAIN).astype("uint8")
