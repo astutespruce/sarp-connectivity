@@ -37,8 +37,8 @@ def get_diadromous_ids():
         columns=["NHDPlusID"]
     )["NHDPlusID"]
 
-    anadromous_ids = np.unique(
+    diadromous_ids = np.unique(
         np.concat([streamnet_anadromous, ca_anadromous, chesapeake_diadromous, southeast_diadromous])
     )
 
-    return anadromous_ids
+    return diadromous_ids

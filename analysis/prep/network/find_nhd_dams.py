@@ -83,6 +83,8 @@ nhd_areas["source"] = "NHDArea"
 
 # Dissolve adjacent nhd lines and polygons together
 nhd_dams = pd.concat([nhd_pts, nhd_lines, nhd_areas], ignore_index=True, sort=False).reset_index(drop=True)
+nhd_dams["GNIS_Name"] = nhd_dams.GNIS_Name.fillna(value=None)
+
 
 # find contiguous groups for dissolve
 nhd_dams = nhd_dams.join(find_contiguous_groups(nhd_dams.geometry.values))
