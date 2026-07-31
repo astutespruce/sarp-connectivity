@@ -432,9 +432,9 @@ INVASIVE_FEASIBILITY = [
     9  # invasive barriers; these break the network, but not included in prioritization
 ]
 
-# per instructions from Kat on 7/14/2023; drop all types except 3 and 9
+# per instructions from Kat on 7/14/2023 (revised 7/30/2026); drop all types except 3, 9, 12
 # NOTE: category 3 has dedicated handling based on other fields
-DROP_STRUCTURECATEGORY = [0, 1, 2, 4, 5, 6, 7, 8, 10, 11, 12]
+DROP_STRUCTURECATEGORY = [0, 1, 2, 4, 5, 6, 7, 8, 10, 11]
 
 # Applies to Recon values, omitted values should be filtered out
 RECON_TO_FEASIBILITY = {
@@ -565,6 +565,7 @@ CONSTRICTION_TO_DOMAIN = {
     "spans only channel & banks": 1,  # TODO: verify with Kat
     "channel": 1,
     "not constricted": 1,
+    "spans bankfull / active channel": 2,
     "spans only bankfull/active channel": 2,
     "spans only bankfull / active channel": 2,
     "bankfull": 2,

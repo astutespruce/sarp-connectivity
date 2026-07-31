@@ -1,5 +1,5 @@
 <script lang="ts">
-	import mapboxgl from 'mapbox-gl/esm'
+	import { Popup } from 'mapbox-gl/esm'
 	import type { FeatureSelector, GeoJSONFeature, Point } from 'mapbox-gl/esm'
 
 	import {
@@ -146,7 +146,7 @@
 		const clickLayers = pointLayers.concat(summaryUnitLayers.map(({ id }) => `${id}-fill`))
 
 		// add hover and tooltip to point layers
-		const tooltip = new mapboxgl.Popup({
+		const tooltip = new Popup({
 			closeButton: false,
 			closeOnClick: false,
 			anchor: 'left',

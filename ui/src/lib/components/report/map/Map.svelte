@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte'
-	import mapboxgl from 'mapbox-gl/esm'
+	import { Map, NavigationControl, ScaleControl } from 'mapbox-gl/esm'
 	import type {
 		Map as MapboxGLMapType,
 		SourceSpecification,
@@ -48,7 +48,7 @@
 	let visibleLayers: Set<string> = $state(new Set())
 
 	onMount(() => {
-		map = new mapboxgl.Map({
+		map = new Map({
 			container: mapNode,
 			accessToken: MAPBOX_TOKEN,
 			style: `mapbox://styles/mapbox/${mapConfig.styleID}`,
@@ -60,11 +60,11 @@
 		})
 		window.map = map
 
-		map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
-		map.addControl(new mapboxgl.ScaleControl({ unit: 'imperial' }), 'bottom-right')
+		map.addControl(new NavigationControl({ showCompass: false }), 'top-right')
+		map.addControl(new ScaleControl({ unit: 'imperial' }), 'bottom-right')
 		map.dragRotate.disable()
 
-		locatorMap = new mapboxgl.Map({
+		locatorMap = new Map({
 			container: locatorMapNode,
 			accessToken: MAPBOX_TOKEN,
 			style: `mapbox://styles/mapbox/${mapConfig.styleID}`,

@@ -93,8 +93,10 @@ SNAP_TOLERANCE = {
     "estimated from network": 25,
     # dams manually moved during snapping should be very close to correct location
     "manually snapped": 25,
+    # per direction from Kat 7/22/2026, use 300m for WADE points
+    "wade": 300,
 }
-DUPLICATE_TOLERANCE = {"default": 10, "likely duplicate": 50}
+DUPLICATE_TOLERANCE = {"default": 10, "likely duplicate": 50, "wade": 300}
 
 
 data_dir = Path("data")
@@ -651,6 +653,9 @@ df["nostructure"] = (df.StructureCategory == 3) & (
     (df.Passability == 7)
     # unknown severity and not a dam structure class
     | ((df.Passability == 0) & (~df.StructureClass.isin([916, 917])))
+    # Per direction from Kat 7/29/2026, also remove those where Feasibility/Recon indicates removed
+    | df.Feasibility.isin(REMOVED_FEASIBILITY)
+    | df.Recon.isin(REMOVED_RECON)
 )
 ix = df.nostructure & ~df.dropped
 df.loc[ix, "dropped"] = True
@@ -843,6 +848,8 @@ df["snap_dist"] = np.nan
 df["lineID"] = np.nan  # line to which dam was snapped
 df["wbID"] = np.nan  # waterbody ID where dam is either contained or snapped
 
+# for WADE dams, use larger tolerance
+df.loc[df.Source.str.contains("WADE"), "snap_tolerance"] = SNAP_TOLERANCE["wade"]
 
 # for dams that are marked as on network or from NABD that have a length (across the stream),
 # use their length to determine snap tolerance (convert feet to meters, rounded up to nearest 100m)
@@ -993,6 +1000,18 @@ df, to_dedup = find_duplicates(
     tolerance=DUPLICATE_TOLERANCE["likely duplicate"],
     next_group_id=next_group_id,
 )
+
+
+# per direction from Kat 7/22/2026, use larger distance for WADE barriers
+next_group_id = df.dup_group.max() + 1
+to_dedup = to_dedup.loc[df.Source.str.contains("WADE")].copy()
+df, to_dedup = find_duplicates(
+    df,
+    to_dedup,
+    tolerance=DUPLICATE_TOLERANCE["wade"],
+    next_group_id=next_group_id,
+)
+
 
 print(f"Found {df.duplicate.sum():,} total duplicates in {time() - dedup_start:.2f}s")
 print("---------------------------------")

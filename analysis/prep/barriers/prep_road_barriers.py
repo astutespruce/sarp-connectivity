@@ -374,7 +374,11 @@ df["PassageFacilityClass"] = df.PassageFacility.map(PASSAGEFACILITY_TO_PASSAGEFA
 # Code Condition to use same domain as dams
 df["Condition"] = df.Condition.fillna("").str.strip().str.lower().map(BARRIER_CONDITION_TO_DOMAIN).astype("uint8")
 
-df["Constriction"] = df.Constriction.fillna("").str.strip().str.lower().map(CONSTRICTION_TO_DOMAIN).astype("uint8")
+df["Constriction"] = df.Constriction.fillna("").str.strip().str.lower()
+missing = [x for x in df.Constriction.unique() if x not in CONSTRICTION_TO_DOMAIN]
+if len(missing):
+    raise ValueError(f"Unexpected Constriction values: {','.join(missing)}")
+df["Constriction"] = df.Constriction.map(CONSTRICTION_TO_DOMAIN).astype("uint8")
 
 # Convert CrossingType to domain
 df["CrossingType"] = df.CrossingType.fillna("").str.strip().str.lower().map(CROSSING_TYPE_TO_DOMAIN).astype("uint8")

@@ -22,12 +22,15 @@ export default defineConfig({
 	plugins: [tailwindcss(), enhancedImages(), sveltekit()],
 	resolve: {
 		alias: {
-			$data: path.resolve(__dirname, './data')
+			$data: path.resolve(import.meta.dirname, './data')
 		}
 	},
 	server: {
 		fs: {
-			allow: [path.resolve(__dirname, './package.json'), path.resolve(__dirname, './data')]
+			allow: [
+				path.resolve(import.meta.dirname, './package.json'),
+				path.resolve(import.meta.dirname, './data')
+			]
 		}
 	}
 })

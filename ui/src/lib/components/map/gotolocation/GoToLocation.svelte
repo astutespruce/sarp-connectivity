@@ -1,7 +1,6 @@
 <script lang="ts">
 	import SearchIcon from '@lucide/svelte/icons/search'
-	import mapboxgl from 'mapbox-gl/esm'
-	import type { Marker } from 'mapbox-gl/esm'
+	import { Marker } from 'mapbox-gl/esm'
 
 	import { Button } from '$lib/components/ui/button'
 	import { truncate } from '$lib/util/format'
@@ -92,7 +91,7 @@
 			const { latitude, longitude } = location
 			map.jumpTo({ center: [longitude, latitude], zoom: 14 })
 			if (!marker) {
-				marker = new mapboxgl.Marker().setLngLat([longitude, latitude]).addTo(map)
+				marker = new Marker().setLngLat([longitude, latitude]).addTo(map)
 			} else {
 				marker.setLngLat([longitude, latitude])
 			}

@@ -56,7 +56,11 @@ async def cleanup_files(ctx):
 
 
 async def startup(ctx):
-    ctx["redis"] = await arq.create_pool(REDIS)
+    pool = await arq.create_pool(REDIS)
+    ctx["redis"] = pool
+
+    # clear queue on startup to prevent any stuck jobs from overwhelming the server
+    await pool.delete(REDIS_QUEUE)
 
     logging.config.dictConfig(
         {
