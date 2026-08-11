@@ -15,6 +15,14 @@ if (browser && typeof SENTRY_DSN !== 'undefined') {
 			/extensions\//i,
 			/^chrome:\/\//i,
 			/^chrome-extension:\/\//i
+		],
+		ignoreErrors: [
+			// likely bot related
+			'Failed to fetch dynamically imported module',
+			// WebGL 2.0 doesn't work for all clients (mostly bots)
+			'Failed to initialize WebGL',
+			// bot errors
+			'is not valid JSON'
 		]
 	})
 	window.Sentry = Sentry
