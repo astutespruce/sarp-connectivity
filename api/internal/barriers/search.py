@@ -1,5 +1,5 @@
-from io import BytesIO
 import re
+from io import BytesIO
 from time import time
 
 from fastapi import APIRouter, Response
@@ -8,8 +8,7 @@ from pyarrow.feather import write_feather
 
 from api.constants import BARRIER_SEARCH_RESULT_FIELDS
 from api.data import db
-from api.logger import log_request, log
-
+from api.logger import log, log_request
 
 router = APIRouter()
 
@@ -31,6 +30,7 @@ async def search(request: Request, query: str):
     log_request(request)
 
     query = query.strip()
+    raw_query = query
     total = 0
 
     col_expr = ", ".join([f"search_barriers.{col} AS {col.lower()}" for col in BARRIER_SEARCH_RESULT_FIELDS])
@@ -56,6 +56,9 @@ async def search(request: Request, query: str):
         matches = matches.replace_schema_metadata({"count": str(total)})
 
     else:
+        # use case invariant search; all search keys are lowercase
+        query = query.lower()
+
         # use a simple like query for faster performance, and Jaccard similarity
         # NOTE: we use the row_number() to preserve the row order through the join
         start = time()
@@ -93,7 +96,7 @@ async def search(request: Request, query: str):
             .combine_chunks()
         )
 
-        log.info(f"query by name: {time() - start}s")
+        log.info(f"query by name: {raw_query} => {total} results in {time() - start}s")
 
     # discard pandas metadata and store total count
     matches = matches.replace_schema_metadata({"count": str(total)})
