@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths'
 	import { NACC_HOME_URL } from '$lib/env'
 
 	import NFHPLogo from '$lib/assets/images/nfhp_logo.svg'
@@ -106,6 +107,9 @@
 		support from many partners and funders. It integrates existing datasets from local, state, and
 		federal partners with data collected from ongoing field surveys and local knowledge of specific
 		structures.
+		<br /><br />
+		Learn more about the
+		<a href={resolve('/inventory/', {})}><b>Aquatic Barrier Inventory</b></a>.
 	</p>
 	<figure>
 		<enhanced:img src="$lib/assets/images/28274676694_1840f44362_o.jpg" alt="Flock Process dam" />

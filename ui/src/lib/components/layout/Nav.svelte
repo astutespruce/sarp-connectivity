@@ -5,17 +5,17 @@
 	import { resolve } from '$app/paths'
 	import { Root, List, Item, Trigger, Link, Content } from '$lib/components/ui/navigation-menu'
 
-	import ExploreNav from './ExploreNav.svelte'
+	import SummarizeDownloadNav from './SummarizeDownloadNav.svelte'
 	import LearnMoreNav from './LearnMoreNav.svelte'
 </script>
 
 <Root class="flex-none hidden lg:block" viewport={false}>
 	<List>
 		<Item>
-			<Trigger>Explore & Download</Trigger>
+			<Trigger>Summarize & Download</Trigger>
 			<Content>
 				<div class="w-[600px]">
-					<ExploreNav />
+					<SummarizeDownloadNav />
 				</div>
 			</Content>
 		</Item>

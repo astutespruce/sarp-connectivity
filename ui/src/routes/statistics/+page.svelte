@@ -4,7 +4,7 @@
 	import { browser } from '$app/environment'
 	import { resolve } from '$app/paths'
 	import NACCLogo from '$lib/assets/images/nacc_logo.svg'
-	import { SITE_URL, NACC_HOME_URL } from '$lib/env'
+	import { SITE_URL, NACC_HOME_URL, SITE_NAME } from '$lib/env'
 	import { Button } from '$lib/components/ui/button'
 	import { HeaderImage } from '$lib/components/image'
 	import { summaryStats } from '$lib/config/summaryStats'
@@ -49,6 +49,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Aquatic Barrier Statistics | {SITE_NAME}</title>
+</svelte:head>
+
 <HeaderImage
 	author="Jessica Smith"
 	url="https://unsplash.com/photos/a-large-waterfall-with-water-coming-out-of-it-EL7cnhBw5rs"
@@ -79,11 +83,13 @@
 			</div>
 		</div>
 
-		<div class="mt-2">As of {dataDate} (version {dataVersion})</div>
+		<div class="mt-2">
+			as of {dataDate} (version {dataVersion})
+		</div>
 	</div>
 
 	<section class="mt-6">
-		<h2 class="bg-grey-1 py-2 text-center text-5xl">Dams</h2>
+		<h2 class="bg-grey-1 py-2 t.ext-center text-5xl">Dams</h2>
 
 		<p class="text-xl mt-4">
 			<b>{formatNumber(dams)}</b>
@@ -131,14 +137,8 @@
 		</div>
 
 		<p class="text-muted-foreground text-sm mt-6">
-			Note: These statistics are based on inventoried dams. Because the inventory is incomplete in
-			many areas, areas with a high number of dams may simply represent areas that have a more
-			complete inventory.
-			<a href={resolve('/methods/inventory/', {})}
-				>Learn more about aquatic barrier inventory methods here</a
-			>.
-			<br />
-			<br />
+			Note: These statistics are based on inventoried dams. The inventory is incomplete in many
+			areas.
 			{formatNumber(dams - rankedDams, 0)} dams were not analyzed for prioritization because they could
 			not be correctly located on the aquatic network or were otherwise excluded from the analysis.
 		</p>
@@ -195,13 +195,8 @@
 		</div>
 
 		<p class="text-muted-foreground text-sm mt-6">
-			Note: These statistics are based on surveyed road/stream crossings. Because the inventory is
-			incomplete in many areas, areas with a high number of surveyed crossings may simply represent
-			areas that have a more complete inventory. <a href={resolve('/methods/inventory/', {})}
-				>Learn more about aquatic barrier inventory methods here</a
-			>.
-			<br />
-			<br />
+			Note: These statistics are based on surveyed road/stream crossings. The inventory is
+			incomplete in many areas.
 			{formatNumber(smallBarriers - rankedSmallBarriers, 0)} surveyed road/stream crossings were not analyzed
 			for prioritization because they could not be correctly located on the aquatic network or were otherwise
 			excluded from the analysis.
@@ -261,6 +256,11 @@
 			<a href="https://www.fishhabitat.org/" target="_blank" rel="external">
 				National Fish Habitat Partnership
 			</a>.
+
+			<br /><br />
+			Learn more about the
+			<a href={resolve('/inventory/', {})}>Aquatic Barrier Inventory</a>
+			and <a href={resolve('/methods/inventory/', {})}>inventory methods</a>.
 
 			<br /><br />
 			This project is made possible by funding from the

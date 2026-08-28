@@ -15,7 +15,7 @@
 	<enhanced:img src="$lib/assets/images/kazuend-cCthPLHmrzI-unsplash.jpg" alt="" />
 </HeaderImage>
 
-<div class=" page-content">
+<div class="page-content">
 	<h1 class="page-header">
 		<FAQIcon class="size-14 text-grey-8" />
 

@@ -22,9 +22,7 @@
 		status, and characteristics of potential aquatic barriers.
 		<br />
 		<br />
-		<a href={`${NACC_HOME_URL}/inventory/`} target="_blank" rel="external">
-			Learn more about the inventory
-		</a>.
+		<a href={resolve('/inventory/', {})}> Learn more about the inventory </a>.
 	</HighlightBox>
 
 	<HighlightBox title="Prioritization" icon={PrioritizeIcon}>
@@ -33,7 +31,7 @@
 		actionable information to assist barrier removal projects.
 		<br />
 		<br />
-		<a href={resolve('/methods/scoring/', {})}>Read more about the methods here...</a>
+		<a href={resolve('/methods/scoring/', {})}>Learn more about prioritization methods</a>.
 	</HighlightBox>
 
 	<HighlightBox title="Teams" icon={TeamIcon}>

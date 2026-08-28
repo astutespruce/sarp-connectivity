@@ -8,7 +8,7 @@
 	import { page } from '$app/state'
 	import { Root, Trigger, Content } from '$lib/components/ui/sheet'
 
-	import ExploreNav from './ExploreNav.svelte'
+	import SummarizeDownloadNav from './SummarizeDownloadNav.svelte'
 	import LearnMoreNav from './LearnMoreNav.svelte'
 
 	let isOpen = $state(false)
@@ -51,7 +51,7 @@
 			>
 
 			<div class="mt-6">
-				<ExploreNav />
+				<SummarizeDownloadNav />
 			</div>
 
 			<div class="mt-6 border-t border-t-grey-2 pt-6">

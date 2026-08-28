@@ -16,14 +16,20 @@
 			<div class="flex gap-2">
 				<ExploreIcon class="size-5 text-muted-foreground" />
 				<a href={resolve('/explore/', {})} class="sm:font-bold block leading-snug">
-					Explore and download barriers
+					Summarize & download barriers
 				</a>
 			</div>
-			<p class="pl-7 leading-tight text-sm mt-2">
-				You can explore summary statistics for different areas like watersheds, states, counties,
-				and more. Once you have selected your area of interest, you can download barriers in that
-				area. You can also explore all barriers on the map to learn more.
-			</p>
+			<ul class="mt-2 text-sm pl-6 [&_li]:not-first-of-type:mt-2 leading-tight">
+				<li>
+					<b>View summary statistics</b> for different areas like watersheds, states, counties, and more
+				</li>
+				<li>
+					<b>Download barriers</b> for the nation or a selected area.
+				</li>
+				<li>
+					<b>Explore details</b> for a selected barrier on the map.
+				</li>
+			</ul>
 		</div>
 		<div class="mt-6 sm:bg-blue-1/50 sm:p-2 rounded-sm">
 			<div class="flex gap-2">
@@ -32,10 +38,14 @@
 					Explore restoration progress</a
 				>
 			</div>
-			<p class="pl-7 leading-tight text-sm mt-2">
-				You can explore removed and mitigated barriers on the map and view summary statistics of
-				restoration progress over time for various areas.
-			</p>
+			<ul class="mt-2 text-sm pl-6 [&_li]:not-first-of-type:mt-2 leading-tight">
+				<li>
+					<b>View summary statistics</b> for removed / mitigated barriers and progress over time.
+				</li>
+				<li>
+					<b>Explore details</b> for a selected removed barrier on the map.
+				</li>
+			</ul>
 		</div>
 	</div>
 	<div class=" sm:border-l sm:border-l-grey-2 sm:pl-6">

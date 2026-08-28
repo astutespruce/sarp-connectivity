@@ -2,7 +2,7 @@
 	import { resolve } from '$app/paths'
 	import { SITE_NAME } from '$lib/env'
 	import { Button } from '$lib/components/ui/button'
-	import { HeaderImage } from '$lib/components/image'
+	import PrioritizeIcon from '$lib/assets/icons/prioritize.svg'
 
 	import { summaryStats } from '$lib/config/summaryStats'
 
@@ -80,9 +80,12 @@
 	<title>Prioritize dams and surveyed road/stream crossings | {SITE_NAME}</title>
 </svelte:head>
 
-<HeaderImage author="Zach Dutra" url="https://unsplash.com/photos/2d7Y5Yi3aq8">
-	<enhanced:img src="$lib/assets/images/zack-dutra-2d7Y5Yi3aq8-unsplash.jpg" alt="" />
-</HeaderImage>
+<div class="py-4 border-b border-b-grey-2 px-4">
+	<h1 class="text-3xl md:text-4xl flex items-center gap-4">
+		<img src={PrioritizeIcon} alt="Prioritize icon" class="size-14" />
+		Prioritize dams and surveyed road/stream crossings
+	</h1>
+</div>
 
 <div class="grid md:grid-cols-[1fr_2fr] gap-0 pb-8">
 	<div class="md:bg-grey-1/75 pt-8 px-4 pb-4">

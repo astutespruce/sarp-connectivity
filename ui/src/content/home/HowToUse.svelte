@@ -27,7 +27,7 @@
 
 <div class="grid sm:grid-cols-[5fr_3fr] gap-16 mt-12">
 	<div>
-		<h3 class="text-xl sm:text-2xl">Summarize the inventory</h3>
+		<h3 class="text-xl sm:text-2xl">Summarize & download the inventory</h3>
 		<p class="mt-4">
 			Explore summaries of the inventory by state, county, or different levels of watersheds.
 			<br />
@@ -36,6 +36,8 @@
 			states across the U.S. Find out how many aquatic barriers have already been inventoried in your
 			area! Just remember, the inventory is a living database, and is not yet comprehensive across these
 			states.
+			<br /><br />
+			You can download aquatic barriers for the nation or a selected area of interest.
 		</p>
 	</div>
 
