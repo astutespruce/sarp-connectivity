@@ -5,7 +5,7 @@ const pollInterval = 1000 // milliseconds; 1 second
 const jobTimeout = 600000 // milliseconds; 10 minutes
 const failedFetchLimit = 5
 
-export type ProgressCallbackParams = {
+type ProgressCallbackParams = {
 	status: string
 	inProgress: boolean
 	progress: number

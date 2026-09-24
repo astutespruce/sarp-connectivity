@@ -40,25 +40,6 @@ export const reduceToObject = (
 	{}
 ]
 
-/**
- * Split an array into elements that meet the condition and elements that don't.
- * @param {Array} arr - input array
- * @param {Function} conditionFunc - if true, elements are added to first array
- * otherwise they are added to second array
- */
-export const splitArray = (arr: unknown[], conditionFunc: (params: unknown) => boolean) => {
-	const out: unknown[][] = [[], []]
-	arr.forEach((elem) => {
-		if (conditionFunc(elem)) {
-			out[0].push(elem)
-		} else {
-			out[1].push(elem)
-		}
-	})
-
-	return out
-}
-
 type FieldBitsSpec = {
 	field: string
 	bits: number

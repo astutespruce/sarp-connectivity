@@ -287,8 +287,6 @@ export const summaryUnitLayers = [
 	}
 ]
 
-export const flowlineLegend = {}
-
 export const waterfallsLayer = {
 	id: 'waterfalls',
 	source: 'waterfalls',

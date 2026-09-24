@@ -59,6 +59,7 @@
 	})
 
 	$effect(() => {
+		// oxlint-disable-next-line no-unused-expressions
 		open
 
 		// clear status on both open / close

@@ -5,7 +5,6 @@
 	import type { RowObject } from 'arquero/dist/types/table/types'
 
 	import { barrierTypeLabels } from '$lib/config/constants'
-	import { Alert } from '$lib/components/alert'
 	import { Button } from '$lib/components/ui/button'
 	import { FilterGroup } from '$lib/components/filter'
 	import { Header, Footer } from '$lib/components/sidebar'

@@ -68,8 +68,10 @@
 	// reset scroll of content node on change
 	let contentNode: Element | null = $state(null)
 	$effect(() => {
+		/* oxlint-disable no-unused-expressions */
 		barrierType
 		system
+		/* oxlint-enable no-unused-expressions */
 
 		if (contentNode) {
 			contentNode.scrollTop = 0
@@ -117,8 +119,8 @@
 
 		{#if barrierType === 'small_barriers' || barrierType === 'combined_barriers'}
 			<div class={cn('mt-2', { 'mt-6': barrierType === 'combined_barriers' })}>
-				<b>{formatNumber(totalRoadBarriers, 0)}</b> or more road/stream crossings (potential aquatic barriers),
-				including:
+				<b>{formatNumber(totalRoadBarriers, 0)}</b> or more road/stream crossings (potential aquatic
+				barriers), including:
 			</div>
 
 			<ul class="mt-2">
@@ -133,8 +135,8 @@
 					surveyed crossings are likely to impact aquatic organisms
 				</li>
 				<li>
-					<b>{formatNumber(rankedSmallBarriers, 0)}</b> that have been analyzed for their impacts to aquatic
-					connectivity in this tool
+					<b>{formatNumber(rankedSmallBarriers, 0)}</b> that have been analyzed for their impacts to
+					aquatic connectivity in this tool
 				</li>
 				{#if removedSmallBarriers > 0}
 					<li>

@@ -139,7 +139,7 @@
 		return {}
 	})
 
-	$inspect('summaryUnits', summaryUnits.items).with(console.log)
+	// $inspect('summaryUnits', summaryUnits.items).with(console.log)
 </script>
 
 <div class="flex flex-col h-full">

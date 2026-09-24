@@ -1,4 +1,4 @@
-export const hasCoordsRegex = /(\d+)[\s\w°'"-.]*,[\s\w°'"-.]*(\d+)/g
+const hasCoordsRegex = /(\d+)[\s\w°'"-.]*,[\s\w°'"-.]*(\d+)/g
 
 const parseValue = (value: string, isLatitude = false) => {
 	const directionMatch = /[NSEW]/g.exec(value)

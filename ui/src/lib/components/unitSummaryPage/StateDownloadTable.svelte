@@ -3,7 +3,6 @@
 
 	import { resolve } from '$app/paths'
 	import { Downloader } from '$lib/components/download'
-	import { Button } from '$lib/components/ui/button'
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu'
 	import { formatNumber } from '$lib/util/format'
 

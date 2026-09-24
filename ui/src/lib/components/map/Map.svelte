@@ -248,6 +248,7 @@
 	 * Update map bounds on change
 	 */
 	$effect.pre(() => {
+		// oxlint-disable-next-line no-unused-expressions
 		bounds
 
 		if (!(map && bounds)) {

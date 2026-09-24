@@ -17,11 +17,11 @@
 	import Waterfall from './Waterfall.svelte'
 	import { cn } from '$lib/utils'
 
-	type Score = { score: number; tier: number }
-	type Scores = {
-		state?: { [key: string]: Score }
-		huc8?: { [key: string]: Score }
-		custom?: { [key: string]: Score }
+	type ScoreType = { score: number; tier: number }
+	type ScoresType = {
+		state?: { [key: string]: ScoreType }
+		huc8?: { [key: string]: ScoreType }
+		custom?: { [key: string]: ScoreType }
 	}
 
 	// IMPORTANT: due to rendering lags, this component appears to render even when
@@ -51,7 +51,7 @@
 	const scores = $derived.by(() => {
 		const tierToPercent = (tier: number) => (100 * (19 - (tier - 1))) / 20
 
-		const out: Scores = {}
+		const out: ScoresType = {}
 
 		if (
 			data.networkType === 'dams' &&
@@ -111,6 +111,7 @@
 		return out
 	})
 
+	// oxlint-disable-next-line
 	$inspect('selectedBarrier', sarpid, data.barrierType, data).with(console.log)
 </script>
 

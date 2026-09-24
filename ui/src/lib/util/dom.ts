@@ -1,7 +1,5 @@
 import { browser } from '$app/environment'
 
-export const hasGeolocation = browser && navigator && 'geolocation' in navigator
-
 /**
  * URI encode object key:value pairs
  *

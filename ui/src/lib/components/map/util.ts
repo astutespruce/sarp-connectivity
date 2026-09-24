@@ -198,25 +198,6 @@ export const highlightNetwork = (
 	])
 }
 
-export const highlightRemovedNetwork = (
-	map: MapboxGLMapType,
-	networkType: string,
-	barrierID: number
-) => {
-	map.setFilter('removed-network-highlight', [
-		'all',
-		['any', ['==', 'mapcode', 0], ['==', 'mapcode', 2]],
-		['==', 'network_type', networkType],
-		['==', 'id', barrierID]
-	])
-	map.setFilter('removed-network-intermittent-highlight', [
-		'all',
-		['any', ['==', 'mapcode', 1], ['==', 'mapcode', 3]],
-		['==', 'network_type', networkType],
-		['==', 'id', barrierID]
-	])
-}
-
 export const setBarrierHighlight = (
 	map: MapboxGLMapType,
 	feature: FeatureSelector | null,

@@ -1,12 +1,8 @@
 <script lang="ts">
-	import ChartIcon from '@lucide/svelte/icons/chart-no-axes-combined'
-
 	import { resolve } from '$app/paths'
 
 	import DamIcon from '$lib/assets/icons/dam.svg'
-	import { Button } from '$lib/components/ui/button'
 	import { CONTACT_EMAIL, NACC_HOME_URL, SITE_NAME } from '$lib/env'
-	import { formatNumber } from '$lib/util/format'
 	import { HighlightBox } from '$lib/components/elements'
 </script>
 
@@ -132,9 +128,9 @@
 			>
 			(NAACC). These data are regularly updated in the inventory.
 			<br /><br />
-			Beginning in early 2026, field surveys coordinated and housed under the current NAACC protocol system
-			will be consolidated under the new National Aquatic Connectivity Collaborative and available at
-			this site.
+			Beginning in early 2026, field surveys coordinated and housed under the current NAACC protocol
+			system will be consolidated under the new National Aquatic Connectivity Collaborative and available
+			at this site.
 			<br /><br />
 			You can access field survey forms and manuals
 

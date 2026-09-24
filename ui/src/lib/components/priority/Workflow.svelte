@@ -59,6 +59,7 @@
 	const { networkType } = $props()
 
 	const crossfilter = $derived(new Crossfilter(networkType))
+	// oxlint-disable-next-line
 	$inspect('filters', crossfilter.filters).with(console.log)
 
 	const { bounds: fullBounds } = summaryStats
@@ -228,6 +229,7 @@
 	}
 
 	$effect(() => {
+		// oxlint-disable-next-line no-unused-expressions
 		crossfilter.filters
 
 		if (Object.keys(crossfilter.filters).length > 0) {

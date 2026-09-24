@@ -67,8 +67,10 @@
 	// reset scroll of content node on change
 	let contentNode: Element | null = $state(null)
 	$effect(() => {
+		/* oxlint-disable no-unused-expressions */
 		barrierType
 		system
+		/* oxlint-enable no-unused-expressions */
 
 		if (contentNode) {
 			contentNode.scrollTop = 0

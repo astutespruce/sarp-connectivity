@@ -397,8 +397,10 @@
 
 	// update summary unit layers on change of system, focalBarrierType
 	$effect.pre(() => {
+		/* oxlint-disable no-unused-expressions */
 		system
 		focalBarrierType
+		/* oxlint-enable no-unused-expressions */
 
 		if (!map) {
 			return
@@ -409,6 +411,7 @@
 
 	// update barrier layers on change of focalBarrierType
 	$effect.pre(() => {
+		// oxlint-disable-next-line no-unused-expressions
 		focalBarrierType
 
 		if (!map) {
@@ -433,6 +436,7 @@
 	 * Update filters on summary unit layers to highlight selected summary units
 	 */
 	$effect.pre(() => {
+		// oxlint-disable-next-line no-unused-expressions
 		summaryUnits.items
 
 		runOnceOnIdle(map, updateSelectedSummaryUnits)

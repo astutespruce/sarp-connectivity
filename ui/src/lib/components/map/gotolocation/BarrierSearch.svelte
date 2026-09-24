@@ -31,6 +31,7 @@
 	let timeout = $state()
 
 	$effect(() => {
+		// oxlint-disable-next-line no-unused-expressions
 		value
 
 		untrack(() => {

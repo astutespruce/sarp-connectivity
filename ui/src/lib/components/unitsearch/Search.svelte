@@ -12,14 +12,14 @@
 
 	const TIMEOUT = 300 // ms
 
-	type SearchResult = {
+	type SearchResultType = {
 		layer: string
 		id: string
 		name: string
 		bbox: string
 		state: string
 	}
-	type ResponseData = { results: SearchResult[]; remaining: number }
+	type ResponseData = { results: SearchResultType[]; remaining: number }
 
 	const {
 		barrierType,
@@ -38,6 +38,7 @@
 	let timeout = $state()
 
 	$effect(() => {
+		// oxlint-disable-next-line no-unused-expressions
 		query
 
 		untrack(() => {

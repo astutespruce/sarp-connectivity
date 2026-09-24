@@ -286,8 +286,10 @@
 	}
 
 	$effect.pre(() => {
+		/* oxlint-disable no-unused-expressions */
 		activeLayer
 		allowUnitSelect
+		/* oxlint-enable no-unused-expressions */
 
 		if (!map) {
 			return
@@ -310,8 +312,10 @@
 
 	// Highlight currently selected summaryUnits
 	$effect.pre(() => {
+		/* oxlint-disable no-unused-expressions */
 		activeLayer
 		summaryUnits.items
+		/* oxlint-enable no-unused-expressions */
 
 		if (!(map && activeLayer)) return
 
@@ -376,10 +380,12 @@
 	}
 
 	$effect.pre(() => {
+		/* oxlint-disable no-unused-expressions */
 		activeLayer
 		summaryUnits.items
 		// NOTE: have to take snapshot to force effect to detect deep change in filters
 		$state.snapshot(crossfilter.filters)
+		/* oxlint-enable no-unused-expressions */
 
 		if (!map) return
 

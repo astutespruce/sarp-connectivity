@@ -35,6 +35,7 @@
 
 	// clear out search values on chaneg of view
 	$effect(() => {
+		// oxlint-disable-next-line no-unused-expressions
 		view
 
 		latLonValue = ''
@@ -70,9 +71,11 @@
 
 	// reset location on change of queries
 	$effect(() => {
+		/* oxlint-disable no-unused-expressions */
 		barrierQuery
 		placenameQuery
 		latLonValue
+		/* oxlint-enable no-unused-expressions */
 
 		location = null
 	})

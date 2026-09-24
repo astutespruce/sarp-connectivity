@@ -26,7 +26,7 @@ export const createDimensions = (filterConfig: FilterConfig) => {
  * Calculate the count for each value present in values for dimension;
  * ignores count for any value that is not in values.
  */
-export const getDimensionCount = (data: Table, dimension: Dimension) => {
+const getDimensionCount = (data: Table, dimension: Dimension) => {
 	const { field, isArray, values: rawValues } = dimension
 	const values = new Set(rawValues)
 

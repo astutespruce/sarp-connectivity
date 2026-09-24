@@ -10,7 +10,7 @@ export type LegendSymbol = {
 	borderStyle?: string
 }
 
-export type LegendEntry = {
+type LegendEntry = {
 	type: 'circle' | 'line'
 	label: string
 	// for optional properties at entry level

@@ -1,11 +1,10 @@
-import prettier from 'eslint-config-prettier'
 import { fileURLToPath } from 'node:url'
-import { includeIgnoreFile } from '@eslint/compat'
+import { includeIgnoreFile, defineConfig } from 'eslint/config'
 import js from '@eslint/js'
 import svelte from 'eslint-plugin-svelte'
-import { defineConfig } from 'eslint/config'
 import globals from 'globals'
 import ts from 'typescript-eslint'
+import oxlint from 'eslint-plugin-oxlint'
 import svelteConfig from './svelte.config.js'
 
 const gitignorePath = fileURLToPath(new URL('../.gitignore', import.meta.url))
@@ -15,16 +14,18 @@ export default defineConfig(
 	js.configs.recommended,
 	...ts.configs.recommended,
 	...svelte.configs.recommended,
-	prettier,
-	...svelte.configs.prettier,
+	// TS/JS already checked by oxlint
+	{ ignores: ['**/*.ts', '**/*.js'] },
 	{
 		languageOptions: {
 			globals: { ...globals.browser, ...globals.node }
 		},
 		rules: {
 			'no-undef': 'off',
+			// does not detect assignment correctly
+			'no-useless-assignment': 'off',
 			'svelte/no-navigation-without-resolve': 'warn',
-			'@typescript-eslint/no-unused-expressions': 'off'
+			'@typescript-eslint/no-unused-vars': ['error', { varsIgnorePattern: '^_' }]
 		}
 	},
 	{
@@ -37,5 +38,7 @@ export default defineConfig(
 				svelteConfig
 			}
 		}
-	}
+	},
+	// turn off rules already handled by oxlint
+	oxlint.configs['flat/recommended']
 )

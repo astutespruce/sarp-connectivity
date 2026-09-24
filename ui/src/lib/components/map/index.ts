@@ -1,13 +1,7 @@
 import BasemapSelector from './BasemapSelector.svelte'
-import LayerToggle from './LayerToggle.svelte'
 import { basemapAttribution, basemapLayers, mapConfig, sources } from './config'
 import {
-	getCenterAndZoom,
-	unionBounds,
 	interpolateExpr,
-	toGeoJSONPoints,
-	mapToBlob,
-	mapToDataURL,
 	highlightNetwork,
 	setBarrierHighlight,
 	getInArrayExpr,
@@ -21,23 +15,16 @@ import {
 } from './util'
 
 import { networkLayers } from './layers'
-import { Legend } from './legend'
 import Map from './Map.svelte'
 import TopBar from './TopBar.svelte'
 
 export {
 	BasemapSelector,
-	LayerToggle,
 	basemapAttribution,
 	basemapLayers,
 	mapConfig,
 	sources,
-	getCenterAndZoom,
-	unionBounds,
 	interpolateExpr,
-	toGeoJSONPoints,
-	mapToBlob,
-	mapToDataURL,
 	highlightNetwork,
 	setBarrierHighlight,
 	getHighlightExpr,
@@ -50,6 +37,5 @@ export {
 	getBitFromBitsetExpr,
 	networkLayers,
 	Map,
-	Legend,
 	TopBar
 }

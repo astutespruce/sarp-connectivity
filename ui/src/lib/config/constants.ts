@@ -674,15 +674,6 @@ export const REGIONS = {
 	}
 }
 
-export const ANALYSIS_STATES = [
-	...new Set(
-		Object.values(REGIONS).reduce((prev: string[], { states: cur }: { states: string[] }) => {
-			prev.push(...cur)
-			return prev
-		}, [])
-	)
-].sort()
-
 export const STATE_DATA_PROVIDERS = {
 	CA: [
 		{
@@ -1582,16 +1573,6 @@ export const SURVEYED = {
 	2: 'likely surveyed'
 }
 
-export const SLOPE_CLASS = {
-	0: 'slope not available',
-	1: '0 - 9%',
-	2: '10 - 19%',
-	3: '20 - 29%',
-	4: '30 - 39%',
-	5: '40 - 49%',
-	6: '>50%'
-}
-
 export const CONNECTIVITY_TEAMS = {
 	AL: {
 		name: 'Alabama Rivers and Streams Network including Connectivity',
@@ -1704,20 +1685,6 @@ export const LAYER_NAMES = {
 	HUC12: 'Subwatershed',
 	StateWRA: 'State water resource area'
 }
-
-// Ideal zoom level for each layer, e.g., when fitting bounds to a selected feature
-export const LAYER_ZOOM = {
-	State: 5,
-	County: 9,
-	HUC6: 5,
-	HUC8: 8,
-	HUC10: 9,
-	HUC12: 10,
-	StateWRA: 5
-}
-
-// Bounds around all selected HUC6s
-export const SARP_BOUNDS = [-107.87000919, 17.62370026, -64.5126611, 44.26093852]
 
 // Note: all pack_bits fields are lowercase in UI but uppercase on backend
 

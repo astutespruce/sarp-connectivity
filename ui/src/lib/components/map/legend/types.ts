@@ -10,7 +10,7 @@ export type Patch = {
 	entries: Entry[]
 }
 
-export type CircleSymbol = {
+type CircleSymbol = {
 	color: string
 	radius: number
 	borderColor?: string

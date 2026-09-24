@@ -1,5 +1,5 @@
 // Used to capture click events from the unit layer
-export const unitFill = {
+const unitFill = {
 	id: 'unit-fill',
 	source: 'map_units',
 	// 'source-layer': '', // provided by specific layer
@@ -14,7 +14,7 @@ export const unitFill = {
 	}
 }
 
-export const unitOutline = {
+const unitOutline = {
 	id: 'unit-outline',
 	source: 'map_units',
 	// 'source-layer': '', // provided by specific layer
@@ -65,7 +65,7 @@ export const parentOutline = {
 }
 
 // highlight is visible at all scales
-export const unitHighlightFill = {
+const unitHighlightFill = {
 	id: 'unit-highlight-fill',
 	source: 'map_units',
 	// 'source-layer': '', // provided by specific layer
@@ -82,7 +82,7 @@ export const unitHighlightFill = {
 	}
 }
 
-export const unitHighlightOutline = {
+const unitHighlightOutline = {
 	id: 'unit-highlight-outline',
 	type: 'line',
 	source: 'map_units',

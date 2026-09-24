@@ -163,8 +163,10 @@
 	// reset scroll of content node on change
 	let contentNode: Element | null = $state(null)
 	$effect(() => {
+		/* oxlint-disable no-unused-expressions */
 		barrierType
 		system
+		/* oxlint-enable no-unused-expressions */
 
 		if (contentNode) {
 			contentNode.scrollTop = 0
@@ -319,15 +321,16 @@
 				Note: These statistics are based on {formatNumber(stats.dams, 0)}
 				inventoried {pluralize('dam', stats.dams)} and available information on dams that have been removed
 				or mitigated, including projects starting in 2026. Because the inventory is incomplete in many
-				areas, areas with a high number of dams may simply represent areas that have a more complete inventory.
+				areas, areas with a high number of dams may simply represent areas that have a more complete
+				inventory.
 			</div>
 		{:else if barrierType === 'small_barriers'}
 			<div class="text-sm text-muted-foreground">
 				Note: These statistics are based on
 				{formatNumber(stats.totalSmallBarriers, 0)} road/stream crossings that have been surveyed for
-				impacts to aquatic organisms and available information on barriers that have been removed or mitigated.
-				Because the inventory is incomplete in many areas, areas with a high number of barriers may simply
-				represent areas that have a more complete inventory.
+				impacts to aquatic organisms and available information on barriers that have been removed or
+				mitigated. Because the inventory is incomplete in many areas, areas with a high number of barriers
+				may simply represent areas that have a more complete inventory.
 			</div>
 		{:else if barrierType === 'combined_barriers'}
 			<div class="text-sm text-muted-foreground">

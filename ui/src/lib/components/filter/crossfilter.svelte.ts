@@ -90,9 +90,11 @@ export class Crossfilter {
 
 		this.#dimensionCounts = countByDimension(newData, this.#dimensions)
 
-		this.#filterConfig!.filter(({ hasData }) => hasData && !hasData(newData)).forEach(({ id }) => {
-			this.#emptyGroups.add(id)
-		})
+		this.#filterConfig!
+			.filter(({ hasData }) => hasData && !hasData(newData))
+			.forEach(({ id }) => {
+				this.#emptyGroups.add(id)
+			})
 
 		Object.entries(this.#dimensionCounts).forEach(([field, counts]) => {
 			if (!(counts && sum(Object.values(counts)) > 0)) {
@@ -282,11 +284,13 @@ export class Crossfilter {
 	resetGroupFilters(groupId: string): void {
 		console.time('resetGroupFilters')
 
-		this.#filterConfig!.filter(({ id }) => id === groupId)[0].filters.forEach(({ field }) => {
-			if (this.#filters[field]) {
-				delete this.#filters[field]
-			}
-		})
+		this.#filterConfig!
+			.filter(({ id }) => id === groupId)[0]
+			.filters.forEach(({ field }) => {
+				if (this.#filters[field]) {
+					delete this.#filters[field]
+				}
+			})
 
 		this.#updateFilterState()
 

@@ -285,8 +285,6 @@ export const summaryUnitLayers = [
 	}
 ]
 
-export const flowlineLegend = {}
-
 export const removedBarrierPointLayer = {
 	// id: '' // provided by specific layer
 	// source: "" // provided by specific layer

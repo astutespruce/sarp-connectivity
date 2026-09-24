@@ -1,0 +1,5 @@
+{
+	"project": ["./src/**/*.ts", "./src/**/*.svelte", "./src/**/*.css"],
+	"ignore": ["./src/lib/components/ui/**/*.ts"],
+	"ignoreDependencies": ["@typescript/native", "@sentry/browser"]
+}

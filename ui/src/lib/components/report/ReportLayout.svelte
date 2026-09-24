@@ -27,6 +27,7 @@
 		window.print()
 	}
 
+	// oxlint-disable-next-line
 	$inspect('data', data).with(console.log)
 </script>
 
