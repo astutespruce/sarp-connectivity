@@ -114,7 +114,7 @@ def read_arrow_tables(paths, columns=None, filter=None, new_fields=None, dict_fi
                 if dict_fields is not None and field in dict_fields:
                     # uint8 not yet supported for conversion to pandas categoricals
                     index_value = np.int8(i) if len(paths) < 125 else np.uint32(i)
-                    new_col = pa.DictionaryArray.from_arrays(np.repeat(index_value, len(table)), new_fields[field])
+                    new_col = pa.DictionaryArray.from_arrays(np.repeat(index_value, len(table)), values)
 
                 else:
                     new_col = pa.array(np.repeat(values[i], len(table)))

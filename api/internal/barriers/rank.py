@@ -1,16 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.requests import Request
 import pyarrow as pa
 import pyarrow.compute as pc
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.requests import Request
 
-from api.lib.compression import pack_bits
-from api.lib.tiers import calculate_tiers, METRICS
 from api.constants import RankedBarrierTypes
-from api.dependencies import get_unit_ids, get_filter_params
+from api.dependencies import get_filter_params, get_unit_ids
+from api.lib.compression import pack_bits
 from api.lib.extract import extract_records
+from api.lib.tiers import METRICS, calculate_tiers
 from api.logger import log, log_request
 from api.response import feather_response
-
 
 router = APIRouter()
 

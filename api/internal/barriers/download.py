@@ -1,10 +1,10 @@
+import os
+import tempfile
 from datetime import datetime
 from io import BytesIO
-import os
 from pathlib import Path
 from time import time
-import tempfile
-from zipfile import ZipFile, ZIP_DEFLATED
+from zipfile import ZIP_DEFLATED, ZipFile
 
 import arq
 from arq.jobs import Job, JobStatus
@@ -14,23 +14,22 @@ from fastapi.responses import JSONResponse
 from pyarrow.csv import write_csv
 
 from api.constants import (
-    FullySupportedBarrierTypes,
-    Scenarios,
-    Formats,
+    COMBINED_EXPORT_FIELDS,
     CUSTOM_TIER_FIELDS,
     DAM_EXPORT_FIELDS,
-    SB_EXPORT_FIELDS,
-    COMBINED_EXPORT_FIELDS,
     ROAD_CROSSING_EXPORT_FIELDS,
+    SB_EXPORT_FIELDS,
+    Formats,
+    FullySupportedBarrierTypes,
+    Scenarios,
 )
-from api.logger import log, log_request
-from api.dependencies import get_unit_ids, get_filter_params
+from api.dependencies import get_filter_params, get_unit_ids
 from api.lib.download import extract_for_download
 from api.lib.extract import get_record_count
 from api.lib.progress import get_progress, set_progress
+from api.logger import log, log_request
 from api.metadata import get_readme, get_terms
-from api.settings import MAX_IMMEDIATE_DOWNLOAD_RECORDS, CUSTOM_DOWNLOAD_DIR, REDIS, REDIS_QUEUE, LOGO_PATH
-
+from api.settings import CUSTOM_DOWNLOAD_DIR, LOGO_PATH, MAX_IMMEDIATE_DOWNLOAD_RECORDS, REDIS, REDIS_QUEUE
 
 router = APIRouter()
 
@@ -151,18 +150,20 @@ async def download(
 
     # other types will be rejected above
     if format == "csv":
-        with open(tmp_dir / f"{barrier_type}.zip", "wb") as out:
-            with ZipFile(out, "w", compression=ZIP_DEFLATED, compresslevel=5) as zf:
-                csv_stream = BytesIO()
-                write_csv(df, csv_stream)
+        with (
+            open(tmp_dir / f"{barrier_type}.zip", "wb") as out,
+            ZipFile(out, "w", compression=ZIP_DEFLATED, compresslevel=5) as zf,
+        ):
+            csv_stream = BytesIO()
+            write_csv(df, csv_stream)
 
-                # release memory
-                del df
+            # release memory
+            del df
 
-                zf.writestr(filename, csv_stream.getvalue())
-                zf.writestr("README.txt", readme)
-                zf.writestr("TERMS_OF_USE.txt", terms)
-                zf.write(LOGO_PATH, LOGO_PATH.name)
+            zf.writestr(filename, csv_stream.getvalue())
+            zf.writestr("README.txt", readme)
+            zf.writestr("TERMS_OF_USE.txt", terms)
+            zf.write(LOGO_PATH, LOGO_PATH.name)
 
         return JSONResponse(
             content={"status": "success", "path": f"/downloads/custom/{tmp_dir.name}/{barrier_type}.zip"}
@@ -230,17 +231,19 @@ async def custom_download_task(
 
     # other types will be rejected before calling into this
     if format == "csv":
-        with open(tmp_dir / f"{barrier_type}.zip", "wb") as out:
-            with ZipFile(out, "w", compression=ZIP_DEFLATED, compresslevel=5) as zf:
-                csv_stream = BytesIO()
-                write_csv(df, csv_stream)
+        with (
+            open(tmp_dir / f"{barrier_type}.zip", "wb") as out,
+            ZipFile(out, "w", compression=ZIP_DEFLATED, compresslevel=5) as zf,
+        ):
+            csv_stream = BytesIO()
+            write_csv(df, csv_stream)
 
-                del df
+            del df
 
-                zf.writestr(filename, csv_stream.getvalue())
-                zf.writestr("README.txt", readme)
-                zf.writestr("TERMS_OF_USE.txt", terms)
-                zf.write(LOGO_PATH, LOGO_PATH.name)
+            zf.writestr(filename, csv_stream.getvalue())
+            zf.writestr("README.txt", readme)
+            zf.writestr("TERMS_OF_USE.txt", terms)
+            zf.write(LOGO_PATH, LOGO_PATH.name)
 
     await set_progress(ctx["redis"], ctx["job_id"], "100", "All done")
 
@@ -332,8 +335,8 @@ async def get_download_job_status(job_id: str):
                     )
 
             # raise timeout to outer retry loop
-            except TimeoutError as ex:
-                raise ex
+            except TimeoutError:
+                raise
 
             except Exception as ex:
                 log.error(ex)
@@ -346,13 +349,13 @@ async def get_download_job_status(job_id: str):
             return JSONResponse(content={"status": "failed", "detail": message})
 
         # in case we hit a Redis timeout while polling job status, make sure we don't break until connection cannot be re-established
-        except TimeoutError as ex:
+        except TimeoutError:
             retry += 1
             log.error(f"Redis connection timeout, retry {retry}")
             time.sleep(1)
 
             if retry >= 5:
-                raise ex
+                raise
 
         finally:
             if redis is not None:

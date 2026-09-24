@@ -1,5 +1,3 @@
-import json
-from pathlib import Path
 from datetime import date
 
 import pyarrow.compute as pc
@@ -14,8 +12,7 @@ from api.constants import (
 )
 from api.data import dams, small_barriers
 from api.metadata import description, terms_of_use
-from api.settings import DATA_VERSION, DATA_DATE
-
+from api.settings import DATA_DATE, DATA_VERSION
 
 router = APIRouter()
 

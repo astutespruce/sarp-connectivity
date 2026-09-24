@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 
 from api.lib.compression import pack_bits as pyarrow_pack_bits
 

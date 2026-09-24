@@ -1,9 +1,8 @@
 from io import BytesIO
-from zipfile import ZipFile, ZIP_DEFLATED
 
 from fastapi.responses import Response
-from pyarrow.feather import write_feather
 from pyarrow.csv import write_csv
+from pyarrow.feather import write_feather
 
 
 def csv_response(df, bounds=None):

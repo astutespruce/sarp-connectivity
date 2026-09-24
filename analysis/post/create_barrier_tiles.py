@@ -1,25 +1,23 @@
-from pathlib import Path
 import subprocess
+from pathlib import Path
 from time import time
 
 import geopandas as gp
-from pyogrio import write_dataframe
 import shapely
-
-from api.constants import (
-    DAM_TILE_FILTER_FIELDS,
-    SB_TILE_FILTER_FIELDS,
-    COMBINED_TILE_FILTER_FIELDS,
-    ROAD_CROSSING_TILE_FILTER_FIELDS,
-)
+from pyogrio import write_dataframe
 
 from analysis.post.lib.tiles import (
-    get_col_types,
-    to_lowercase,
     combine_sarpid_name,
     fill_na_fields,
+    get_col_types,
+    to_lowercase,
 )
-
+from api.constants import (
+    COMBINED_TILE_FILTER_FIELDS,
+    DAM_TILE_FILTER_FIELDS,
+    ROAD_CROSSING_TILE_FILTER_FIELDS,
+    SB_TILE_FILTER_FIELDS,
+)
 
 MAX_ZOOM = 16
 
@@ -104,7 +102,7 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z0", "-z7", "-r1.5", "-g1.5", "-B5"]
     + ["-l", "ranked_dams"]
-    + ["-o", f"{str(mbtiles_filename)}"]
+    + ["-o", f"{mbtiles_filename!s}"]
     + get_col_types(tmp)
     + [str(outfilename)]
 )
@@ -132,7 +130,7 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z8", f"-z{MAX_ZOOM}", "-B8"]
     + ["-l", "ranked_dams"]
-    + ["-o", f"{str(mbtiles_filename)}"]
+    + ["-o", f"{mbtiles_filename!s}"]
     + coltypes
     + [str(outfilename)]
 )
@@ -161,7 +159,7 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z8", f"-z{MAX_ZOOM}", "-B8"]
     + ["-l", "unranked_dams"]
-    + ["-o", f"{str(mbtiles_filename)}"]
+    + ["-o", f"{mbtiles_filename!s}"]
     + coltypes
     + [str(outfilename)]
 )
@@ -186,7 +184,7 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z6", f"-z{MAX_ZOOM}", "-B6"]
     + ["-l", "removed_dams"]
-    + ["-o", f"{str(mbtiles_filename)}"]
+    + ["-o", f"{mbtiles_filename!s}"]
     + coltypes
     + [str(outfilename)]
 )
@@ -212,7 +210,7 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z6", f"-z{MAX_ZOOM}", "-B6"]
     + ["-l", "planned_project_dams"]
-    + ["-o", f"{str(mbtiles_filename)}"]
+    + ["-o", f"{mbtiles_filename!s}"]
     + coltypes
     + [str(outfilename)]
 )
@@ -239,7 +237,7 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z6", f"-z{MAX_ZOOM}", "-B8"]
     + ["-l", "other_dams"]
-    + ["-o", f"{str(mbtiles_filename)}"]
+    + ["-o", f"{mbtiles_filename!s}"]
     + coltypes
     + [str(outfilename)]
 )
@@ -305,7 +303,7 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z0", "-z7", "-r1.5", "-g1.5", "-B5"]
     + ["-l", "ranked_small_barriers"]
-    + ["-o", f"{str(mbtiles_filename)}"]
+    + ["-o", f"{mbtiles_filename!s}"]
     + coltypes
     + [str(outfilename)]
 )
@@ -328,7 +326,7 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z8", f"-z{MAX_ZOOM}", "-B8"]
     + ["-l", "ranked_small_barriers"]
-    + ["-o", f"{str(mbtiles_filename)}"]
+    + ["-o", f"{mbtiles_filename!s}"]
     + coltypes
     + [str(outfilename)],
 )
@@ -358,7 +356,7 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z8", f"-z{MAX_ZOOM}", "-B8"]
     + ["-l", "unranked_small_barriers"]
-    + ["-o", f"{str(mbtiles_filename)}"]
+    + ["-o", f"{mbtiles_filename!s}"]
     + coltypes
     + [str(outfilename)]
 )
@@ -384,7 +382,7 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z6", f"-z{MAX_ZOOM}", "-B6"]
     + ["-l", "removed_small_barriers"]
-    + ["-o", f"{str(mbtiles_filename)}"]
+    + ["-o", f"{mbtiles_filename!s}"]
     + coltypes
     + [str(outfilename)]
 )
@@ -410,7 +408,7 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z6", f"-z{MAX_ZOOM}", "-B6"]
     + ["-l", "planned_project_small_barriers"]
-    + ["-o", f"{str(mbtiles_filename)}"]
+    + ["-o", f"{mbtiles_filename!s}"]
     + coltypes
     + [str(outfilename)]
 )
@@ -436,7 +434,7 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z6", f"-z{MAX_ZOOM}", "-B10"]
     + ["-l", "other_small_barriers"]
-    + ["-o", f"{str(mbtiles_filename)}"]
+    + ["-o", f"{mbtiles_filename!s}"]
     + coltypes
     + [str(outfilename)]
 )
@@ -502,7 +500,7 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
         tippecanoe_args
         + ["-Z0", "-z7", "-r1.5", "-g1.5", "-B5"]
         + ["-l", f"ranked_{network_type}"]
-        + ["-o", f"{str(mbtiles_filename)}"]
+        + ["-o", f"{mbtiles_filename!s}"]
         + coltypes
         + [str(outfilename)]
     )
@@ -527,7 +525,7 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
         tippecanoe_args
         + ["-Z8", f"-z{MAX_ZOOM}", "-B8"]
         + ["-l", f"ranked_{network_type}"]
-        + ["-o", f"{str(mbtiles_filename)}"]
+        + ["-o", f"{mbtiles_filename!s}"]
         + coltypes
         + [str(outfilename)]
     )
@@ -555,7 +553,7 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
         tippecanoe_args
         + ["-Z8", f"-z{MAX_ZOOM}", "-B8"]
         + ["-l", f"unranked_{network_type}"]
-        + ["-o", f"{str(mbtiles_filename)}"]
+        + ["-o", f"{mbtiles_filename!s}"]
         + coltypes
         + [str(outfilename)]
     )
@@ -583,7 +581,7 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
         tippecanoe_args
         + ["-Z6", f"-z{MAX_ZOOM}", "-B6"]
         + ["-l", f"removed_{network_type}"]
-        + ["-o", f"{str(mbtiles_filename)}"]
+        + ["-o", f"{mbtiles_filename!s}"]
         + coltypes
         + [str(outfilename)]
     )
@@ -607,7 +605,7 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
         tippecanoe_args
         + ["-Z6", f"-z{MAX_ZOOM}", "-B6"]
         + ["-l", f"planned_project_{network_type}"]
-        + ["-o", f"{str(mbtiles_filename)}"]
+        + ["-o", f"{mbtiles_filename!s}"]
         + coltypes
         + [str(outfilename)]
     )
@@ -634,7 +632,7 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
         tippecanoe_args
         + ["-Z6", f"-z{MAX_ZOOM}", "-B10"]
         + ["-l", f"other_{network_type}"]
-        + ["-o", f"{str(mbtiles_filename)}"]
+        + ["-o", f"{mbtiles_filename!s}"]
         + coltypes
         + [str(outfilename)]
     )
@@ -696,7 +694,7 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z3", "-z7", "-r1.5", "-g1.5", "-B5"]
     + ["-l", "road_crossings"]
-    + ["-o", f"{str(mbtiles_filename)}"]
+    + ["-o", f"{mbtiles_filename!s}"]
     + coltypes
     + [str(outfilename)]
 )
@@ -724,7 +722,7 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z8", "-z10", "-r1.5", "-g1.5", "-B8"]
     + ["-l", "road_crossings"]
-    + ["-o", f"{str(mbtiles_filename)}"]
+    + ["-o", f"{mbtiles_filename!s}"]
     + coltypes
     + [str(outfilename)]
 )
@@ -745,7 +743,7 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z11", f"-z{MAX_ZOOM}", "-B11"]
     + ["-l", "road_crossings"]
-    + ["-o", f"{str(mbtiles_filename)}"]
+    + ["-o", f"{mbtiles_filename!s}"]
     + coltypes
     + [str(outfilename)]
 )
@@ -816,7 +814,7 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z9", f"-z{MAX_ZOOM}", "-B10"]
     + ["-l", "waterfalls"]
-    + ["-o", f"{str(mbtiles_filename)}"]
+    + ["-o", f"{mbtiles_filename!s}"]
     + coltypes
     + [str(outfilename)]
 )

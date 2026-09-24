@@ -8,12 +8,12 @@ Floodplain stats were generated in ArcGIS by SARP:
 Note: some catchments have no floodplain, and some have floodplains but no NHDPlusID (outside HUC4s we processed).  These are filtered out.
 """
 
+import re
 from pathlib import Path
 from time import time
-import re
 
 import pandas as pd
-from pyogrio import read_dataframe, list_layers
+from pyogrio import list_layers, read_dataframe
 
 from analysis.lib.util import append
 

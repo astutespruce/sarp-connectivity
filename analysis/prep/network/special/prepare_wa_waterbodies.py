@@ -11,18 +11,17 @@ Creates the following files in `data/states/wa`:
 """
 
 
-from pathlib import Path
 import warnings
+from pathlib import Path
 
 import geopandas as gp
+import numpy as np
 import pandas as pd
 import shapely
-import numpy as np
-from pyogrio import read_dataframe, write_dataframe
+from pyogrio import read_dataframe
 
 from analysis.constants import CRS
 from analysis.lib.geometry import dissolve, explode
-
 
 warnings.filterwarnings("ignore", message=".*geometry types are not supported*")
 

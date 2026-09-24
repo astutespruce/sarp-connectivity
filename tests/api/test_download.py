@@ -1,15 +1,14 @@
+import time
 from io import BytesIO
 from pathlib import Path
-import time
 from zipfile import ZipFile
 
 import numpy as np
-from pyarrow.csv import read_csv
 import pytest
+from pyarrow.csv import read_csv
 
 from api.constants import STATES
 from api.settings import CUSTOM_DOWNLOAD_DIR
-
 
 DELAY = 0.5  # seconds
 POLL_ATTEMPTS = 30
@@ -109,7 +108,7 @@ async def test_large_download(client, barrier_type, state):
         job_id = data["job"]
 
         # poll until job is done
-        for i in range(0, POLL_ATTEMPTS):
+        for i in range(POLL_ATTEMPTS):
             r = await client.get(f"/api/v1/internal/downloads/status/{job_id}")
             assert r.status_code == 200
 

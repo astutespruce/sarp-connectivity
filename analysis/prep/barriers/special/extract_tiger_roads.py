@@ -2,7 +2,6 @@ from pathlib import Path
 
 from pyogrio import read_dataframe
 
-
 data_dir = Path("data")
 src_dir = data_dir / "source"
 

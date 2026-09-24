@@ -10,18 +10,16 @@ Creates the following files in `data/states/sd`:
 
 
 from pathlib import Path
-import warnings
 
-import pandas as pd
 import geopandas as gp
-import shapely
 import numpy as np
-from pyogrio import read_dataframe, write_dataframe
+import pandas as pd
+import shapely
+from pyogrio import read_dataframe
 
 from analysis.constants import CRS
 from analysis.lib.geometry import dissolve, explode
 from analysis.lib.io import read_feathers
-
 
 data_dir = Path("data")
 nhd_dir = data_dir / "nhd/raw"  # intentionally use raw flowlines

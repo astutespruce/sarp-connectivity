@@ -6,8 +6,8 @@ Note: output shapefiles for creating tilesets are limited to only those areas th
 the SARP states boundary.
 """
 
-from pathlib import Path
 import warnings
+from pathlib import Path
 
 import geopandas as gp
 import numpy as np
@@ -17,15 +17,15 @@ from pyogrio import read_dataframe, write_dataframe
 
 from analysis.constants import (
     CRS,
+    FHP_LAYER_TO_CODE,
     GEO_CRS,
     OWNERTYPE_TO_DOMAIN,
     OWNERTYPE_TO_PUBLIC_LAND,
-    STATES,
-    FHP_LAYER_TO_CODE,
     SARP_STATES,
+    STATES,
     TU_BROOK_TROUT_PORTFOLIO_TO_DOMAIN,
 )
-from analysis.lib.geometry import dissolve, to_multipolygon, make_valid
+from analysis.lib.geometry import dissolve, make_valid, to_multipolygon
 from analysis.lib.geometry.polygons import unwrap_antimeridian
 from analysis.lib.util import append
 from api.constants import FISH_HABITAT_PARTNERSHIPS

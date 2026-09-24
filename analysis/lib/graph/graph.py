@@ -1,8 +1,8 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 
-class DirectedGraph(object):
+class DirectedGraph:
     def __init__(self, df, source, target):
         """Create DirectedGraph from data frame with source and target columns.
 
@@ -124,7 +124,7 @@ class DirectedGraph(object):
         """
         groups = []
         seen = set()
-        for node in self.adj_matrix.keys():
+        for node in self.adj_matrix:
             if not node in seen:
                 # add current node with all descendants
                 adj_nodes = {node} | self.descendants(node)

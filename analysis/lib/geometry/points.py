@@ -1,6 +1,6 @@
-from geopandas.tools.hilbert_curve import _encode as _encode_hilbert
 import numpy as np
 import shapely
+from geopandas.tools.hilbert_curve import _encode as _encode_hilbert
 
 
 def encode_hilbert(geometries, level=16):

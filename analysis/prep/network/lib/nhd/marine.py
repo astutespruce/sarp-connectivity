@@ -1,14 +1,12 @@
 import warnings
 
-import numpy as np
 import pandas as pd
 import shapely
 from pyogrio import read_dataframe
 
+from analysis.lib.geometry import dissolve, explode, make_valid
 from analysis.lib.graph.speedups import DirectedGraph
-from analysis.lib.geometry import explode, dissolve, make_valid
 from analysis.prep.network.lib.nhd.util import get_column_names
-
 
 warnings.filterwarnings("ignore", message=".*does not have any features to read.*")
 warnings.filterwarnings("ignore", message=".*polygon with more than 100 parts.*")

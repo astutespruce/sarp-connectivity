@@ -1,6 +1,6 @@
 import numpy as np
-from numba import njit
 import shapely
+from numba import njit
 
 
 @njit("f8[:](f8[:,:])")
@@ -223,7 +223,7 @@ def extract_straight_segments(coords, max_angle=10, loops=5):
     mask = np.ones(len(coords), dtype="bool")
     index = np.arange(len(mask))
 
-    for i in range(0, loops):
+    for i in range(loops):
         keep_coords = coords[mask]
         angles = np.abs(
             vertex_angle(keep_coords[1:-1], keep_coords[:-2], keep_coords[2:]) - 180

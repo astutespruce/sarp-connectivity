@@ -1,8 +1,8 @@
 from pathlib import Path
 
+import geopandas as gp
 import pandas as pd
 import shapely
-import geopandas as gp
 from pyogrio import write_dataframe
 
 from analysis.lib.geometry import explode

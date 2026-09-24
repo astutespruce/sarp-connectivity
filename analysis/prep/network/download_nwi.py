@@ -1,15 +1,14 @@
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
 import os
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from time import time
 
 import geopandas as gp
+import httpx
+import numpy as np
 import pandas as pd
 import shapely
-import numpy as np
-import httpx
-
 
 # Data are available within the NWI Viewer: https://www.fws.gov/wetlands/Data/Mapper.html
 # Sometimes the HUC8 is not identified correctly here; if you get a 404 error on download,
@@ -112,6 +111,6 @@ for huc2 in huc2s:
         print("Nothing to download")
 
     print("--------------------")
-    print("HUC2: {} done in {:.0f}s\n\n".format(huc2, time() - huc2_start))
+    print(f"HUC2: {huc2} done in {time() - huc2_start:.0f}s\n\n")
 
-print("Done in {:.2f}s\n============================".format(time() - start))
+print(f"Done in {time() - start:.2f}s\n============================")

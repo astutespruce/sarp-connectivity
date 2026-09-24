@@ -1,6 +1,6 @@
+import warnings
 from pathlib import Path
 from time import time
-import warnings
 
 import pandas as pd
 from pyogrio import read_dataframe, write_dataframe
@@ -8,7 +8,6 @@ from pyogrio import read_dataframe, write_dataframe
 from analysis.constants import CRS
 from analysis.lib.util import append
 from analysis.prep.network.lib.nhd.util import get_column_names
-
 
 warnings.filterwarnings("ignore", message=".*organizePolygons.*")
 

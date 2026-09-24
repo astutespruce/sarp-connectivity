@@ -420,7 +420,7 @@ SB_FILTER_FIELDS = FILTER_FIELDS + [
 SB_FILTER_FIELD_MAP = {f.lower(): f for f in SB_FILTER_FIELDS}
 
 # BarrierSeverity included for API but not filtering
-COMBINED_FILTER_FIELDS = [c for c in unique(DAM_FILTER_FIELDS + SB_FILTER_FIELDS) if not c == "BarrierSeverity"]
+COMBINED_FILTER_FIELDS = [c for c in unique(DAM_FILTER_FIELDS + SB_FILTER_FIELDS) if c != "BarrierSeverity"]
 COMBINED_FILTER_FIELD_MAP = {f.lower(): f for f in COMBINED_FILTER_FIELDS}
 
 ROAD_CROSSING_FILTER_FIELDS = [
@@ -654,7 +654,7 @@ COMBINED_EXPORT_FIELDS = [
 ]
 
 COMBINED_TILE_FILTER_FIELDS = [
-    c for c in unique(DAM_TILE_FILTER_FIELDS + SB_TILE_FILTER_FIELDS) if not c == "BarrierSeverity"
+    c for c in unique(DAM_TILE_FILTER_FIELDS + SB_TILE_FILTER_FIELDS) if c != "BarrierSeverity"
 ]
 
 

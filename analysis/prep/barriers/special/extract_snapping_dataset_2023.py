@@ -4,7 +4,6 @@ from pathlib import Path
 import geopandas as gp
 from pyogrio import write_dataframe
 
-
 data_dir = Path("data")
 # last run with source data on 10/20/2023
 src_dir = data_dir / "barriers/source"

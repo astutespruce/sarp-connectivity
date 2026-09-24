@@ -1,5 +1,5 @@
-from pathlib import Path
 import json
+from pathlib import Path
 
 import geopandas as gp
 import numpy as np
@@ -7,7 +7,6 @@ import pandas as pd
 
 from analysis.constants import STATES
 from analysis.post.lib.removed_barriers import calc_year_removed_bin, pack_year_removed_stats
-
 
 data_dir = Path("data")
 src_dir = data_dir / "barriers/master"
@@ -243,12 +242,12 @@ stats = {
         ).sum()
     ),
     # road crossing stats
-    "total_road_crossings": int(len(analysis_crossings)),
+    "total_road_crossings": len(analysis_crossings),
     "unsurveyed_road_crossings": int((crossings.Surveyed == 0).sum()),
     "te_spp_road_crossings": int((analysis_crossings.TESpp > 0).sum()),
     "diadromous_habitat_road_crossings": int((analysis_crossings.DiadromousHabitat == 1).sum()),
     # waterfall stats
-    "waterfalls": int(len(waterfalls)),
+    "waterfalls": len(waterfalls),
     "passability_waterfalls": int((waterfalls.Passability > 0).sum()),
     "passable_waterfalls": int((waterfalls.Passability >= 2).sum()),
     "te_spp_waterfalls": int((waterfalls.TESpp > 0).sum()),

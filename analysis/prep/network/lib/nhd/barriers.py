@@ -1,9 +1,8 @@
-from pyogrio import read_dataframe
 import shapely
+from pyogrio import read_dataframe
 
 from analysis.lib.geometry import make_valid
 from analysis.prep.network.lib.nhd.util import get_column_names
-
 
 BARRIER_COLS = ["NHDPlusID", "FType", "FCode", "GNIS_Name"]
 

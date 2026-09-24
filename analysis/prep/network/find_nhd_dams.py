@@ -1,24 +1,23 @@
-from pathlib import Path
 import os
+from pathlib import Path
 from time import time
 
+import geopandas as gp
 import numpy as np
 import pandas as pd
 import shapely
-import geopandas as gp
 from pyogrio import write_dataframe
 
-from analysis.lib.joins import find_joins
-from analysis.lib.util import append
 from analysis.lib.geometry import (
     dissolve,
     explode,
-    sjoin_geometry,
     find_contiguous_groups,
+    sjoin_geometry,
 )
-from analysis.lib.io import read_feathers
 from analysis.lib.graph.speedups.directedgraph import DirectedGraph
-
+from analysis.lib.io import read_feathers
+from analysis.lib.joins import find_joins
+from analysis.lib.util import append
 
 # consider dam associated with waterbody drain if within 15m
 MAX_DRAIN_DISTANCE = 15
@@ -351,7 +350,7 @@ for huc2 in huc2s:
 
     merged = append(merged, dams)
 
-    print("Region done in {:.2f}s".format(time() - region_start))
+    print(f"Region done in {time() - region_start:.2f}s")
 
 
 print("----------------------------------------------")
@@ -395,4 +394,4 @@ nhd_dams.to_feather(out_dir / "nhd_dams_poly.feather")
 write_dataframe(nhd_dams, out_dir / "nhd_dams_poly.fgb")
 
 
-print("==============\nAll done in {:.2f}s".format(time() - start))
+print(f"==============\nAll done in {time() - start:.2f}s")

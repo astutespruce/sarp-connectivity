@@ -17,72 +17,70 @@ This creates several QA/QC files:
 - `barriers/qa/dams/duplicate_areas.fgb`: dissolved buffers around duplicate barriers (duplicates only)
 """
 
-from pathlib import Path
-from datetime import datetime
-from time import time
 import warnings
+from datetime import datetime
+from pathlib import Path
+from time import time
 
+import geopandas as gp
+import numpy as np
+import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
-import geopandas as gp
-import pandas as pd
 import shapely
-import numpy as np
 from pyogrio import write_dataframe
 
-from analysis.prep.barriers.lib.snap import (
-    snap_estimated_dams_to_drains,
-    snap_to_nhd_dams,
-    snap_to_waterbodies,
-    snap_to_flowlines,
-    export_snap_dist_lines,
-)
-from analysis.prep.barriers.lib.duplicates import (
-    find_duplicates,
-    export_duplicate_areas,
-)
-
-from analysis.prep.barriers.lib.spatial_joins import get_huc2, add_spatial_joins
-from analysis.prep.barriers.lib.log import format_log
-from analysis.prep.species.lib.diadromous import get_diadromous_ids
 from analysis.constants import (
-    KM2_TO_ACRES,
-    DAMS_ID_OFFSET,
-    GEO_CRS,
-    DROP_FEASIBILITY,
-    EXCLUDE_FEASIBILITY,
-    PLANNED_PROJECT_FEASIBILITY,
-    REMOVED_FEASIBILITY,
-    INVASIVE_FEASIBILITY,
-    DROP_MANUALREVIEW,
-    EXCLUDE_MANUALREVIEW,
-    REMOVED_MANUALREVIEW,
-    ONSTREAM_MANUALREVIEW,
-    OFFSTREAM_MANUALREVIEW,
-    INVASIVE_MANUALREVIEW,
-    DROP_RECON,
-    EXCLUDE_RECON,
-    PLANNED_PROJECT_RECON,
-    REMOVED_RECON,
-    INVASIVE_RECON,
-    RECON_TO_FEASIBILITY,
-    EXCLUDE_PASSAGEFACILITY,
-    DROP_STRUCTURECATEGORY,
-    FCODE_TO_STREAMTYPE,
-    DAM_BARRIER_SEVERITY_TO_DOMAIN,
     BARRIEROWNERTYPE_TO_DOMAIN,
+    DAM_BARRIER_SEVERITY_TO_DOMAIN,
+    DAMS_ID_OFFSET,
+    DROP_FEASIBILITY,
+    DROP_MANUALREVIEW,
+    DROP_RECON,
+    DROP_STRUCTURECATEGORY,
+    EXCLUDE_FEASIBILITY,
+    EXCLUDE_MANUALREVIEW,
     EXCLUDE_PASSABILITY,
+    EXCLUDE_PASSAGEFACILITY,
+    EXCLUDE_RECON,
+    FCODE_TO_STREAMTYPE,
     FEASIBILITY_TO_FEASIBILITYCLASS_DOMAIN,
-    HAZARD_TO_DOMAIN,
-    FERCREGULATED_TO_DOMAIN,
-    STATEREGULATED_TO_DOMAIN,
     FEDREGULATORYAGENCY_TO_DOMAIN,
-    YEAR_SURVEYED_BINS,
+    FERCREGULATED_TO_DOMAIN,
+    GEO_CRS,
+    HAZARD_TO_DOMAIN,
+    INVASIVE_FEASIBILITY,
+    INVASIVE_MANUALREVIEW,
+    INVASIVE_RECON,
+    KM2_TO_ACRES,
+    OFFSTREAM_MANUALREVIEW,
+    ONSTREAM_MANUALREVIEW,
     PASSAGEFACILITY_TO_PASSAGEFACILITYCLASS,
+    PLANNED_PROJECT_FEASIBILITY,
+    PLANNED_PROJECT_RECON,
+    RECON_TO_FEASIBILITY,
+    REMOVED_FEASIBILITY,
+    REMOVED_MANUALREVIEW,
+    REMOVED_RECON,
+    STATEREGULATED_TO_DOMAIN,
+    YEAR_SURVEYED_BINS,
 )
 from analysis.lib.io import read_arrow_tables
+from analysis.prep.barriers.lib.duplicates import (
+    export_duplicate_areas,
+    find_duplicates,
+)
+from analysis.prep.barriers.lib.log import format_log
+from analysis.prep.barriers.lib.snap import (
+    export_snap_dist_lines,
+    snap_estimated_dams_to_drains,
+    snap_to_flowlines,
+    snap_to_nhd_dams,
+    snap_to_waterbodies,
+)
+from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins, get_huc2
+from analysis.prep.species.lib.diadromous import get_diadromous_ids
 from api.constants import verify_domains
-
 
 ### Custom tolerance values for dams
 SNAP_TOLERANCE = {
@@ -206,7 +204,7 @@ df = df.drop(columns=[c for c in df.columns if c.endswith("_snap")])
 
 # Reset the index so that we have a clean numbering for all rows
 df = df.reset_index(drop=True)
-print("-----------------\nCompiled {:,} dams\n-----------------\n".format(len(df)))
+print(f"-----------------\nCompiled {len(df):,} dams\n-----------------\n")
 
 
 ### Make sure there are not duplicate SARPIDs
@@ -1246,7 +1244,7 @@ verify_domains(df.loc[df.State != ""])
 print("\n--------------\n")
 df = df.reset_index(drop=True)
 
-print("Serializing {:,} dams to master file".format(len(df)))
+print(f"Serializing {len(df):,} dams to master file")
 df.to_feather(master_dir / "dams.feather")
 write_dataframe(df, qa_dir / "dams.fgb")
 
@@ -1275,10 +1273,10 @@ snapped_dams.lineID = snapped_dams.lineID.astype("uint32")
 snapped_dams.NHDPlusID = snapped_dams.NHDPlusID.astype("uint64")
 snapped_dams["HUC2"] = snapped_dams.HUC2.astype(pd.CategoricalDtype(categories=huc2s, ordered=True))
 
-print("Serializing {:,} snapped dams".format(len(snapped_dams)))
+print(f"Serializing {len(snapped_dams):,} snapped dams")
 
 snapped_dams.to_feather(snapped_dir / "dams.feather")
 write_dataframe(df, qa_dir / "snapped_dams.fgb")
 
 
-print("All done in {:.2f}s".format(time() - start))
+print(f"All done in {time() - start:.2f}s")

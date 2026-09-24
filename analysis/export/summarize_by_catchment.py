@@ -1,9 +1,7 @@
 import os
 from pathlib import Path
 
-import geopandas as gp
 import pandas as pd
-
 
 data_dir = Path("data")
 network_dir = data_dir / "networks"

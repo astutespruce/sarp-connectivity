@@ -1,13 +1,12 @@
 from io import BytesIO
 
-from fastapi import APIRouter, Response, HTTPException
+from fastapi import APIRouter, HTTPException, Response
 from fastapi.requests import Request
 from pyarrow.feather import write_feather
 
-from api.constants import Layers, SUMMARY_UNIT_FIELDS
+from api.constants import SUMMARY_UNIT_FIELDS, Layers
 from api.data import db
-from api.logger import log_request, log
-
+from api.logger import log_request
 
 MAX_RECORDS = 100
 

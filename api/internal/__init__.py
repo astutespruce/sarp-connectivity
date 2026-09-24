@@ -1,9 +1,9 @@
 from fastapi import APIRouter
 
+from api.internal.barriers.details import router as barrier_details_router
+from api.internal.barriers.download import router as barrier_download_router
 from api.internal.barriers.query import router as barrier_query_router
 from api.internal.barriers.rank import router as barrier_rank_router
-from api.internal.barriers.download import router as barrier_download_router
-from api.internal.barriers.details import router as barrier_details_router
 from api.internal.barriers.search import router as barrier_search_router
 from api.internal.map_units.details import router as map_unit_details_router
 from api.internal.map_units.list import router as map_unit_list_router

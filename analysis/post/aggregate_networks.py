@@ -35,7 +35,7 @@ from api.metadata import get_readme, get_terms
 from api.settings import LOGO_PATH
 
 # NOTE: no need to aggregate stats for full / dams-only networks
-network_types = [t for t in NETWORK_TYPES.keys() if t not in {"full", "dams_only", "artificial_barriers"}]
+network_types = [t for t in NETWORK_TYPES if t not in {"full", "dams_only", "artificial_barriers"}]
 
 start = time()
 
@@ -251,9 +251,7 @@ for col in nonremoved_small_barrier_networks.columns:
     orig_dtype = nonremoved_small_barrier_networks[col].dtype
     if col.endswith("Class"):
         small_barriers[col] = small_barriers[col].fillna(0).astype(orig_dtype)
-    elif orig_dtype.name == "category":
-        small_barriers[col] = small_barriers[col].fillna("")
-    elif orig_dtype == "str":
+    elif orig_dtype.name == "category" or orig_dtype == "str":
         small_barriers[col] = small_barriers[col].fillna("")
     else:
         small_barriers[col] = small_barriers[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
@@ -338,7 +336,7 @@ bool_columns = set(c for c in dams.columns if dams.dtypes[c] == "bool").union(
 for col in bool_columns:
     combined[col] = combined[col].fillna(0).astype("bool")
 
-str_columns = [c for c in dt[dt == object].index if c not in bool_columns]  # noqa: E721
+str_columns = [c for c in dt[dt == object].index if c not in bool_columns]
 for col in str_columns:
     combined[col] = combined[col].fillna("")
 
@@ -424,13 +422,10 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
     for col in nonremoved_networks.columns:
         orig_dtype = nonremoved_networks[col].dtype
 
-        if orig_dtype.name == "category":
+        if orig_dtype.name == "category" or orig_dtype == "str":
             scenario_results[col] = scenario_results[col].fillna("")
 
-        elif orig_dtype == "str":
-            scenario_results[col] = scenario_results[col].fillna("")
-
-        elif orig_dtype == bool or col.endswith("Class"):  # noqa: E721
+        elif orig_dtype == bool or col.endswith("Class"):
             scenario_results[col] = scenario_results[col].fillna(0).astype(orig_dtype)
 
         else:
@@ -523,13 +518,10 @@ for network_type in network_types:
     for col in networks.columns:
         orig_dtype = networks[col].dtype
 
-        if orig_dtype.name == "category":
+        if orig_dtype.name == "category" or orig_dtype == "str":
             scenario_results[col] = scenario_results[col].fillna("")
 
-        elif orig_dtype == "str":
-            scenario_results[col] = scenario_results[col].fillna("")
-
-        elif orig_dtype == bool or col.endswith("Class"):  # noqa: E721
+        elif orig_dtype == bool or col.endswith("Class"):
             scenario_results[col] = scenario_results[col].fillna(0).astype(orig_dtype)
 
         else:

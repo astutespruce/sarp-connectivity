@@ -4,10 +4,9 @@ from fastapi import APIRouter, HTTPException, Response
 from fastapi.requests import Request
 from pyarrow.feather import write_feather
 
-from api.constants import UNIT_FIELDS, SUMMARY_UNIT_FIELDS
+from api.constants import SUMMARY_UNIT_FIELDS, UNIT_FIELDS
 from api.data import db
 from api.logger import log_request
-
 
 NUM_UNIT_SEARCH_RESULTS = 10
 

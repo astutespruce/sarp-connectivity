@@ -1,11 +1,10 @@
-from pathlib import Path
 import os
+from pathlib import Path
 
 import pandas as pd
 from pyogrio import write_dataframe
 
 from analysis.lib.io import read_feathers
-
 
 data_dir = Path("data")
 out_dir = Path("/tmp/sarp")

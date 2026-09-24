@@ -14,7 +14,6 @@ from analysis.lib.io import read_arrow_tables
 from analysis.network.lib.networks import create_barrier_networks, load_flowlines
 from analysis.network.lib.stats import percent
 
-
 # We can't calculate accurate upstream or downstream counts without doing the
 # full network analysis and also accounting for removed barriers active at the
 # time a given barrier is removed, so we drop these here and they get filled later with -1.
@@ -54,7 +53,7 @@ out_dir = clean_dir / "removed"
 out_dir.mkdir(exist_ok=True)
 
 # NOTE: no need to calculate removed barriers for full, and skip for road_crossings because those aren't published
-network_types = [t for t in NETWORK_TYPES.keys() if t not in {"full", "road_crossings"}]
+network_types = [t for t in NETWORK_TYPES if t not in {"full", "road_crossings"}]
 start = time()
 
 huc2_group_df = pd.read_feather(network_dir / "connected_huc2s.feather").sort_values(by=["group", "HUC2"])
@@ -313,9 +312,8 @@ for network_type in network_types:
 
         # keep any barriers that are still active (removed or non-removed) on
         # these subnetworks
-        is_active_barrier_filter = (
-            (pc.field("removed") == False)  # noqa: E712
-            | pc.is_in(pc.field("id"), active_removed_barriers["id"])
+        is_active_barrier_filter = (pc.field("removed") == False) | pc.is_in(
+            pc.field("id"), active_removed_barriers["id"]
         )
 
         # barrier joins adjacent subnetworks
@@ -536,7 +534,7 @@ for network_type in network_types:
             upstream_cols = [
                 c
                 for c in cur_barrier_networks.column_names
-                if "Upstream" in c and not c.startswith("Effective") and (c.endswith("Acres") or c.endswith("Miles"))
+                if "Upstream" in c and not c.startswith("Effective") and (c.endswith(("Acres", "Miles")))
             ] + ["FloodplainAcres", "NatFloodplainAcres"]
             upstream_stats = (
                 pairs.join(cur_barrier_networks.select(["id"] + upstream_cols), "upstream_barrier_id", "id")

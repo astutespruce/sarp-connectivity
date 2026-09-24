@@ -2,7 +2,6 @@ import numpy as np
 import pyarrow as pa
 import pyarrow.compute as pc
 
-
 SCENARIOS = {
     # NetworkConnectivity
     "NC": ["GainMiles"],
@@ -89,7 +88,7 @@ def calculate_composite_score(scores, columns, weights=None):
         # all columns weighted equally
         weights = [1.0 / num_cols] * num_cols
 
-    elif not len(weights) == num_cols:
+    elif len(weights) != num_cols:
         raise ValueError("weights must be same length as number of columns in input data frame")
 
     score = np.sum([scores[col] * weight for col, weight in zip(columns, weights)], axis=0)

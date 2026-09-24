@@ -1,27 +1,27 @@
 from datetime import datetime
 from pathlib import Path
 
-import pandas as pd
 import geopandas as gp
+import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
+import shapely
 from pyarrow.csv import write_csv
 from pyogrio import write_dataframe
-import shapely
 
+from analysis.constants import CRS
+from analysis.export.lib.domains import unpack_domains
+from analysis.lib.util import get_signed_dtype
+from analysis.rank.lib.networks import get_network_results
 from api.constants import (
     CUSTOM_TIER_FIELDS,
-    STATE_TIER_FIELDS,
     HUC8_TIER_FIELDS,
-    SB_EXPORT_FIELDS,
     ROAD_CROSSING_EXPORT_FIELDS,
+    SB_EXPORT_FIELDS,
+    STATE_TIER_FIELDS,
     verify_domains,
 )
-from analysis.constants import CRS
 from api.lib.tiers import calculate_tiers
-from analysis.lib.util import get_signed_dtype
-from analysis.export.lib.domains import unpack_domains
-from analysis.rank.lib.networks import get_network_results
 
 data_dir = Path("data")
 src_dir = data_dir / "barriers/source"
@@ -92,9 +92,7 @@ for col in crossing_networks.columns:
     orig_dtype = crossing_networks[col].dtype
     if col.endswith("Class"):
         df[col] = df[col].fillna(0).astype(orig_dtype)
-    elif orig_dtype.name == "category":
-        df[col] = df[col].fillna("")
-    elif orig_dtype == "str":
+    elif orig_dtype.name == "category" or orig_dtype == "str":
         df[col] = df[col].fillna("")
     else:
         df[col] = df[col].fillna(-1).astype(get_signed_dtype(orig_dtype))

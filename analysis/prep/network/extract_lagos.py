@@ -2,9 +2,8 @@ from pathlib import Path
 
 import geopandas as gp
 import pandas as pd
-from pyogrio import read_dataframe
 import shapely
-
+from pyogrio import read_dataframe
 
 from analysis.constants import CRS
 

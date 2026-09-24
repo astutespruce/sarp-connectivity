@@ -1,12 +1,11 @@
+import pyarrow.compute as pc
 from fastapi import APIRouter, HTTPException
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
-import pyarrow.compute as pc
 
 from api.constants import NetworkTypes
 from api.data import db, waterfalls
 from api.logger import log_request
-
 
 router = APIRouter()
 

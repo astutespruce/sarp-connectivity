@@ -1,12 +1,10 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
-import pyarrow.compute as pc
 
-from api.constants import Layers, SUMMARY_UNIT_FIELDS
+from api.constants import SUMMARY_UNIT_FIELDS, Layers
 from api.data import db
 from api.logger import log_request
-
 
 router = APIRouter()
 

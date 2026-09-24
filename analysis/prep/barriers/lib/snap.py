@@ -1,21 +1,20 @@
+import warnings
 from pathlib import Path
 from time import time
-import warnings
 
-import numpy as np
 import geopandas as gp
+import numpy as np
 import pandas as pd
-import shapely
 import pyarrow as pa
 import pyarrow.compute as pc
+import shapely
 from pyogrio import write_dataframe
 
-from analysis.prep.barriers.lib.points import connect_points
-from analysis.lib.geometry import nearest, near
-from analysis.constants import SNAP_ENDPOINT_TOLERANCE, CRS
+from analysis.constants import CRS, SNAP_ENDPOINT_TOLERANCE
+from analysis.lib.geometry import near, nearest
 from analysis.lib.io import read_feathers
 from analysis.lib.util import ndarray_append_strings
-
+from analysis.prep.barriers.lib.points import connect_points
 
 warnings.filterwarnings("ignore", message=".*invalid value encountered in distance.*")
 warnings.filterwarnings("ignore", message=".*invalid value encountered in line_locate_point.*")
@@ -334,7 +333,7 @@ def snap_to_nhd_dams(df, to_snap):
     df.loc[ix, "wbID"] = near_nhd.wbID
     df.loc[ix, "snap_log"] = ndarray_append_strings("snapped: within ", NHD_DAM_MAX_TOLERANCE, "m of NHD dam polygon")
     to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
-    print("Snapped {:,} dams to NHD dam polygons in {:.2f}s".format(len(ix), time() - snap_start))
+    print(f"Snapped {len(ix):,} dams to NHD dam polygons in {time() - snap_start:.2f}s")
 
     return df, to_snap
 
@@ -564,9 +563,9 @@ def snap_to_flowlines(df, to_snap, find_nearest_nonloop=False, allow_offnetwork_
 
         if not allow_offnetwork_flowlines:
             if filter is None:
-                filter = pc.field("offnetwork") == False  # noqa
+                filter = pc.field("offnetwork") == False
             else:
-                filter = filter & (pc.field("offnetwork") == False)  # noqa
+                filter = filter & (pc.field("offnetwork") == False)
 
         flowlines = (
             pa.dataset.dataset(nhd_dir / "clean" / huc2 / "flowlines.feather", format="feather")

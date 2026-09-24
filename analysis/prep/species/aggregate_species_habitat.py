@@ -5,10 +5,10 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 import shapely
+from pyogrio import write_dataframe
 
 from analysis.constants import CRS
 from analysis.lib.io import read_arrow_tables
-from pyogrio import write_dataframe
 
 data_dir = Path("data")
 nhd_dir = data_dir / "nhd/raw"
@@ -54,7 +54,7 @@ cols = [c for c in df.columns if c != "HUC2"]
 df[cols] = df[cols].fillna(0).astype("bool")
 
 # merge species shared across multiple datasets
-shared_cols = [c for c in df.columns if c.split("_")[-1] in datasets.keys()]
+shared_cols = [c for c in df.columns if c.split("_")[-1] in datasets]
 for col in shared_cols:
     key = col.split("_")[-1]
     root_col = col.replace(f"_{key}", "")
@@ -127,7 +127,7 @@ flowlines = (
 )
 
 flowlines = gp.GeoDataFrame(
-    flowlines[[c for c in flowlines.columns if not c == "geometry"]],
+    flowlines[[c for c in flowlines.columns if c != "geometry"]],
     geometry=shapely.from_wkb(flowlines.geometry),
     crs=CRS,
 )

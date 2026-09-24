@@ -4,7 +4,6 @@ import pandas as pd
 
 from api.constants import DOMAINS
 
-
 pd.options.display.max_rows = 200
 
 
@@ -184,7 +183,7 @@ for barrier_type in ["dams", "small_barriers"]:
             stats.prev = stats.prev.astype("float32")
             stats["diff"] = stats.latest - stats.prev
 
-            md.write(f"\n\n## Recon for only those that were manually reviewed\n")
+            md.write("\n\n## Recon for only those that were manually reviewed\n")
             md.write(f"ManualReview one of {had_manual_review}\n\n")
             md.write(stats.to_markdown(floatfmt=",.0f"))
             stats.to_excel(xlsx, sheet_name="Recon (only for manually reviewed)")

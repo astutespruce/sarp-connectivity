@@ -1,5 +1,4 @@
 from pathlib import Path
-from time import time
 
 import geopandas as gp
 import numpy as np
@@ -7,13 +6,11 @@ import pandas as pd
 import shapely
 from tqdm.auto import tqdm
 
-
 from analysis.lib.geometry.lines import segment_length
 from analysis.lib.geometry.speedups.lines import (
-    simplify_vw,
     extract_straight_segments,
+    simplify_vw,
 )
-
 
 # Extract no more than 50 vertices (arbitrary) on each side for complex waterbodies;
 MAX_SIDE_PTS = 50

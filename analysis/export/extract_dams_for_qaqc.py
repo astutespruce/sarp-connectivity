@@ -1,13 +1,11 @@
 import os
 from pathlib import Path
-import warnings
 
 import geopandas as gp
 import pandas as pd
 from pyogrio import read_dataframe, write_dataframe
 
 from analysis.lib.geometry import neighborhoods
-
 
 # Per guidance from Kat: this is set intentionally to 100m instead of 10m, to guide
 # QAQC

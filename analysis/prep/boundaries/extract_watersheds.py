@@ -1,11 +1,10 @@
-from pathlib import Path
 import warnings
+from pathlib import Path
 
 import geopandas as gp
 from pyogrio import read_dataframe, write_dataframe
 
 from analysis.constants import CRS
-
 
 warnings.filterwarnings("ignore", message=".*more than 100 parts.*")
 

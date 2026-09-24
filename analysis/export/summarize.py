@@ -4,8 +4,8 @@ import pandas as pd
 from openpyxl.styles import Alignment, NamedStyle
 from openpyxl.utils import get_column_letter
 
-from api.constants import DOMAINS
 from analysis.constants import SARP_STATES
+from api.constants import DOMAINS
 
 primary_col_style = NamedStyle(name="PrimaryColumnStyle", alignment=Alignment(horizontal="left", wrap_text=True))
 

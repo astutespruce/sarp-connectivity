@@ -1,6 +1,6 @@
+import numpy as np
 from numba import njit, types
 from numba.typed import Dict, List
-import numpy as np
 
 
 @njit("(i8[:],i8[:])", cache=True)
@@ -101,7 +101,7 @@ def extract_paths(adj_matrix, start_ids, stop_ids, max_depth=100):
     return out
 
 
-class LinearDirectedGraph(object):
+class LinearDirectedGraph:
     def __init__(self, source, target):
         """Create LinearDirectedGraph from source and target ndarrays.
 

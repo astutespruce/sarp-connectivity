@@ -37,7 +37,7 @@ def _construct_filter_expr(
         ix = pc.scalar(True)
 
     if ranked_only:
-        ix = ix & (pc.field("Ranked") == True)  # noqa
+        ix = ix & (pc.field("Ranked") == True)
 
     # fields are evaluated using AND logic
     for key, (match_type, values) in filters.items():

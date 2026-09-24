@@ -3,9 +3,9 @@
 from fastapi import APIRouter
 from fastapi.requests import Request
 from fastapi.responses import FileResponse
+
 from api.logger import log_request
 from api.settings import API_DATA_PATH, CUSTOM_DOWNLOAD_DIR
-
 
 router = APIRouter()
 

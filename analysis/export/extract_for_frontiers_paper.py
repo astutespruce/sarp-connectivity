@@ -7,8 +7,8 @@ from openpyxl.styles import Alignment, NamedStyle
 from openpyxl.utils import get_column_letter
 
 from analysis.constants import (
-    SARP_STATE_NAMES,
     ONSTREAM_MANUALREVIEW,
+    SARP_STATE_NAMES,
 )
 from analysis.export.lib import unpack_domains
 from api.constants import DOMAINS

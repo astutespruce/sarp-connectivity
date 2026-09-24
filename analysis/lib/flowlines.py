@@ -1,20 +1,17 @@
+from itertools import pairwise
 from time import time
 
 import geopandas as gp
+import numpy as np
 import pandas as pd
 import shapely
-import numpy as np
+
+from analysis.constants import CONVERT_TO_GREAT_LAKES, SNAP_ENDPOINT_TOLERANCE
+from analysis.lib.geometry import explode, union_or_combine
 from analysis.lib.geometry.polygons import get_interior_rings
-
-
-from analysis.lib.joins import index_joins, find_joins, update_joins, remove_joins
-from analysis.lib.geometry import union_or_combine
-
-from analysis.lib.geometry import explode
 from analysis.lib.geometry.speedups.lines import cut_lines_at_points
 from analysis.lib.graph.speedups import DirectedGraph
-
-from analysis.constants import SNAP_ENDPOINT_TOLERANCE, CONVERT_TO_GREAT_LAKES
+from analysis.lib.joins import find_joins, index_joins, remove_joins, update_joins
 
 # In order to cut a flowline, it must be at least this long, and at least
 # this different from original flowline
@@ -511,7 +508,7 @@ def cut_flowlines_at_points(flowlines, joins, points, next_lineID):
     # convert to plain DataFrame so that we can extract coords
     grouped = pd.DataFrame(df.groupby("lineID").agg({"geometry": "first", "pos": list}))
     grouped["geometry"] = grouped.geometry.values
-    outer_ix, inner_ix, lines = cut_lines_at_points(
+    outer_ix, _inner_ix, lines = cut_lines_at_points(
         grouped.geometry.apply(lambda x: shapely.get_coordinates(x)).values,
         grouped.pos.apply(np.array).values,
     )
@@ -570,7 +567,7 @@ def cut_flowlines_at_points(flowlines, joins, points, next_lineID):
     )
 
     # function to make upstream / downstream side of join
-    pairs = lambda a: pd.Series(zip(a[:-1], a[1:]))
+    pairs = lambda a: pd.Series(pairwise(a[:-1], a[1:]))
     new_joins = (
         l.apply(pairs)
         .apply(pd.Series)
@@ -740,7 +737,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
         # extract all intersecting interior rings for these waterbodies
         print("Extracting interior rings for intersected waterbodies")
         wb = waterbodies.loc[waterbodies.index.isin(wbID)]
-        outer_index, inner_index, rings = get_interior_rings(wb.geometry.values)
+        outer_index, _inner_index, rings = get_interior_rings(wb.geometry.values)
         if len(outer_index):
             # find the pairs of waterbody rings and lines to add
             rings = np.asarray(rings)
@@ -860,7 +857,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
     flowlines.loc[ix, "altered"] = True
     flowlines.loc[ix, "altered_src"] = "waterbodies"
 
-    print("Done evaluating waterbody / flowline overlap in {:.2f}s".format(time() - start))
+    print(f"Done evaluating waterbody / flowline overlap in {time() - start:.2f}s")
 
     return flowlines, joins, contained
 
@@ -879,8 +876,7 @@ def save_cut_flowlines(out_dir, flowlines, joins, barrier_joins):
         barrier joins
     """
 
-    print("serializing {:,} cut flowlines...".format(len(flowlines)))
-    start = time()
+    print(f"serializing {len(flowlines):,} cut flowlines...")
 
     flowlines = flowlines.reset_index(drop=flowlines.index.name and flowlines.index.name in flowlines.columns)
     flowlines.to_feather(out_dir / "flowlines.feather")

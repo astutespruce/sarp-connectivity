@@ -1,11 +1,10 @@
 import warnings
 
-from pyogrio import read_dataframe
 import shapely
+from pyogrio import read_dataframe
 
 from analysis.lib.geometry import make_valid
 from analysis.prep.network.lib.nhd.util import get_column_names
-
 
 warnings.filterwarnings("ignore", message=".*does not have any features to read.*")
 warnings.filterwarnings("ignore", message=".*Warning 1: organizePolygons.*")

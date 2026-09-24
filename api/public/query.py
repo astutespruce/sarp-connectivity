@@ -1,19 +1,18 @@
-from fastapi import APIRouter, HTTPException
-from fastapi.requests import Request
 import pyarrow as pa
 import pyarrow.compute as pc
+from fastapi import APIRouter, HTTPException
+from fastapi.requests import Request
 
 from api.constants import (
-    PublicAPIBarrierTypes,
-    STATES,
     DAM_PUBLIC_EXPORT_FIELDS,
     SB_PUBLIC_EXPORT_FIELDS,
+    STATES,
+    PublicAPIBarrierTypes,
 )
+from api.data import dams, removed_dams, small_barriers
 from api.lib.domains import unpack_domains
-from api.data import dams, small_barriers, removed_dams
 from api.logger import log, log_request
 from api.response import csv_response
-
 
 router = APIRouter()
 

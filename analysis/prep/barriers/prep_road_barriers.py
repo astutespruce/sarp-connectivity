@@ -22,53 +22,53 @@ This creates several QA/QC files:
 - `barriers/qa/small_barriers_duplicate_areas.fgb`: dissolved buffers around duplicate barriers (duplicates only)
 """
 
+import warnings
 from datetime import datetime
 from pathlib import Path
 from time import time
-import warnings
 
 import geopandas as gp
-import shapely
 import numpy as np
 import pandas as pd
-from pyogrio import write_dataframe
 import pyarrow as pa
 import pyarrow.compute as pc
+import shapely
+from pyogrio import write_dataframe
 
-from analysis.prep.barriers.lib.snap import snap_to_flowlines, export_snap_dist_lines
-from analysis.prep.barriers.lib.duplicates import find_duplicates, export_duplicate_areas
-from analysis.prep.barriers.lib.spatial_joins import get_huc2, add_spatial_joins
-from analysis.prep.barriers.lib.log import format_log
-from analysis.prep.species.lib.diadromous import get_diadromous_ids
-from analysis.lib.io import read_arrow_tables
 from analysis.constants import (
-    SMALL_BARRIERS_ID_OFFSET,
-    GEO_CRS,
-    KEEP_POTENTIAL_PROJECT,
-    DROP_POTENTIAL_PROJECT,
-    UNRANKED_POTENTIAL_PROJECT,
-    PLANNED_PROJECT_POTENTIAL_PROJECT,
-    REMOVED_POTENTIAL_PROJECT,
-    DROP_RECON,
-    EXCLUDE_RECON,
-    PLANNED_PROJECT_RECON,
-    REMOVED_RECON,
+    BARRIER_CONDITION_TO_DOMAIN,
+    BARRIEROWNERTYPE_TO_DOMAIN,
+    CONSTRICTION_TO_DOMAIN,
+    CROSSING_TYPE_TO_DOMAIN,
     DROP_MANUALREVIEW,
+    DROP_POTENTIAL_PROJECT,
+    DROP_RECON,
     EXCLUDE_MANUALREVIEW,
-    REMOVED_MANUALREVIEW,
-    OFFSTREAM_MANUALREVIEW,
+    EXCLUDE_RECON,
+    FCODE_TO_STREAMTYPE,
+    GEO_CRS,
     INVASIVE_MANUALREVIEW,
     INVASIVE_RECON,
-    BARRIER_CONDITION_TO_DOMAIN,
-    POTENTIALPROJECT_TO_SEVERITY,
-    ROAD_TYPE_TO_DOMAIN,
-    CROSSING_TYPE_TO_DOMAIN,
-    FCODE_TO_STREAMTYPE,
-    CONSTRICTION_TO_DOMAIN,
-    BARRIEROWNERTYPE_TO_DOMAIN,
-    YEAR_SURVEYED_BINS,
+    KEEP_POTENTIAL_PROJECT,
+    OFFSTREAM_MANUALREVIEW,
     PASSAGEFACILITY_TO_PASSAGEFACILITYCLASS,
+    PLANNED_PROJECT_POTENTIAL_PROJECT,
+    PLANNED_PROJECT_RECON,
+    POTENTIALPROJECT_TO_SEVERITY,
+    REMOVED_MANUALREVIEW,
+    REMOVED_POTENTIAL_PROJECT,
+    REMOVED_RECON,
+    ROAD_TYPE_TO_DOMAIN,
+    SMALL_BARRIERS_ID_OFFSET,
+    UNRANKED_POTENTIAL_PROJECT,
+    YEAR_SURVEYED_BINS,
 )
+from analysis.lib.io import read_arrow_tables
+from analysis.prep.barriers.lib.duplicates import export_duplicate_areas, find_duplicates
+from analysis.prep.barriers.lib.log import format_log
+from analysis.prep.barriers.lib.snap import export_snap_dist_lines, snap_to_flowlines
+from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins, get_huc2
+from analysis.prep.species.lib.diadromous import get_diadromous_ids
 from api.constants import verify_domains
 
 ### Custom tolerance values for dams
@@ -687,7 +687,7 @@ df = snap_to_flowlines(
     to_snap.loc[to_snap.CrossingType == 8].copy(),
     find_nearest_nonloop=False,
     # TODO: we could probably allow stream order in 1a,1b, 2 here too, and canals
-    filter=(pc.field("StreamOrder") < 7) | (pc.field("loop") == True),  # noqa
+    filter=(pc.field("StreamOrder") < 7) | (pc.field("loop") == True),
 )[0]
 
 # snap everything else to all flowlines
@@ -1094,7 +1094,7 @@ verify_domains(df.loc[df.State != ""].drop(columns=["Passability"]))
 print("\n--------------\n")
 df = df.reset_index(drop=True)
 
-print("Serializing {:,} small barriers".format(len(df)))
+print(f"Serializing {len(df):,} small barriers")
 df.to_feather(master_dir / "small_barriers.feather")
 write_dataframe(df, qa_dir / "small_barriers.fgb")
 
@@ -1121,7 +1121,7 @@ to_analyze.lineID = to_analyze.lineID.astype("uint32")
 to_analyze.NHDPlusID = to_analyze.NHDPlusID.astype("uint64")
 to_analyze["HUC2"] = to_analyze.HUC2.astype(pd.CategoricalDtype(categories=huc2s, ordered=True))
 
-print("Serializing {:,} snapped small barriers".format(len(to_analyze)))
+print(f"Serializing {len(to_analyze):,} snapped small barriers")
 to_analyze.to_feather(snapped_dir / "small_barriers.feather")
 write_dataframe(to_analyze, qa_dir / "snapped_small_barriers.fgb")
 
@@ -1209,4 +1209,4 @@ snapped_crossings["HUC2"] = snapped_crossings.HUC2.astype(pd.CategoricalDtype(ca
 
 snapped_crossings.to_feather(snapped_dir / "road_crossings.feather")
 
-print("All done in {:.2f}s".format(time() - start))
+print(f"All done in {time() - start:.2f}s")

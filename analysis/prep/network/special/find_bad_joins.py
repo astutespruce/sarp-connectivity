@@ -1,7 +1,6 @@
 from pathlib import Path
-import pandas as pd
 
-from analysis.lib.graph.speedups import DirectedGraph
+import pandas as pd
 
 data_dir = Path("data")
 

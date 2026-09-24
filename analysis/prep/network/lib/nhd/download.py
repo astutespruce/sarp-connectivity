@@ -1,5 +1,5 @@
-from pathlib import Path
 import warnings
+from pathlib import Path
 from xml.etree import ElementTree
 
 from tqdm import tqdm
@@ -82,16 +82,15 @@ async def download_gdb(urls, id, client, filename):
 
         # print(f"Downloading {id} ({total_bytes / 1e6:.2f} MB)")
 
-        with open(filename, "wb") as out:
-            with tqdm(
-                total=total_bytes / 1e6,
-                desc=f"HUC {id} ({total_bytes / 1e6:.2f} MB)",
-                bar_format="{desc}{bar}| {percentage:3.0f}%",
-            ) as bar:
-                prev_bytes_downloaded = 0
+        with open(filename, "wb") as out, tqdm(
+            total=total_bytes / 1e6,
+            desc=f"HUC {id} ({total_bytes / 1e6:.2f} MB)",
+            bar_format="{desc}{bar}| {percentage:3.0f}%",
+        ) as bar:
+            prev_bytes_downloaded = 0
 
-                async for chunk in r.aiter_bytes():
-                    out.write(chunk)
+            async for chunk in r.aiter_bytes():
+                out.write(chunk)
 
-                    bar.update(r.num_bytes_downloaded / 1e6 - prev_bytes_downloaded / 1e6)
-                    prev_bytes_downloaded = r.num_bytes_downloaded
+                bar.update(r.num_bytes_downloaded / 1e6 - prev_bytes_downloaded / 1e6)
+                prev_bytes_downloaded = r.num_bytes_downloaded

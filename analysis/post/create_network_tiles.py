@@ -1,20 +1,20 @@
-from pathlib import Path
 import subprocess
+from pathlib import Path
 from time import time
 
+import geopandas as gp
 import numpy as np
 import pandas as pd
-import geopandas as gp
 import pyarrow as pa
 import pyarrow.compute as pc
 import shapely
 from pyogrio import write_dataframe
 
-from analysis.constants import GEO_CRS, CRS
-from analysis.lib.io import read_arrow_tables
+from analysis.constants import CRS, GEO_CRS
 from analysis.lib.geometry.lines import merge_lines
-from analysis.post.lib.tiles import get_col_types
+from analysis.lib.io import read_arrow_tables
 from analysis.lib.util import append
+from analysis.post.lib.tiles import get_col_types
 
 data_dir = Path("data")
 src_dir = data_dir / "networks"
@@ -223,7 +223,7 @@ for i, level in enumerate(national_levels):
         + ["-l", "networks"]
         + col_types
         + ["-Z", str(minzoom), "-z", str(maxzoom)]
-        + ["-o", f"{str(mbtiles_filename)}", str(outfilename)]
+        + ["-o", f"{mbtiles_filename!s}", str(outfilename)]
     )
     ret.check_returncode()
 
@@ -289,7 +289,7 @@ for huc2 in huc2s:
             + ["-l", "networks"]
             + col_types
             + ["-Z", str(minzoom), "-z", str(maxzoom)]
-            + ["-o", f"{str(mbtiles_filename)}", str(outfilename)]
+            + ["-o", f"{mbtiles_filename!s}", str(outfilename)]
         )
         ret.check_returncode()
 
@@ -383,7 +383,7 @@ for level in zoom_config:
         + ["-l", "removed_networks"]
         + get_col_types(subset)
         + ["-Z", str(minzoom), "-z", str(maxzoom)]
-        + ["-o", f"{str(mbtiles_filename)}", str(outfilename)]
+        + ["-o", f"{mbtiles_filename!s}", str(outfilename)]
     )
     ret.check_returncode()
 

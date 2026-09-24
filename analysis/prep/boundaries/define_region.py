@@ -1,11 +1,11 @@
-from pathlib import Path
 import warnings
+from pathlib import Path
 
 import geopandas as gp
 import shapely
 from pyogrio import read_dataframe, write_dataframe
 
-from analysis.constants import STATES, CRS, GEO_CRS, REGION_STATES
+from analysis.constants import CRS, GEO_CRS, REGION_STATES, STATES
 from analysis.lib.geometry import to_multipolygon, unwrap_antimeridian
 
 warnings.filterwarnings("ignore", message=".*more than 100 parts.*")

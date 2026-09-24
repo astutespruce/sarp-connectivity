@@ -37,18 +37,17 @@ Attributes:
 
 from pathlib import Path
 
-import pandas as pd
 import geopandas as gp
+import pandas as pd
 import pyarrow as pa
-from pyarrow.dataset import dataset
 import pyarrow.compute as pc
-from pyogrio import write_dataframe
 import shapely
+from pyarrow.dataset import dataset
+from pyogrio import write_dataframe
 
 from analysis.constants import CRS
-from analysis.lib.io import read_feathers, read_arrow_tables
 from analysis.lib.geometry.lines import merge_lines
-
+from analysis.lib.io import read_arrow_tables
 
 src_dir = Path("data/networks")
 out_dir = Path("/tmp/sarp")

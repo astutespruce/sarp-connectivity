@@ -1,15 +1,15 @@
 from time import time
 
-import pandas as pd
-import numpy as np
 import geopandas as gp
+import numpy as np
+import pandas as pd
 import shapely
 
-from analysis.lib.joins import find_joins
+from analysis.lib.geometry import sjoin_geometry
 
 # TODO: update to speedups graph
 from analysis.lib.graph import DirectedGraph
-from analysis.lib.geometry import sjoin_geometry
+from analysis.lib.joins import find_joins
 
 
 def create_drain_points(flowlines, joins, waterbodies, wb_joins):
@@ -275,6 +275,6 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     drain_pts.lineID = drain_pts.lineID.astype("uint32")
     drain_pts.flowlineLength = drain_pts.flowlineLength.astype("float32")
 
-    print("Done extracting {:,} waterbody drain points in {:.2f}s".format(len(drain_pts), time() - start))
+    print(f"Done extracting {len(drain_pts):,} waterbody drain points in {time() - start:.2f}s")
 
     return drain_pts

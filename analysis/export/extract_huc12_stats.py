@@ -7,9 +7,8 @@ This is a one-off script; not part of data processing chain.
 import os
 from pathlib import Path
 
-
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 from analysis.constants import SARP_STATE_NAMES
 
@@ -48,7 +47,7 @@ spp_df = (
 ### Read dams
 dams = (
     pd.read_feather(
-        api_dir / f"dams.feather",
+        api_dir / "dams.feather",
         columns=["id", "HasNetwork", "Ranked", "Recon", "HUC12", "State"],
     )
     .set_index("id", drop=False)

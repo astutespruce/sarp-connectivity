@@ -13,36 +13,33 @@ This creates 2 files:
 from pathlib import Path
 from time import time
 
+import geopandas as gp
+import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
-
 import shapely
-import geopandas as gp
-import numpy as np
 from pyogrio import write_dataframe
 
 from analysis.constants import (
-    WATERFALLS_ID_OFFSET,
+    DAM_BARRIER_SEVERITY_TO_DOMAIN,
+    DROP_MANUALREVIEW,
+    DROP_RECON,
+    EXCLUDE_MANUALREVIEW,
+    EXCLUDE_RECON,
     FCODE_TO_STREAMTYPE,
     GEO_CRS,
-    DROP_RECON,
-    DROP_MANUALREVIEW,
-    EXCLUDE_RECON,
-    EXCLUDE_MANUALREVIEW,
-    DAM_BARRIER_SEVERITY_TO_DOMAIN,
-    INVASIVE_RECON,
     INVASIVE_MANUALREVIEW,
+    INVASIVE_RECON,
+    WATERFALLS_ID_OFFSET,
 )
-
-from analysis.lib.io import read_arrow_tables
 from analysis.lib.geometry import nearest
-from analysis.prep.species.lib.diadromous import get_diadromous_ids
-from analysis.prep.barriers.lib.snap import snap_to_flowlines
+from analysis.lib.io import read_arrow_tables
 from analysis.prep.barriers.lib.duplicates import find_duplicates
-from analysis.prep.barriers.lib.spatial_joins import get_huc2, add_spatial_joins
+from analysis.prep.barriers.lib.snap import snap_to_flowlines
+from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins, get_huc2
+from analysis.prep.species.lib.diadromous import get_diadromous_ids
 from api.constants import verify_domains
-
 
 # Snap waterfalls by 100 meters
 SNAP_TOLERANCE = 100
@@ -430,4 +427,4 @@ print(f"Serializing {len(snapped_waterfalls)} snapped waterfalls")
 snapped_waterfalls.to_feather(snapped_dir / "waterfalls.feather")
 write_dataframe(df, qa_dir / "snapped_waterfalls.fgb")
 
-print("All done in {:.2f}s".format(time() - start))
+print(f"All done in {time() - start:.2f}s")

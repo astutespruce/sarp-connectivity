@@ -4,8 +4,8 @@ import geopandas as gp
 import pandas as pd
 from pyogrio import write_dataframe
 
-from analysis.lib.io import read_feathers
 from analysis.lib.geometry.lines import merge_lines
+from analysis.lib.io import read_feathers
 
 src_dir = Path("data/networks")
 out_dir = Path("/tmp/sarp")

@@ -30,10 +30,10 @@ async def set_progress(redis, job_id, progress=0, message=""):
             await redis.setex(f"{JOB_PREFIX}{job_id}", EXPIRATION, f"{progress}|{message}")
             return
 
-        except TimeoutError as ex:
+        except TimeoutError:
             retry += 1
             if retry >= 5:
-                raise ex
+                raise
 
             log.error(f"Redis connection timeout in set_progress, retry {retry}")
             time.sleep(2)
@@ -65,11 +65,11 @@ async def get_progress(redis, job_id):
 
             return int(progress), message
 
-        except TimeoutError as ex:
+        except TimeoutError:
             retry += 1
 
             if retry >= 5:
-                raise ex
+                raise
 
             log.error(f"Redis connection timeout in get_progress, retry {retry}")
             time.sleep(2)

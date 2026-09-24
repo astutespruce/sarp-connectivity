@@ -4,7 +4,6 @@ from pyarrow.dataset import dataset
 from api.logger import log
 from api.settings import API_DATA_PATH
 
-
 try:
     db = duckdb.connect(str(API_DATA_PATH / "api.db"), read_only=True)
 

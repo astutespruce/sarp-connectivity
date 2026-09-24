@@ -1,7 +1,7 @@
 import pyarrow as pa
 import pyarrow.compute as pc
 
-from api.constants import FullySupportedBarrierTypes, Scenarios, CUSTOM_TIER_FIELDS, SPECIES_HABITAT_FIELDS
+from api.constants import CUSTOM_TIER_FIELDS, SPECIES_HABITAT_FIELDS, FullySupportedBarrierTypes, Scenarios
 from api.lib.domains import unpack_domains
 from api.lib.extract import extract_records
 from api.lib.tiers import calculate_tiers

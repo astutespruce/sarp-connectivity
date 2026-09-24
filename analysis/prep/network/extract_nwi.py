@@ -2,8 +2,8 @@ from pathlib import Path
 from time import time
 
 import geopandas as gp
-import shapely
 import numpy as np
+import shapely
 from pyogrio import read_dataframe, write_dataframe
 from pyogrio.errors import DataSourceError
 
@@ -226,6 +226,6 @@ for huc2 in huc2s:
     write_dataframe(wetlands, huc2_dir / "wetlands.fgb")
 
     print("--------------------")
-    print("HUC2: {} done in {:.0f}s\n\n".format(huc2, time() - huc2_start))
+    print(f"HUC2: {huc2} done in {time() - huc2_start:.0f}s\n\n")
 
-print("Done in {:.2f}s\n============================".format(time() - start))
+print(f"Done in {time() - start:.2f}s\n============================")

@@ -1,11 +1,10 @@
 import asyncio
 from copy import deepcopy
-import httpx
 from math import ceil
 
 import geopandas as gp
+import httpx
 import pandas as pd
-
 
 # Mapping of ESRI WKID to proj4 strings
 CRS_LUT = {

@@ -8,24 +8,20 @@ to loop / nonloop manually.
 
 from pathlib import Path
 
-
-import pandas as pd
 import geopandas as gp
 import numpy as np
-from pyogrio import write_dataframe
+import pandas as pd
 import shapely
+from pyogrio import write_dataframe
 
-from analysis.lib.graph.speedups import DirectedGraph
-from analysis.lib.geometry.lines import merge_lines
-from analysis.lib.joins import remove_joins
 from analysis.constants import (
     CONVERT_TO_LOOP,
-    CONVERT_TO_NONLOOP,
     CONVERT_TO_MARINE,
-    REMOVE_IDS,
-    MAX_PIPELINE_LENGTH,
-    KEEP_PIPELINES,
+    CONVERT_TO_NONLOOP,
     JOIN_FIXES,
+    KEEP_PIPELINES,
+    MAX_PIPELINE_LENGTH,
+    REMOVE_IDS,
     REMOVE_JOINS,
 )
 from analysis.lib.flowlines import (
@@ -33,7 +29,9 @@ from analysis.lib.flowlines import (
     remove_pipelines,
     repair_disconnected_subnetworks,
 )
-
+from analysis.lib.geometry.lines import merge_lines
+from analysis.lib.graph.speedups import DirectedGraph
+from analysis.lib.joins import remove_joins
 
 data_dir = Path("data")
 nhd_dir = data_dir / "nhd"

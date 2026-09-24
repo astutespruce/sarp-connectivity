@@ -1,16 +1,15 @@
-from copy import deepcopy
 import json
 import os
+from copy import deepcopy
 from pathlib import Path
 
-from dotenv import load_dotenv
 import geopandas as gp
-from pymgl import Map
 import shapely
+from dotenv import load_dotenv
+from pymgl import Map
 
 from analysis.constants import GEO_CRS, STATES
 from analysis.lib.geometry.polygons import unwrap_antimeridian
-
 
 load_dotenv()
 TOKEN = os.getenv("MAPBOX_TOKEN", None)

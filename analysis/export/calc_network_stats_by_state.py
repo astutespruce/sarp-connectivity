@@ -4,10 +4,9 @@ import geopandas as gp
 import pandas as pd
 import shapely
 
-from analysis.constants import METERS_TO_MILES, NETWORK_TYPES
-from analysis.lib.io import read_arrow_tables, read_feathers
+from analysis.constants import METERS_TO_MILES
+from analysis.lib.io import read_feathers
 from analysis.lib.util import append
-
 
 data_dir = Path("data")
 networks_dir = data_dir / "networks"

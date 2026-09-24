@@ -1,27 +1,12 @@
 from pathlib import Path
-from time import time
-import warnings
 
+import numpy as np
 import pyarrow as pa
 import pyarrow.compute as pc
-import geopandas as gp
-
-import pandas as pd
 import shapely
-from pyogrio import read_dataframe, write_dataframe
-import numpy as np
+from geopandas.tools.hilbert_curve import _encode as _encode_hilbert
 
-from analysis.constants import (
-    CROSSINGS_ID_OFFSET,
-    CRS,
-    FCODE_TO_STREAMTYPE,
-    CROSSING_TYPE_TO_DOMAIN,
-)
 from analysis.lib.graph.speedups import DirectedGraph
-from analysis.lib.io import read_arrow_tables
-from analysis.prep.barriers.lib.snap import snap_to_flowlines
-from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
-from analysis.prep.species.lib.diadromous import get_diadromous_ids
 
 data_dir = Path("data")
 boundaries_dir = data_dir / "boundaries"

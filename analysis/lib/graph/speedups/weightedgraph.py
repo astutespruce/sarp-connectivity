@@ -1,9 +1,9 @@
-from heapq import heappush as push, heappop as pop
+from heapq import heappop as pop
+from heapq import heappush as push
 
-from numba import types
-from numba import njit
-from numba.typed import List, Dict
 import numpy as np
+from numba import njit, types
+from numba.typed import Dict, List
 
 
 @njit("(i8[:],f4[:])")

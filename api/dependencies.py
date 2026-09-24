@@ -1,29 +1,29 @@
+import pyarrow as pa
 from fastapi import HTTPException, status
 from fastapi.requests import Request
-import pyarrow as pa
 
 from api.constants import (
-    DAM_FILTER_FIELD_MAP,
-    SB_FILTER_FIELD_MAP,
-    COMBINED_FILTER_FIELD_MAP,
-    ROAD_CROSSING_FILTER_FIELD_MAP,
-    MULTIPLE_VALUE_DICT_FIELDS,
     BOOLEAN_FILTER_FIELDS,
+    COMBINED_FILTER_FIELD_MAP,
+    DAM_FILTER_FIELD_MAP,
+    MULTIPLE_VALUE_DICT_FIELDS,
+    ROAD_CROSSING_FILTER_FIELD_MAP,
+    SB_FILTER_FIELD_MAP,
     FullySupportedBarrierTypes,
 )
 
 
 def get_unit_ids(
     # unit types must be specified manually in order to extract individually from query parameters
-    HUC2: str = None,
-    HUC6: str = None,
-    HUC8: str = None,
-    HUC10: str = None,
-    HUC12: str = None,
-    State: str = None,
-    County: str = None,
-    CongressionalDistrict: str = None,
-    StateWRA: str = None,
+    HUC2: str | None = None,
+    HUC6: str | None = None,
+    HUC8: str | None = None,
+    HUC10: str | None = None,
+    HUC12: str | None = None,
+    State: str | None = None,
+    County: str | None = None,
+    CongressionalDistrict: str | None = None,
+    StateWRA: str | None = None,
     # FishHabitatPartnership specifically excluded here; is handled as a filter below
 ):
     """Extract unit ids for each unit type from the URL query parameters
@@ -140,7 +140,7 @@ def get_filter_params(
             )
 
     # extract optional filters
-    filters = dict()
+    filters = {}
     if field_map:
         filter_keys = {q for q in request.query_params if q in field_map and q not in prefiltered_units}
 

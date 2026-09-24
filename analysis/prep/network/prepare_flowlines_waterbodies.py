@@ -33,34 +33,31 @@ import pyarrow.compute as pc
 import shapely
 from pyogrio import write_dataframe
 
-
 from analysis.constants import (
-    CONVERT_TO_LOOP,
-    CONVERT_TO_NONLOOP,
-    CONVERT_TO_MARINE,
-    CONVERT_TO_FLOW_INTO_GREAT_LAKES,
-    REMOVE_IDS,
-    MAX_PIPELINE_LENGTH,
-    KEEP_PIPELINES,
-    JOIN_FIXES,
-    REMOVE_JOINS,
     COASTAL_HUC2,
+    CONVERT_TO_FLOW_INTO_GREAT_LAKES,
+    CONVERT_TO_LOOP,
+    CONVERT_TO_MARINE,
+    CONVERT_TO_NONLOOP,
+    JOIN_FIXES,
+    KEEP_PIPELINES,
+    MAX_PIPELINE_LENGTH,
+    REMOVE_IDS,
+    REMOVE_JOINS,
 )
-
 from analysis.lib.flowlines import (
-    remove_flowlines,
-    remove_pipelines,
-    remove_great_lakes_flowlines,
-    remove_marine_flowlines,
-    repair_stream_order,
     cut_lines_by_waterbodies,
     mark_altered_flowlines,
+    remove_flowlines,
+    remove_great_lakes_flowlines,
+    remove_marine_flowlines,
+    remove_pipelines,
     repair_disconnected_subnetworks,
+    repair_stream_order,
 )
 from analysis.lib.graph.speedups import DirectedGraph
 from analysis.lib.io import read_arrow_tables
 from analysis.prep.network.lib.drains import create_drain_points
-
 
 data_dir = Path("data")
 nhd_dir = data_dir / "nhd"
@@ -304,13 +301,13 @@ for huc2 in huc2s:
 
     print("------------------")
 
-    print("Serializing {:,} flowlines".format(len(flowlines)))
+    print(f"Serializing {len(flowlines):,} flowlines")
     flowlines = flowlines.reset_index()
     flowlines.to_feather(huc2_dir / "flowlines.feather")
     write_dataframe(flowlines, huc2_dir / "flowlines.fgb")
     joins.reset_index(drop=True).to_feather(huc2_dir / "flowline_joins.feather")
 
-    print("Serializing {:,} waterbodies".format(len(waterbodies)))
+    print(f"Serializing {len(waterbodies):,} waterbodies")
     # waterbodies are losing their CRS somewhere along the way, not sure why it is failing here
     waterbodies.set_crs(flowlines.crs, inplace=True, allow_override=True)
     waterbodies = waterbodies.reset_index()
@@ -318,11 +315,11 @@ for huc2 in huc2s:
     write_dataframe(waterbodies, huc2_dir / "waterbodies.fgb")
     wb_joins.reset_index(drop=True).to_feather(huc2_dir / "waterbody_flowline_joins.feather")
 
-    print("Serializing {:,} drain points".format(len(drains)))
+    print(f"Serializing {len(drains):,} drain points")
     drains.to_feather(huc2_dir / "waterbody_drain_points.feather")
     write_dataframe(drains, huc2_dir / "waterbody_drain_points.fgb")
 
-    print("------------------\nRegion done in {:.2f}s\n------------------\n".format(time() - region_start))
+    print(f"------------------\nRegion done in {time() - region_start:.2f}s\n------------------\n")
 
     del flowlines
     del joins
@@ -353,7 +350,7 @@ all_joins = read_arrow_tables(
     filter=(
         (pc.field("upstream") != 0)
         # make sure to break at loops or we get a mismatch in the network analysis
-        & (pc.field("loop") == False)  # noqa: E712
+        & (pc.field("loop") == False)
         # drop any joins that were added when cutting original flowlines by waterbodies
         & (pc.field("upstream") != pc.field("downstream"))
     ),
@@ -449,4 +446,4 @@ if len(tmp):
     )
 
 
-print("==============\nAll done in {:.2f}s".format(time() - start))
+print(f"==============\nAll done in {time() - start:.2f}s")

@@ -2,12 +2,11 @@ from pathlib import Path
 
 import geopandas as gp
 import numpy as np
-from pyogrio import read_dataframe, write_dataframe
 import shapely
+from pyogrio import read_dataframe, write_dataframe
 
 from analysis.constants import CRS, SALMONID_ESU_LAYER_TO_CODE
 from analysis.lib.geometry import dissolve
-
 
 data_dir = Path("data")
 bnd_dir = data_dir / "boundaries"
@@ -21,7 +20,7 @@ salmonid_esu_gdb = src_dir / "ESU_DPS_CA_WA_OR_ID.gdb"
 huc12 = gp.read_feather(bnd_dir / "huc12.feather", columns=["HUC12", "geometry"])
 tree = shapely.STRtree(huc12.geometry.values)
 
-for layer in SALMONID_ESU_LAYER_TO_CODE.keys():
+for layer in SALMONID_ESU_LAYER_TO_CODE:
     print(f"Processing {layer}")
     df = read_dataframe(salmonid_esu_gdb, layer=layer, columns=[]).to_crs(CRS)
 
@@ -55,9 +54,7 @@ esu_codes = np.array(list(SALMONID_ESU_LAYER_TO_CODE.values()))
 huc12 = huc12.loc[huc12[esu_cols].sum(axis=1) > 0].reset_index(drop=True)
 
 # extract comma-delimited list of ESU codes
-huc12["salmonid_esu"] = huc12[esu_cols].apply(
-    lambda row: ",".join(str(x) for x in esu_codes[row.values]), axis=1
-)
+huc12["salmonid_esu"] = huc12[esu_cols].apply(lambda row: ",".join(str(x) for x in esu_codes[row.values]), axis=1)
 huc12["salmonid_esu_count"] = huc12[esu_cols].sum(axis=1)
 
 

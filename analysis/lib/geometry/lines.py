@@ -358,7 +358,7 @@ def extract_straight_segments(coords, max_angle=10, loops=5):
     keep_coords = coords
     keep_ix = index
 
-    for i in range(0, 5):
+    for i in range(5):
         angles = np.abs(
             vertex_angle(keep_coords[1:-1], keep_coords[:-2], keep_coords[2:]) - 180
         )

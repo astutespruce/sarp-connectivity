@@ -4,8 +4,8 @@ import geopandas as gp
 import pandas as pd
 import shapely
 
-from analysis.lib.io import read_feathers
 from analysis.lib.geometry import dissolve
+from analysis.lib.io import read_feathers
 
 MARINE_BUFFER = 20000  # meters (used 20km per guidance from Kat)
 

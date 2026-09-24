@@ -6,7 +6,6 @@ from pyogrio import write_dataframe
 
 from analysis.lib.util import append
 
-
 data_dir = Path("data")
 src_dir = data_dir / "nhd/raw"
 out_dir = data_dir / "nhd/merged"

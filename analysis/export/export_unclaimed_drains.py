@@ -1,12 +1,10 @@
-from enum import unique
-from pathlib import Path
 import os
+from pathlib import Path
 
 import geopandas as gp
+import numpy as np
 import pandas as pd
 import shapely
-import numpy as np
-
 from pyogrio import write_dataframe
 
 from analysis.constants import STATES

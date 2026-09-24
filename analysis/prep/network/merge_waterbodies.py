@@ -1,16 +1,15 @@
-from pathlib import Path
 import os
+from pathlib import Path
 from time import time
 
-import pandas as pd
 import geopandas as gp
-import shapely
 import numpy as np
+import pandas as pd
+import shapely
 from pyogrio import write_dataframe
 
-from analysis.lib.geometry import explode, dissolve, write_geoms, drop_small_holes
+from analysis.lib.geometry import dissolve, drop_small_holes, explode, write_geoms
 from analysis.prep.network.lib.nhd import find_nhd_waterbody_breaks
-
 
 data_dir = Path("data")
 nhd_dir = data_dir / "nhd/raw"

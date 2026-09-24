@@ -7,7 +7,6 @@ from shapely import STRtree
 
 from analysis.lib.geometry import sjoin_points_to_poly
 
-
 data_dir = Path("data")
 boundaries_dir = data_dir / "boundaries"
 
@@ -140,7 +139,7 @@ def add_spatial_joins(df):
     # combine into single column for filtering
     labels = np.array(["tract", "tribal"])
     df["DisadvantagedCommunity"] = df[["EJTract", "EJTribal"]].apply(
-        lambda row: ",".join(labels[row.values == True]),  # noqa
+        lambda row: ",".join(labels[row.values == True]),
         axis=1,
     )
 

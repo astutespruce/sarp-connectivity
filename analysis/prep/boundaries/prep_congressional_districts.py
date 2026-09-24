@@ -2,13 +2,12 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+import httpx
 import pandas as pd
 from pyogrio import read_dataframe
-import httpx
 
 from analysis.constants import CRS
 from analysis.lib.util import append
-
 
 URL = "https://www2.census.gov/geo/tiger/TIGER2025/CD/tl_2025_{district:02d}_cd119.zip"
 

@@ -24,8 +24,8 @@ Outputs:
 
 """
 
-from pathlib import Path
 import subprocess
+from pathlib import Path
 
 import duckdb
 import numpy as np

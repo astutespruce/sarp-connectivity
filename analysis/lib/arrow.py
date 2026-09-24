@@ -1,6 +1,7 @@
 import pyarrow as pa
 import pyarrow.compute as pc
-from pyproj import Transformer, CRS as ProjCRS
+from pyproj import CRS as ProjCRS
+from pyproj import Transformer
 
 
 def map_values(arr, dict_values, dtype=None):

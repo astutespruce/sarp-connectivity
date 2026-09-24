@@ -12,13 +12,12 @@ Creates the following files in `data/states/sc`:
 from pathlib import Path
 
 import geopandas as gp
-import shapely
 import numpy as np
+import shapely
 from pyogrio import read_dataframe
 
 from analysis.constants import CRS
 from analysis.lib.geometry import dissolve, explode
-
 
 data_dir = Path("data")
 nhd_dir = data_dir / "nhd/raw"  # intentionally use raw flowlines

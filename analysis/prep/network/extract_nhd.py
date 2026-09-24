@@ -2,28 +2,25 @@
 Extract NHD File Geodatabases (FGDB) for all HUC4s within each HUC2.
 """
 
-from pathlib import Path
-import os
-from time import time
 import warnings
+from pathlib import Path
+from time import time
 
 import numpy as np
 import pandas as pd
 import shapely
 
-from analysis.prep.network.lib.nhd import (
-    extract_flowlines,
-    extract_waterbodies,
-    extract_barrier_points,
-    extract_barrier_lines,
-    extract_barrier_polygons,
-    extract_altered_rivers,
-    extract_marine,
-)
-
 from analysis.constants import CRS
 from analysis.lib.util import append
-
+from analysis.prep.network.lib.nhd import (
+    extract_altered_rivers,
+    extract_barrier_lines,
+    extract_barrier_points,
+    extract_barrier_polygons,
+    extract_flowlines,
+    extract_marine,
+    extract_waterbodies,
+)
 
 warnings.filterwarnings("ignore", message=".*geometry types are not supported*")
 
@@ -187,7 +184,7 @@ def process_gdbs(huc2, src_dir, out_dir):
         marine = None
 
     ### Deduplicate waterbodies that are duplicated between adjacent HUC4s
-    print("Removing duplicate waterbodies, starting with {:,}".format(len(waterbodies)))
+    print(f"Removing duplicate waterbodies, starting with {len(waterbodies):,}")
     # Calculate a hash of the WKB bytes of the polygon.
     # This correctly catches polygons that are EXACTLY the same.
     # It will miss those that are NEARLY the same.
@@ -197,7 +194,7 @@ def process_gdbs(huc2, src_dir, out_dir):
     id_map = waterbodies.set_index("wbID")[["hash"]].join(waterbodies.groupby("hash").wbID.first(), on="hash").wbID
     # extract out where they are not equal; these are the ones to drop
     waterbodies = waterbodies.loc[waterbodies.wbID.isin(id_map)].drop(columns=["hash"]).reset_index(drop=True)
-    print("{:,} waterbodies remain after removing duplicates".format(len(waterbodies)))
+    print(f"{len(waterbodies):,} waterbodies remain after removing duplicates")
 
     ### Update the missing upstream_ids at the joins between HUCs.
     # These are the segments that are immediately DOWNSTREAM of segments that flow into this HUC4
@@ -321,6 +318,6 @@ for huc2 in huc2s:
     process_gdbs(huc2, src_dir, huc2_dir)
 
     print("--------------------")
-    print("HUC2: {} done in {:.0f}s\n\n".format(huc2, time() - huc2_start))
+    print(f"HUC2: {huc2} done in {time() - huc2_start:.0f}s\n\n")
 
-print("Done in {:.2f}s\n============================".format(time() - start))
+print(f"Done in {time() - start:.2f}s\n============================")

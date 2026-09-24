@@ -1,23 +1,22 @@
+import warnings
 from pathlib import Path
 from time import time
-import warnings
 
+import numpy as np
 import pandas as pd
 import pyarrow as pa
-from pyarrow.dataset import dataset
 import pyarrow.compute as pc
+from pyarrow.dataset import dataset
 from pyarrow.feather import write_feather
-import numpy as np
 
-from analysis.constants import HUC2_EXITS, NETWORK_TYPES, EPA_CAUSE_TO_CODE, BARRIER_KINDS
-
+from analysis.constants import BARRIER_KINDS, EPA_CAUSE_TO_CODE, HUC2_EXITS, NETWORK_TYPES
 from analysis.lib.graph.speedups import DirectedGraph, LinearDirectedGraph
 from analysis.lib.io import read_arrow_tables
 from analysis.network.lib.stats import (
+    calculate_downstream_linear_network_stats,
+    calculate_downstream_mainstem_network_stats,
     calculate_upstream_functional_network_stats,
     calculate_upstream_mainstem_network_stats,
-    calculate_downstream_mainstem_network_stats,
-    calculate_downstream_linear_network_stats,
 )
 
 pd.set_option("future.no_silent_downcasting", True)

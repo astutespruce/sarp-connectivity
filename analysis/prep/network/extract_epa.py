@@ -1,20 +1,18 @@
-from pathlib import Path
 import warnings
+from pathlib import Path
 
 import geopandas as gp
 import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
-from pyogrio import read_dataframe, write_dataframe
 import shapely
-
+from pyogrio import read_dataframe, write_dataframe
 
 from analysis.constants import CRS
-from analysis.lib.geometry import make_valid, dissolve
+from analysis.lib.geometry import dissolve, make_valid
 from analysis.lib.geometry.lines import merge_lines
 from analysis.lib.io import read_arrow_tables
-
 
 warnings.filterwarnings("ignore", ".*organizePolygons.*")
 warnings.filterwarnings("ignore", ".*invalid value encountered in hausdorff_distance.*")

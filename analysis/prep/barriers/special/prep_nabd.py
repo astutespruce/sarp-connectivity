@@ -1,13 +1,11 @@
 from pathlib import Path
-import warnings
 
-import shapely
 import geopandas as gp
 import numpy as np
+import shapely
 from pyogrio import read_dataframe, write_dataframe
 
 from analysis.constants import CRS
-
 
 data_dir = Path("data")
 boundaries_dir = data_dir / "boundaries"

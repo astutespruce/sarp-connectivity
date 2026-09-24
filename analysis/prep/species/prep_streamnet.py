@@ -1,20 +1,19 @@
-from pathlib import Path
 import warnings
+from pathlib import Path
 
 import geopandas as gp
 import numpy as np
 import pandas as pd
 import pyarrow as pa
-from pyarrow.dataset import dataset
 import pyarrow.compute as pc
-from pyogrio import read_dataframe, write_dataframe
 import shapely
+from pyarrow.dataset import dataset
+from pyogrio import read_dataframe, write_dataframe
 
 from analysis.constants import CRS
-from analysis.lib.graph.speedups import LinearDirectedGraph, DirectedGraph
-from analysis.lib.geometry.lines import merge_lines, fill_endpoint_gaps
+from analysis.lib.geometry.lines import fill_endpoint_gaps, merge_lines
+from analysis.lib.graph.speedups import DirectedGraph, LinearDirectedGraph
 from analysis.lib.io import read_arrow_tables
-
 from analysis.lib.util import append
 
 warnings.filterwarnings("ignore", category=UserWarning, message=".*Measured.*")
@@ -238,7 +237,7 @@ flowlines = read_arrow_tables(
     ],
     filter=pc.is_in(pc.field("HUC4"), pa.array(huc4s)),
     new_fields={"HUC2": huc2s},
-).filter(pc.field("offnetwork") == False)  # noqa: E712
+).filter(pc.field("offnetwork") == False)
 
 flowlines = gp.GeoDataFrame(
     flowlines.select([c for c in flowlines.column_names if c not in {"geometry", "offnetwork"}]).to_pandas(),

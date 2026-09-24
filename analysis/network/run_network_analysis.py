@@ -9,19 +9,19 @@ and network type (dams or small barriers):
 data/networks/<region>/<network type>/*
 """
 
+import warnings
 from pathlib import Path
 from time import time
-import warnings
 
 import pandas as pd
 import pyarrow as pa
-from pyarrow.dataset import dataset
 import pyarrow.compute as pc
+from pyarrow.dataset import dataset
 from pyarrow.feather import write_feather
 
 from analysis.constants import NETWORK_TYPES
 from analysis.lib.io import read_arrow_tables
-from analysis.network.lib.networks import load_flowlines, create_barrier_networks
+from analysis.network.lib.networks import create_barrier_networks, load_flowlines
 
 warnings.simplefilter("always")  # show geometry related warnings every time
 
@@ -54,7 +54,7 @@ all_barriers = (
             "invasive",
         ],
         # exclude all removed barriers from this analysis; they are handled in a separate step
-        filter=pc.field("removed") == False,  # noqa
+        filter=pc.field("removed") == False,
     )
     .combine_chunks()
 )

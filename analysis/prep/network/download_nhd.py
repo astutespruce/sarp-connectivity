@@ -3,9 +3,9 @@ Download NHD Plus HR flowline data for every HUC4 in the analysis region.
 """
 
 import asyncio
+import warnings
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-import warnings
 
 import httpx
 import pandas as pd
@@ -15,39 +15,37 @@ from analysis.prep.network.lib.nhd.download import download_gdb, get_gdb_urls
 MAX_WORKERS = 2
 
 # limit downloads in AK to where data are available (updated 8/28/2024)
-AK_HUC8 = set(
-    [
-        # all are on Current (not Beta)
-        "19020101",
-        "19020102",
-        "19020103",
-        "19020104",
-        "19020201",
-        "19020202",
-        "19020203",
-        "19020301",
-        "19020302",
-        "19020401",
-        "19020402",
-        "19020501",
-        "19020502",
-        "19020503",
-        "19020504",
-        "19020505",
-        "19020601",
-        "19020602",
-        "19020800",
-        "19050401",
-        "19060102",
-        "19060501",
-        "19060502",
-        "19060504",
-        "19060505",
-        "19070402",
-        "19080301",
-        "19080305",
-    ]
-)
+AK_HUC8 = {
+    # all are on Current (not Beta)
+    "19020101",
+    "19020102",
+    "19020103",
+    "19020104",
+    "19020201",
+    "19020202",
+    "19020203",
+    "19020301",
+    "19020302",
+    "19020401",
+    "19020402",
+    "19020501",
+    "19020502",
+    "19020503",
+    "19020504",
+    "19020505",
+    "19020601",
+    "19020602",
+    "19020800",
+    "19050401",
+    "19060102",
+    "19060501",
+    "19060502",
+    "19060504",
+    "19060505",
+    "19070402",
+    "19080301",
+    "19080305",
+}
 
 
 async def download_gdbs(ids, out_dir):

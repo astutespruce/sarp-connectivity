@@ -1,6 +1,6 @@
+import numpy as np
 from numba import njit, types
 from numba.typed import List
-import numpy as np
 
 
 @njit("(i8[:],i8[:])", cache=True)
@@ -157,7 +157,7 @@ def network_pairs_global(adj_matrix, root_ids):
 def components(adj_matrix):
     groups = []
     seen = set()
-    for node in adj_matrix.keys():
+    for node in adj_matrix:
         if node not in seen:
             # add current node with all descendants
             adj_nodes = {node} | descendants(adj_matrix, [node])[0]
@@ -174,7 +174,7 @@ def flat_components(adj_matrix):
     values = List.empty_list(types.int64)
     seen = set()
     group = 0
-    for node in adj_matrix.keys():
+    for node in adj_matrix:
         if node not in seen:
             # add current node with all descendants
             adj_nodes = {node} | descendants(adj_matrix, [node])[0]
@@ -310,7 +310,7 @@ def find_loops(adj_matrix, sources, max_depth=None):
     return loops
 
 
-class DirectedGraph(object):
+class DirectedGraph:
     def __init__(self, source, target):
         """Create DirectedGraph from source and target ndarrays.
 

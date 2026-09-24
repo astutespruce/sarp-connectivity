@@ -1,26 +1,26 @@
-from pathlib import Path
-import pyarrow as pa
 import warnings
+from pathlib import Path
 
-import pandas as pd
-import pyarrow.compute as pc
 import numpy as np
+import pandas as pd
+import pyarrow as pa
+import pyarrow.compute as pc
 
-from api.constants import SPECIES_HABITAT_FIELDS
 from analysis.constants import EPA_CAUSE_TO_CODE
 from analysis.lib.io import read_arrow_tables
 from analysis.rank.lib.metrics import (
-    classify_gain_miles,
-    classify_mainstem_gain_miles,
-    classify_downstream_miles,
-    classify_percent_unaltered,
-    classify_percent_resilient,
     # classify_percent_cold,
     classify_downstream_barriers,
+    classify_downstream_miles,
+    classify_gain_miles,
+    classify_mainstem_gain_miles,
+    classify_percent_resilient,
+    classify_percent_unaltered,
     classify_unaltered_waterbody_area,
     classify_unaltered_wetland_area,
 )
-from api.lib.tiers import calculate_tiers, METRICS
+from api.constants import SPECIES_HABITAT_FIELDS
+from api.lib.tiers import METRICS, calculate_tiers
 
 # TODO: convert some operations to pyarrow instead and then to pandas at the end;
 # then remove this filter
@@ -280,7 +280,7 @@ def get_network_results(df, network_type, state_ranks=False, huc8_ranks=False):
     # TODO: convert to coded domain when saving file
     upstream_cols = []
     downstream_cols = []
-    for key in EPA_CAUSE_TO_CODE.keys():
+    for key in EPA_CAUSE_TO_CODE:
         suffix = key.title().replace("_", "")
         upstream_col = f"HasMainstemUpstream{suffix}"
         upstream_cols.append(upstream_col)

@@ -1,9 +1,9 @@
-from pathlib import Path
 import subprocess
+from pathlib import Path
 
 import geopandas as gp
-import shapely
 import pandas as pd
+import shapely
 from pyogrio import write_dataframe
 
 from analysis.constants import GEO_CRS
@@ -73,7 +73,7 @@ ret = subprocess.run(
     + ["-Z", "0", "-z", MAX_ZOOM]
     + ["-l", "State"]
     + get_col_types(states)
-    + ["-o", f"{str(mbtiles_filename)}", str(outfilename)]
+    + ["-o", f"{mbtiles_filename!s}", str(outfilename)]
 )
 ret.check_returncode()
 outfilename.unlink()
@@ -115,7 +115,7 @@ ret = subprocess.run(
     + ["-Z", "3", "-z", MAX_ZOOM]
     + ["-l", "County"]
     + get_col_types(df)
-    + ["-o", f"{str(mbtiles_filename)}", str(outfilename)]
+    + ["-o", f"{mbtiles_filename!s}", str(outfilename)]
 )
 ret.check_returncode()
 outfilename.unlink()
@@ -136,7 +136,7 @@ ret = subprocess.run(
     + ["-Z", "1", "-z", MAX_ZOOM]
     + ["-l", "CongressionalDistrict"]
     + get_col_types(df)
-    + ["-o", f"{str(mbtiles_filename)}", str(outfilename)]
+    + ["-o", f"{mbtiles_filename!s}", str(outfilename)]
 )
 ret.check_returncode()
 outfilename.unlink()
@@ -154,7 +154,7 @@ ret = subprocess.run(
     + ["-Z", "1", "-z", MAX_ZOOM]
     + ["-l", "StateWRA"]
     + get_col_types(df)
-    + ["-o", f"{str(mbtiles_filename)}", str(outfilename)]
+    + ["-o", f"{mbtiles_filename!s}", str(outfilename)]
 )
 ret.check_returncode()
 outfilename.unlink()
@@ -173,7 +173,7 @@ ret = subprocess.run(
     + ["-Z", "0", "-z", MAX_ZOOM]
     + ["-l", "HUC2"]
     + get_col_types(df)
-    + ["-o", f"{str(mbtiles_filename)}", str(outfilename)]
+    + ["-o", f"{mbtiles_filename!s}", str(outfilename)]
 )
 ret.check_returncode()
 outfilename.unlink()
@@ -202,7 +202,7 @@ for huc, (minzoom, maxzoom) in huc_zoom_levels.items():
         + ["-Z", minzoom, "-z", maxzoom]
         + ["-l", huc]
         + get_col_types(df)
-        + ["-o", f"{str(mbtiles_filename)}", str(outfilename)]
+        + ["-o", f"{mbtiles_filename!s}", str(outfilename)]
     )
     ret.check_returncode()
     outfilename.unlink()

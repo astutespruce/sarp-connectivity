@@ -1,6 +1,6 @@
+import numpy as np
 import pandas as pd
 import shapely
-import numpy as np
 
 
 def sjoin(left, right, predicate="intersects", how="left"):

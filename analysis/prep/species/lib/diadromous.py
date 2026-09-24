@@ -4,7 +4,6 @@ import numpy as np
 import pyarrow.compute as pc
 from pyarrow.dataset import dataset
 
-
 data_dir = Path("data")
 src_dir = data_dir / "species/derived"
 
@@ -19,7 +18,7 @@ def get_diadromous_ids():
     """
     streamnet_anadromous = dataset(src_dir / "streamnet_habitat.feather", format="feather").to_table(
         columns=["NHDPlusID"],
-        filter=pc.field("streamnet_anadromous_habitat") == True,  # noqa: E712
+        filter=pc.field("streamnet_anadromous_habitat") == True,
     )["NHDPlusID"]
 
     ca_anadromous = dataset(src_dir / "ca_baseline_fish_habitat.feather", format="feather").to_table(
@@ -30,7 +29,7 @@ def get_diadromous_ids():
         src_dir / "chesapeake_diadromous_species_habitat.feather", format="feather"
     ).to_table(
         columns=["NHDPlusID"],
-        filter=pc.field("chesapeake_diadromous_habitat") == True,  # noqa: E712
+        filter=pc.field("chesapeake_diadromous_habitat") == True,
     )["NHDPlusID"]
 
     southeast_diadromous = dataset(src_dir / "southeast_diadromous_habitat.feather", format="feather").to_table(

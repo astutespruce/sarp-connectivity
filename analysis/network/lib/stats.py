@@ -1,10 +1,10 @@
 from pathlib import Path
 
+import numpy as np
 import pyarrow as pa
 import pyarrow.compute as pc
-import numpy as np
 
-from analysis.constants import METERS_TO_MILES, KM2_TO_ACRES, EPA_CAUSE_TO_CODE, BARRIER_KINDS
+from analysis.constants import BARRIER_KINDS, EPA_CAUSE_TO_CODE, KM2_TO_ACRES, METERS_TO_MILES
 from analysis.lib.graph.speedups import DirectedGraph
 from analysis.lib.io import read_arrow_tables
 
@@ -194,9 +194,9 @@ def calculate_upstream_functional_flowline_stats(network_flowlines):
         flowline_stats[f"fn_{habitat}_miles"] = pc.if_else(present, miles, 0)
         flowline_stats[f"fn_free_{habitat}_miles"] = pc.if_else(present, free_miles, 0)
 
-    measure_cols = [c for c in flowline_stats.keys() if c.endswith("_miles") or c.endswith("_acres")]
-    presence_cols = [c for c in flowline_stats.keys() if c.startswith("fn_has_")]
-    distinct_cols = [c for c in flowline_stats.keys() if c.endswith("_sizeclasses")]
+    measure_cols = [c for c in flowline_stats if c.endswith(("_miles", "_acres"))]
+    presence_cols = [c for c in flowline_stats if c.startswith("fn_has_")]
+    distinct_cols = [c for c in flowline_stats if c.endswith("_sizeclasses")]
 
     network_stats = (
         pa.Table.from_pydict(flowline_stats)
@@ -610,11 +610,11 @@ def calculate_upstream_mainstem_network_stats(network_flowlines):
         "um_perennial_unaltered_miles": pc.if_else(
             pc.or_(network_flowlines["intermittent"], network_flowlines["altered"]), 0, miles
         ),
-        **{f"um_has_{col}": network_flowlines[col] for col in EPA_CAUSE_TO_CODE.keys()},
+        **{f"um_has_{col}": network_flowlines[col] for col in EPA_CAUSE_TO_CODE},
     }
 
-    measure_cols = [c for c in flowline_stats.keys() if c.endswith("_miles")]
-    presence_cols = [c for c in flowline_stats.keys() if c.startswith("um_has_")]
+    measure_cols = [c for c in flowline_stats if c.endswith("_miles")]
+    presence_cols = [c for c in flowline_stats if c.startswith("um_has_")]
     distinct_cols = ["um_sizeclasses"]
 
     network_stats = (
@@ -694,11 +694,11 @@ def calculate_downstream_mainstem_network_stats(network_flowlines, focal_barrier
         "dm_free_intermittent_miles": pc.if_else(network_flowlines["intermittent"], free_miles, 0),
         "dm_free_altered_miles": pc.if_else(network_flowlines["altered"], free_miles, 0),
         "dm_free_unaltered_miles": pc.if_else(network_flowlines["altered"], 0, free_miles),
-        **{f"dm_has_{col}": network_flowlines[col] for col in EPA_CAUSE_TO_CODE.keys()},
+        **{f"dm_has_{col}": network_flowlines[col] for col in EPA_CAUSE_TO_CODE},
     }
 
-    measure_cols = [c for c in flowline_stats.keys() if c.endswith("_miles")]
-    presence_cols = [c for c in flowline_stats.keys() if c.startswith("dm_has_")]
+    measure_cols = [c for c in flowline_stats if c.endswith("_miles")]
+    presence_cols = [c for c in flowline_stats if c.startswith("dm_has_")]
 
     network_stats = (
         pa.Table.from_pydict(flowline_stats)
@@ -800,7 +800,7 @@ def calculate_downstream_linear_network_stats(
         "dl_free_unaltered_miles": pc.if_else(network_flowlines["altered"], 0, free_miles),
     }
 
-    measure_cols = [c for c in flowline_stats.keys() if c.endswith("_miles")]
+    measure_cols = [c for c in flowline_stats if c.endswith("_miles")]
     network_stats = (
         pa.Table.from_pydict(flowline_stats)
         .group_by("networkID")

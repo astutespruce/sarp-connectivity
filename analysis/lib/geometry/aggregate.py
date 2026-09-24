@@ -1,7 +1,7 @@
 import geopandas as gp
+import numpy as np
 import pandas as pd
 import shapely
-import numpy as np
 
 from analysis.lib.geometry.explode import explode
 from analysis.lib.graph import DirectedGraph
@@ -32,7 +32,7 @@ def dissolve(df, by, grid_size=None, agg=None, allow_multi=True, op="union"):
         if "geometry" in agg:
             raise ValueError("Cannot use user-specified aggregator for geometry")
     else:
-        agg = dict()
+        agg = {}
 
     agg["geometry"] = lambda g: union_or_combine(g.values, grid_size=grid_size, op=op)
 

@@ -3,21 +3,20 @@ import shutil
 from time import time
 
 import arq
-from arq import cron
 import sentry_sdk
+from arq import cron
 
 from api.internal.barriers.download import custom_download_task
 from api.settings import (
     CUSTOM_DOWNLOAD_DIR,
     DOWNLOAD_JOB_TIMEOUT,
     FILE_RETENTION_TIME,
-    SENTRY_DSN,
     LOGGING_LEVEL,
+    MAX_DOWNLOAD_JOBS,
     REDIS,
     REDIS_QUEUE,
-    MAX_DOWNLOAD_JOBS,
+    SENTRY_DSN,
 )
-
 
 log = logging.getLogger(__name__)
 log.setLevel(LOGGING_LEVEL)

@@ -1,21 +1,21 @@
+import warnings
 from pathlib import Path
 from time import time
-import warnings
 
+import geopandas as gp
+import numpy as np
+import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
-from pyarrow.dataset import dataset
-import geopandas as gp
-import pandas as pd
 import shapely
+from pyarrow.dataset import dataset
 from pyogrio import read_arrow
-import numpy as np
 
 from analysis.constants import (
+    CROSSING_TYPE_TO_DOMAIN,
     CROSSINGS_ID_OFFSET,
     CRS,
     FCODE_TO_STREAMTYPE,
-    CROSSING_TYPE_TO_DOMAIN,
 )
 from analysis.lib.arrow import map_values
 from analysis.lib.geometry.points import encode_hilbert

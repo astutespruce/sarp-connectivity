@@ -1,19 +1,19 @@
-from pathlib import Path
 import os
-from time import time
 import warnings
+from pathlib import Path
+from time import time
 
 import geopandas as gp
 import numpy as np
 import pandas as pd
 import pyarrow as pa
-from pyarrow.feather import write_feather
 import pyarrow.compute as pc
 import shapely
+from pyarrow.feather import write_feather
 
-from analysis.constants import CRS, SIZECLASSES, BARRIER_KINDS, FLOWLINE_JOIN_TYPES
-from analysis.lib.graph.speedups.directedgraph import DirectedGraph
+from analysis.constants import BARRIER_KINDS, CRS, FLOWLINE_JOIN_TYPES, SIZECLASSES
 from analysis.lib.flowlines import cut_flowlines_at_barriers
+from analysis.lib.graph.speedups.directedgraph import DirectedGraph
 from analysis.lib.io import read_arrow_tables
 from analysis.network.lib.networks import connect_huc2s
 
@@ -74,7 +74,7 @@ all_joins = read_arrow_tables(
         "great_lakes",
     ],
     new_fields={"HUC2": huc2s},
-    filter=pc.field("loop") == False,  # noqa
+    filter=pc.field("loop") == False,
 )
 
 all_joins, groups = connect_huc2s(all_joins, huc2s)
@@ -143,7 +143,7 @@ filled = {
     "invasive": pc.fill_null(all_barriers["invasive"], False),
 }
 all_barriers = pa.Table.from_pydict(
-    {**{c: all_barriers[c] for c in all_barriers.column_names if c not in filled.keys()}, **filled},
+    {**{c: all_barriers[c] for c in all_barriers.column_names if c not in filled}, **filled},
     metadata=all_barriers.schema.metadata,
 )
 write_feather(all_barriers, out_dir / "all_barriers.feather")
@@ -194,7 +194,7 @@ for huc2 in huc2s:
             "waterbody",
         ],
         # exclude loops and off-network flowlines
-        filter=(pc.field("loop") == False) & (pc.field("offnetwork") == False),  # noqa
+        filter=(pc.field("loop") == False) & (pc.field("offnetwork") == False),
     )
 
     sizeclass_values = pa.array(SIZECLASSES)
@@ -249,7 +249,7 @@ for huc2 in huc2s:
         pa.dataset.dataset(data_dir / "barriers/master/dams.feather", format="feather")
         .to_table(
             filter=(pc.field("HUC2") == huc2)
-            & (pc.field("primary_network") == True)  # noqa
+            & (pc.field("primary_network") == True)
             & (~pc.is_null(pc.field("wbID"))),
             columns=["wbID"],
         )["wbID"]
@@ -288,7 +288,7 @@ for huc2 in huc2s:
         pa.dataset.dataset(waterbodies_dir / huc2 / "waterbodies.feather", format="feather")
         .to_table(
             filter=(~(pc.is_in(pc.field("wbID"), dam_wbid)))
-            & (pc.field("altered") == False)  # noqa: E712
+            & (pc.field("altered") == False)
             & (pc.field("km2") < 8000),  # exclude Great Lakes
             columns=["geometry", "wbID", "km2", "altered"],
         )
@@ -324,4 +324,4 @@ for huc2 in huc2s:
 
     print(f"Region done in {time() - region_start:.2f}s\n\n")
 
-print("All done in {:.2f}s".format(time() - start))
+print(f"All done in {time() - start:.2f}s")

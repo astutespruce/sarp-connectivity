@@ -1,15 +1,14 @@
 import asyncio
 from copy import deepcopy
-import httpx
 from math import ceil
 from pathlib import Path
 
 import geopandas as gp
+import httpx
 import pandas as pd
 
 from analysis.constants import CRS
 from analysis.prep.barriers.lib.arcgis import get_json
-
 
 URL = "https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_WildScenicRiverEligibleSuitable_01/MapServer/1"
 

@@ -5,13 +5,13 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
+import shapely
 from pyarrow.dataset import dataset
 from pyogrio import write_dataframe
-import shapely
 
 from analysis.constants import CRS
-from analysis.lib.io import read_feathers
 from analysis.lib.geometry.lines import merge_lines
+from analysis.lib.io import read_feathers
 
 src_dir = Path("data/networks")
 out_dir = Path("/tmp/sarp")

@@ -1,20 +1,18 @@
-from contextlib import asynccontextmanager
 import logging
+from contextlib import asynccontextmanager
 
+import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
 from fastapi.responses import Response
-
-import sentry_sdk
 from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 
-from api.logger import log
-from api.settings import ALLOWED_ORIGINS, SENTRY_DSN, API_ROOT_PATH, PROVIDE_DOWNLOAD_ENDPOINTS
-from api.internal import router as internal_router
-from api.public import router as public_router
 from api.dev.downloads import router as dev_downloads_router
-
+from api.internal import router as internal_router
+from api.logger import log
+from api.public import router as public_router
+from api.settings import ALLOWED_ORIGINS, API_ROOT_PATH, PROVIDE_DOWNLOAD_ENDPOINTS, SENTRY_DSN
 
 ### Setup Sentry
 if SENTRY_DSN:

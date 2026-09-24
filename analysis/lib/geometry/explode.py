@@ -18,14 +18,12 @@ def explode(df, add_position=False):
     -------
     GeoDataFrame
     """
-    join_cols = [c for c in df.columns if not c == "geometry"]
+    join_cols = [c for c in df.columns if c != "geometry"]
     crs = df.crs
     geom, outer_index = shapely.get_parts(df.geometry.values, return_index=True)
 
     if not add_position:
-        return gp.GeoDataFrame(
-            df[join_cols].take(outer_index), geometry=geom, crs=df.crs
-        )
+        return gp.GeoDataFrame(df[join_cols].take(outer_index), geometry=geom, crs=df.crs)
 
     if len(outer_index):
         # generate inner index as a range per value of outer_idx

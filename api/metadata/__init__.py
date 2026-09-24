@@ -1,15 +1,13 @@
 from datetime import date
 from pathlib import Path
 
-from api.settings import DATA_VERSION, DATA_DATE, SITE_URL, CONTACT_EMAIL
-
-
 from api.constants import (
-    DAM_FIELD_DEFINITIONS,
-    SB_FIELD_DEFINITIONS,
     COMBINED_FIELD_DEFINITIONS,
+    DAM_FIELD_DEFINITIONS,
     ROAD_CROSSING_FIELD_DEFINITIONS,
+    SB_FIELD_DEFINITIONS,
 )
+from api.settings import CONTACT_EMAIL, DATA_DATE, DATA_VERSION, SITE_URL
 
 metadata_dir = Path(__file__).resolve().parent
 

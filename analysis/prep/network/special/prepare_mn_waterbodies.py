@@ -3,13 +3,12 @@ from pathlib import Path
 import geopandas as gp
 import numpy as np
 import pandas as pd
-from pyogrio import read_dataframe
 import shapely
+from pyogrio import read_dataframe
 
 from analysis.constants import CRS
 from analysis.lib.geometry import dissolve
 from analysis.lib.io import read_feathers
-
 
 data_dir = Path("data")
 nhd_dir = data_dir / "nhd/raw"  # intentionally use raw flowlines

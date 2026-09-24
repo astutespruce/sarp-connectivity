@@ -1,4 +1,5 @@
 from pathlib import Path
+
 import pandas as pd
 
 from analysis.lib.graph.speedups import DirectedGraph
