@@ -12,7 +12,7 @@ src_dir = Path("data/networks")
 out_dir = Path("/tmp/sarp")
 out_dir.mkdir(exist_ok=True)
 
-scenario = "full"  # "dams", "combined_barriers", "largefish_barriers", "smallfish_barriers", "artificial_barriers"
+scenario = "dams"  # "dams", "combined_barriers", "largefish_barriers", "smallfish_barriers", "artificial_barriers"
 suffix = ""
 ext = "gdb"
 driver = "OpenFileGDB"
@@ -20,7 +20,7 @@ driver = "OpenFileGDB"
 groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
 
 # to filter for groups that contain particular HUC2s:
-# groups_df = groups_df.loc[groups_df.group.isin(groups_df.loc[groups_df.HUC2.isin(["01", "02", "04", "05"])].group)]
+# groups_df = groups_df.loc[groups_df.group.isin(groups_df.loc[groups_df.HUC2.isin(["12", "13"])].group)]
 
 huc2_groups = groups_df.groupby("group").HUC2.unique().apply(sorted).to_dict().values()
 
@@ -49,29 +49,28 @@ for group in huc2_groups:
         [src_dir / "clean" / huc2 / f"{scenario}_network_stats.feather" for huc2 in group],
         columns=[
             "networkID",
-            "total_miles",
-            "perennial_miles",
-            "intermittent_miles",
-            "altered_miles",
-            "unaltered_miles",
-            "perennial_unaltered_miles",
-            "resilient_miles",
-            "cold_miles",
-            "free_miles",
-            "free_perennial_miles",
-            "free_intermittent_miles",
-            "free_altered_miles",
-            "free_unaltered_miles",
-            "free_perennial_unaltered_miles",
-            "free_resilient_miles",
-            "free_cold_miles",
-            "pct_unaltered",
-            "pct_perennial_unaltered",
-            "pct_mainstem_unaltered",
-            "pct_resilient",
-            "pct_cold",
-            "natfldpln",
-            "sizeclasses",
+            "fn_total_miles",
+            "fn_perennial_miles",
+            "fn_intermittent_miles",
+            "fn_altered_miles",
+            "fn_unaltered_miles",
+            "fn_perennial_unaltered_miles",
+            "fn_resilient_miles",
+            # "fn_cold_miles",  TEMP: to be updated with new data source
+            "fn_free_miles",
+            "fn_free_perennial_miles",
+            "fn_free_intermittent_miles",
+            "fn_free_altered_miles",
+            "fn_free_unaltered_miles",
+            "fn_free_perennial_unaltered_miles",
+            "fn_free_resilient_miles",
+            # "fn_free_cold_miles",  TEMP: to be updated with new data source
+            "fn_pct_unaltered",
+            "fn_pct_perennial_unaltered",
+            "fn_pct_resilient",
+            # "pct_cold",  TEMP: to be updated with new data source
+            "fn_natfldpln",
+            "fn_sizeclasses",
             "barrier",
             "flows_to_ocean",
             "flows_to_great_lakes",
@@ -88,7 +87,7 @@ for group in huc2_groups:
         stats[col] = stats[col].fillna(0).astype("int8")
 
     # natural floodplain is missing for several catchments; fill with -1
-    for col in ["natfldpln", "sizeclasses"]:
+    for col in ["fn_natfldpln", "fn_sizeclasses"]:
         stats[col] = stats[col].fillna(-1).astype("int8")
 
     # create output files by HUC2 based on where the segments occur
@@ -120,8 +119,9 @@ for group in huc2_groups:
         flowlines = (
             flowlines.join(segments)
             .join(floodplains, on="NHDPlusID")
-            .join(stats[["sizeclasses", "flows_to_ocean", "flows_to_great_lakes"]], on="networkID")
+            .join(stats[["fn_sizeclasses", "flows_to_ocean", "flows_to_great_lakes"]], on="networkID")
         )
+
         flowlines["km"] = flowlines["length"] / 1000.0
         flowlines["miles"] = flowlines["length"] * 0.000621371
 
@@ -131,12 +131,12 @@ for group in huc2_groups:
             flowlines[col] = flowlines[col].fillna(-1)
 
         # serialize raw segments
-        print("Serializing undissolved networks...")
-        write_dataframe(
-            flowlines.reset_index(),
-            out_dir / f"region{huc2}_{scenario}_segments.{ext}",
-            driver=driver,
-        )
+        # print("Serializing undissolved networks...")
+        # write_dataframe(
+        #     flowlines.reset_index(),
+        #     out_dir / f"region{huc2}_{scenario}_segments.{ext}",
+        #     driver=driver,
+        # )
 
         # # aggregate to multilinestrings by combinations of networkID
         # print("Dissolving networks...")

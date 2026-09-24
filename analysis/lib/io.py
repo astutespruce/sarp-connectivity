@@ -1,13 +1,15 @@
-from pathlib import Path
 import warnings
+from pathlib import Path
 
+import geopandas as gp
 import numpy as np
 import pandas as pd
-import geopandas as gp
 import pyarrow as pa
 from pyarrow.dataset import dataset
 
 from analysis.constants import CRS
+
+warnings.filterwarnings("ignore", message=".*read_table is deprecated.*")
 
 
 def read_feathers(paths, columns=None, geo=False, new_fields=None):

@@ -15,7 +15,8 @@ router = APIRouter()
 
 SARPID_REGEX = re.compile(r"^\S\S\d+")
 
-NUM_BARRIER_SEARCH_RESULTS = 10
+DEFAULT_BARRIER_SEARCH_RESULTS = 10
+MAX_BARRIER_SEARCH_RESULTS = 25
 
 
 @router.get("/barriers/search")
@@ -48,7 +49,7 @@ async def search(request: Request, query: str):
             f"""SELECT {col_expr} FROM search_barriers
             WHERE SARPID LIKE ?
             ORDER BY length(SARPID) ASC, SARPID ASC
-            LIMIT {NUM_BARRIER_SEARCH_RESULTS}""",
+            LIMIT {DEFAULT_BARRIER_SEARCH_RESULTS}""",
             params=(query,),
         ).to_arrow_table()
 
@@ -67,6 +68,8 @@ async def search(request: Request, query: str):
             params=(f"%{query.replace(' ', '%')}%",),
         ).fetchone()[0]
 
+        max_results = DEFAULT_BARRIER_SEARCH_RESULTS if len(query) < 6 else MAX_BARRIER_SEARCH_RESULTS
+
         sql_query = f"""WITH hits AS (
             SELECT SARPID, priority, search_key,
                 jaccard(search_key, ?) as similarity,
@@ -76,7 +79,7 @@ async def search(request: Request, query: str):
                 FROM search_barriers_name
                 WHERE search_key LIKE ?
                 ORDER BY ix
-                LIMIT {NUM_BARRIER_SEARCH_RESULTS}
+                LIMIT {max_results}
             )
             SELECT {col_expr}
             FROM hits INNER JOIN search_barriers

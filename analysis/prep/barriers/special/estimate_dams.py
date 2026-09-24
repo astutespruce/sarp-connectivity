@@ -10,8 +10,8 @@ from pyogrio import write_dataframe
 
 from analysis.constants import STATES
 from analysis.export.lib.drains import find_dam_faces
-from analysis.lib.util import append
 from analysis.lib.io import read_feathers
+from analysis.lib.util import append
 
 data_dir = Path("data")
 nhd_dir = data_dir / "nhd/clean"
@@ -67,41 +67,23 @@ for huc2 in huc2s:
 
 df = merged.reset_index(drop=True)
 
-dams = gp.read_feather(data_dir / "barriers/master/dams.feather")
-# drop any that were previously estimated
-dams = dams.loc[
-    dams.wbID.notnull()
-    & (
-        ~dams.Source.isin(
-            [
-                "Estimated Dams OCT 2021",
-                "ESTIMATED DAMS OCT 2021",
-                "Estimated Dams Summer 2022",
-                "Estimated Dams JAN 2023",
-            ]
-        )
-    )
-].copy()
-
-has_dam = df.wbID.isin(dams.wbID.unique())
-
 states = gp.read_feather("data/boundaries/states.feather", columns=["id", "geometry"])
-tree = shapely.STRtree(df.geometry.values)
-left, right = tree.query(states.geometry.values, predicate="intersects")
-
+left, right = shapely.STRtree(df.geometry.values).query(states.geometry.values, predicate="intersects")
 state_join = pd.DataFrame({"state": states.id.take(left), "drain": df.index.take(right)}).groupby("drain").first()
-
 df = df.join(state_join)
 
 # only keep those in the region states
 df = df.loc[df.state.isin(STATES)].copy()
 
+
+dams = pd.read_feather(data_dir / "barriers/master/dams.feather", ["wbID"])
+dams = dams.loc[dams.wbID.notnull()].copy()
+has_dam = df.wbID.isin(dams.wbID.unique())
+
 write_dataframe(df.loc[~has_dam], out_dir / "estimated_dam_lines.fgb")
 write_dataframe(df.loc[has_dam], out_dir / "estimated_dam_lines_with_dam.fgb")
 
-
 outfilename = tmp_dir / "estimated_dams.gdb"
-
 write_dataframe(df.loc[~has_dam], outfilename, layer="estimated_dam_lines", driver="OpenFileGDB")
 write_dataframe(df.loc[has_dam], outfilename, layer="estimated_dam_lines_with_dam", driver="OpenFileGDB", append=True)
 
@@ -120,9 +102,7 @@ altered_wb_drains = drains.loc[
     & ~drains.wbID.isin(dams.wbID.dropna().unique().astype("uint32"))
 ]
 
-tree = shapely.STRtree(altered_wb_drains.geometry.values)
-left, right = tree.query(states.geometry.values, predicate="intersects")
-
+left, right = shapely.STRtree(altered_wb_drains.geometry.values).query(states.geometry.values, predicate="intersects")
 altered_wb_drains = altered_wb_drains.join(
     pd.DataFrame({"state": states.id.take(left), "drain": altered_wb_drains.index.take(right)}).groupby("drain").first()
 )

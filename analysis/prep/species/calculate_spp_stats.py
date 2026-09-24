@@ -16,13 +16,12 @@ from time import time
 import geopandas as gp
 import numpy as np
 import pandas as pd
-from pyogrio import read_dataframe, write_dataframe
-from pyarrow.csv import read_csv, ConvertOptions
 import shapely
+from pyarrow.csv import ConvertOptions, read_csv
+from pyogrio import read_dataframe, write_dataframe
 
 from analysis.constants import SARP_STATES
 from analysis.lib.util import append
-
 
 start = time()
 data_dir = Path("data")
@@ -41,6 +40,7 @@ secas_huc12 = huc12.take(
         )[1]
     )
 )
+
 
 salmonid_huc12 = pd.read_feather(
     src_dir / "salmonid_esu.feather",
@@ -126,6 +126,7 @@ federal_spp = listed_df.loc[listed_df.official_status.isin(["E", "T"])].SNAME.un
 ### Process trout data at species level for filtering
 # NOTE: these are not necessarily T/E/SGCN
 ################################################################################
+print("Reading trout data")
 
 ### TEMPORARY: use trout habitat lines to backfill missing HUC12s
 trout_cols = [
@@ -240,20 +241,30 @@ for filename in (src_dir / "Species HUC12 csvs").glob("*.csv"):
         )
     )
 
+    df["source"] = filename.stem
+
     if "CNAME" not in df.columns:
         df["CNAME"] = ""
 
-    df = df[["HUC12", "SNAME", "CNAME", "historical", "federal", "sgcn", "regional", "is_trout"]]
+    df = df[["HUC12", "SNAME", "CNAME", "historical", "federal", "sgcn", "regional", "is_trout", "source"]]
 
     # fix data issues (have to do before merge or it has issues with blank columns)
     for col in df.columns:
         df[col] = df[col].fillna("").str.strip().str.replace("<Null>", "").str.replace("Unknown", "")
 
+    # fix values in federal that are not official status
+    # TODO: confirm with Kat
+    df["federal"] = df.federal.replace("Proposed Threatened", "").replace("PT", "").replace("PE", "").replace("AR", "")
+
+    missing_ix = df.HUC12.isnull() | (df.HUC12 == "")
+    if missing_ix.any():
+        print(f"WARNING: found {missing_ix.sum():,} records with missing HUC12 values")
+
+    df = df.loc[(df.HUC12 != "") & (df.SNAME != "")].copy()
+
     # TEMPORARY: prefx huc12 codes that are not 0 prefixed to 12 chars
     ix = df.HUC12.apply(len) < 12
     df.loc[ix, "HUC12"] = df.loc[ix].HUC12.str.pad(12, side="left", fillchar="0")
-
-    df = df.loc[(df.HUC12 != "") & (df.SNAME != "")].copy()
 
     if "Aquatic" in df.columns:
         df = df.loc[df.Aquatic != "No"].copy()
@@ -271,10 +282,11 @@ for filename in (src_dir / "Species HUC12 csvs").glob("*.csv"):
 
 df = merged
 
-
 trout_df = pd.concat([trout_df, df.loc[df.is_trout]]).groupby(["HUC12", "SNAME"])[[]].first().reset_index()
 
 # drop duplicates, keeping the highest status per species per HUC12
+# NOTE: species status will vary by HUC12 based on which state and region it overlaps with, or for distinct populations
+# in the case of T&E spps
 df = (
     df.sort_values(by=["HUC12", "SNAME", "CNAME"], ascending=[True, True, False])
     .groupby(["HUC12", "SNAME"])
@@ -291,6 +303,26 @@ df = (
 # Update federal status based on T&E list above (helps get past some taxonomic issues)
 df.loc[~df.federal & df.SNAME.isin(federal_spp), "federal"] = True
 
+### Crosscheck against RSGCN list
+rsgcn = pd.read_excel(src_dir / "RSGCN Merged List 07152019.xlsx", engine="calamine").rename(
+    columns={"Scientific Name": "SNAME", "Common Name": "CNAME"}
+)
+fixes = [
+    "Acipenser oxyrinchus desotoi",
+    "Acipenser oxyrinchus oxyrinchus",
+    "Cyprogenia aberti",
+    "Obovaria arkansasensis",
+]
+unexpected = np.setdiff1d(
+    df.loc[df.regional].SNAME.unique(),
+    # some species are specified as groups in the list
+    rsgcn.SNAME.unique().tolist() + fixes,
+)
+
+print(
+    f"WARNING: found species marked as RSGCN but not in regional master list: {', '.join(unexpected)}; these were unmarked"
+)
+df.loc[df.SNAME.isin(unexpected), "regional"] = False
 
 ### Export species presence per HUC12 - Kat @ SARP often needs this
 spp_presence = df.loc[df.federal | df.sgcn | df.regional].copy()
@@ -301,17 +333,37 @@ write_dataframe(
     spp_presence, out_dir / "spp_HUC12_presence.gdb", layer="presence", driver="OpenFileGDB", use_arrow=True
 )
 
-
+########################################################################################################################
 ### Extract counts for SECAS: exclude any entries that are historical
+########################################################################################################################
 huc12_counts_secas = (
-    secas_huc12[[]]
-    .join(df.loc[~df.historical].groupby("HUC12")[["federal", "sgcn", "regional"]].sum())
-    .fillna(0)
-    .astype("uint8")
-    .reset_index()
+    secas_huc12[[]].join(df.loc[~df.historical].groupby("HUC12")[status_cols].sum()).fillna(0).astype("uint8")
 )
-huc12_counts_secas.to_excel(out_dir / "SECAS_spp_HUC12_count_no_historical.xlsx", index=False)
+huc12_counts_secas = secas_huc12[["geometry"]].join(huc12_counts_secas).reset_index()
 write_dataframe(huc12_counts_secas, out_dir / "SECAS_spp_HUC12_count_no_historical.gdb", driver="OpenFileGDB")
+
+# Extract southeast-wide unique species list
+tmp = (
+    secas_huc12[[]]
+    .join(
+        df.loc[~df.historical, ["HUC12", "SNAME", "CNAME"] + status_cols].set_index("HUC12"),
+        how="inner",
+    )
+    .reset_index(drop=True)
+    # ignore variation in common name
+    .drop_duplicates(subset=["SNAME", "federal", "sgcn", "regional"])
+    # take highest value for each species across the region
+    .groupby(["SNAME"])
+    .agg({"CNAME": "first", **{c: "max" for c in status_cols}})
+    .reset_index()
+    .sort_values("SNAME")
+)
+for col in ["federal", "sgcn", "regional"]:
+    tmp[col] = tmp[col].map({False: "n", True: "y"})
+
+tmp.to_csv(out_dir / "SECAS_spp_list_no_historical.csv", index=False)
+
+########################################################################################################################
 
 ### Extract summaries by HUC12 including salmonid ESUs
 df = huc12[[]].join(df.groupby("HUC12")[status_cols].sum()).fillna(0).astype("uint8")
@@ -475,4 +527,4 @@ df.to_feather(out_dir / "spp_HUC12.feather")
 write_dataframe(df, out_dir / "spp_HUC12_count.gdb", layer="count", use_arrow=True, driver="OpenFileGDB")
 
 
-print("All done in {:.2f}s".format(time() - start))
+print(f"All done in {time() - start:.2f}s")

@@ -3,26 +3,25 @@
 from datetime import datetime
 from pathlib import Path
 
-import pandas as pd
 import geopandas as gp
+import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
+import shapely
 from pyarrow.csv import write_csv
 from pyogrio import write_dataframe
-import shapely
 
+from analysis.export.lib.domains import unpack_domains
 from api.constants import (
-    DAM_EXPORT_FIELDS,
-    SB_EXPORT_FIELDS,
-    ROAD_CROSSING_EXPORT_FIELDS,
     CUSTOM_TIER_FIELDS,
+    DAM_EXPORT_FIELDS,
+    ROAD_CROSSING_EXPORT_FIELDS,
+    SB_EXPORT_FIELDS,
     STATE_TIER_FIELDS,
     TIERS,
     unique,
 )
-from analysis.export.lib.domains import unpack_domains
 from api.lib.tiers import calculate_tiers
-
 
 EXTRA_FIELDS = ["ActiveList", "KeepOnActiveList"]
 
@@ -133,5 +132,5 @@ write_dataframe(
     df,
     out_dir / f"{barrier_type}{suffix}__{datetime.today().strftime('%m_%d_%Y')}.gdb",
     driver="OpenFileGDB",
-    # layer_options={"TARGET_ARCGIS_VERSION": "ARCGIS_PRO_3_2_OR_LATER"},
+    layer_options={"TARGET_ARCGIS_VERSION": "ARCGIS_PRO_3_2_OR_LATER"},
 )

@@ -3,21 +3,20 @@ import os
 from pathlib import Path
 from time import time
 
-from dotenv import load_dotenv
 import httpx
-from httpx import Limits
 import numpy as np
 import pandas as pd
 import shapely
+from dotenv import load_dotenv
+from httpx import Limits
 
 from analysis.constants import (
-    DAM_FS_COLS,
     CRS,
+    DAM_FS_COLS,
     SMALL_BARRIER_COLS,
     WATERFALL_COLS,
 )
 from analysis.prep.barriers.lib.arcgis import download_fs, get_attachments
-
 
 # Load the token from the .env file in the root of this project
 load_dotenv()

@@ -1,39 +1,38 @@
 from io import BytesIO
 from pathlib import Path
 from time import time
-from zipfile import ZipFile, ZIP_DEFLATED
+from zipfile import ZIP_DEFLATED, ZipFile
 
 import duckdb
 import geopandas as gp
 import numpy as np
 import pandas as pd
-from pyarrow.dataset import dataset
 from pyarrow.csv import write_csv
+from pyarrow.dataset import dataset
 
-from analysis.constants import SEVERITY_TO_PASSABILITY, STATES
-from analysis.lib.util import get_signed_dtype, append
+from analysis.constants import NETWORK_TYPES, SEVERITY_TO_PASSABILITY, STATES
+from analysis.lib.util import append, get_signed_dtype
+from analysis.rank.lib.metrics import classify_annual_flow, classify_cost, classify_spps, classify_streamorder
 from analysis.rank.lib.networks import get_network_results, get_removed_network_results
-from analysis.rank.lib.metrics import classify_streamorder, classify_spps, classify_annual_flow, classify_cost
 from api.constants import (
-    GENERAL_API_FIELDS1,
-    UNIT_FIELDS,
-    DAM_API_FIELDS,
-    SB_API_FIELDS,
-    COMBINED_API_FIELDS,
-    WF_API_FIELDS,
-    ROAD_CROSSING_API_FIELDS,
     BARRIER_SEARCH_RESULT_FIELDS,
-    CUSTOM_TIER_FIELDS,
-    DAM_EXPORT_FIELDS,
-    SB_EXPORT_FIELDS,
+    COMBINED_API_FIELDS,
     COMBINED_EXPORT_FIELDS,
+    CUSTOM_TIER_FIELDS,
+    DAM_API_FIELDS,
+    DAM_EXPORT_FIELDS,
+    GENERAL_API_FIELDS1,
+    ROAD_CROSSING_API_FIELDS,
     ROAD_CROSSING_EXPORT_FIELDS,
+    SB_API_FIELDS,
+    SB_EXPORT_FIELDS,
+    UNIT_FIELDS,
+    WF_API_FIELDS,
     verify_domains,
 )
-from api.metadata import get_readme, get_terms
 from api.lib.domains import unpack_domains
+from api.metadata import get_readme, get_terms
 from api.settings import LOGO_PATH
-from analysis.constants import NETWORK_TYPES
 
 # NOTE: no need to aggregate stats for full / dams-only networks
 network_types = [t for t in NETWORK_TYPES.keys() if t not in {"full", "dams_only", "artificial_barriers"}]
@@ -656,6 +655,7 @@ tmp.sort_values("SARPID").drop_duplicates(subset="SARPID").reset_index(drop=True
 # TODO: split this into 2 tables: one by SARPID and one for searching name that drops all that are empty strings
 
 # create search key for search by name
+# TODO: add state name and maybe abbrevaiation
 search_barriers["search_key"] = (
     (search_barriers["Name"] + " " + search_barriers["River"]).str.strip().str.replace("  ", " ", regex=False)
 )

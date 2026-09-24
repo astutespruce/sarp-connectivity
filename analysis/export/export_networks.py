@@ -13,12 +13,13 @@ out_dir.mkdir(exist_ok=True, parents=True)
 
 
 # full network scenarios are: "dams", "combined_barriers", "largefish_barriers", "smallfish_barriers", "road_crossings"
-scenario = "combined_barriers"
+scenario = "dams"
+
 mainstem = False
-# ext = "fgb"
-# driver = "FlatGeobuf"
-ext = "gdb"
-driver = "OpenFileGDB"
+ext = "fgb"
+driver = "FlatGeobuf"
+# ext = "gdb"
+# driver = "OpenFileGDB"
 
 
 # Doesn't appear to work in QGIS
@@ -31,27 +32,27 @@ groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
 
 export_hucs = {
     # "01",
-    "02",
-    "03",
+    # "02",
+    #     "03",
     # "04",
-    "05",
-    "06",
-    "07",
-    "08",
-    # "09",
-    "10",
-    "11",
-    "12",
-    "13",
-    # "14",
-    # "15",
-    # "16",
-    # "17",
-    # "18",
-    "21",
+    #     "05",
+    #     "06",
+    #     "07",
+    #     "08",
+    #     # "09",
+    # "10",
+    #     "11",
+    #     "12",
+    #     "13",
+    #     # "14",
+    #     # "15",
+    #     # "16",
+    "17",
+    #     # "18",
+    #     "21",
 }
 
-# FIXME: remove
+# # FIXME: remove
 groups_df = groups_df.loc[groups_df.HUC2.isin(export_hucs)]
 
 
@@ -101,7 +102,7 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
             "fn_pct_perennial_unaltered",
             "fn_resilient_miles",
             "fn_pct_resilient",
-            "fn_pct_cold",
+            # "fn_pct_cold",  TEMP: to be updated with new data source
             "fn_natfldpln",
             "fn_sizeclasses",
             "barrier",
@@ -190,8 +191,9 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
 
     # create output files by HUC2 based on where the segments occur
     for huc2 in group:
-        if huc2 not in export_hucs:
-            continue
+        # FIXME:
+        # if huc2 not in export_hucs:
+        #     continue
 
         print(f"Dissolving networks in {huc2}...")
         flowlines = gp.read_feather(
@@ -213,16 +215,16 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
         ).set_index("lineID")
 
         # temporary, not useful
-        other = pd.read_feather(
-            Path("data/nhd/clean") / huc2 / "flowlines.feather",
-            columns=[
-                "lineID",
-                "Slope",
-                "MinElev",
-                "MaxElev",
-            ],
-        ).set_index("lineID")
-        flowlines = flowlines.join(other)
+        # other = pd.read_feather(
+        #     Path("data/nhd/clean") / huc2 / "flowlines.feather",
+        #     columns=[
+        #         "lineID",
+        #         "Slope",
+        #         "MinElev",
+        #         "MaxElev",
+        #     ],
+        # ).set_index("lineID")
+        # flowlines = flowlines.join(other)
 
         flowlines = (
             flowlines.join(segments, how="inner")
