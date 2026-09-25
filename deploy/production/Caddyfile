@@ -46,7 +46,7 @@ aquaticbarriers.org {
   # TODO: switch to 308 redirects
   # NOTE: backend endpoints will likely fail if used directly from frontend due to CORS
   @old_backend_paths {
-    path /api/* /downloads/* /services/*
+    path /api/* /downloads/*
   }
   redir @old_backend_paths https://tool.aquaticbarriers.org{uri} 307
 
@@ -112,9 +112,11 @@ tool.aquaticbarriers.org {
   header Access-Control-Request-Method *
   header Access-Control-Request-Headers *
 
-  route /services* {
-      header Cache-Control "public, max-age=3600, must-revalidate"
-      reverse_proxy localhost:8000
+  route /tiles/* {
+    uri strip_prefix /tiles
+    header Cache-Control "public, max-age=3600, must-revalidate"
+    root /data/tiles
+    file_server
   }
 
   route /downloads/national/* {

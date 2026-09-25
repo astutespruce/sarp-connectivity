@@ -1,4 +1,4 @@
-import { API_HOST } from '$lib/env'
+import { API_URL, HOST_URL } from '$lib/env'
 import { captureException } from '$lib/util/log'
 
 const pollInterval = 1000 // milliseconds; 1 second
@@ -24,7 +24,7 @@ export const pollJob = async (jobId: string, onProgress: ProgressCallback | null
 
 	while (time < jobTimeout && failedRequests < failedFetchLimit) {
 		try {
-			response = await fetch(`${API_HOST}/api/v1/internal/downloads/status/${jobId}`, {
+			response = await fetch(`${API_URL}/downloads/status/${jobId}`, {
 				cache: 'no-cache'
 			})
 		} catch {
@@ -67,7 +67,7 @@ export const pollJob = async (jobId: string, onProgress: ProgressCallback | null
 		}
 
 		if (status === 'success') {
-			return { url: `${API_HOST}${path}` }
+			return { url: `${HOST_URL}${path}` }
 		}
 
 		if (onProgress && (status === 'queued' || status === 'in_progress' || progress !== null)) {

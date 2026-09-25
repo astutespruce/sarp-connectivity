@@ -45,8 +45,8 @@ nhd_pts = read_feathers(
 )
 nhd_pts = nhd_pts.loc[nhd_pts.FType.isin([343])].copy()
 
-# write original points for SARP
-write_dataframe(nhd_pts, out_dir / "nhd_dam_pts_nhdpoint.fgb")
+# DEBUG: write original points for SARP
+# write_dataframe(nhd_pts, out_dir / "nhd_dam_pts_nhdpoint.fgb")
 
 nhd_pts["source"] = "NHDPoint"
 
@@ -386,12 +386,10 @@ dams.loop = dams.loop.astype("bool")
 
 print("Serializing...")
 dams.to_feather(out_dir / "nhd_dams_pt.feather")
-write_dataframe(dams, out_dir / "nhd_dams_pt.fgb")
 
 
 nhd_dams = nhd_dams.reset_index()
 nhd_dams.to_feather(out_dir / "nhd_dams_poly.feather")
-write_dataframe(nhd_dams, out_dir / "nhd_dams_poly.fgb")
 
 
 print(f"==============\nAll done in {time() - start:.2f}s")

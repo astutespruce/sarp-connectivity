@@ -51,20 +51,20 @@ pa["type"] = "pa_" + pa.name.values
 df = pd.concat([df, pa], ignore_index=True)
 
 print("Creating tiles...")
-mbtiles_files = []
+tilesets = []
 
 ### show all types for zoom >= 5
 outfilename = tmp_dir / "priority_areas_gt_z5.fgb"
 write_dataframe(df, outfilename)
-mbtiles_filename = tmp_dir / "priority_areas_gt_z5.mbtiles"
-mbtiles_files.append(mbtiles_filename)
+pmtiles_filename = tmp_dir / "priority_areas_gt_z5.pmtiles"
+tilesets.append(pmtiles_filename)
 
 ret = subprocess.run(
     tippecanoe_args
     + ["-Z", "5", "-z", MAX_ZOOM]
     + ["-l", "priority_areas"]
     + get_col_types(df)
-    + ["-o", str(mbtiles_filename), outfilename],
+    + ["-o", str(pmtiles_filename), outfilename],
     check=True,
 )
 ret.check_returncode()
@@ -74,23 +74,23 @@ outfilename.unlink()
 ### exclude WSR for zooms <= 5
 outfilename = tmp_dir / "priority_areas_lt_z5.fgb"
 write_dataframe(df.loc[(df["type"] != "wsr")], outfilename)
-mbtiles_filename = tmp_dir / "priority_areas_lt_z5.mbtiles"
-mbtiles_files.append(mbtiles_filename)
+pmtiles_filename = tmp_dir / "priority_areas_lt_z5.pmtiles"
+tilesets.append(pmtiles_filename)
 ret = subprocess.run(
     tippecanoe_args
     + ["-Z", "0", "-z", "4"]
     + ["-l", "priority_areas"]
     + get_col_types(df)
-    + ["-o", str(mbtiles_filename), outfilename],
+    + ["-o", str(pmtiles_filename), outfilename],
     check=True,
 )
 ret.check_returncode()
 outfilename.unlink()
 
 ### join tiles
-mbtiles_filename = out_dir / "priority_areas.mbtiles"
-ret = subprocess.run(tile_join_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files], check=True)
+pmtiles_filename = out_dir / "priority_areas.pmtiles"
+ret = subprocess.run(tile_join_args + ["-o", str(pmtiles_filename)] + [str(f) for f in tilesets], check=True)
 
 # remove intermediates
-for mbtiles_file in mbtiles_files:
-    mbtiles_file.unlink()
+for filename in tilesets:
+    filename.unlink()

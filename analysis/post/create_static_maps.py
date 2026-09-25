@@ -17,9 +17,9 @@ if not TOKEN:
     raise ValueError("MAPBOX_TOKEN must be defined in your .env file")
 
 
-map_units_tiles = Path("data/tiles/map_units.mbtiles").absolute()
-dam_tiles = Path("tiles/dams.mbtiles").absolute()
-small_barrier_tiles = Path("tiles/small_barriers.mbtiles").absolute()
+map_units_tiles = Path("data/tiles/map_units.pmtiles").absolute()
+dam_tiles = Path("tiles/dams.pmtiles").absolute()
+small_barrier_tiles = Path("tiles/small_barriers.pmtiles").absolute()
 
 
 WIDTH = 600
@@ -37,19 +37,26 @@ STYLE = {
         },
         "map_units": {
             "type": "vector",
-            "url": f"mbtiles://{map_units_tiles}",
+            "url": f"pmtiles://file://{map_units_tiles}",
             "minzoom": 0,
             "maxzoom": 8,
         },
+        # same as above, but maxzoom specific to lowres mask
+        "mask_lowres": {
+            "type": "vector",
+            "url": f"pmtiles://file://{map_units_tiles}",
+            "minzoom": 0,
+            "maxzoom": 6,
+        },
         "dams": {
             "type": "vector",
-            "url": f"mbtiles://{dam_tiles}",
+            "url": f"pmtiles://file://{dam_tiles}",
             "minzoom": 2,
             "maxzoom": 16,
         },
         "small_barriers": {
             "type": "vector",
-            "url": f"mbtiles://{small_barrier_tiles}",
+            "url": f"pmtiles://file://{small_barrier_tiles}",
             "minzoom": 2,
             "maxzoom": 16,
         },
@@ -103,17 +110,24 @@ STYLE = {
             "paint": {"line-color": "#333333", "line-width": 0.5, "line-opacity": 1},
         },
         {
-            "id": "unit-mask",
+            "id": "unit-mask-lowres",
+            "source": "mask_lowres",
+            "source-layer": "mask_lowres",
+            "type": "fill",
+            "minzoom": 0,
+            "maxzoom": 6,
+            # filter: set dynamically when loaded
+            "paint": {"fill-color": "#FFFFFF", "fill-opacity": 0.6, "fill-outline-color": "transparent"},
+        },
+        {
+            "id": "unit-mask-highres",
             "source": "map_units",
-            "source-layer": "mask",
+            "source-layer": "mask_highres",
             "type": "fill",
             "minzoom": 0,
             "maxzoom": 22,
             # filter: set dynamically when loaded
-            "paint": {
-                "fill-color": "#FFFFFF",
-                "fill-opacity": 0.6,
-            },
+            "paint": {"fill-color": "#FFFFFF", "fill-opacity": 0.6, "fill-outline-color": "transparent"},
         },
         {
             "id": "unit-boundary",
@@ -148,6 +162,7 @@ df = df.loc[df.index != "total"]
 for id, row in df.bounds.iterrows():
     print(f"Rendering map for {id}")
     style = deepcopy(STYLE)
+    style["layers"][-3]["filter"] = ["==", "id", f"{id}_mask"]
     style["layers"][-2]["filter"] = ["==", "id", f"{id}_mask"]
     style["layers"][-1]["source-layer"] = "boundary"
     style["layers"][-1]["filter"] = ["==", "id", id]
@@ -181,6 +196,7 @@ df = gp.GeoDataFrame(
 for id, row in df.iterrows():
     print(f"Rendering map for {id}")
     style = deepcopy(STYLE)
+    style["layers"][-3]["filter"] = ["==", "id", f"{id}_mask"]
     style["layers"][-2]["filter"] = ["==", "id", f"{id}_mask"]
     style["layers"][-1]["source-layer"] = "State"
     style["layers"][-1]["filter"] = ["==", "id", id]
@@ -214,6 +230,7 @@ df = gp.GeoDataFrame(df.groupby(level=0).agg({"geometry": shapely.multipolygons}
 for id, row in df.bounds.iterrows():
     print(f"Rendering map for {id}")
     style = deepcopy(STYLE)
+    style["layers"][-3]["filter"] = ["==", "id", f"{id}_mask"]
     style["layers"][-2]["filter"] = ["==", "id", f"{id}_mask"]
     style["layers"][-1]["source-layer"] = "fhp_boundary"
     style["layers"][-1]["filter"] = ["==", "id", id]

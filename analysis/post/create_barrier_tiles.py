@@ -32,8 +32,6 @@ tippecanoe = "tippecanoe"
 tile_join = "tile-join"
 
 
-# To determine size of largest tile, query mbtiles file:
-# select zoom_level, tile_column, tile_row, length(tile_data) / 1024 as size from tiles order by size desc;
 tippecanoe_args = [
     tippecanoe,
     "-f",
@@ -92,8 +90,8 @@ tmp = ranked_dams.loc[df.TotDASqKm >= 1, ["geometry", "id"] + DAM_TILE_FILTER_FI
 print(f"Creating tiles for {len(tmp):,} ranked dams with networks for zooms 2-7")
 
 outfilename = tmp_dir / "dams_lt_z8.fgb"
-mbtiles_filename = tmp_dir / "dams_lt_z8.mbtiles"
-mbtiles_files = [mbtiles_filename]
+pmtiles_filename = tmp_dir / "dams_lt_z8.pmtiles"
+tilesets = [pmtiles_filename]
 
 tmp = to_lowercase(tmp)
 write_dataframe(tmp.reset_index(drop=True), outfilename)
@@ -102,9 +100,10 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z0", "-z7", "-r1.5", "-g1.5", "-B5"]
     + ["-l", "ranked_dams"]
-    + ["-o", f"{mbtiles_filename!s}"]
+    + ["-o", f"{pmtiles_filename!s}"]
     + get_col_types(tmp)
-    + [str(outfilename)]
+    + [str(outfilename)],
+    check=True,
 )
 ret.check_returncode()
 outfilename.unlink()
@@ -117,8 +116,8 @@ print(f"Creating tiles for {len(ranked_dams):,} ranked dams with networks")
 ranked_dams = ranked_dams.drop(columns=["TotDASqKm"])
 
 outfilename = tmp_dir / "ranked_dams.fgb"
-mbtiles_filename = tmp_dir / "ranked_dams.mbtiles"
-mbtiles_files.append(mbtiles_filename)
+pmtiles_filename = tmp_dir / "ranked_dams.pmtiles"
+tilesets.append(pmtiles_filename)
 
 ranked_dams = to_lowercase(ranked_dams)
 write_dataframe(ranked_dams.reset_index(drop=True), outfilename)
@@ -130,9 +129,10 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z8", f"-z{MAX_ZOOM}", "-B8"]
     + ["-l", "ranked_dams"]
-    + ["-o", f"{mbtiles_filename!s}"]
+    + ["-o", f"{pmtiles_filename!s}"]
     + coltypes
-    + [str(outfilename)]
+    + [str(outfilename)],
+    check=True,
 )
 ret.check_returncode()
 outfilename.unlink()
@@ -147,8 +147,8 @@ unranked_dams = df.loc[
 print(f"Creating tiles for {len(unranked_dams):,} unranked dams with networks")
 
 outfilename = tmp_dir / "unranked_dams.fgb"
-mbtiles_filename = tmp_dir / "unranked_dams.mbtiles"
-mbtiles_files.append(mbtiles_filename)
+pmtiles_filename = tmp_dir / "unranked_dams.pmtiles"
+tilesets.append(pmtiles_filename)
 unranked_dams = to_lowercase(unranked_dams)
 write_dataframe(unranked_dams.reset_index(drop=True), outfilename)
 coltypes = get_col_types(unranked_dams)
@@ -159,9 +159,10 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z8", f"-z{MAX_ZOOM}", "-B8"]
     + ["-l", "unranked_dams"]
-    + ["-o", f"{mbtiles_filename!s}"]
+    + ["-o", f"{pmtiles_filename!s}"]
     + coltypes
-    + [str(outfilename)]
+    + [str(outfilename)],
+    check=True,
 )
 ret.check_returncode()
 outfilename.unlink()
@@ -172,8 +173,8 @@ removed_dams = df.loc[df.Removed, ["geometry", "id", "SARPIDName"]]
 print(f"Creating tiles for {len(removed_dams):,} removed dams")
 
 outfilename = tmp_dir / "removed_dams.fgb"
-mbtiles_filename = tmp_dir / "removed_dams.mbtiles"
-mbtiles_files.append(mbtiles_filename)
+pmtiles_filename = tmp_dir / "removed_dams.pmtiles"
+tilesets.append(pmtiles_filename)
 removed_dams = to_lowercase(removed_dams)
 write_dataframe(removed_dams.reset_index(drop=True), outfilename)
 coltypes = get_col_types(removed_dams)
@@ -184,9 +185,10 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z6", f"-z{MAX_ZOOM}", "-B6"]
     + ["-l", "removed_dams"]
-    + ["-o", f"{mbtiles_filename!s}"]
+    + ["-o", f"{pmtiles_filename!s}"]
     + coltypes
-    + [str(outfilename)]
+    + [str(outfilename)],
+    check=True,
 )
 ret.check_returncode()
 outfilename.unlink()
@@ -198,8 +200,8 @@ planned_project_dams = df.loc[df.PlannedProject, ["geometry", "id", "SARPIDName"
 print(f"Creating tiles for {len(planned_project_dams):,} planned project dams")
 
 outfilename = tmp_dir / "planned_project_dams.fgb"
-mbtiles_filename = tmp_dir / "planned_project_dams.mbtiles"
-mbtiles_files.append(mbtiles_filename)
+pmtiles_filename = tmp_dir / "planned_project_dams.pmtiles"
+tilesets.append(pmtiles_filename)
 planned_project_dams = to_lowercase(planned_project_dams)
 write_dataframe(planned_project_dams.reset_index(drop=True), outfilename)
 coltypes = get_col_types(planned_project_dams)
@@ -210,9 +212,10 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z6", f"-z{MAX_ZOOM}", "-B6"]
     + ["-l", "planned_project_dams"]
-    + ["-o", f"{mbtiles_filename!s}"]
+    + ["-o", f"{pmtiles_filename!s}"]
     + coltypes
-    + [str(outfilename)]
+    + [str(outfilename)],
+    check=True,
 )
 ret.check_returncode()
 outfilename.unlink()
@@ -225,8 +228,8 @@ other_dams = df.loc[(~df.HasNetwork) & (~df.Removed), ["geometry", "id", "SARPID
 print(f"Creating tiles for {len(other_dams):,} other dams")
 
 outfilename = tmp_dir / "other_dams.fgb"
-mbtiles_filename = tmp_dir / "other_dams.mbtiles"
-mbtiles_files.append(mbtiles_filename)
+pmtiles_filename = tmp_dir / "other_dams.pmtiles"
+tilesets.append(pmtiles_filename)
 other_dams = to_lowercase(other_dams)
 write_dataframe(other_dams.reset_index(drop=True), outfilename)
 coltypes = get_col_types(other_dams)
@@ -237,9 +240,10 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z6", f"-z{MAX_ZOOM}", "-B8"]
     + ["-l", "other_dams"]
-    + ["-o", f"{mbtiles_filename!s}"]
+    + ["-o", f"{pmtiles_filename!s}"]
     + coltypes
-    + [str(outfilename)]
+    + [str(outfilename)],
+    check=True,
 )
 ret.check_returncode()
 outfilename.unlink()
@@ -247,12 +251,12 @@ outfilename.unlink()
 del df
 
 print("Joining dams tilesets")
-mbtiles_filename = out_dir / "dams.mbtiles"
-ret = subprocess.run(tilejoin_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files])
+pmtiles_filename = out_dir / "dams.pmtiles"
+ret = subprocess.run(tilejoin_args + ["-o", str(pmtiles_filename)] + [str(f) for f in tilesets], check=True)
 
 # remove intermediates
-for mbtiles_file in mbtiles_files:
-    mbtiles_file.unlink()
+for filename in tilesets:
+    filename.unlink()
 
 
 print(f"Created dam tiles in {time() - start:,.2f}s")
@@ -287,8 +291,8 @@ ranked_barriers = df.loc[df.Ranked, ["geometry", "id", "SARPIDName", "upNetID"] 
 
 # Below zoom 8, we only need filter fields
 outfilename = tmp_dir / "small_barriers_lt_z8.fgb"
-mbtiles_filename = tmp_dir / "small_barriers_lt_z8.mbtiles"
-mbtiles_files = [mbtiles_filename]
+pmtiles_filename = tmp_dir / "small_barriers_lt_z8.pmtiles"
+tilesets = [pmtiles_filename]
 
 tmp = ranked_barriers[["geometry", "id"] + SB_TILE_FILTER_FIELDS]
 print(f"Creating tiles for {len(tmp):,} ranked small barriers with networks for zooms 2-7")
@@ -303,9 +307,10 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z0", "-z7", "-r1.5", "-g1.5", "-B5"]
     + ["-l", "ranked_small_barriers"]
-    + ["-o", f"{mbtiles_filename!s}"]
+    + ["-o", f"{pmtiles_filename!s}"]
     + coltypes
-    + [str(outfilename)]
+    + [str(outfilename)],
+    check=True,
 )
 ret.check_returncode()
 outfilename.unlink()
@@ -314,8 +319,8 @@ outfilename.unlink()
 print(f"Creating tiles for {len(ranked_barriers):,} ranked small barriers with networks")
 
 outfilename = tmp_dir / "ranked_small_barriers.fgb"
-mbtiles_filename = tmp_dir / "ranked_small_barriers.mbtiles"
-mbtiles_files.append(mbtiles_filename)
+pmtiles_filename = tmp_dir / "ranked_small_barriers.pmtiles"
+tilesets.append(pmtiles_filename)
 ranked_barriers = to_lowercase(ranked_barriers)
 write_dataframe(ranked_barriers.reset_index(drop=True), outfilename)
 coltypes = get_col_types(ranked_barriers)
@@ -326,9 +331,10 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z8", f"-z{MAX_ZOOM}", "-B8"]
     + ["-l", "ranked_small_barriers"]
-    + ["-o", f"{mbtiles_filename!s}"]
+    + ["-o", f"{pmtiles_filename!s}"]
     + coltypes
     + [str(outfilename)],
+    check=True,
 )
 ret.check_returncode()
 outfilename.unlink()
@@ -344,8 +350,8 @@ unranked_barriers = df.loc[
 print(f"Creating tiles for {len(unranked_barriers):,} unranked small barriers with networks")
 
 outfilename = tmp_dir / "unranked_barriers.fgb"
-mbtiles_filename = tmp_dir / "unranked_barriers.mbtiles"
-mbtiles_files.append(mbtiles_filename)
+pmtiles_filename = tmp_dir / "unranked_barriers.pmtiles"
+tilesets.append(pmtiles_filename)
 unranked_barriers = to_lowercase(unranked_barriers)
 write_dataframe(unranked_barriers.reset_index(drop=True), outfilename)
 coltypes = get_col_types(unranked_barriers)
@@ -356,9 +362,10 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z8", f"-z{MAX_ZOOM}", "-B8"]
     + ["-l", "unranked_small_barriers"]
-    + ["-o", f"{mbtiles_filename!s}"]
+    + ["-o", f"{pmtiles_filename!s}"]
     + coltypes
-    + [str(outfilename)]
+    + [str(outfilename)],
+    check=True,
 )
 ret.check_returncode()
 outfilename.unlink()
@@ -370,8 +377,8 @@ removed_barriers = df.loc[df.Removed, ["geometry", "id", "SARPIDName"]]
 print(f"Creating tiles for {len(removed_barriers):,} removed small barriers")
 
 outfilename = tmp_dir / "removed_small_barriers.fgb"
-mbtiles_filename = tmp_dir / "removed_small_barriers.mbtiles"
-mbtiles_files.append(mbtiles_filename)
+pmtiles_filename = tmp_dir / "removed_small_barriers.pmtiles"
+tilesets.append(pmtiles_filename)
 removed_barriers = to_lowercase(removed_barriers)
 write_dataframe(removed_barriers, outfilename)
 coltypes = get_col_types(removed_barriers)
@@ -382,9 +389,10 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z6", f"-z{MAX_ZOOM}", "-B6"]
     + ["-l", "removed_small_barriers"]
-    + ["-o", f"{mbtiles_filename!s}"]
+    + ["-o", f"{pmtiles_filename!s}"]
     + coltypes
-    + [str(outfilename)]
+    + [str(outfilename)],
+    check=True,
 )
 ret.check_returncode()
 outfilename.unlink()
@@ -396,8 +404,8 @@ planned_project_barriers = df.loc[df.PlannedProject, ["geometry", "id", "SARPIDN
 print(f"Creating tiles for {len(planned_project_barriers):,} planned project barriers")
 
 outfilename = tmp_dir / "planned_project_barriers.fgb"
-mbtiles_filename = tmp_dir / "planned_project_barriers.mbtiles"
-mbtiles_files.append(mbtiles_filename)
+pmtiles_filename = tmp_dir / "planned_project_barriers.pmtiles"
+tilesets.append(pmtiles_filename)
 planned_project_barriers = to_lowercase(planned_project_barriers)
 write_dataframe(planned_project_barriers.reset_index(drop=True), outfilename)
 coltypes = get_col_types(planned_project_barriers)
@@ -408,9 +416,10 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z6", f"-z{MAX_ZOOM}", "-B6"]
     + ["-l", "planned_project_small_barriers"]
-    + ["-o", f"{mbtiles_filename!s}"]
+    + ["-o", f"{pmtiles_filename!s}"]
     + coltypes
-    + [str(outfilename)]
+    + [str(outfilename)],
+    check=True,
 )
 ret.check_returncode()
 outfilename.unlink()
@@ -422,8 +431,8 @@ other_barriers = df.loc[(~df.HasNetwork) & (~df.Removed), ["geometry", "id", "SA
 print(f"Creating tiles for {len(other_barriers):,} other small barriers")
 
 outfilename = tmp_dir / "other_small_barriers.fgb"
-mbtiles_filename = tmp_dir / "other_small_barriers.mbtiles"
-mbtiles_files.append(mbtiles_filename)
+pmtiles_filename = tmp_dir / "other_small_barriers.pmtiles"
+tilesets.append(pmtiles_filename)
 other_barriers = to_lowercase(other_barriers)
 write_dataframe(other_barriers, outfilename)
 coltypes = get_col_types(other_barriers)
@@ -434,9 +443,10 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z6", f"-z{MAX_ZOOM}", "-B10"]
     + ["-l", "other_small_barriers"]
-    + ["-o", f"{mbtiles_filename!s}"]
+    + ["-o", f"{pmtiles_filename!s}"]
     + coltypes
-    + [str(outfilename)]
+    + [str(outfilename)],
+    check=True,
 )
 ret.check_returncode()
 outfilename.unlink()
@@ -444,12 +454,12 @@ outfilename.unlink()
 del df
 
 print("Joining small barriers tilesets")
-mbtiles_filename = out_dir / "small_barriers.mbtiles"
-ret = subprocess.run(tilejoin_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files])
+pmtiles_filename = out_dir / "small_barriers.pmtiles"
+ret = subprocess.run(tilejoin_args + ["-o", str(pmtiles_filename)] + [str(f) for f in tilesets], check=True)
 
 # remove intermediates
-for mbtiles_file in mbtiles_files:
-    mbtiles_file.unlink()
+for filename in tilesets:
+    filename.unlink()
 
 print(f"Created small barrier tiles in {time() - start:,.2f}s")
 
@@ -488,8 +498,8 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
     print(f"Creating tiles for {len(tmp):,} ranked {network_type} with networks for zooms 2-7")
 
     outfilename = tmp_dir / "combined_barriers_lt_z8.fgb"
-    mbtiles_filename = tmp_dir / "combined_barriers_lt_z8.mbtiles"
-    mbtiles_files = [mbtiles_filename]
+    pmtiles_filename = tmp_dir / "combined_barriers_lt_z8.pmtiles"
+    tilesets = [pmtiles_filename]
     tmp = to_lowercase(tmp)
     write_dataframe(tmp.reset_index(drop=True), outfilename)
     coltypes = get_col_types(tmp)
@@ -500,9 +510,10 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
         tippecanoe_args
         + ["-Z0", "-z7", "-r1.5", "-g1.5", "-B5"]
         + ["-l", f"ranked_{network_type}"]
-        + ["-o", f"{mbtiles_filename!s}"]
+        + ["-o", f"{pmtiles_filename!s}"]
         + coltypes
-        + [str(outfilename)]
+        + [str(outfilename)],
+        check=True,
     )
     ret.check_returncode()
     outfilename.unlink()
@@ -513,8 +524,8 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
     print(f"Creating tiles for {len(ranked_barriers):,} {network_type} barriers with networks")
 
     outfilename = tmp_dir / f"ranked_{network_type}.fgb"
-    mbtiles_filename = tmp_dir / f"ranked_{network_type}.mbtiles"
-    mbtiles_files.append(mbtiles_filename)
+    pmtiles_filename = tmp_dir / f"ranked_{network_type}.pmtiles"
+    tilesets.append(pmtiles_filename)
     ranked_barriers = to_lowercase(ranked_barriers)
     write_dataframe(ranked_barriers.reset_index(drop=True), outfilename)
     coltypes = get_col_types(ranked_barriers)
@@ -525,9 +536,10 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
         tippecanoe_args
         + ["-Z8", f"-z{MAX_ZOOM}", "-B8"]
         + ["-l", f"ranked_{network_type}"]
-        + ["-o", f"{mbtiles_filename!s}"]
+        + ["-o", f"{pmtiles_filename!s}"]
         + coltypes
-        + [str(outfilename)]
+        + [str(outfilename)],
+        check=True,
     )
     ret.check_returncode()
     outfilename.unlink()
@@ -541,8 +553,8 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
     print(f"Creating tiles for {len(unranked_barriers):,} unranked {network_type} barriers with networks")
 
     outfilename = tmp_dir / f"unranked_{network_type}.fgb"
-    mbtiles_filename = tmp_dir / f"unranked_{network_type}.mbtiles"
-    mbtiles_files.append(mbtiles_filename)
+    pmtiles_filename = tmp_dir / f"unranked_{network_type}.pmtiles"
+    tilesets.append(pmtiles_filename)
     unranked_barriers = to_lowercase(unranked_barriers)
     write_dataframe(unranked_barriers.reset_index(drop=True), outfilename)
     coltypes = get_col_types(unranked_barriers)
@@ -553,9 +565,10 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
         tippecanoe_args
         + ["-Z8", f"-z{MAX_ZOOM}", "-B8"]
         + ["-l", f"unranked_{network_type}"]
-        + ["-o", f"{mbtiles_filename!s}"]
+        + ["-o", f"{pmtiles_filename!s}"]
         + coltypes
-        + [str(outfilename)]
+        + [str(outfilename)],
+        check=True,
     )
     ret.check_returncode()
     outfilename.unlink()
@@ -569,8 +582,8 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
     print(f"Creating tiles for {len(removed_barriers)} removed barriers")
 
     outfilename = tmp_dir / f"removed_{network_type}.fgb"
-    mbtiles_filename = tmp_dir / f"removed_{network_type}.mbtiles"
-    mbtiles_files.append(mbtiles_filename)
+    pmtiles_filename = tmp_dir / f"removed_{network_type}.pmtiles"
+    tilesets.append(pmtiles_filename)
     removed_barriers = to_lowercase(removed_barriers)
     write_dataframe(removed_barriers, outfilename)
     coltypes = get_col_types(removed_barriers)
@@ -581,9 +594,10 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
         tippecanoe_args
         + ["-Z6", f"-z{MAX_ZOOM}", "-B6"]
         + ["-l", f"removed_{network_type}"]
-        + ["-o", f"{mbtiles_filename!s}"]
+        + ["-o", f"{pmtiles_filename!s}"]
         + coltypes
-        + [str(outfilename)]
+        + [str(outfilename)],
+        check=True,
     )
     ret.check_returncode()
     outfilename.unlink()
@@ -593,8 +607,8 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
     print(f"Creating tiles for {len(planned_project_barriers):,} planned project barriers")
 
     outfilename = tmp_dir / f"planned_project_{network_type}.fgb"
-    mbtiles_filename = tmp_dir / f"planned_project_{network_type}.mbtiles"
-    mbtiles_files.append(mbtiles_filename)
+    pmtiles_filename = tmp_dir / f"planned_project_{network_type}.pmtiles"
+    tilesets.append(pmtiles_filename)
     planned_project_barriers = to_lowercase(planned_project_barriers)
     write_dataframe(planned_project_barriers.reset_index(drop=True), outfilename)
     coltypes = get_col_types(planned_project_barriers)
@@ -605,9 +619,10 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
         tippecanoe_args
         + ["-Z6", f"-z{MAX_ZOOM}", "-B6"]
         + ["-l", f"planned_project_{network_type}"]
-        + ["-o", f"{mbtiles_filename!s}"]
+        + ["-o", f"{pmtiles_filename!s}"]
         + coltypes
-        + [str(outfilename)]
+        + [str(outfilename)],
+        check=True,
     )
     ret.check_returncode()
     outfilename.unlink()
@@ -620,8 +635,8 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
     print(f"Creating tiles for {len(other_barriers)} other barriers")
 
     outfilename = tmp_dir / f"other_{network_type}.fgb"
-    mbtiles_filename = tmp_dir / f"other_{network_type}.mbtiles"
-    mbtiles_files.append(mbtiles_filename)
+    pmtiles_filename = tmp_dir / f"other_{network_type}.pmtiles"
+    tilesets.append(pmtiles_filename)
     other_barriers = to_lowercase(other_barriers)
     write_dataframe(other_barriers, outfilename)
     coltypes = get_col_types(other_barriers)
@@ -632,9 +647,10 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
         tippecanoe_args
         + ["-Z6", f"-z{MAX_ZOOM}", "-B10"]
         + ["-l", f"other_{network_type}"]
-        + ["-o", f"{mbtiles_filename!s}"]
+        + ["-o", f"{pmtiles_filename!s}"]
         + coltypes
-        + [str(outfilename)]
+        + [str(outfilename)],
+        check=True,
     )
     ret.check_returncode()
     outfilename.unlink()
@@ -642,12 +658,12 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
     del df
 
     print(f"Joining {network_type} tilesets")
-    mbtiles_filename = out_dir / f"{network_type}.mbtiles"
-    ret = subprocess.run(tilejoin_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files])
+    pmtiles_filename = out_dir / f"{network_type}.pmtiles"
+    ret = subprocess.run(tilejoin_args + ["-o", str(pmtiles_filename)] + [str(f) for f in tilesets], check=True)
 
     # remove intermediates
-    for mbtiles_file in mbtiles_files:
-        mbtiles_file.unlink()
+    for filename in tilesets:
+        filename.unlink()
 
     print(f"Created {network_type} tiles in {time() - start:,.2f}s")
 
@@ -682,8 +698,8 @@ tmp["geometry"] = shapely.set_precision(tmp.geometry.values, 500)
 tmp = gp.GeoDataFrame(tmp.groupby("geometry").first().reset_index(), crs=df.crs)
 
 outfilename = tmp_dir / "road_crossings_lt_z8.fgb"
-mbtiles_filename = tmp_dir / "road_crossings_lt_z8.mbtiles"
-mbtiles_files = [mbtiles_filename]
+pmtiles_filename = tmp_dir / "road_crossings_lt_z8.pmtiles"
+tilesets = [pmtiles_filename]
 tmp = to_lowercase(tmp)
 write_dataframe(tmp.to_crs("EPSG:4326").reset_index(drop=True), outfilename)
 coltypes = get_col_types(tmp)
@@ -694,9 +710,10 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z3", "-z7", "-r1.5", "-g1.5", "-B5"]
     + ["-l", "road_crossings"]
-    + ["-o", f"{mbtiles_filename!s}"]
+    + ["-o", f"{pmtiles_filename!s}"]
     + coltypes
-    + [str(outfilename)]
+    + [str(outfilename)],
+    check=True,
 )
 ret.check_returncode()
 outfilename.unlink()
@@ -710,8 +727,8 @@ tmp["geometry"] = shapely.set_precision(tmp.geometry.values, 100)
 tmp = gp.GeoDataFrame(tmp.groupby("geometry").first().reset_index(), crs=df.crs)
 
 outfilename = tmp_dir / "road_crossings_z8_z10.fgb"
-mbtiles_filename = tmp_dir / "road_crossings_z8_z10.mbtiles"
-mbtiles_files.append(mbtiles_filename)
+pmtiles_filename = tmp_dir / "road_crossings_z8_z10.pmtiles"
+tilesets.append(pmtiles_filename)
 tmp = to_lowercase(tmp)
 write_dataframe(tmp.to_crs("EPSG:4326").reset_index(drop=True), outfilename)
 coltypes = get_col_types(tmp)
@@ -722,9 +739,10 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z8", "-z10", "-r1.5", "-g1.5", "-B8"]
     + ["-l", "road_crossings"]
-    + ["-o", f"{mbtiles_filename!s}"]
+    + ["-o", f"{pmtiles_filename!s}"]
     + coltypes
-    + [str(outfilename)]
+    + [str(outfilename)],
+    check=True,
 )
 ret.check_returncode()
 outfilename.unlink()
@@ -733,8 +751,8 @@ outfilename.unlink()
 print("Creating tiles for road crossings for zooms 11+")
 df = df[["geometry"] + ROAD_CROSSING_TILE_FILTER_FIELDS + ["SARPIDName", "symbol"]].to_crs("EPSG:4326")
 outfilename = tmp_dir / "road_crossings_ge_z11.fgb"
-mbtiles_filename = tmp_dir / "road_crossings_ge_z11.mbtiles"
-mbtiles_files.append(mbtiles_filename)
+pmtiles_filename = tmp_dir / "road_crossings_ge_z11.pmtiles"
+tilesets.append(pmtiles_filename)
 df = to_lowercase(df)
 write_dataframe(df.reset_index(drop=True), outfilename)
 coltypes = get_col_types(df)
@@ -743,9 +761,10 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z11", f"-z{MAX_ZOOM}", "-B11"]
     + ["-l", "road_crossings"]
-    + ["-o", f"{mbtiles_filename!s}"]
+    + ["-o", f"{pmtiles_filename!s}"]
     + coltypes
-    + [str(outfilename)]
+    + [str(outfilename)],
+    check=True,
 )
 ret.check_returncode()
 outfilename.unlink()
@@ -754,12 +773,12 @@ outfilename.unlink()
 del df
 
 print("Joining road crossing tilesets")
-mbtiles_filename = out_dir / "road_crossings.mbtiles"
-ret = subprocess.run(tilejoin_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files])
+pmtiles_filename = out_dir / "road_crossings.pmtiles"
+ret = subprocess.run(tilejoin_args + ["-o", str(pmtiles_filename)] + [str(f) for f in tilesets], check=True)
 
 # remove intermediates
-for mbtiles_file in mbtiles_files:
-    mbtiles_file.unlink()
+for filename in tilesets:
+    filename.unlink()
 
 print(f"Created road crossing tiles in {time() - start:,.2f}s")
 
@@ -803,7 +822,7 @@ df = combine_sarpid_name(df)
 fill_na_fields(df)
 
 outfilename = tmp_dir / "waterfalls.fgb"
-mbtiles_filename = out_dir / "waterfalls.mbtiles"
+pmtiles_filename = out_dir / "waterfalls.pmtiles"
 df = to_lowercase(df)
 write_dataframe(df.reset_index(drop=True), outfilename)
 coltypes = get_col_types(df)
@@ -814,9 +833,10 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z9", f"-z{MAX_ZOOM}", "-B10"]
     + ["-l", "waterfalls"]
-    + ["-o", f"{mbtiles_filename!s}"]
+    + ["-o", f"{pmtiles_filename!s}"]
     + coltypes
-    + [str(outfilename)]
+    + [str(outfilename)],
+    check=True,
 )
 ret.check_returncode()
 outfilename.unlink()

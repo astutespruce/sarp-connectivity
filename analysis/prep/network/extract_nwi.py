@@ -184,7 +184,6 @@ for huc2 in huc2s:
     waterbodies["km2"] = shapely.area(waterbodies.geometry.values) / 1e6
 
     waterbodies.to_feather(huc2_dir / "waterbodies.feather")
-    write_dataframe(waterbodies, huc2_dir / "waterbodies.fgb")
 
     ### Process riverine
     print(f"Extracted {len(rivers):,} NWI altered river polygons")
@@ -205,7 +204,6 @@ for huc2 in huc2s:
     rivers["modifier"] = rivers.modifier.map(MODIFIERS)
 
     rivers.to_feather(huc2_dir / "altered_rivers.feather")
-    write_dataframe(rivers, huc2_dir / "altered_rivers.fgb")
 
     ### Process wetlands
     left, right = tree.query(wetlands.geometry.values, predicate="intersects")
@@ -223,7 +221,6 @@ for huc2 in huc2s:
     # cleanup any that collapsed to other geometry types during make valid or import
     wetlands = wetlands.loc[shapely.get_type_id(wetlands.geometry.values) == 3].reset_index(drop=True)
     wetlands.to_feather(huc2_dir / "wetlands.feather")
-    write_dataframe(wetlands, huc2_dir / "wetlands.fgb")
 
     print("--------------------")
     print(f"HUC2: {huc2} done in {time() - huc2_start:.0f}s\n\n")

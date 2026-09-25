@@ -14,7 +14,7 @@
 
 	import { priorityAreasLegend } from '$lib/config/constants'
 	import { mapConfig, sources as initSources, basemapLayers } from './config'
-	import { priorityAreaLayers, networkLayers, regionBoundary, regionMask } from './layers'
+	import { priorityAreaLayers, networkLayers, regionBoundary, regionMasks } from './layers'
 	import { getCenterAndZoom, runOnceOnIdle } from './util'
 	import BasemapSelector from './BasemapSelector.svelte'
 	import Coords from './Coords.svelte'
@@ -127,10 +127,14 @@
 			const { id: regionId, boundaryLayer: regionBoundaryLayer } = $state.snapshot(
 				untrack(() => region)
 			)
-			map!.addLayer({
-				...regionMask,
-				filter: ['==', 'id', regionId && regionId !== 'total' ? `${regionId}_mask` : 'total']
-			} as LayerSpecification)
+
+			regionMasks.forEach((layer) => {
+				map!.addLayer({
+					...layer,
+					filter: ['==', 'id', regionId && regionId !== 'total' ? `${regionId}_mask` : 'total']
+				} as LayerSpecification)
+			})
+
 			map!.addLayer({
 				...regionBoundary,
 				'source-layer': regionBoundaryLayer || 'boundary',

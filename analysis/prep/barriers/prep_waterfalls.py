@@ -61,7 +61,9 @@ start = time()
 huc2s = sorted(pd.read_feather(boundaries_dir / "HUC2.feather", columns=["HUC2"]).HUC2.values)
 
 
-print("\n\n----------------------------------\nReading waterfalls\n---------------------------")
+print("\n\n---------------------------------------------------------------------")
+print("== Processing waterfalls")
+print("\n\n---------------------------------------------------------------------")
 
 df = gp.read_feather(src_dir / "waterfalls.feather").rename(columns={"fall_type": "FallType"})
 
@@ -230,8 +232,8 @@ df["duplicate"] = False
 df["dup_group"] = np.nan
 df["dup_count"] = np.nan
 df["dup_log"] = "not a duplicate"
-df["dup_sort"] = 0  # not meaningful for waterfalls
-df["ManualReview"] = 0  # not meaningful for waterfalls
+df["dup_sort"] = np.uint8(0)  # not meaningful for waterfalls
+df["ManualReview"] = np.uint8(0)  # not meaningful for waterfalls
 
 dedup_start = time()
 df, to_dedup = find_duplicates(df, to_dedup=df.loc[~df.dropped].copy(), tolerance=DUPLICATE_TOLERANCE)

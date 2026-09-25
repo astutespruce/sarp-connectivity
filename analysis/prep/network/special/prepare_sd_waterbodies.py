@@ -4,10 +4,8 @@ waterbodies that intersect flowlines.
 Limited to HUC2 == 07, 09, 10, .
 
 Creates the following files in `data/states/sd`:
-* `sd_waterbodies.feather`: feather file for internal use
-* `sd_waterbodies.fgb`: Geopackage for use in GIS
+* `sd_waterbodies.feather`
 """
-
 
 from pathlib import Path
 
@@ -75,10 +73,6 @@ tree = shapely.STRtree(df.geometry.values)
 # confirmed by hand, there are no waterbodies that show up in multiple HUC2s
 left, right = tree.query(huc2_df.geometry.values, predicate="intersects")
 
-df = df.join(
-    pd.DataFrame(
-        {"HUC2": huc2_df.HUC2.values.take(left)}, index=df.index.values.take(right)
-    )
-)
+df = df.join(pd.DataFrame({"HUC2": huc2_df.HUC2.values.take(left)}, index=df.index.values.take(right)))
 
 df.to_feather(src_dir / "sd_waterbodies.feather")

@@ -170,7 +170,6 @@ for unit in sorted(df.unit.unique()):
 df = merged.reset_index(drop=True).join(is_anadromous, on="unit")
 
 df.to_feather(src_dir / "streamnet_habitat.feather")
-write_dataframe(df, src_dir / "streamnet_habitat.fgb")
 
 
 ################################################################################
@@ -616,10 +615,10 @@ for unit in units:
             print(f"adding {len(keep_ids):,} filler lines between disconnected upstream and downstream habitat")
 
             # DEBUG:
-            write_dataframe(
-                flowlines.loc[flowlines.index.isin(keep_ids)].reset_index(),
-                f"/tmp/{unit}_filler.fgb",
-            )
+            # write_dataframe(
+            #     flowlines.loc[flowlines.index.isin(keep_ids)].reset_index(),
+            #     f"/tmp/{unit}_filler.fgb",
+            # )
 
             keep_line_ids = np.unique(np.concatenate([keep_line_ids, keep_ids]))
             pairs = pairs.loc[~pairs.NHDPlusID.isin(keep_ids)].copy()
@@ -634,10 +633,11 @@ for unit in units:
         f" extracted {spp_flowlines.loc[spp_flowlines.index.isin(keep_line_ids), ['length']].values.sum() / 1000:,.1f} km from NHD"
     )
 
-    write_dataframe(
-        spp_flowlines.loc[spp_flowlines.index.isin(keep_line_ids)].reset_index(),
-        f"/tmp/{unit}_keep_lines.fgb",
-    )
+    # DEBUG:
+    # write_dataframe(
+    #     spp_flowlines.loc[spp_flowlines.index.isin(keep_line_ids)].reset_index(),
+    #     f"/tmp/{unit}_keep_lines.fgb",
+    # )
 
 out = flowlines.loc[
     flowlines[units].any(axis=1),
@@ -645,5 +645,4 @@ out = flowlines.loc[
 ].reset_index()
 out = out.rename(columns={c: f"{c.lower().replace(' ', '_')}_habitat" for c in units})
 
-write_dataframe(out, out_dir / "streamnet_habitat.fgb")
-out.drop(columns=["geometry"]).to_feather(out_dir / "streamnet_habitat.feather")
+out.to_feather(out_dir / "streamnet_habitat.feather")

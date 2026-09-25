@@ -32,7 +32,7 @@ sudo swapon /swapfile
 
 Add this to `/etc/fstab`: `/swapfile none swap sw 0 0`
 
-### Format and mount 60 GB secondary volume, used for tiles
+### Format and mount 60 GB secondary volume, used for data and tiles
 
 se `lsblk` to list volumes; it may be listed as `nvme1n1`
 
@@ -259,39 +259,6 @@ uv venv --python 3.12
 uv sync --frozen
 ```
 
-## Install mbtileserver
-
-- as `ubuntu` user, in `/tmp` directory
-- install `unzip`: `sudo apt-get update && sudo apt-get install -y unzip`
-- Find the latest release on https://github.com/consbio/mbtileserver/releases and download the zip file for the correct architecture (`curl -L -o /tmp/mbtileserver_v0.11.0_linux_arm64.zip https://github.com/consbio/mbtileserver/releases/download/v0.11.0/mbtileserver_v0.11.0_linux_arm64.zip`).
-
-```bash
-unzip mbtileserver_v0.11.0_linux_arm64.zip
-sudo chmod 777 mbtileserver_v0.11.0_linux_arm64
-sudo mv mbtileserver_v0.11.0_linux_arm64 /usr/bin/mbtileserver
-```
-
-Verify it starts up properly (error about no tiles is OK):
-
-```bash
-mbtileserver -d /data/tiles -p 8001
-```
-
-Setup and enable service (will be restarted after uploading tiles):
-
-```bash
-sudo cp /home/app/sarp-connectivity/deploy/<environment>/service/mbtileserver.service /etc/systemd/system
-sudo systemctl enable mbtileserver
-```
-
-(where environment is staging or production)
-
-Verify that it loaded as a service correctly:
-
-```bash
-sudo service mbtileserver status
-```
-
 ## Install Caddy
 
 As `ubuntu` user:
@@ -437,7 +404,7 @@ valid JSON.
 
 ## Verify services
 
-Verify that each service runs properly. For `caddy`, `mbtileserver`, `api` services:
+Verify that each service runs properly. For `caddy` and `api` services:
 
 As `ubuntu` user:
 
@@ -457,7 +424,7 @@ After that, test the first few steps of the prioritization workflow here: https:
 
 1. Select state as unit
 2. Select a state
-3. If it shows the filters, everything is working as expected. Otherwise, if it is not showing state boundaries for selection, there is a problem with `mbtileserver`. If it is not showing filters, there is a problem with `api` service. If you can't even boot the application, it is a problem with the `caddy` service or the underlying built JS.
+3. If it shows the filters, everything is working as expected. Otherwise, if it is not showing state boundaries for selection, there is a problem with the tiles (either the tiles themselves or routing to them via `caddy`). If it is not showing filters, there is a problem with `api` service. If you can't even boot the application, it is a problem with the `caddy` service or the underlying built JS.
 
 ## Data updates
 

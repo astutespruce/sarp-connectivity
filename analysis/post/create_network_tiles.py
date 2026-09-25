@@ -148,7 +148,7 @@ flowlines = (
 
 
 ################## Create tiles #######################
-mbtiles_files = []
+tilesets = []
 
 ### For lower zooms, build tiles across all regions for efficiency
 national_levels = [l for l in zoom_config if l.get("scope") == "national"]
@@ -207,10 +207,10 @@ for i, level in enumerate(national_levels):
     subset["geometry"] = shapely.simplify(subset["geometry"], level["simplification"])
 
     outfilename = tmp_dir / f"flowlines_{minzoom}_{maxzoom}.fgb"
-    mbtiles_filename = tmp_dir / f"flowlines_{minzoom}_{maxzoom}.mbtiles"
-    mbtiles_files.append(mbtiles_filename)
+    pmtiles_filename = tmp_dir / f"flowlines_{minzoom}_{maxzoom}.pmtiles"
+    tilesets.append(pmtiles_filename)
 
-    if mbtiles_filename.exists():
+    if pmtiles_filename.exists():
         continue
 
     write_dataframe(subset.to_crs(GEO_CRS), outfilename)
@@ -223,7 +223,8 @@ for i, level in enumerate(national_levels):
         + ["-l", "networks"]
         + col_types
         + ["-Z", str(minzoom), "-z", str(maxzoom)]
-        + ["-o", f"{mbtiles_filename!s}", str(outfilename)]
+        + ["-o", f"{pmtiles_filename!s}", str(outfilename)],
+        check=True,
     )
     ret.check_returncode()
 
@@ -273,10 +274,10 @@ for huc2 in huc2s:
             subset["geometry"] = shapely.simplify(subset.geometry.values, simplification)
 
         outfilename = tmp_dir / f"region{huc2}_flowlines_{minzoom}_{maxzoom}.fgb"
-        mbtiles_filename = tmp_dir / f"region{huc2}_flowlines_{minzoom}_{maxzoom}.mbtiles"
-        mbtiles_files.append(mbtiles_filename)
+        pmtiles_filename = tmp_dir / f"region{huc2}_flowlines_{minzoom}_{maxzoom}.pmtiles"
+        tilesets.append(pmtiles_filename)
 
-        if mbtiles_filename.exists():
+        if pmtiles_filename.exists():
             continue
 
         write_dataframe(subset.to_crs(GEO_CRS), outfilename)
@@ -289,7 +290,8 @@ for huc2 in huc2s:
             + ["-l", "networks"]
             + col_types
             + ["-Z", str(minzoom), "-z", str(maxzoom)]
-            + ["-o", f"{mbtiles_filename!s}", str(outfilename)]
+            + ["-o", f"{pmtiles_filename!s}", str(outfilename)],
+            check=True,
         )
         ret.check_returncode()
 
@@ -374,8 +376,8 @@ for level in zoom_config:
         subset["geometry"] = shapely.simplify(subset["geometry"], level["simplification"])
 
     outfilename = tmp_dir / f"removed_network_flowlines_{minzoom}_{maxzoom}.fgb"
-    mbtiles_filename = tmp_dir / f"removed_network_flowlines_{minzoom}_{maxzoom}.mbtiles"
-    mbtiles_files.append(mbtiles_filename)
+    pmtiles_filename = tmp_dir / f"removed_network_flowlines_{minzoom}_{maxzoom}.pmtiles"
+    tilesets.append(pmtiles_filename)
     write_dataframe(subset.to_crs(GEO_CRS), outfilename)
 
     ret = subprocess.run(
@@ -383,7 +385,8 @@ for level in zoom_config:
         + ["-l", "removed_networks"]
         + get_col_types(subset)
         + ["-Z", str(minzoom), "-z", str(maxzoom)]
-        + ["-o", f"{mbtiles_filename!s}", str(outfilename)]
+        + ["-o", f"{pmtiles_filename!s}", str(outfilename)],
+        check=True,
     )
     ret.check_returncode()
 
@@ -395,22 +398,22 @@ del lines
 ###############
 
 print("\n\n============================\nCombining tiles")
-mbtiles_filename = out_dir / "networks.mbtiles"
 ret = subprocess.run(
     [
         tile_join,
         "-f",
         "-pg",
         "-o",
-        str(mbtiles_filename),
+        str(out_dir / "networks.pmtiles"),
     ]
-    + [str(f) for f in mbtiles_files],
+    + [str(f) for f in tilesets],
+    check=True,
 )
 ret.check_returncode()
 
 
 # Cleanup intermediate tiles
-for filename in mbtiles_files:
+for filename in tilesets:
     filename.unlink()
 
 

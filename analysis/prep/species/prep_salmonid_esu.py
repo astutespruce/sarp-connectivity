@@ -59,4 +59,3 @@ huc12["salmonid_esu_count"] = huc12[esu_cols].sum(axis=1)
 
 
 huc12.drop(columns=["geometry"]).to_feather(src_dir / "salmonid_esu.feather")
-write_dataframe(huc12, src_dir / "salmonid_esu.fgb")

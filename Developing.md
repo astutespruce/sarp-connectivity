@@ -4,7 +4,6 @@ To develop this application, you need:
 
 - Python 3.12+: required for `analysis` and `api` components
 - NodeJS 22+: required for user interface component in `ui`
-- mbtileserver: required for interactive maps in the user interface component
 - redis: required for background task worker used by `api` component
 
 `uv` and `npm` are used as the package managers for those languages.
@@ -118,8 +117,10 @@ Create `/ui/.env.development` with the following contents:
 
 ```
 PUBLIC_MAPBOX_API_TOKEN=<token>
-PUBLIC_API_HOST=<root URL of API host, likely http://localhost/:5000 for local fastapi server >
-PUBLIC_TILE_HOST=<root URL of tile host, likely http://localhost:8001 for local mbtileserver >
+
+VITE_TILE_DIR=<path to pmtiles files>
+VITE_PROXY_API=1
+
 PUBLIC_SITE_URL=<root url of the develoment server, likely http://localhost:5173>
 PUBLIC_NACC_URL=<root URL to the NACC homepage, likely https://aquaticbarriers.org unless also running locally>
 PUBLIC_DEPLOY_ENV="local"
@@ -151,15 +152,6 @@ ncu -i --cooldown 3
 Note: this uses a 3 day "cooldown" to prevent upgrading to very recently released
 versions; modify this on a selective basis to pull in a newer version that resolves
 a vulnerability.
-
-## mbtileserver
-
-mbtileserver is required to display interactive maps in the user interface. It is not required by `analysis` or `api`.
-
-Install `mbtileserver` according to https://github.com/consbio/mbtileserver.
-Then from appropriate directory (or if installed via `go get` and `~/go/bin` is on your `PATH`): `mbtilserver -p 8001 -d /<PATH TO REPO>/tiles`.
-
-You should now be able to open `http://localhost:8001/services` to see a listing of available tile services.
 
 ## Redis
 

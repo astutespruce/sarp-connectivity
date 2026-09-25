@@ -14,7 +14,7 @@
 
 	import { getDownloadURL } from '$lib/api'
 	import type { ProgressCallback } from '$lib/api'
-	import { CONTACT_EMAIL, API_HOST } from '$lib/env'
+	import { CONTACT_EMAIL, HOST_URL } from '$lib/env'
 	import { trackDownload } from '$lib/util/analytics'
 	import { cn } from '$lib/utils'
 	import { shortBarrierTypeLabels } from '$lib/config/constants'
@@ -137,7 +137,7 @@
 		} else {
 			// download pre-created national zip file
 			trackDownload({ barrierType, unitType: 'national', details: '' })
-			url = `${API_HOST}/downloads/national/${barrierType}.zip`
+			url = `${HOST_URL}/downloads/national/${barrierType}.zip`
 		}
 
 		status = {

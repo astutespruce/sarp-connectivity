@@ -23,11 +23,10 @@ export const load = ({ params }) => {
 		}
 	}
 
-	const fhp =
-		FISH_HABITAT_PARTNERSHIPS[params.id.toUpperCase() as keyof typeof FISH_HABITAT_PARTNERSHIPS]
+	const fhp = FISH_HABITAT_PARTNERSHIPS[params.id as keyof typeof FISH_HABITAT_PARTNERSHIPS]
 	if (fhp) {
 		return {
-			id: params.id.toUpperCase(),
+			id: params.id,
 			name: `the ${fhp.name}`,
 			type: 'FishHabitatPartnership',
 			boundaryLayer: 'fhp_boundary'

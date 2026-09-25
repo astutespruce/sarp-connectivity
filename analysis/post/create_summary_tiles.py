@@ -19,7 +19,7 @@ Inputs:
 * `data/api/road_crossings.feather`
 
 Outputs:
-* `/tiles/map_units_summary.mbtiles`
+* `/tiles/map_units_summary.pmtiles`
 * `/data/api/map_units.feather`
 
 """
@@ -223,11 +223,11 @@ for unit in SUMMARY_UNITS + ["Region"]:
     waterfalls_by_unit = waterfalls.copy()
 
     if unit == "State":
-        units = pd.read_feather(bnd_dir / "region_states.feather", columns=["id"]).set_index("id")
+        units = pd.read_feather(bnd_dir / "states.feather", columns=["id"]).set_index("id")
     elif unit == "COUNTYFIPS":
-        units = pd.read_feather(bnd_dir / "region_counties.feather", columns=["id"]).set_index("id")
+        units = pd.read_feather(bnd_dir / "counties.feather", columns=["id"]).set_index("id")
     elif unit == "CongressionalDistrict":
-        units = pd.read_feather(bnd_dir / "region_congressional_districts.feather", columns=["id"]).set_index("id")
+        units = pd.read_feather(bnd_dir / "congressional_districts.feather", columns=["id"]).set_index("id")
     elif unit == "StateWRA":
         units = pd.read_feather(bnd_dir / "state_water_resource_areas.feather", columns=["id"]).set_index("id")
     elif unit == "FishHabitatPartnership":
@@ -366,13 +366,14 @@ for unit in SUMMARY_UNITS + ["Region"]:
 
 
 ### output unit stats with bounds for API
-units = pd.read_feather(bnd_dir / "unit_bounds.feather").set_index(["layer", "id"])
+units = pd.read_feather(bnd_dir / "map_units.feather").set_index(["layer", "id"])
 out = units.join(stats.set_index(["layer", "id"])).reset_index()
 
 with duckdb.connect(api_dir / "api.db") as con:
     _ = con.execute("DROP TABLE IF EXISTS map_units")
     _ = con.execute("CREATE TABLE map_units as SELECT * from out")
     _ = con.execute("CREATE UNIQUE INDEX map_units_id on map_units (layer, id)")
+
 
 ### Output minimal subset and join to tiles
 
@@ -413,8 +414,7 @@ write_csv(pa.Table.from_pandas(stats), csv_filename)
 
 print("Joining to tiles...")
 
-# join to tiles
-mbtiles_filename = f"{out_tile_dir}/map_units_summary.mbtiles"
+# join stats to tiles
 ret = subprocess.run(
     [
         tile_join,
@@ -422,11 +422,12 @@ ret = subprocess.run(
         "-pg",
         "--no-tile-size-limit",
         "-o",
-        mbtiles_filename,
+        f"{out_tile_dir}/map_units_summary.pmtiles",
         "-c",
         f"{tmp_dir}/map_units_summary.csv",
-        f"{data_dir}/tiles/map_units.mbtiles",
-    ]
+        f"{data_dir}/tiles/map_units.pmtiles",
+    ],
+    check=True,
 )
 ret.check_returncode()
 

@@ -1,6 +1,6 @@
 import { tableFromIPC } from '@uwdata/flechette'
 
-import { API_HOST } from '$lib/env'
+import { API_URL, HOST_URL } from '$lib/env'
 import {
 	SPECIES_HABITAT_FIELDS,
 	barrierNameWhenUnknown,
@@ -81,7 +81,7 @@ export const fetchBarrierInfo = async (
 	barrierType: string,
 	summaryUnits: SummaryUnitIdsByLayer
 ) => {
-	const url = `${API_HOST}/api/v1/internal/${barrierType}/query?${apiQueryParams({
+	const url = `${API_URL}/${barrierType}/query?${apiQueryParams({
 		summaryUnits
 	})}`
 
@@ -96,7 +96,7 @@ export const fetchBarrierRanks = async (
 	summaryUnits: SummaryUnitIdsByLayer,
 	filters: Filters
 ) => {
-	const url = `${API_HOST}/api/v1/internal/${barrierType}/rank?${apiQueryParams({
+	const url = `${API_URL}/${barrierType}/rank?${apiQueryParams({
 		summaryUnits,
 		filters
 	})}`
@@ -140,7 +140,7 @@ export const fetchBarrierRanks = async (
 }
 
 export const fetchBarrierDetails = async (networkType: string, sarpid: string) => {
-	const url = `${API_HOST}/api/v1/internal/${networkType}/details/${sarpid}`
+	const url = `${API_URL}/${networkType}/details/${sarpid}`
 
 	const response = await fetch(url)
 	if (response.status === 404) {
@@ -175,7 +175,7 @@ export const fetchBarrierDetails = async (networkType: string, sarpid: string) =
 }
 
 export const searchBarriers = async (query: string) => {
-	const url = `${API_HOST}/api/v1/internal/barriers/search?query=${query}`
+	const url = `${API_URL}/barriers/search?query=${query}`
 
 	try {
 		const response = await fetch(url)
@@ -236,12 +236,9 @@ export const getDownloadURL: GetDownloadURL = async (
 		})
 	}
 
-	const response = await fetch(
-		`${API_HOST}/api/v1/internal/${barrierType}/csv?${apiQueryParams(params)}`,
-		{
-			method: 'POST'
-		}
-	)
+	const response = await fetch(`${API_URL}/${barrierType}/csv?${apiQueryParams(params)}`, {
+		method: 'POST'
+	})
 
 	if (response.status !== 200) {
 		let error = await response.text()
@@ -277,7 +274,7 @@ export const getDownloadURL: GetDownloadURL = async (
 			})
 		}
 
-		return { url: `${API_HOST}${path}` }
+		return { url: `${HOST_URL}${path}` }
 	}
 
 	const result = await pollJob(job, onProgress)

@@ -100,7 +100,10 @@ start = time()
 
 huc2s = sorted(pd.read_feather(boundaries_dir / "HUC2.feather", columns=["HUC2"]).HUC2.values)
 
-print("Reading data")
+print("\n\n---------------------------------------------------------------------")
+print("== Processing road barriers")
+print("\n\n---------------------------------------------------------------------")
+print("Reading data...")
 df = gp.read_feather(src_dir / "sarp_small_barriers.feather")
 print(f"Read {len(df):,} small barriers")
 
@@ -711,7 +714,9 @@ df["dup_group"] = np.nan
 df["dup_count"] = np.nan
 df["dup_log"] = "not a duplicate"
 # Set dup_sort from BarrierSeverity, but put unknown at the end
-df["dup_sort"] = np.where(df.BarrierSeverity == 0, 9999, df.BarrierSeverity)
+df["dup_sort"] = np.uint8(255)
+ix = df.BarrierSeverity > 0
+df.loc[ix, "dup_sort"] = df.loc[ix].BarrierSeverity
 # give removed barriers highest priority to retain them during deduplication
 df.loc[df.removed, "dup_sort"] = np.uint8(0)
 # make private barriers lower priority relative to public barriers

@@ -1,3 +1,4 @@
+import { browser } from '$app/environment'
 import * as env from '$env/static/public'
 
 export const MAPBOX_TOKEN = env.PUBLIC_MAPBOX_API_TOKEN
@@ -7,8 +8,12 @@ export const CONTACT_EMAIL = env.PUBLIC_CONTACT_EMAIL || ''
 export const DEPLOY_ENV = env.PUBLIC_DEPLOY_ENV || 'local'
 export const NACC_HOME_URL = env.PUBLIC_NACC_URL || 'https://aquaticbarriers.org'
 
-export const API_HOST = env.PUBLIC_API_HOST || ''
-export const TILE_HOST = env.PUBLIC_TILE_HOST || ''
+// export const API_HOST = env.PUBLIC_API_HOST || ''
+// export const TILE_HOST = env.PUBLIC_TILE_HOST || ''
+
+export const HOST_URL = browser ? `${window.location.protocol}//${window.location.host}` : ''
+export const API_URL = `${HOST_URL}/api/v1/internal`
+export const TILES_URL = `${HOST_URL}/tiles`
 
 export const SITE_NAME = 'National Aquatic Barrier Inventory & Prioritization Tool'
 export const SITE_URL = env.PUBLIC_SITE_URL || 'https://tool.aquaticbarriers.org'
