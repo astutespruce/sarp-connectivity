@@ -19,7 +19,7 @@
 		label,
 		disabled = false,
 		showOptions = true,
-		includeUnranked = false,
+		rankedOnly = false,
 		triggerLabel = null,
 		triggerClass = null,
 		triggerVariant = 'default'
@@ -74,7 +74,7 @@
 		{label}
 		{areaName}
 		{config}
-		{includeUnranked}
+		{rankedOnly}
 		{customRank}
 		{showOptions}
 	/>

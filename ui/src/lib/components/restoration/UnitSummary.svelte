@@ -366,7 +366,6 @@
 					config={downloadConfig}
 					disabled={stats.dams === 0}
 					showOptions={false}
-					includeUnranked
 					triggerClass="text-sm h-auto py-1.5 px-2!"
 				/>
 			{:else if barrierType === 'small_barriers'}
@@ -376,7 +375,6 @@
 					config={downloadConfig}
 					disabled={stats.totalSmallBarriers === 0}
 					showOptions={false}
-					includeUnranked
 					triggerClass="text-sm h-auto py-1.5 px-2!"
 				/>
 			{:else if barrierType === 'combined_barriers'}
@@ -386,7 +384,6 @@
 					config={downloadConfig}
 					disabled={stats.dams + stats.totalSmallBarriers === 0}
 					showOptions={false}
-					includeUnranked
 					triggerClass="text-sm h-auto py-1.5 px-2!"
 				/>
 			{/if}

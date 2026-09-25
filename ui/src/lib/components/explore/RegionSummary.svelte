@@ -228,7 +228,7 @@
 					<Downloader
 						{barrierType}
 						label={`Download ${barrierTypeLabels[barrierType as BarrierTypePlural]}`}
-						showOptions={false}
+						showOptions={true}
 						triggerClass="text-sm h-auto py-1.5 px-2!"
 					/>
 				{:else if barrierType === 'small_barriers'}
@@ -236,7 +236,7 @@
 						{barrierType}
 						label={`Download ${barrierTypeLabels[barrierType as BarrierTypePlural]}`}
 						triggerLabel="surveyed"
-						showOptions={false}
+						showOptions={true}
 						triggerClass="text-sm h-auto py-1.5 px-2!"
 					/>
 

@@ -97,8 +97,6 @@ Create a `ui/.env.production` file with the following:
 PUBLIC_MAPBOX_API_TOKEN = <token>
 PUBLIC_SENTRY_DSN = <dsn>
 PUBLIC_GOOGLE_ANALYTICS_ID = <ga id>
-PUBLIC_API_HOST = <root URL of API host>
-PUBLIC_TILE_HOST = <root URL of tile host>
 PUBLIC_SITE_URL=https://tool.aquaticbarriers.org  # or https://staging.tool.aquaticbarriers.org
 PUBLIC_MAILCHIMP_URL=https://mc.us19.list-manage.com/subscribe/landing-page
 PUBLIC_MAILCHIMP_USER_ID=<user id>
@@ -163,8 +161,6 @@ PUBLIC_GOOGLE_ANALYTICS_ID=<google analytics ID>
 PUBLIC_SENTRY_DSN=<sentry DSN>
 PUBLIC_DEPLOY_ENV="production" # or staging
 PUBLIC_NACC_HOME_URL=https://aquaticbarriers.org # or https://staging.aquaticbarriers.org
-PUBLIC_API_HOST=TODO:
-PUBLIC_API_PATH="/api/v1"
 PUBLIC_CONTACT_EMAIL=<contact email: person that should be contacted for general support>
 PUBLIC_ADMIN_EMAIL=<admin email: person that should be contacted for login / site issues>
 ```

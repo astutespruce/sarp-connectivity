@@ -22,7 +22,7 @@ export type SummaryUnitIdsByLayer = Record<string, string[] | number[]>
 type APIQueryParams = {
 	summaryUnits: SummaryUnitIdsByLayer
 	filters?: Filters
-	includeUnranked?: boolean | null
+	rankedOnly?: boolean | null
 	sort?: string | null
 	customRank?: boolean
 }
@@ -48,7 +48,7 @@ const extractHabitat = (data: object) =>
 const apiQueryParams = ({
 	summaryUnits = {},
 	filters = {},
-	includeUnranked,
+	rankedOnly,
 	sort,
 	customRank
 }: APIQueryParams) => {
@@ -61,8 +61,8 @@ const apiQueryParams = ({
 		query += `&${filterValues.map(([k, v]) => `${k}=${Array.from(v).join(',')}`).join('&')}`
 	}
 
-	if (includeUnranked) {
-		query += '&include_unranked=1'
+	if (rankedOnly) {
+		query += '&ranked_only=1'
 	}
 	if (customRank) {
 		query += '&custom_rank=1'
@@ -214,7 +214,7 @@ export const getDownloadURL: GetDownloadURL = async (
 		barrierType,
 		summaryUnits,
 		filters,
-		includeUnranked = null,
+		rankedOnly = null,
 		sort = null,
 		customRank = false
 	}: GetDownloadURLParams,
@@ -223,7 +223,7 @@ export const getDownloadURL: GetDownloadURL = async (
 	const params = {
 		summaryUnits,
 		filters,
-		includeUnranked: includeUnranked !== null ? includeUnranked : undefined,
+		rankedOnly: rankedOnly !== null ? rankedOnly : undefined,
 		sort: sort !== null ? sort : undefined,
 		customRank: customRank || undefined
 	}

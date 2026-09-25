@@ -81,4 +81,4 @@ app.include_router(public_router, prefix="/public")
 # Add endpoints for downloading zip files in local development
 # NOTE: these do not have url path prefixes
 if PROVIDE_DOWNLOAD_ENDPOINTS:
-    app.include_router(dev_downloads_router, include_in_schema=False)
+    app.include_router(dev_downloads_router, prefix="/downloads", include_in_schema=False)

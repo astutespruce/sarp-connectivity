@@ -419,8 +419,7 @@
 					label={`Download ${barrierTypeLabels.dams}`}
 					config={downloadConfig}
 					disabled={stats.dams === 0}
-					showOptions={false}
-					includeUnranked
+					showOptions={true}
 					triggerClass="text-sm h-auto py-1.5 px-2!"
 				/>
 			{:else if barrierType === 'small_barriers'}
@@ -430,8 +429,7 @@
 					triggerLabel="surveyed"
 					config={downloadConfig}
 					disabled={stats.totalSmallBarriers === 0}
-					showOptions={false}
-					includeUnranked
+					showOptions={true}
 					triggerClass="text-sm h-auto py-1.5 px-2!"
 				/>
 
@@ -444,7 +442,6 @@
 					}}
 					disabled={stats.totalRoadCrossings === 0 || stats.totalRoadCrossings > MAX_DOWNLOAD_COUNT}
 					showOptions={false}
-					includeUnranked
 					triggerClass="text-sm h-auto py-1.5 px-2!"
 				/>
 			{:else if barrierType === 'combined_barriers'}
@@ -453,8 +450,7 @@
 					label={`Download ${barrierTypeLabels.combined_barriers}`}
 					config={downloadConfig}
 					disabled={stats.dams + stats.totalSmallBarriers === 0}
-					showOptions={false}
-					includeUnranked
+					showOptions={true}
 					triggerClass="text-sm h-auto py-1.5 px-2!"
 				/>
 			{/if}

@@ -189,7 +189,6 @@
 					label={`Download removed ${barrierTypeLabels[barrierType as BarrierTypePlural]}`}
 					config={downloadConfig}
 					showOptions={false}
-					includeUnranked
 					triggerClass="text-sm h-auto py-1.5 px-2!"
 				/>
 			</div>

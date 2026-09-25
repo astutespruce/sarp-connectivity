@@ -43,13 +43,13 @@
 		areaName,
 		config = {},
 		customRank = false,
-		includeUnranked: initialIncludeUnranked = false,
+		rankedOnly: initialRankedOnly = false,
 		showOptions = true
 	} = $props()
 
 	const barrierTypeLabel = $derived(shortBarrierTypeLabels[barrierType as BarrierTypePlural])
 
-	let includeUnranked = $derived(initialIncludeUnranked)
+	let rankedOnly = $derived(initialRankedOnly)
 	let status: Status = $state(initialStatus)
 	let downloadURL: string | null = $state(null)
 
@@ -65,7 +65,7 @@
 		// clear status on both open / close
 		status = initialStatus
 		downloadURL = null
-		includeUnranked = initialIncludeUnranked
+		rankedOnly = initialRankedOnly
 	})
 
 	const handleClose = () => {
@@ -100,7 +100,7 @@
 				details += `, scenario: ${scenario}`
 			}
 			if (barrierType !== 'road_crossings') {
-				details += `, include unranked: ${includeUnranked}`
+				details += `, ranked only: ${rankedOnly}`
 			}
 
 			trackDownload({
@@ -115,7 +115,7 @@
 					barrierType,
 					summaryUnits,
 					filters,
-					includeUnranked: barrierType !== 'road_crossings' ? includeUnranked : null,
+					rankedOnly: barrierType !== 'road_crossings' ? rankedOnly : null,
 					sort: scenario ? scenario.toUpperCase() : null,
 					customRank
 				},
@@ -204,20 +204,24 @@
 		{:else}
 			{#if showOptions && barrierType !== 'road_crossings'}
 				<div class="flex gap-2 items-center">
-					<Checkbox id={checkboxId} bind:checked={includeUnranked} />
+					<Checkbox id={checkboxId} bind:checked={rankedOnly} />
 					<Label for={checkboxId} class="font-bold text-lg"
-						>Include unranked {barrierTypeLabel}?</Label
+						>Include only ranked {barrierTypeLabel}?</Label
 					>
 				</div>
-				<div class="text-muted-foreground text-sm ml-7 -mt-4 mb-2">
-					This will include {barrierTypeLabel} within your selected geographic area that were not prioritized
-					in the analysis. These include any
-					{barrierTypeLabel} that were not located on the aquatic network
-					{customRank ? ', ' : ' and'} any that have been removed
-					{customRank ? ', and any that you filtered out during your prioritization' : ''}.
-					{barrierType === 'small_barriers'
-						? '  These data only include road/stream crossings that have been surveyed for impacts to aquatic organisms.'
-						: ''}
+				<div class="text-muted-foreground text-sm ml-7 -mt-4 mb-2 flex">
+					By default, downloads include all {barrierTypeLabel} within your selected geographic area,
+					including those that were not prioritized in the analysis ({barrierTypeLabel} not located on
+					the aquatic network{customRank ? ', ' : ' and'} any that have been removed{customRank
+						? ', and any that you filtered out during your prioritization'
+						: ''}). Choose this option to limit your download to ranked {barrierTypeLabel}.
+				</div>
+			{/if}
+
+			{#if barrierType === 'small_barriers'}
+				<div class="font-bold pb-2">
+					These data only include road/stream crossings that have been surveyed for impacts to
+					aquatic organisms.
 				</div>
 			{/if}
 

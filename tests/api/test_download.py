@@ -26,7 +26,7 @@ def verify_zip_contents(barrier_type, zip_filename):
         assert get_csv_filename(barrier_type) in names
         assert "README.txt" in names
         assert "TERMS_OF_USE.txt" in names
-        assert "SARP_logo.png" in names
+        assert "nacc_logo.svg" in names
 
 
 async def download_zip(client, path, outfilename):
@@ -138,7 +138,7 @@ async def test_large_download(client, barrier_type, state):
             if status == "failed":
                 pytest.fail(f"task failed: {json['detail']}")
 
-            status_info = f' ({json.get("queue_position")} ahead in queue)' if status == "queued" else ""
+            status_info = f" ({json.get('queue_position')} ahead in queue)" if status == "queued" else ""
             print(f"status: {status}{status_info}, progress: {progress}, message: {message}")
 
             time.sleep(DELAY)
