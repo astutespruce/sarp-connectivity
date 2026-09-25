@@ -1418,23 +1418,25 @@ STATES = {
 
 
 FISH_HABITAT_PARTNERSHIPS = {
-    "ACFHP": "Atlantic Coastal Fish Habitat Partnership",
+    "ACFHP": "Atlantic Coast Fish Habitat Partnership",
     "CFPF": "California Fish Passage Forum",
     "DARE": "Driftless Area Restoration Effort",
     "DFHP": "Desert Fish Habitat Partnership",
     "EBTJV": "Eastern Brook Trout Joint Venture",
-    "FFP": "Farmers & Fishers Partnership",
+    "FFP": "Fishers & Farmers Partnership",
     "GLBFHP": "Great Lakes Basin Fish Habitat Partnership",
     "GPFHP": "Great Plains Fish Habitat Partnership",
     "HFHP": "Hawaii Fish Habitat Partnership",
     "KPFHP": "Kenai Peninsula Fish Habitat Partnership",
-    "MSBSHP": "Mat-Su Basin Salmon Habitat Partnership",
+    "MatSu": "Matanuska Susitna Basin Salmon Habitat Partnership",
     "MGLP": "Midwest Glacial Lakes Partnership",
     "ORBFHP": "Ohio River Basin Fish Habitat Partnership",
+    "PLCI": "Pacific Lamprey Conservation Initiative",
     "PMEP": "Pacific Marine & Estuarine Fish Habitat Partnership",
+    "RFHP": "Reservoir Fish Habitat Parntership",
     "SARP": "Southeast Aquatic Resources Partnership",
-    "SEAFHP": "Southeast Alaska Fish Habitat Partnership",
-    "SWASHP": "Southwest Alaska Salmon Habitat Partnership",
+    "SEAK": "Southest Alaska Fish Habitat Partnership",
+    "SWAK": "Southwest Alaska Salmon Habitat Partnership",
     "WNTI": "Western Native Trout Initiative",
 }
 

@@ -14,7 +14,7 @@ URL = "https://www2.census.gov/geo/tiger/TIGER2025/CD/tl_2025_{district:02d}_cd1
 # NOTE: this is a discontiguous series between 01 and 78, some will be missing
 DISTRICTS = range(1, 79)
 
-MAX_WORKERS = 2
+MAX_WORKERS = 4
 CONNECTION_TIMEOUT = 120  # seconds
 
 
@@ -38,7 +38,7 @@ async def download_district(district, client):
     r = await client.get(URL.format(district=district), timeout=CONNECTION_TIMEOUT)
 
     if r.status_code == 404:
-        # this is OK
+        # this is OK; some will be missing
         return
 
     r.raise_for_status()
@@ -49,32 +49,18 @@ async def download_district(district, client):
     print(f"Downloaded {district:01d} ({outzipname.stat().st_size >> 20} MB)")
 
 
-data_dir = Path("data")
-out_dir = data_dir / "boundaries/source"
+src_dir = Path("data/boundaries/source")
 tmp_dir = Path("/tmp/cd")
 tmp_dir.mkdir(exist_ok=True)
-
-states = (
-    pd.read_feather(data_dir / "boundaries/states.feather", columns=["id", "State", "STATEFIPS"])
-    .rename(columns={"id": "state", "State": "state_name"})
-    .set_index("STATEFIPS")
-)
-
 
 asyncio.run(download_districts())
 
 merged = None
 for filename in tmp_dir.glob("*.zip"):
-    df = (
-        read_dataframe(filename, columns=["STATEFP", "CD119FP", "NAMELSAD"], use_arrow=True)
-        .rename(columns={"STATEFP": "STATEFIPS", "CD119FP": "District", "NAMELSAD": "name"})
-        .to_crs(CRS)
-    )
-    merged = append(merged, df)
+    df = read_dataframe(filename, use_arrow=True)
+    if merged is None:
+        merged = df
+    else:
+        merged = pd.concat([merged, df], ignore_index=True)
 
-df = merged.reset_index(drop=True)
-df = df.join(states, on="STATEFIPS")
-df["name"] = df.state_name + " " + df.name
-df["id"] = df.state + df.District
-
-df.to_feather(out_dir / "congressional_districts.feather")
+merged.sort_values(by="GEOID").reset_index(drop=True).to_feather(src_dir / "congressional_districts.feather")

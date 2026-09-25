@@ -10,12 +10,12 @@ CONNECTION_TIMEOUT = 120  # seconds
 
 ### NHDPlus High Resolution URLs
 
-# Beta is for everything delivered up until 2022
+# Beta is for everything delivered up until 2022 (no longer available)
 # Listing URL: https://prd-tnm.s3.amazonaws.com/index.html?prefix=StagedProducts/Hydrography/NHDPlusHR/Beta/GDB/
 # HUC_type is HU4 or HU8
-BETA_DATA_URL = (
-    "https://prd-tnm.s3.amazonaws.com/StagedProducts/Hydrography/NHDPlusHR/Beta/GDB/NHDPLUS_H_{HUC}_{HUC_type}_GDB.zip"
-)
+# BETA_DATA_URL = (
+#     "https://prd-tnm.s3.amazonaws.com/StagedProducts/Hydrography/NHDPlusHR/Beta/GDB/NHDPLUS_H_{HUC}_{HUC_type}_GDB.zip"
+# )
 
 # Current is for anything delivered starting in 2022, with different naming schemes
 # Listing URL https://prd-tnm.s3.amazonaws.com/index.html?prefix=StagedProducts/Hydrography/NHDPlusHR/VPU/Current/GDB/
@@ -82,11 +82,14 @@ async def download_gdb(urls, id, client, filename):
 
         # print(f"Downloading {id} ({total_bytes / 1e6:.2f} MB)")
 
-        with open(filename, "wb") as out, tqdm(
-            total=total_bytes / 1e6,
-            desc=f"HUC {id} ({total_bytes / 1e6:.2f} MB)",
-            bar_format="{desc}{bar}| {percentage:3.0f}%",
-        ) as bar:
+        with (
+            open(filename, "wb") as out,
+            tqdm(
+                total=total_bytes / 1e6,
+                desc=f"HUC {id} ({total_bytes / 1e6:.2f} MB)",
+                bar_format="{desc}{bar}| {percentage:3.0f}%",
+            ) as bar,
+        ):
             prev_bytes_downloaded = 0
 
             async for chunk in r.aiter_bytes():

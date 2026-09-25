@@ -64,7 +64,8 @@ ret = subprocess.run(
     + ["-Z", "5", "-z", MAX_ZOOM]
     + ["-l", "priority_areas"]
     + get_col_types(df)
-    + ["-o", str(mbtiles_filename), outfilename]
+    + ["-o", str(mbtiles_filename), outfilename],
+    check=True,
 )
 ret.check_returncode()
 outfilename.unlink()
@@ -80,14 +81,15 @@ ret = subprocess.run(
     + ["-Z", "0", "-z", "4"]
     + ["-l", "priority_areas"]
     + get_col_types(df)
-    + ["-o", str(mbtiles_filename), outfilename]
+    + ["-o", str(mbtiles_filename), outfilename],
+    check=True,
 )
 ret.check_returncode()
 outfilename.unlink()
 
 ### join tiles
 mbtiles_filename = out_dir / "priority_areas.mbtiles"
-ret = subprocess.run(tile_join_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files])
+ret = subprocess.run(tile_join_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files], check=True)
 
 # remove intermediates
 for mbtiles_file in mbtiles_files:

@@ -1441,7 +1441,9 @@ export const FISH_HABITAT_PARTNERSHIPS = {
 		name: 'Driftless Area Restoration Effort',
 		description:
 			'The Driftless Area is a 24,000 square-mile area that encompasses portions of southeast Minnesota, northeast Iowa, southwest Wisconsin and northwest Illinois bypassed by the last continental glacier. The region has a high concentration of spring-fed coldwater streams and is recognized for its high diversity of plants, animals, and habitats. The Driftless Area Restoration Effort (DARE) partnership formed to address habitat degradation, loss, and alteration that are the primary factors contributing to the decline of fish populations in this unique region.',
-		url: 'https://www.tu.org/conservation/conservation-areas/watershed-restoration/driftless-area-restoration-effort/'
+		url: 'https://www.tu.org/conservation/conservation-areas/watershed-restoration/driftless-area-restoration-effort/',
+		logo: 'dare_logo.png',
+		logoWidth: '100px'
 	},
 	DFHP: {
 		name: 'Desert Fish Habitat Partnership',
@@ -1497,7 +1499,7 @@ export const FISH_HABITAT_PARTNERSHIPS = {
 		logo: 'kpfhp_logo.png',
 		logoWidth: '100px'
 	},
-	MSBSHP: {
+	MatSu: {
 		name: 'Mat-Su Basin Salmon Habitat Partnership',
 		description:
 			'The Matanuska-Susitna Basin, or Mat-Su, covers 24,500 square miles in southcentral Alaska, roughly the combined size of Vermont, New Hampshire, and Massachusetts. The basin supports populations of chinook, coho, sockeye, pink and chum salmon as well as world-class rainbow trout, char, and grayling, making it one of the country’s premier sportfishing and wildlife viewing destinations. Salmon and other fish are at the heart of Alaskan ecosystems, economy, and culture.',
@@ -1519,12 +1521,28 @@ export const FISH_HABITAT_PARTNERSHIPS = {
 		logo: 'orbfhp_logo.png',
 		logoWidth: '300px'
 	},
+	PLCI: {
+		name: 'Pacific Lamprey Conservation Initiative',
+		description:
+			'The Pacific Lamprey Conservation Initiative (PLCI) is a collaboration of Native American tribes, federal, state, municipal and local agencies working to conserve Pacific Lamprey throughout its range in California, Oregon, Washington, Idaho, and Alaska. The goal of the PLCI is to achieve long-term persistence of Pacific Lamprey and their habitats and support traditional tribal cultural use of Pacific Lamprey throughout their historic range in the United States.The intent of the partnership is to achieve this goal, where ecologically and economically feasible, by maintaining viable populations and their habitats in areas where they exist currently, restoring populations and their habitats where they are extirpated or at risk of extirpation, and doing so in a manner that addresses the importance of lamprey to tribal peoples. The PLCI envisions a future where threats to Pacific Lamprey and their habitats are reduced, and the historic geographic range and ecological role of Pacific Lamprey are restored to the greatest extent possible.',
+		url: 'https://www.pacificlamprey.org/',
+		logo: 'plci_logo.png',
+		logoWidth: '60px'
+	},
 	PMEP: {
 		name: 'Pacific Marine & Estuarine Fish Habitat Partnership',
 		description:
 			"The Pacific Marine and Estuarine Fish Habitat Partnership's (PMEP) mission is to protect, enhance, and restore ecological habitats within estuaries and nearshore marine environments to sustain healthy native fish communities and support sustainable human uses that depend on healthy fish populations.  The PMEP originated in 2009 when representatives from Oregon, Washington and California agencies and non-governmental entities met to discuss the need to protect and restore habitat for fish species that use estuaries and nearshore marine areas.",
 		url: 'https://www.pacificfishhabitat.org/',
 		logo: 'pmep_logo.png',
+		logoWidth: '180px'
+	},
+	RFHP: {
+		name: 'Reservoir Fisheries Habitat Partnership',
+		description:
+			'Reservoirs are inextricable parts of our natural landscapes; they cannot be isolated or dismissed in conservation management. Constructed to meet a variety of human needs, they impact almost every major river system in the United States, affecting to various degrees habitat for fish and other aquatic species and, in turn, affected by the health of the watershed in which they reside. Reservoirs, their associated watersheds, and their downstream flows constitute interdependent, functioning systems. Effective management of these reservoir systems – maintaining their ecological function and biological health – is essential to the conservation of our nation’s aquatic resources and their habitats. It requires that we minimize the adverse impacts of reservoirs on their watersheds (and watersheds upon reservoirs) and maximize their utility for aquatic habitat. Healthy reservoir systems are essential to maintaining the quality of life for the American people. They provide vital infrastructure services, from the storage and delivery of water to the generation of power to the reduction of flood risk in downstream communities. They are focal points of recreation for tens of millions of Americans, from anglers to birdwatchers, and they generate tens of billions of dollars for local economies and national recreational industries. Innumerable species of fish and wildlife, too, benefit from the habitat that reservoirs provide. Multiple impairments threaten reservoir systems. These impairments – exacerbated by human population growth, projected climate change, and multiple regulatory and ownership jurisdictions – adversely affect fish and other aquatic species, as well as their habitats, and diminish the quality of life for people. To address these impairments, resource management agencies, non-governmental organizations, businesses, and committed individuals established the Reservoir Fisheries Habitat Partnership (RFHP), a Fish Habitat Partnership of the National Fish Habitat Action Plan. In contrast to other geographic- and species-based Fish Habitat Partnerships, the RFHP is a system-based partnership that operates on a national scale. This distinction determines its function. The RFHP promotes the protection, restoration, and enhancement of habitat for fish and other aquatic species and communities in reservoir systems. The RFHP is committed to integrating watershed conservation, in-reservoir management, and the management of downstream flows to address aquatic habitat impairments holistically. It relies on partnerships to do this. It assesses and prioritizes reservoirs of greatest conservation need, and acquires and develops the science, technology, tools, best management practices, and monitoring protocols needed for successful fisheries management and fish habitat conservation in those reservoirs and their associated systems. It shares that knowledge with, and provides material support to, all FHPs and other conservation entities with reservoir interests and issues. It facilitates, informs, equips, and supports a bottom-up approach to implementation of reservoir system conservation. The Reservoir Fish Habitat Partnership was recognized by the Board in October 2009.',
+		url: 'https://www.friendsofreservoirs.org/',
+		logo: 'rfhp_logo.png',
 		logoWidth: '180px'
 	},
 	SARP: {
@@ -1535,7 +1553,7 @@ export const FISH_HABITAT_PARTNERSHIPS = {
 		logo: 'sarp_logo.png',
 		logoWidth: '140px'
 	},
-	SEAFHP: {
+	SEAK: {
 		name: 'Southeast Alaska Fish Habitat Partnership',
 		description:
 			'The Southeast Alaska Fish Habitat Partnership works to foster cooperative fish habitat conservation in freshwater, estuarine and marine ecosystems across the southern panhandle of Alaska including the dynamic watersheds and waterways that make up the Alexander Archipelago. Covering nearly 17 million acres of this region is the Tongass National Forest, the largest national forest in the United States and a key producer of salmon. The Partnership’s mission is to support cooperative fish habitat conservation, restoration, and management across the region with consideration of economic, social, and cultural interests of local communities in its efforts.',
@@ -1543,7 +1561,7 @@ export const FISH_HABITAT_PARTNERSHIPS = {
 		logo: 'seafhp_logo.png',
 		logoWidth: '200px'
 	},
-	SWASHP: {
+	SWAK: {
 		name: 'Southwest Alaska Salmon Habitat Partnership',
 		description:
 			'The Southwest Alaska Salmon Habitat Partnership is a made up of local communities, Native organizations, subsistence users, anglers, hunters, commercial fishing interests, lodge owners, hunting and fishing guides, tourism interests, non-profit organizations, federal, state, and local agencies and corporations and foundations working cooperatively to conserve fish, wildlife and habitat and perpetuate the uses they support through voluntary habitat conservation in Southwest Alaska.',
