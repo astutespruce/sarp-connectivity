@@ -3,8 +3,12 @@
 	import ResetIcon from '@lucide/svelte/icons/x'
 	import SearchIcon from '@lucide/svelte/icons/search'
 
-	import { Button } from '$lib/components/ui/button'
-	import { Root as InputGroup, Input, Addon as InputAddOn } from '$lib/components/ui/input-group'
+	import { Button } from '#lib/components/ui/button/index.js'
+	import {
+		Root as InputGroup,
+		Input,
+		Addon as InputAddOn
+	} from '#lib/components/ui/input-group/index.js'
 
 	let {
 		value = $bindable(''),

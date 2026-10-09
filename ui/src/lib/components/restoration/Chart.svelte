@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { cn } from '$lib/utils'
-	import { barrierTypeLabels } from '$lib/config/constants'
-	import { sum } from '$lib/util/data'
-	import { formatNumber } from '$lib/util/format'
-	import { Button } from '$lib/components/ui/button'
+	import { cn } from '#lib/utils.js'
+	import { barrierTypeLabels } from '#lib/config/constants.js'
+	import { sum } from '#lib/util/data.js'
+	import { formatNumber } from '#lib/util/format.js'
+	import { Button } from '#lib/components/ui/button/index.js'
 
 	import type { MetricOption } from './types'
 
@@ -197,8 +197,8 @@
 				and / or
 			{/if}
 			{#if showSmallBarriers}{barrierTypeLabels.small_barriers}{/if}
-			that could not be correctly located on the aquatic network or were otherwise excluded from the analysis;
-			these contribute toward the count but not the upstream / downstream miles gained.
+			that could not be correctly located on the aquatic network or were otherwise excluded from the
+			analysis; these contribute toward the count but not the upstream / downstream miles gained.
 		</div>
 	{/if}
 {/if}

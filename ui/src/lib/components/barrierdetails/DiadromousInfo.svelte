@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { formatNumber } from '$lib/util/format'
+	import { formatNumber } from '#lib/util/format.js'
 
 	import Entry from './Entry.svelte'
 

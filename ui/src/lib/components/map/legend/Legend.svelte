@@ -1,6 +1,6 @@
 <script lang="ts">
 	import CloseIcon from '@lucide/svelte/icons/chevron-down'
-	import { Button } from '$lib/components/ui/button'
+	import { Button } from '#lib/components/ui/button/index.js'
 
 	import Circle from './Circle.svelte'
 	import type { Patch as PatchType, Circle as CircleType, Line as LineType } from './types'

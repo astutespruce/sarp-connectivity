@@ -1,8 +1,7 @@
 import { v4 as uuid } from 'uuid'
 
-import { MAPBOX_TOKEN } from '$lib/env'
-import { getFromStorage, saveToStorage } from '$lib/util/dom'
-
+import { MAPBOX_TOKEN } from '#lib/env.js'
+import { getFromStorage, saveToStorage } from '#lib/util/dom.js'
 import { mapConfig as config } from '../config'
 
 type MapboxPlace = {

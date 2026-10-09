@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit'
 
-import { REGIONS, CONNECTIVITY_TEAMS, STATE_DATA_PROVIDERS } from '$lib/config/constants.js'
+import { REGIONS, CONNECTIVITY_TEAMS, STATE_DATA_PROVIDERS } from '#lib/config/constants.js'
 
 import type { EntryGenerator } from './$types'
 
@@ -43,7 +43,7 @@ export const load = async ({ params }) => {
 	if (dataProviderFilenames.size > 0) {
 		const logos = Object.fromEntries(
 			Object.entries(
-				import.meta.glob('$lib/assets/images/*_logo.*', {
+				import.meta.glob('#images/*_logo.*', {
 					eager: true,
 					import: 'default'
 				})
@@ -59,7 +59,7 @@ export const load = async ({ params }) => {
 	}
 
 	const { default: map } = await import(
-		`$lib/assets/images/maps/regions/${params.id}.png?as=picture&w=500&format=avif;webp;png`
+		`#images/maps/regions/${params.id}.png?as=picture&w=500&format=avif;webp;png`
 	)
 
 	return {

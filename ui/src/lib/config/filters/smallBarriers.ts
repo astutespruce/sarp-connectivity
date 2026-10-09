@@ -33,8 +33,7 @@ import {
 	WILDSCENIC_RIVER,
 	YEAR_SURVEYED_BINS,
 	EPA_CAUSE_CODES
-} from '$lib/config/constants'
-
+} from '#lib/config/constants.js'
 import { getEntries, hasDiadromousData } from './common'
 
 export const smallBarriers = [

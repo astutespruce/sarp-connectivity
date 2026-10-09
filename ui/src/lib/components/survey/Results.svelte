@@ -2,13 +2,13 @@
 	import { op } from 'arquero'
 	import type { RowObject } from 'arquero/dist/types/table/types'
 
-	import { CONTACT_EMAIL } from '$lib/env'
-	import { SURVEYED } from '$lib/config/constants'
-	import { Downloader } from '$lib/components/download'
-	import { Header, Footer } from '$lib/components/sidebar'
+	import { CONTACT_EMAIL } from '#lib/env.js'
+	import { SURVEYED } from '#lib/config/constants.js'
+	import { Downloader } from '#lib/components/download/index.js'
+	import { Header, Footer } from '#lib/components/sidebar/index.js'
 
-	import { BackButton, StartOverButton } from '$lib/components/workflow'
-	import { formatNumber, singularOrPlural } from '$lib/util/format'
+	import { BackButton, StartOverButton } from '#lib/components/workflow/index.js'
+	import { formatNumber, singularOrPlural } from '#lib/util/format.js'
 
 	let { networkType, crossfilter, config, onBack, onStartOver } = $props()
 

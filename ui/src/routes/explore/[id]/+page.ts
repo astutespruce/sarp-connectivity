@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit'
 
-import { REGIONS, FISH_HABITAT_PARTNERSHIPS, STATES } from '$lib/config/constants'
+import { REGIONS, FISH_HABITAT_PARTNERSHIPS, STATES } from '#lib/config/constants.js'
 
 export const load = ({ params }) => {
 	const stateName = STATES[params.id.toUpperCase() as keyof typeof STATES]

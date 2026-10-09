@@ -2,11 +2,11 @@
 	import LoadingIcon from '@lucide/svelte/icons/loader-circle'
 	import { createQuery } from '@tanstack/svelte-query'
 
-	import { fetchBarrierDetails } from '$lib/api'
-	import { CONTACT_EMAIL } from '$lib/env'
-	import { Alert } from '$lib/components/alert'
-	import { Button } from '$lib/components/ui/button'
-	import { METRICS } from '$lib/config/constants'
+	import { fetchBarrierDetails } from '#lib/api/index.js'
+	import { CONTACT_EMAIL } from '#lib/env.js'
+	import { Alert } from '#lib/components/alert/index.js'
+	import { Button } from '#lib/components/ui/button/index.js'
+	import { METRICS } from '#lib/config/constants.js'
 
 	import Dam from './Dam.svelte'
 	import Footer from './Footer.svelte'
@@ -15,7 +15,7 @@
 	import SurveyedCrossing from './SurveyedCrossing.svelte'
 	import UnsurveyedCrossing from './UnsurveyedCrossing.svelte'
 	import Waterfall from './Waterfall.svelte'
-	import { cn } from '$lib/utils'
+	import { cn } from '#lib/utils.js'
 
 	type ScoreType = { score: number; tier: number }
 	type ScoresType = {

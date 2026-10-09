@@ -3,13 +3,13 @@
 	import { SvelteSet } from 'svelte/reactivity'
 
 	import { resolve } from '$app/paths'
-	import { MAP_SERVICES, barrierTypeLabels } from '$lib/config/constants'
-	import type { BarrierTypePlural } from '$lib/config/types'
-	import { formatNumber } from '$lib/util/format'
-	import { Downloader } from '$lib/components/download'
-	import { Search } from '$lib/components/unitsearch'
-	import { Footer } from '$lib/components/sidebar'
-	import { cn } from '$lib/utils'
+	import { MAP_SERVICES, barrierTypeLabels } from '#lib/config/constants.js'
+	import type { BarrierTypePlural } from '#lib/config/types.js'
+	import { formatNumber } from '#lib/util/format.js'
+	import { Downloader } from '#lib/components/download/index.js'
+	import { Search } from '#lib/components/unitsearch/index.js'
+	import { Footer } from '#lib/components/sidebar/index.js'
+	import { cn } from '#lib/utils.js'
 
 	const {
 		barrierType,

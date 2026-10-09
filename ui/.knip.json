@@ -1,5 +1,5 @@
 {
 	"project": ["./src/**/*.ts", "./src/**/*.svelte", "./src/**/*.css"],
-	"ignore": ["./src/lib/components/ui/**/*.ts"],
-	"ignoreDependencies": ["@typescript/native", "@sentry/browser"]
+	"ignore": ["./src/lib/components/ui/**/*.ts", "./src/env.ts", "./src/plugins/pmtilesServer.ts"],
+	"ignoreDependencies": ["@typescript/native", "@sentry/browser", "send"]
 }

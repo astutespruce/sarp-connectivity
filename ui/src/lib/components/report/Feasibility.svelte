@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { RECON, FEASIBILITYCLASS } from '$lib/config/constants'
+	import { RECON, FEASIBILITYCLASS } from '#lib/config/constants.js'
 	const { recon, feasibilityclass } = $props()
 </script>
 

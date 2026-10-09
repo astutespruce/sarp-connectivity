@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { resolve } from '$app/paths'
 
-	import { REGIONS } from '$lib/config/constants'
+	import { REGIONS } from '#lib/config/constants.js'
 
-	const mapImages = import.meta.glob('$lib/assets/images/maps/regions/*.png', {
+	const mapImages = import.meta.glob('#images/maps/regions/*.png', {
 		eager: true,
 		import: 'default',
 		query: {

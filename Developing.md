@@ -116,20 +116,20 @@ npm ci
 Create `/ui/.env.development` with the following contents:
 
 ```
-PUBLIC_MAPBOX_API_TOKEN=<token>
+SENTRY_DSN=
+GOOGLE_ANALYTICS_ID=
+MAPBOX_API_TOKEN=<token>
+DEPLOY_ENV="local"
+CONTACT_EMAIL=<email address of contact person used throughout site>
+NACC_HOME_URL=<root URL to the NACC homepage, likely https://aquaticbarriers.org unless also running locally>
+
+MAILCHIMP_URL=https://mc.us19.list-manage.com/subscribe/landing-page
+MAILCHIMP_USER_ID=<Mailchimp user ID>
+MAILCHIMP_FORM_ID=<Mailchimp form ID 1>
+MAILCHIMP_FORM_ID2=<Mailchimp form ID 2>
 
 VITE_TILE_DIR=<path to pmtiles files>
 VITE_PROXY_API=1
-
-PUBLIC_SITE_URL=<root url of the develoment server, likely http://localhost:5173>
-PUBLIC_NACC_URL=<root URL to the NACC homepage, likely https://aquaticbarriers.org unless also running locally>
-PUBLIC_DEPLOY_ENV="local"
-PUBLIC_CONTACT_EMAIL=<email address of contact person used throughout site>
-
-GATSBY_MAILCHIMP_URL=https://mc.us19.list-manage.com/subscribe/landing-page
-PUBLIC_MAILCHIMP_USER_ID=<Mailchimp user ID>
-PUBLIC_MAILCHIMP_FORM_ID=<Mailchimp form ID 1>
-PUBLIC_MAILCHIMP_FORM_ID2=<Mailchimp form ID 2>
 ```
 
 The user interface is built using SvelteJS.

@@ -7,11 +7,11 @@
 	import ReportIcon from '@lucide/svelte/icons/file-input'
 
 	import { resolve } from '$app/paths'
-	import { Button } from '$lib/components/ui/button'
-	import { STATES } from '$lib/config/constants'
-	import { formatNumber } from '$lib/util/format'
+	import { Button } from '#lib/components/ui/button/index.js'
+	import { STATES } from '#lib/config/constants.js'
+	import { formatNumber } from '#lib/util/format.js'
 
-	import { isEmptyString } from '$lib/util/string'
+	import { isEmptyString } from '#lib/util/string.js'
 
 	const {
 		barrierType,

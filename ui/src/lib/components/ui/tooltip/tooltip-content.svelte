@@ -1,7 +1,7 @@
 <script lang="ts">
 	// style override: change bg to white, text to foreground, update arrow config
 	import { Tooltip as TooltipPrimitive } from 'bits-ui'
-	import { cn } from '$lib/utils.js'
+	import { cn } from '#lib/utils.js'
 
 	let {
 		ref = $bindable(null),

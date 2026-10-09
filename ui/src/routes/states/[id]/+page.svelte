@@ -3,17 +3,17 @@
 	import LoadingIcon from '@lucide/svelte/icons/loader-circle'
 
 	import { resolve } from '$app/paths'
-	import { SITE_NAME } from '$lib/env'
-	import { fetchUnitDetails } from '$lib/api'
+	import { SITE_NAME } from '#lib/config/constants.js'
+	import { fetchUnitDetails } from '#lib/api/index.js'
 
-	import { PageLoadingError } from '$lib/components/layout'
+	import { PageLoadingError } from '#lib/components/layout/index.js'
 	import {
 		ActionBar,
 		BarrierStats,
 		DataProviders,
 		DownloadBar,
 		GetInvolved
-	} from '$lib/components/unitSummaryPage'
+	} from '#lib/components/unitSummaryPage/index.js'
 
 	const { params, data } = $props()
 	const downloadConfig = $derived({

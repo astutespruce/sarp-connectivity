@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button'
-	import { Root as ButtonGroup } from '$lib/components/ui/button-group'
+	import { Button } from '#lib/components/ui/button/index.js'
+	import { Root as ButtonGroup } from '#lib/components/ui/button-group/index.js'
 
 	type LayerOption = { value: string; label: string; sublabel?: string }
 

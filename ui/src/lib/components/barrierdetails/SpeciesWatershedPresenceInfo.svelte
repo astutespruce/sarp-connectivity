@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { resolve } from '$app/paths'
-	import { SALMONID_ESU, TROUT, barrierTypeLabelSingular } from '$lib/config/constants'
-	import type { BarrierTypePlural } from '$lib/config/types'
-	import { cn } from '$lib/utils'
+	import { SALMONID_ESU, TROUT, barrierTypeLabelSingular } from '#lib/config/constants.js'
+	import type { BarrierTypePlural } from '#lib/config/types.js'
+	import { cn } from '#lib/utils.js'
 
 	import Entry from './Entry.svelte'
 
@@ -78,8 +78,8 @@
 {:else}
 	<div class="text-muted-foreground mt-4 mr-2m px-2 text-sm">
 		Data sources in the subwatershed containing this {typeLabel} have not recorded any federally-listed
-		threatened and endangered aquatic species, state-listed aquatic Species of Greatest Conservation Need,
-		regionally-listed aquatic Species of Greatest Conservation Need, trout species, or salmon ESU / steelhead
-		trout DPS.
+		threatened and endangered aquatic species, state-listed aquatic Species of Greatest Conservation
+		Need, regionally-listed aquatic Species of Greatest Conservation Need, trout species, or salmon ESU
+		/ steelhead trout DPS.
 	</div>
 {/if}

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import AlertIcon from '@lucide/svelte/icons/triangle-alert'
 
-	import { Root, Title, Description } from '$lib/components/ui/alert'
+	import { Root, Title, Description } from '#lib/components/ui/alert/index.js'
 
 	const { class: className = null, iconClass = null, title, children } = $props()
 </script>

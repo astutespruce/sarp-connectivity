@@ -1,7 +1,8 @@
 <script lang="ts">
-	import NACCLogo from '$lib/assets/images/nacc_logo.svg'
-	import { dataVersion } from '$lib/config/constants'
-	import { CONTACT_EMAIL, SITE_URL, NACC_HOME_URL } from '$lib/env'
+	import NACCLogo from '#images/nacc_logo.svg'
+	import { dataVersion } from '#lib/config/constants.js'
+	import { CONTACT_EMAIL, NACC_HOME_URL } from '#lib/env.js'
+	import { HOST_URL } from '#lib/env.js'
 
 	const { barrierType, sarpid } = $props()
 </script>
@@ -31,7 +32,7 @@
 	<div class="grid sm:grid-cols-[1fr_180px] gap-8 mt-12">
 		<div class="text-xs">
 			This report was created on {new Date().toLocaleDateString()} using the
-			<a href={SITE_URL} target="_blank" rel="external">
+			<a href={HOST_URL} target="_blank" rel="external">
 				National Aquatic Barrier Inventory & Prioritization Tool
 			</a>, part of the
 			<a href={NACC_HOME_URL} target="_blank" rel="external">

@@ -1,5 +1,5 @@
-import { API_URL, HOST_URL } from '$lib/env'
-import { captureException } from '$lib/util/log'
+import { API_URL, HOST_URL } from '#lib/env.js'
+import { captureException } from '#lib/util/log.js'
 
 const pollInterval = 1000 // milliseconds; 1 second
 const jobTimeout = 600000 // milliseconds; 10 minutes

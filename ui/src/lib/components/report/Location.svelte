@@ -5,10 +5,10 @@
 		WATERBODY_SIZECLASS,
 		WILDSCENIC_RIVER_LONG_LABELS,
 		barrierTypeLabelSingular
-	} from '$lib/config/constants'
-	import type { BarrierTypePlural } from '$lib/config/types'
+	} from '#lib/config/constants.js'
+	import type { BarrierTypePlural } from '#lib/config/types.js'
 
-	import { formatNumber } from '$lib/util/format'
+	import { formatNumber } from '#lib/util/format.js'
 
 	const {
 		barrierType,

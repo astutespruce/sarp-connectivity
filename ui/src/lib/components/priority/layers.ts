@@ -1,5 +1,5 @@
-import { pointColors } from '$lib/config/constants'
-import { getHighlightExpr, getTierExpr } from '$lib/components/map/util'
+import { getHighlightExpr, getTierExpr } from '#lib/components/map/util.js'
+import { pointColors } from '#lib/config/constants.js'
 
 export const getTierPointColor = (scenario: string, tierThreshold: number) =>
 	getHighlightExpr(

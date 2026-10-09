@@ -16,11 +16,11 @@
 		PURPOSE,
 		PASSABILITY,
 		SMALL_BARRIER_SEVERITY
-	} from '$lib/config/constants'
+	} from '#lib/config/constants.js'
 
-	import { formatNumber } from '$lib/util/format'
-	import { classifySARPScore } from '$lib/util/stats'
-	import { isEmptyString } from '$lib/util/string'
+	import { formatNumber } from '#lib/util/format.js'
+	import { classifySARPScore } from '#lib/util/stats.js'
+	import { isEmptyString } from '#lib/util/string.js'
 
 	const {
 		barrierType,

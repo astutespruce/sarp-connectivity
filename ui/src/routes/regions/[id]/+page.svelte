@@ -2,10 +2,10 @@
 	import { createQuery } from '@tanstack/svelte-query'
 	import LoadingIcon from '@lucide/svelte/icons/loader-circle'
 
-	import { SITE_NAME } from '$lib/env'
-	import { fetchUnitDetails, fetchUnitList } from '$lib/api'
+	import { SITE_NAME } from '#lib/config/constants.js'
+	import { fetchUnitDetails, fetchUnitList } from '#lib/api/index.js'
 
-	import { PageLoadingError } from '$lib/components/layout'
+	import { PageLoadingError } from '#lib/components/layout/index.js'
 	import {
 		ActionBar,
 		BarrierStats,
@@ -13,7 +13,7 @@
 		GetInvolved,
 		StateDownloadTable,
 		SARPConnectivityProgram
-	} from '$lib/components/unitSummaryPage'
+	} from '#lib/components/unitSummaryPage/index.js'
 
 	const { params, data } = $props()
 

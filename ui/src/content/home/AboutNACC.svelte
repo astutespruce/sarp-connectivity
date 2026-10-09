@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { resolve } from '$app/paths'
 
-	import { NACC_HOME_URL } from '$lib/env'
-	import DamIcon from '$lib/assets/icons/dam.svg'
-	import PrioritizeIcon from '$lib/assets/icons/prioritize.svg'
-	import TeamIcon from '$lib/assets/icons/team.svg'
+	import { NACC_HOME_URL } from '#lib/env.js'
+	import DamIcon from '#icons/dam.svg'
+	import PrioritizeIcon from '#icons/prioritize.svg'
+	import TeamIcon from '#icons/team.svg'
 
-	import { HighlightBox } from '$lib/components/elements'
+	import { HighlightBox } from '#lib/components/elements/index.js'
 </script>
 
 <h2 class="text-2xl sm:text-3xl">National Aquatic Connectivity Collaborative</h2>

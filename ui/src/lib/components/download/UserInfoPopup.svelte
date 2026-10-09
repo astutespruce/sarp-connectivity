@@ -6,22 +6,29 @@
 	import { v4 as uuid } from 'uuid'
 	import LoadingIcon from '@lucide/svelte/icons/loader-circle'
 
-	import { CONTACT_EMAIL, MAILCHIMP_FORM } from '$lib/env'
-	import { fetchJSONP } from '$lib/api'
-	import { Alert } from '$lib/components/alert'
-	import { Button } from '$lib/components/ui/button'
-	import * as Dialog from '$lib/components/ui/dialog'
+	import {
+		CONTACT_EMAIL,
+		MAILCHIMP_URL,
+		MAILCHIMP_USER_ID,
+		MAILCHIMP_FORM_ID,
+		MAILCHIMP_FORM_ID2
+	} from '#lib/env.js'
+
+	import { fetchJSONP } from '#lib/api/index.js'
+	import { Alert } from '#lib/components/alert/index.js'
+	import { Button } from '#lib/components/ui/button/index.js'
+	import * as Dialog from '#lib/components/ui/dialog/index.js'
 	import {
 		Field,
 		Control,
 		Label,
 		FieldErrors,
 		Button as SubmitButton
-	} from '$lib/components/ui/form'
-	import { Input } from '$lib/components/ui/input'
-	import { Textarea } from '$lib/components/ui/textarea'
-	import { saveToStorage } from '$lib/util/dom'
-	import { captureException } from '$lib/util/log'
+	} from '#lib/components/ui/form/index.js'
+	import { Input } from '#lib/components/ui/input/index.js'
+	import { Textarea } from '#lib/components/ui/textarea/index.js'
+	import { saveToStorage } from '#lib/util/dom.js'
+	import { captureException } from '#lib/util/log.js'
 
 	type UserInfoData = {
 		email: string
@@ -47,9 +54,9 @@
 		// Mailchimp doesn't have CORS support, so we have to use JSONP to submit form data.
 		// yuck!
 		const params = {
-			u: MAILCHIMP_FORM.userId,
-			id: MAILCHIMP_FORM.formId1,
-			f_id: MAILCHIMP_FORM.formId2,
+			u: MAILCHIMP_USER_ID,
+			id: MAILCHIMP_FORM_ID,
+			f_id: MAILCHIMP_FORM_ID2,
 			...Object.fromEntries(
 				Object.entries(mailchimpFieldMap).map(([field, formFieldName]) => [
 					formFieldName,
@@ -63,7 +70,7 @@
 				result: string
 				msg: string
 			}
-			const response = await fetchJSONP(MAILCHIMP_FORM.url, params, 'c')
+			const response = await fetchJSONP(MAILCHIMP_URL, params, 'c')
 			const { result, msg } = response as MailChimpResponse
 
 			if (result === 'error') {

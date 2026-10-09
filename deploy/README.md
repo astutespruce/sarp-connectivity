@@ -94,15 +94,16 @@ API_DATA_PATH=/data/api
 Create a `ui/.env.production` file with the following:
 
 ```
-PUBLIC_MAPBOX_API_TOKEN = <token>
-PUBLIC_SENTRY_DSN = <dsn>
-PUBLIC_GOOGLE_ANALYTICS_ID = <ga id>
-PUBLIC_SITE_URL=https://tool.aquaticbarriers.org  # or https://staging.tool.aquaticbarriers.org
-PUBLIC_MAILCHIMP_URL=https://mc.us19.list-manage.com/subscribe/landing-page
-PUBLIC_MAILCHIMP_USER_ID=<user id>
-PUBLIC_MAILCHIMP_FORM_ID=<form id>
-PUBLIC_MAILCHIMP_FORM_ID2=<form id2>
-PUBLIC_NACC_URL=https://aquaticbarriers.org  # or https://staging.aquaticbarriers.org
+MAPBOX_API_TOKEN = <token>
+SENTRY_DSN = <dsn>
+GOOGLE_ANALYTICS_ID = <ga id>
+DEPLOY_ENV="production" # or "staging"
+CONTACT_EMAIL=<email address of contact person used throughout site>
+NACC_HOME_URL=https://aquaticbarriers.org  # or https://staging.aquaticbarriers.org
+MAILCHIMP_URL=https://mc.us19.list-manage.com/subscribe/landing-page
+MAILCHIMP_USER_ID=<user id>
+MAILCHIMP_FORM_ID=<form id>
+MAILCHIMP_FORM_ID2=<form id2>
 ```
 
 ## Clone NACC homepage repository and setup environment files
@@ -118,13 +119,11 @@ cd nacc-home
 Create a `.env.production` in the root of the repository with the following:
 
 ```bash
-PUBLIC_GOOGLE_ANALYTICS_ID=<google analytics ID>
-PUBLIC_SENTRY_DSN=<sentry DSN>
-PUBLIC_DEPLOY_ENV="production" # or staging
-PUBLIC_CONTACT_EMAIL=<contact email>
-PUBLIC_PRIORITIZATION_TOOL_URL="https://tool.aquaticbarriers.org" # or https://staging.tool.aquaticbarriers.org
-PUBLIC_TOOL_UI_DATA_PATH="/home/app/sarp-connectivity/ui/data"
-
+GOOGLE_ANALYTICS_ID=<google analytics ID>
+SENTRY_DSN=<sentry DSN>
+DEPLOY_ENV="production" # or staging
+CONTACT_EMAIL=<contact email>
+PRIORITIZATION_TOOL_URL="https://tool.aquaticbarriers.org" # or https://staging.tool.aquaticbarriers.org
 ```
 
 ## Clone NACC Training Portal repository and setup environment files
@@ -157,12 +156,12 @@ cd nacc-training
 Create a `.env.production` file with the following:
 
 ```bash
-PUBLIC_GOOGLE_ANALYTICS_ID=<google analytics ID>
-PUBLIC_SENTRY_DSN=<sentry DSN>
-PUBLIC_DEPLOY_ENV="production" # or staging
-PUBLIC_NACC_HOME_URL=https://aquaticbarriers.org # or https://staging.aquaticbarriers.org
-PUBLIC_CONTACT_EMAIL=<contact email: person that should be contacted for general support>
-PUBLIC_ADMIN_EMAIL=<admin email: person that should be contacted for login / site issues>
+GOOGLE_ANALYTICS_ID=<google analytics ID>
+SENTRY_DSN=<sentry DSN>
+DEPLOY_ENV="production" # or staging
+NACC_HOME_URL=https://aquaticbarriers.org # or https://staging.aquaticbarriers.org
+CONTACT_EMAIL=<contact email: person that should be contacted for general support>
+ADMIN_EMAIL=<admin email: person that should be contacted for login / site issues>
 ```
 
 As `ubuntu` user:

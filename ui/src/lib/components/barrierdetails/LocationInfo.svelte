@@ -16,12 +16,12 @@
 		TNC_RESILIENCE,
 		TU_BROOK_TROUT_PORTFOLIO,
 		WILDSCENIC_RIVER_LONG_LABELS
-	} from '$lib/config/constants'
-	import type { BarrierTypePlural } from '$lib/config/types'
+	} from '#lib/config/constants.js'
+	import type { BarrierTypePlural } from '#lib/config/types.js'
 
 	import Entry from './Entry.svelte'
-	import { formatNumber } from '$lib/util/format'
-	import { isEmptyString } from '$lib/util/string'
+	import { formatNumber } from '#lib/util/format.js'
+	import { isEmptyString } from '#lib/util/string.js'
 
 	const {
 		annualflow = null,

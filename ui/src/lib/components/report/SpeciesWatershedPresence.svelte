@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { SALMONID_ESU, TROUT } from '$lib/config/constants'
-	import { formatNumber } from '$lib/util/format'
+	import { SALMONID_ESU, TROUT } from '#lib/config/constants.js'
+	import { formatNumber } from '#lib/util/format.js'
 
 	const { barrierType, tespp, statesgcnspp, regionalsgcnspp, trout, salmonidesu } = $props()
 	const troutSpp = $derived(

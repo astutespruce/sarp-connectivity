@@ -4,19 +4,19 @@
 	import { op } from 'arquero'
 	import type { RowObject } from 'arquero/dist/types/table/types'
 
-	import { barrierTypeLabels } from '$lib/config/constants'
-	import { Button } from '$lib/components/ui/button'
-	import { FilterGroup } from '$lib/components/filter'
-	import { Header, Footer } from '$lib/components/sidebar'
-	import { ExpandableParagraph } from '$lib/components/text'
-	import { reduceToObject } from '$lib/util/data'
-	import { formatNumber, pluralize } from '$lib/util/format'
-	import { cn } from '$lib/utils'
+	import { barrierTypeLabels } from '#lib/config/constants.js'
+	import { Button } from '#lib/components/ui/button/index.js'
+	import { FilterGroup } from '#lib/components/filter/index.js'
+	import { Header, Footer } from '#lib/components/sidebar/index.js'
+	import { ExpandableParagraph } from '#lib/components/text/index.js'
+	import { reduceToObject } from '#lib/util/data.js'
+	import { formatNumber, pluralize } from '#lib/util/format.js'
+	import { cn } from '#lib/utils.js'
 
 	import BackButton from './BackButton.svelte'
 	import StartOverButton from './StartOverButton.svelte'
 	import NextButton from './NextButton.svelte'
-	import type { BarrierTypePlural } from '$lib/config/types'
+	import type { BarrierTypePlural } from '#lib/config/types.js'
 
 	const {
 		networkType,

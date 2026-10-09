@@ -2,8 +2,8 @@
 	import { untrack } from 'svelte'
 	import { createQuery } from '@tanstack/svelte-query'
 
-	import { CONTACT_EMAIL } from '$lib/env'
-	import { SearchField } from '$lib/components/search'
+	import { CONTACT_EMAIL } from '#lib/env.js'
+	import { SearchField } from '#lib/components/search/index.js'
 	import { searchPlaces, getPlace } from './mapbox'
 	import ListItem from './PlaceListItem.svelte'
 

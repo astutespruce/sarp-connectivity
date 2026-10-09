@@ -1,11 +1,11 @@
 <script lang="ts">
-	import LightIcon from '$lib/assets/images/light-v10.png'
-	import StreetsIcon from '$lib/assets/images/esri-streets.jpg'
-	import TopoIcon from '$lib/assets/images/esri-topo.jpg'
-	import ImageryIcon from '$lib/assets/images/esri-imagery.jpg'
+	import LightIcon from '#images/light-v10.png'
+	import StreetsIcon from '#images/esri-streets.jpg'
+	import TopoIcon from '#images/esri-topo.jpg'
+	import ImageryIcon from '#images/esri-imagery.jpg'
 
-	import { Button } from '$lib/components/ui/button'
-	import { cn } from '$lib/utils'
+	import { Button } from '#lib/components/ui/button/index.js'
+	import { cn } from '#lib/utils.js'
 
 	import { basemapLayers as basemaps } from './config'
 

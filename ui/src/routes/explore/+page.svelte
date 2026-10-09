@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { summaryStats } from '$lib/config/summaryStats'
-	import { ExplorePage } from '$lib/components/explore'
+	import { summaryStats } from '#lib/config/summaryStats.js'
+	import { ExplorePage } from '#lib/components/explore/index.js'
 </script>
 
 <ExplorePage

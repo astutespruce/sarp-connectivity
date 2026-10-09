@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { HighlightBox } from '$lib/components/elements'
-	import { HeaderImage } from '$lib/components/image'
-	import { SITE_NAME } from '$lib/env'
+	import { HighlightBox } from '#lib/components/elements/index.js'
+	import { HeaderImage } from '#lib/components/image/index.js'
+	import { SITE_NAME } from '#lib/config/constants.js'
 
-	import HighAlteredIcon from '$lib/assets/icons/sinuosity_low.svg'
-	import LowAlteredIcon from '$lib/assets/icons/sinuosity_high.svg'
+	import HighAlteredIcon from '#icons/sinuosity_low.svg'
+	import LowAlteredIcon from '#icons/sinuosity_high.svg'
 </script>
 
 <svelte:head>
@@ -15,7 +15,7 @@
 	author="Washington State Department of Agriculture."
 	url="https://www.flickr.com/photos/wsdagov/42209868424/"
 >
-	<enhanced:img src="$lib/assets/images/42209868424_bb2dd0f7f0_o.jpg" alt="" />
+	<enhanced:img src="#images/42209868424_bb2dd0f7f0_o.jpg" alt="" />
 </HeaderImage>
 
 <div class="page-content">
@@ -26,8 +26,8 @@
 		altered compared to natural conditions.
 		<br />
 		<br />
-		Networks are characterized by the percent of their total network length that is in altered river and
-		stream reaches.
+		Networks are characterized by the percent of their total network length that is in altered river
+		and stream reaches.
 	</p>
 
 	<div class="mt-8 grid sm:grid-cols-2 gap-8">

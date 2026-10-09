@@ -1,5 +1,4 @@
 import path from 'path'
-
 import send from 'send'
 
 /** This plugin serves PMTiles from VITE_TILE_DIR in development; they are served

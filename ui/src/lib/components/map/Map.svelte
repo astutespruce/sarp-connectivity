@@ -9,10 +9,10 @@
 	import 'mapbox-gl/dist/mapbox-gl.css'
 	import { untrack } from 'svelte'
 
-	import { MAPBOX_TOKEN } from '$lib/env'
-	import { cn } from '$lib/utils'
+	import { MAPBOX_TOKEN } from '#lib/env.js'
+	import { cn } from '#lib/utils.js'
 
-	import { priorityAreasLegend } from '$lib/config/constants'
+	import { priorityAreasLegend } from '#lib/config/constants.js'
 	import { mapConfig, sources as initSources, basemapLayers } from './config'
 	import { priorityAreaLayers, networkLayers, regionBoundary, regionMasks } from './layers'
 	import { getCenterAndZoom, runOnceOnIdle } from './util'

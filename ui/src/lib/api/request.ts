@@ -1,8 +1,8 @@
-import { fromArrow } from 'arquero'
 import { tableFromIPC } from '@uwdata/flechette'
+import { fromArrow } from 'arquero'
 
-import { encodeParams } from '$lib/util/dom'
-import { captureException } from '$lib/util/log'
+import { encodeParams } from '#lib/util/dom.js'
+import { captureException } from '#lib/util/log.js'
 
 let jsonpCounter = 1
 

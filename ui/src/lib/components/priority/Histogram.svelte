@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { pointColors } from '$lib/config/constants'
-	import { formatNumber } from '$lib/util/format'
-	import { cn } from '$lib/utils'
+	import { pointColors } from '#lib/config/constants.js'
+	import { formatNumber } from '#lib/util/format.js'
+	import { cn } from '#lib/utils.js'
 
 	const { counts, threshold } = $props()
 

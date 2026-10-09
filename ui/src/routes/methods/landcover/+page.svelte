@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { HighlightBox } from '$lib/components/elements'
-	import { HeaderImage } from '$lib/components/image'
-	import { SITE_NAME } from '$lib/env'
+	import { HighlightBox } from '#lib/components/elements/index.js'
+	import { HeaderImage } from '#lib/components/image/index.js'
+	import { SITE_NAME } from '#lib/config/constants.js'
 
-	import LowLandcoverIcon from '$lib/assets/icons/nat_landcover_low.svg'
-	import HighLandcoverIcon from '$lib/assets/icons/nat_landcover_high.svg'
+	import LowLandcoverIcon from '#icons/nat_landcover_low.svg'
+	import HighLandcoverIcon from '#icons/nat_landcover_high.svg'
 </script>
 
 <svelte:head>
@@ -15,7 +15,7 @@
 	author="Loakfoma Creek, Noxubee National Wildlife Refuge, Mississippi. U.S. Fish and Wildlife Service."
 	url="https://www.flickr.com/photos/usfwssoutheast/6882770647/in/album-72157629334467105/"
 >
-	<enhanced:img src="$lib/assets/images/6882770647_c43a945282_o.jpg" alt="" />
+	<enhanced:img src="#images/6882770647_c43a945282_o.jpg" alt="" />
 </HeaderImage>
 
 <div class="page-content">

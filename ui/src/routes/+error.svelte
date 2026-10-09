@@ -1,8 +1,9 @@
 <script>
-	import { browser } from '$app/environment'
+	import { browser } from '$app/env'
 	import { page } from '$app/state'
-	import { CONTACT_EMAIL, SITE_NAME } from '$lib/env'
-	import { NotFoundPage } from '$lib/components/layout'
+	import { CONTACT_EMAIL } from '#lib/env.js'
+	import { SITE_NAME } from '#lib/config/constants.js'
+	import { NotFoundPage } from '#lib/components/layout/index.js'
 
 	console.error(page.status)
 	console.error(page.error)

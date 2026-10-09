@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { barrierTypeLabelSingular, EPA_CAUSE_CODES } from '$lib/config/constants'
-	import type { BarrierTypePlural } from '$lib/config/types'
-	import { formatNumber, formatPercent } from '$lib/util/format'
-	import { cn } from '$lib/utils'
+	import { barrierTypeLabelSingular, EPA_CAUSE_CODES } from '#lib/config/constants.js'
+	import type { BarrierTypePlural } from '#lib/config/types.js'
+	import { formatNumber, formatPercent } from '#lib/util/format.js'
+	import { cn } from '#lib/utils.js'
 
 	const {
 		barrierType,

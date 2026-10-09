@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { isEmptyString } from '$lib/util/string'
+	import { isEmptyString } from '#lib/util/string.js'
 
 	import Entry from './Entry.svelte'
 

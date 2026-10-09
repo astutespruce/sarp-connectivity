@@ -2,11 +2,11 @@
 	import CloseIcon from '@lucide/svelte/icons/circle-x'
 	import LayersIcon from '@lucide/svelte/icons/layers'
 
-	import { priorityAreasLegend } from '$lib/config/constants'
-	import { Button } from '$lib/components/ui/button'
-	import { Checkbox } from '$lib/components/ui/checkbox'
-	import { ScrollArea } from '$lib/components/ui/scroll-area'
-	import { Label } from '$lib/components/ui/label'
+	import { priorityAreasLegend } from '#lib/config/constants.js'
+	import { Button } from '#lib/components/ui/button/index.js'
+	import { Checkbox } from '#lib/components/ui/checkbox/index.js'
+	import { ScrollArea } from '#lib/components/ui/scroll-area/index.js'
+	import { Label } from '#lib/components/ui/label/index.js'
 
 	let { visibleLayers = $bindable({}) } = $props()
 	let isOpen = $state(false)

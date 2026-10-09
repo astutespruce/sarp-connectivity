@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { resolve } from '$app/paths'
-	import { HeaderImage } from '$lib/components/image'
-	import { CONTACT_EMAIL, SITE_NAME, NACC_HOME_URL } from '$lib/env'
+	import { HeaderImage } from '#lib/components/image/index.js'
+	import { CONTACT_EMAIL, NACC_HOME_URL } from '#lib/env.js'
+	import { SITE_NAME } from '#lib/config/constants.js'
 </script>
 
 <svelte:head>
@@ -9,7 +10,7 @@
 </svelte:head>
 
 <HeaderImage author="Zach Dutra" url="https://unsplash.com/photos/2d7Y5Yi3aq8">
-	<enhanced:img src="$lib/assets/images/zack-dutra-2d7Y5Yi3aq8-unsplash.jpg" alt="" />
+	<enhanced:img src="#images/zack-dutra-2d7Y5Yi3aq8-unsplash.jpg" alt="" />
 </HeaderImage>
 
 <div class="page-content">
@@ -24,8 +25,8 @@
 		<a href="https://fishhabitat.org/" target="_blank" rel="external">
 			National Fish Habitat Partnership</a
 		>
-		(NFHP), has been working to map and prioritize aquatic organism passage barriers (dams, assessed road
-		stream crossings, and waterfalls) across the United States.
+		(NFHP), has been working to map and prioritize aquatic organism passage barriers (dams, assessed
+		road stream crossings, and waterfalls) across the United States.
 		<br /><br />
 		This effort is now called the
 
@@ -34,8 +35,8 @@
 		</a>
 		(NACC), under the NFHP umbrella, and has been funded by a variety of partners including federal and
 		state agencies and NGOs. Within this collaborative, partners can use the
-		<b>National Aquatic Barrier Inventory & Prioritization Tool</b> to collect barrier data, extract data,
-		and prioritize barrier data to create lists of high-priority projects based on criteria important
+		<b>National Aquatic Barrier Inventory & Prioritization Tool</b> to collect barrier data, extract
+		data, and prioritize barrier data to create lists of high-priority projects based on criteria important
 		to their particular organization or agency.
 	</p>
 	<h2 class="mt-8">The Inventory</h2>

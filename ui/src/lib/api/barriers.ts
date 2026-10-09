@@ -1,20 +1,20 @@
 import { tableFromIPC } from '@uwdata/flechette'
 
-import { API_URL, HOST_URL } from '$lib/env'
 import {
 	SPECIES_HABITAT_FIELDS,
 	barrierNameWhenUnknown,
 	TIER_FIELDS,
 	TIER_PACK_INFO
-} from '$lib/config/constants'
-import { captureException } from '$lib/util/log'
-import type { Filters, BarrierTypePlural } from '$lib/config/types'
-import { isEmptyString } from '$lib/util/string'
-import { unpackBits } from '$lib/util/data'
-
+} from '#lib/config/constants.js'
+import { API_URL, HOST_URL } from '#lib/env.js'
+import { unpackBits } from '#lib/util/data.js'
+import { captureException } from '#lib/util/log.js'
+import { isEmptyString } from '#lib/util/string.js'
 import { pollJob } from './job'
-import type { ProgressCallback } from './job'
 import { fetchFeather } from './request'
+
+import type { ProgressCallback } from './job'
+import type { Filters, BarrierTypePlural } from '#lib/config/types.js'
 
 // list of summary unit IDs per summary unit layer: {<layer>: [unit1,...]}
 export type SummaryUnitIdsByLayer = Record<string, string[] | number[]>

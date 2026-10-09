@@ -2,14 +2,14 @@
 	import DownloadIcon from '@lucide/svelte/icons/download'
 	import { onMount } from 'svelte'
 
-	import { shortBarrierTypeLabels } from '$lib/config/constants'
-	import { getFromStorage } from '$lib/util/dom'
+	import { shortBarrierTypeLabels } from '#lib/config/constants.js'
+	import { getFromStorage } from '#lib/util/dom.js'
 
-	import { Button } from '$lib/components/ui/button'
+	import { Button } from '#lib/components/ui/button/index.js'
 
 	import DownloadPopup from './DownloadPopup.svelte'
 	import UserInfoPopup from './UserInfoPopup.svelte'
-	import { cn } from '$lib/utils'
+	import { cn } from '#lib/utils.js'
 
 	const {
 		barrierType,

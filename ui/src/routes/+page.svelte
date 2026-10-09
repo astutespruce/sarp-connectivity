@@ -1,8 +1,8 @@
 <script lang="ts">
-	import NACCLogo from '$lib/assets/images/nacc_logo.svg'
-	import { SITE_NAME } from '$lib/env'
+	import NACCLogo from '#images/nacc_logo.svg'
+	import { SITE_NAME } from '#lib/config/constants.js'
 
-	import { About, AboutNACC, GetInvolved, HowToUse, Regions, Top } from '$content/home'
+	import { About, AboutNACC, GetInvolved, HowToUse, Regions, Top } from '#content/home/index.js'
 </script>
 
 <svelte:head>

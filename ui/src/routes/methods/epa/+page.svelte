@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { HeaderImage } from '$lib/components/image'
-	import { SITE_NAME } from '$lib/env'
+	import { HeaderImage } from '#lib/components/image/index.js'
+	import { SITE_NAME } from '#lib/config/constants.js'
 </script>
 
 <svelte:head>
@@ -11,7 +11,7 @@
 	author="Brandon"
 	url="https://unsplash.com/photos/gray-fish-on-water-during-daytime-enPHTN3OPRw"
 >
-	<enhanced:img src="$lib/assets/images/brandon-enPHTN3OPRw-unsplash.jpg" alt="" />
+	<enhanced:img src="#images/brandon-enPHTN3OPRw-unsplash.jpg" alt="" />
 </HeaderImage>
 
 <div class="page-content">
@@ -57,8 +57,8 @@
 			Oklahoma or California, this converted those into polygon areas instead of lines.
 			<br />
 			<br />
-			Note: not all areas could be correctly extracted this way. There were multiple instances where the
-			EPA line did not form a self-closing ring (e.g., if the waterbody was represented using multiple
+			Note: not all areas could be correctly extracted this way. There were multiple instances where
+			the EPA line did not form a self-closing ring (e.g., if the waterbody was represented using multiple
 			lines instead of a single ring), or the EPA lines represented parts but not all of the shoreline
 			of a given waterbody.
 		</li>
@@ -115,8 +115,8 @@
 		may extend somewhat beyond the specific reaches for which water quality issues were recorded by EPA.
 		Furthermore, the linework representing certain larger rivers and braided channels in the EPA data
 		had very poor alignment with NHD flowlines, possibly due to old versions of the hydrology used in
-		the EPA dataset which no longer reflects the position of the river channel. This means that some of
-		these lines within the EPA data could not be attributed to NHD flowlines.
+		the EPA dataset which no longer reflects the position of the river channel. This means that some
+		of these lines within the EPA data could not be attributed to NHD flowlines.
 		<br />
 		<br />
 		These flowline assignments have not been reviewed or approved by EPA and should be treated as reasonable

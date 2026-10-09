@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { resolve } from '$app/paths'
-	import { Alert } from '$lib/components/alert'
-	import { HighlightBox } from '$lib/components/elements'
-	import { HeaderImage } from '$lib/components/image'
-	import { SITE_NAME } from '$lib/env'
-	import NetworkGraphicSVG from '$lib/assets/images/functional_network.svg'
+	import { Alert } from '#lib/components/alert/index.js'
+	import { HighlightBox } from '#lib/components/elements/index.js'
+	import { HeaderImage } from '#lib/components/image/index.js'
+	import { SITE_NAME } from '#lib/config/constants.js'
+	import NetworkGraphicSVG from '#images/functional_network.svg'
 
-	import NetworkLengthIcon from '$lib/assets/icons/length_high.svg'
-	import NetworkComplexityIcon from '$lib/assets/icons/size_classes_high.svg'
-	import ChannelAlterationIcon from '$lib/assets/icons/sinuosity_high.svg'
-	import NaturalLandcoverIcon from '$lib/assets/icons/nat_landcover_high.svg'
+	import NetworkLengthIcon from '#icons/length_high.svg'
+	import NetworkComplexityIcon from '#icons/size_classes_high.svg'
+	import ChannelAlterationIcon from '#icons/sinuosity_high.svg'
+	import NaturalLandcoverIcon from '#icons/nat_landcover_high.svg'
 </script>
 
 <svelte:head>
@@ -20,7 +20,7 @@
 	author="Amelie"
 	url="https://unsplash.com/photos/a-group-of-penguins-on-rocks-by-a-body-of-water-Q3oEolT9ZQE"
 >
-	<enhanced:img src="$lib/assets/images/amelie-Q3oEolT9ZQE-unsplash.jpg" alt="" />
+	<enhanced:img src="#images/amelie-Q3oEolT9ZQE-unsplash.jpg" alt="" />
 </HeaderImage>
 
 <div class="page-content">
@@ -59,7 +59,7 @@
 
 			<figure>
 				<div class="flex justify-center sm:justify-end">
-					<enhanced:img src="$lib/assets/images/9272554306_b34bf886f4_z.jpg" alt="Hartwell Dam" />
+					<enhanced:img src="#images/9272554306_b34bf886f4_z.jpg" alt="Hartwell Dam" />
 				</div>
 				<figcaption>
 					Hartwell Dam, Georgia. Photo:
@@ -100,8 +100,8 @@
 					>
 						USGS High Resolution National Hydrography Dataset
 					</a>
-					(NHDPlus). Where possible, their locations were manually inspected to verify their correct position
-					on the aquatic network.
+					(NHDPlus). Where possible, their locations were manually inspected to verify their correct
+					position on the aquatic network.
 					<br />
 					<br />
 					<a href={resolve('/methods/network/', {})}> Read more about network analysis methods </a>.
@@ -194,8 +194,8 @@
 			the lowest metric value corresponds to the lowest index value. This is used to assign a rank
 			for that metric to each barrier.
 			<br /><br />
-			Note: channel alteration is measured based on the percent of the channel that is unaltered, so that
-			it follows the same ordering as the other metrics.
+			Note: channel alteration is measured based on the percent of the channel that is unaltered, so
+			that it follows the same ordering as the other metrics.
 		</li>
 	</ol>
 
@@ -244,10 +244,10 @@
 		causes the distribution of values among ranks to be highly uneven in certain areas.
 		<br />
 		<br />
-		Once barriers have been ranked for each of the above scenarios, they are binned into 20 tiers to simplify
-		interpretation and use. To do this, barriers that fall in the best 5% of the range of ranks for that
-		metric are assigned to Tier 1 (top tier), whereas barriers that fall in the worst 5% of the range
-		of ranks for that metric are assigned Tier 20 (bottom tier).
+		Once barriers have been ranked for each of the above scenarios, they are binned into 20 tiers to
+		simplify interpretation and use. To do this, barriers that fall in the best 5% of the range of ranks
+		for that metric are assigned to Tier 1 (top tier), whereas barriers that fall in the worst 5% of
+		the range of ranks for that metric are assigned Tier 20 (bottom tier).
 		<br />
 		<br />
 		Barrier tiers are calculated for these scenarios using the following methods:
@@ -273,10 +273,10 @@
 		<p class="text-base">
 			Tiers are based on position within the range of observed ranks for a given area. They are <i
 				>not</i
-			> based on the frequency of ranks, such as percentiles, and therefore may have a highly uneven number
-			of barriers per tier depending on the area. In general, there are fewer barriers in the top tiers
-			than there are in the bottom tiers. This is largely because many barriers share the same value for
-			a given metric.
+			> based on the frequency of ranks, such as percentiles, and therefore may have a highly uneven
+			number of barriers per tier depending on the area. In general, there are fewer barriers in the
+			top tiers than there are in the bottom tiers. This is largely because many barriers share the same
+			value for a given metric.
 		</p>
 	</Alert>
 </div>

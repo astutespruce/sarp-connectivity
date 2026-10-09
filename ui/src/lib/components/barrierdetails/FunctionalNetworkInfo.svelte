@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { barrierTypeLabelSingular } from '$lib/config/constants'
-	import type { BarrierTypePlural } from '$lib/config/types'
-	import { ExpandableParagraph } from '$lib/components/text'
-	import { InfoTooltip } from '$lib/components/tooltip'
-	import { cn } from '$lib/utils'
+	import { barrierTypeLabelSingular } from '#lib/config/constants.js'
+	import type { BarrierTypePlural } from '#lib/config/types.js'
+	import { ExpandableParagraph } from '#lib/components/text/index.js'
+	import { InfoTooltip } from '#lib/components/tooltip/index.js'
+	import { cn } from '#lib/utils.js'
 
 	import Entry from './Entry.svelte'
 
-	import { formatNumber, formatPercent } from '$lib/util/format'
+	import { formatNumber, formatPercent } from '#lib/util/format.js'
 
 	const {
 		barrierType,
@@ -216,9 +216,9 @@
 					Freshwater Resilience dataset (v0.44).
 					<br />
 					<br />
-					Total resilient miles downstream is the sum of all reach lengths in the functional network immediately
-					downstream of this network that are within watersheds with above average or greater freshwater
-					resilience, excluding all lengths within altered waterbodies.
+					Total resilient miles downstream is the sum of all reach lengths in the functional network
+					immediately downstream of this network that are within watersheds with above average or greater
+					freshwater resilience, excluding all lengths within altered waterbodies.
 				</InfoTooltip>
 			</td>
 			<td>{formatNumber(resilientupstreammiles, 2, true)}</td>

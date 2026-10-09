@@ -1,7 +1,7 @@
 <script lang="ts">
 	import ChevronsRightIcon from '@lucide/svelte/icons/chevrons-right'
 
-	import { Button } from '$lib/components/ui/button'
+	import { Button } from '#lib/components/ui/button/index.js'
 
 	const { label, disabled = false, title = null, onClick } = $props()
 </script>

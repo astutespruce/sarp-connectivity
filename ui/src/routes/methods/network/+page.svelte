@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { resolve } from '$app/paths'
-	import { Alert } from '$lib/components/alert'
-	import { HeaderImage } from '$lib/components/image'
-	import { CONTACT_EMAIL, SITE_NAME } from '$lib/env'
+	import { Alert } from '#lib/components/alert/index.js'
+	import { HeaderImage } from '#lib/components/image/index.js'
+	import { CONTACT_EMAIL } from '#lib/env.js'
+	import { SITE_NAME } from '#lib/config/constants.js'
 </script>
 
 <svelte:head>
@@ -13,7 +14,7 @@
 	author="Biologists collect and move fish from a de-watered river reach as part of Cane River Dam removal, 2016 | U.S. Fish & Wildlife Service Southeast Region"
 	url="https://www.flickr.com/photos/usfwssoutheast/30557776285/"
 >
-	<enhanced:img src="$lib/assets/images/30557776285_90ce5f6683_6k.jpg" alt="" />
+	<enhanced:img src="#images/30557776285_90ce5f6683_6k.jpg" alt="" />
 </HeaderImage>
 
 <div class="page-content">
@@ -32,9 +33,10 @@
 		better.
 		<br />
 		<br />
-		The following methods represent our best attempt to correctly snap and analyze dams and surveyed road/stream
-		crossings. If you see errors in the dam, surveyed road/stream crossing, or waterfall locations used
-		in the analysis, or would like additional help interpreting the results of the analysis, please
+		The following methods represent our best attempt to correctly snap and analyze dams and surveyed
+		road/stream crossings. If you see errors in the dam, surveyed road/stream crossing, or waterfall
+		locations used in the analysis, or would like additional help interpreting the results of the analysis,
+		please
 		<a href={`mailto:${CONTACT_EMAIL}`} target="_blank">contact us</a>.
 	</p>
 

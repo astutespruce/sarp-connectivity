@@ -1,10 +1,11 @@
 import { addFunction, op, escape } from 'arquero'
-import type { ColumnTable as Table } from 'arquero'
-import type { RowObject } from 'arquero/dist/types/table/types'
 import { SvelteSet } from 'svelte/reactivity'
 
-import { reduceToObject } from '$lib/util/data'
+import { reduceToObject } from '#lib/util/data.js'
+
 import type { Dimension, Dimensions, FilterConfig } from './types'
+import type { ColumnTable as Table } from 'arquero'
+import type { RowObject } from 'arquero/dist/types/table/types'
 
 /**
  * Create object with dimensions

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { attachmentKeywords } from '$lib/config/constants'
-	import { isEmptyString } from '$lib/util/string'
+	import { attachmentKeywords } from '#lib/config/constants.js'
+	import { isEmptyString } from '#lib/util/string.js'
 
 	const { attachments } = $props()
 

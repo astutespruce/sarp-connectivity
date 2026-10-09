@@ -1,6 +1,9 @@
 {
-	"extends": "./.svelte-kit/tsconfig.json",
+	"extends": "$app/tsconfig",
+	"include": ["src", "tests", "ambient.d.ts"],
+	"exclude": ["node_modules"],
 	"compilerOptions": {
+		"types": ["$app/types", "node"],
 		"allowJs": true,
 		"checkJs": true,
 		"esModuleInterop": true,
@@ -9,13 +12,14 @@
 		"skipLibCheck": true,
 		"sourceMap": true,
 		"strict": true,
-		"moduleResolution": "bundler"
-	},
-	"include": ["./src/**/*.ts", "./src/**/*.svelte", "./node_modules/mapbox-gl/*.ts"]
-
-	// Path aliases are handled by https://svelte.dev/docs/kit/configuration#alias
-	// except $lib which is handled by https://svelte.dev/docs/kit/configuration#files
-	//
-	// To make changes to top-level options such as include and exclude, we recommend extending
-	// the generated config; see https://svelte.dev/docs/kit/configuration#typescript
+		"moduleResolution": "bundler",
+		"rewriteRelativeImportExtensions": true,
+		"paths": {
+			"#lib/*": ["./src/lib/*"],
+			"#content/*": ["./src/content/*"],
+			"#data/*": ["./data/*"],
+			"#icons/*": ["./src/lib/assets/icons/*"],
+			"#images/*": ["./src/lib/assets/images/*"]
+		}
+	}
 }

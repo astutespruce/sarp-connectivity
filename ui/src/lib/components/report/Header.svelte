@@ -3,8 +3,8 @@
 	import RemovedBarrierIcon from '@lucide/svelte/icons/waves'
 	import PlannedProjectIcon from '@lucide/svelte/icons/waves-arrow-up'
 
-	import { barrierTypeLabelSingular, STATES } from '$lib/config/constants'
-	import { formatNumber } from '$lib/util/format'
+	import { barrierTypeLabelSingular, STATES } from '#lib/config/constants.js'
+	import { formatNumber } from '#lib/util/format.js'
 
 	const {
 		barrierType,

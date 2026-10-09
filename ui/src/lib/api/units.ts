@@ -1,9 +1,9 @@
-import camelcaseKeys from 'camelcase-keys'
 import { tableFromIPC } from '@uwdata/flechette'
+import camelcaseKeys from 'camelcase-keys'
 
-import { API_URL } from '$lib/env'
-import { captureException } from '$lib/util/log'
-import { extractYearRemovedStats } from '$lib/util/stats'
+import { API_URL } from '#lib/env.js'
+import { captureException } from '#lib/util/log.js'
+import { extractYearRemovedStats } from '#lib/util/stats.js'
 
 export const fetchUnitDetails = async (layer: string, id: string | number) => {
 	const url = `${API_URL}/units/${layer}/details/${id}`

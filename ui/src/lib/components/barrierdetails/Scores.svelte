@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { resolve } from '$app/paths'
-	import { barrierTypeLabels } from '$lib/config/constants'
-	import type { BarrierTypePlural } from '$lib/config/types'
-	import { Button } from '$lib/components/ui/button'
-	import { Root as ButtonGroup } from '$lib/components/ui/button-group'
-	import { cn } from '$lib/utils'
+	import { barrierTypeLabels } from '#lib/config/constants.js'
+	import type { BarrierTypePlural } from '#lib/config/types.js'
+	import { Button } from '#lib/components/ui/button/index.js'
+	import { Root as ButtonGroup } from '#lib/components/ui/button-group/index.js'
+	import { cn } from '#lib/utils.js'
 
 	import ScoresList from './ScoresList.svelte'
 

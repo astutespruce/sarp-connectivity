@@ -3,9 +3,9 @@
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right'
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down'
 
-	import { Button } from '$lib/components/ui/button'
-	import { pluralize } from '$lib/util/format'
-	import { cn } from '$lib/utils'
+	import { Button } from '#lib/components/ui/button/index.js'
+	import { pluralize } from '#lib/util/format.js'
+	import { cn } from '#lib/utils.js'
 
 	import type { Dimension } from './types'
 	import Filter from './Filter.svelte'

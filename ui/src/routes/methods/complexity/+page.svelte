@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { HighlightBox } from '$lib/components/elements'
-	import { HeaderImage } from '$lib/components/image'
-	import { SITE_NAME } from '$lib/env'
+	import { HighlightBox } from '#lib/components/elements/index.js'
+	import { HeaderImage } from '#lib/components/image/index.js'
+	import { SITE_NAME } from '#lib/config/constants.js'
 
-	import LowNetworkComplexityIcon from '$lib/assets/icons/size_classes_low.svg'
-	import HighNetworkComplexityIcon from '$lib/assets/icons/size_classes_high.svg'
+	import LowNetworkComplexityIcon from '#icons/size_classes_low.svg'
+	import HighNetworkComplexityIcon from '#icons/size_classes_high.svg'
 </script>
 
 <svelte:head>
@@ -12,7 +12,7 @@
 </svelte:head>
 
 <HeaderImage author="David Kovalenko." url="https://unsplash.com/photos/qYMa2-P-U0M">
-	<enhanced:img src="$lib/assets/images/david-kovalenko-qYMa2-P-U0M-unsplash.jpg" alt="" />
+	<enhanced:img src="#images/david-kovalenko-qYMa2-P-U0M-unsplash.jpg" alt="" />
 </HeaderImage>
 
 <div class="page-content">

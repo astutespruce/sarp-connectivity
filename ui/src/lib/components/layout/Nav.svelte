@@ -3,7 +3,14 @@
 	import SurveyIcon from '@lucide/svelte/icons/pencil-ruler'
 
 	import { resolve } from '$app/paths'
-	import { Root, List, Item, Trigger, Link, Content } from '$lib/components/ui/navigation-menu'
+	import {
+		Root,
+		List,
+		Item,
+		Trigger,
+		Link,
+		Content
+	} from '#lib/components/ui/navigation-menu/index.js'
 
 	import SummarizeDownloadNav from './SummarizeDownloadNav.svelte'
 	import LearnMoreNav from './LearnMoreNav.svelte'

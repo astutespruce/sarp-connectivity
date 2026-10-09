@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { barrierTypeLabels, STATES } from '$lib/config/constants'
-	import type { BarrierTypePlural } from '$lib/config/types'
-	import { cn } from '$lib/utils'
+	import { barrierTypeLabels, STATES } from '#lib/config/constants.js'
+	import type { BarrierTypePlural } from '#lib/config/types.js'
+	import { cn } from '#lib/utils.js'
 
 	const {
 		barrierType,

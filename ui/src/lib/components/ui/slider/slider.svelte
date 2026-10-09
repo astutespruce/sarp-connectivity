@@ -1,7 +1,7 @@
 <script lang="ts">
 	// style overrides: add cursor pointer to thumb, change background on track
 	import { Slider as SliderPrimitive } from 'bits-ui'
-	import { cn, type WithoutChildrenOrChild } from '$lib/utils.js'
+	import { cn, type WithoutChildrenOrChild } from '#lib/utils.js'
 
 	let {
 		ref = $bindable(null),

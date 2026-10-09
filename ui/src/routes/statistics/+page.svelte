@@ -1,15 +1,16 @@
 <script lang="ts">
 	import PrintIcon from '@lucide/svelte/icons/file-input'
 
-	import { browser } from '$app/environment'
+	import { browser } from '$app/env'
 	import { resolve } from '$app/paths'
-	import NACCLogo from '$lib/assets/images/nacc_logo.svg'
-	import { SITE_URL, NACC_HOME_URL, SITE_NAME } from '$lib/env'
-	import { Button } from '$lib/components/ui/button'
-	import { HeaderImage } from '$lib/components/image'
-	import { summaryStats } from '$lib/config/summaryStats'
-	import { formatNumber } from '$lib/util/format'
-	import { dataDate, dataVersion } from '$lib/config/constants'
+	import NACCLogo from '#images/nacc_logo.svg'
+	import { NACC_HOME_URL, HOST_URL } from '#lib/env.js'
+	import { SITE_NAME } from '#lib/config/constants.js'
+	import { Button } from '#lib/components/ui/button/index.js'
+	import { HeaderImage } from '#lib/components/image/index.js'
+	import { summaryStats } from '#lib/config/summaryStats.js'
+	import { formatNumber } from '#lib/util/format.js'
+	import { dataDate, dataVersion } from '#lib/config/constants.js'
 
 	const {
 		dams,
@@ -57,7 +58,7 @@
 	author="Jessica Smith"
 	url="https://unsplash.com/photos/a-large-waterfall-with-water-coming-out-of-it-EL7cnhBw5rs"
 >
-	<enhanced:img src="$lib/assets/images/jessica-smith-EL7cnhBw5rs-unsplash.jpg" alt="" />
+	<enhanced:img src="#images/jessica-smith-EL7cnhBw5rs-unsplash.jpg" alt="" />
 </HeaderImage>
 
 <div
@@ -156,7 +157,8 @@
 			<div>
 				<ul>
 					<li>
-						<b>{formatNumber(totalSmallBarriers)}</b> that have been surveyed for impacts to aquatic organisms
+						<b>{formatNumber(totalSmallBarriers)}</b> that have been surveyed for impacts to aquatic
+						organisms
 					</li>
 					<li>
 						<b>{formatNumber(smallBarriers - removedSmallBarriers)}</b>
@@ -176,8 +178,8 @@
 						with at least one T&E species
 					</li>
 					<li>
-						<b>{formatNumber(diadromousHabitatRoadCrossings)}</b> surveyed & unsurveyed crossings on a
-						reach with anadromous / catadromous species habitat
+						<b>{formatNumber(diadromousHabitatRoadCrossings)}</b> surveyed & unsurveyed crossings on
+						a reach with anadromous / catadromous species habitat
 					</li>
 					<li>
 						<b>{formatNumber(noDownstreamBarrierSmallBarriers)}</b> that have no other surveyed downstream
@@ -197,9 +199,9 @@
 		<p class="text-muted-foreground text-sm mt-6">
 			Note: These statistics are based on surveyed road/stream crossings. The inventory is
 			incomplete in many areas.
-			{formatNumber(smallBarriers - rankedSmallBarriers, 0)} surveyed road/stream crossings were not analyzed
-			for prioritization because they could not be correctly located on the aquatic network or were otherwise
-			excluded from the analysis.
+			{formatNumber(smallBarriers - rankedSmallBarriers, 0)} surveyed road/stream crossings were not
+			analyzed for prioritization because they could not be correctly located on the aquatic network
+			or were otherwise excluded from the analysis.
 		</p>
 	</section>
 
@@ -238,7 +240,7 @@
 	<section class="border-t border-t-grey-2 pt-8">
 		<p class="text-xs">
 			This report was created on {new Date().toLocaleDateString()} using the
-			<a href={SITE_URL} target="_blank" rel="external">
+			<a href={HOST_URL} target="_blank" rel="external">
 				National Aquatic Barrier Inventory & Prioritization Tool
 			</a>, part of the
 			<a href={NACC_HOME_URL} target="_blank" rel="external">

@@ -1,6 +1,8 @@
 import type { BarrierTypePlural, NetworkType } from './types'
 export { version as dataVersion, date as dataDate } from '../../../package.json'
 
+export const SITE_NAME = 'National Aquatic Barrier Inventory & Prioritization Tool'
+
 export const barrierTypeLabels: { [key in NetworkType]: string } = {
 	dams: 'dams',
 	small_barriers: 'surveyed road/stream crossings',

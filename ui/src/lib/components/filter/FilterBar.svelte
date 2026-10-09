@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button'
-	import { formatNumber } from '$lib/util/format'
-	import { cn } from '$lib/utils'
+	import { Button } from '#lib/components/ui/button/index.js'
+	import { formatNumber } from '#lib/util/format.js'
+	import { cn } from '#lib/utils.js'
 
 	const {
 		value,

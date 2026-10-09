@@ -63,5 +63,8 @@ namespace = true
 [tool.ruff]
 line-length = 120
 
+[tool.ruff.lint]
+select = ["ERA001", "F401"]
+
 [tool.uv]
 package = true

@@ -1,4 +1,4 @@
-import { TILES_URL } from '$lib/env'
+import { TILES_URL } from '#lib/env.js'
 
 export const mapConfig = {
 	bounds: [-187.65, 17.62, -64.51, 71.44],

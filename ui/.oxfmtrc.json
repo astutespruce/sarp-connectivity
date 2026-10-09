@@ -13,7 +13,47 @@
 		"yarn.lock",
 		"bun.lock",
 		"bun.lockb",
-		"src/lib/components/ui/**",
-		"**/data/*.json"
-	]
+		"data/*.json"
+	],
+	"sortImports": {
+		"newlinesBetween": false,
+		"customGroups": [
+			{
+				"groupName": "sveltekit-app",
+				"elementNamePattern": ["$app/**/*"]
+			},
+			{
+				"groupName": "svelte-content",
+				"elementNamePattern": ["$content/**/*"]
+			},
+			{
+				"groupName": "svelte-images",
+				"elementNamePattern": ["#images/**/*"]
+			},
+			{
+				"groupName": "svelte-lib",
+				"elementNamePattern": ["#lib/**/*"],
+				"modifiers": ["value"]
+			},
+			{
+				"groupName": "type-svelte-lib",
+				"elementNamePattern": ["#lib/**/*"],
+				"modifiers": ["type"]
+			}
+		],
+		"groups": [
+			"value-builtin",
+			"value-external",
+			{ "newlinesBetween": true },
+			"sveltekit-app",
+			"svelte-content",
+			"svelte-images",
+			"svelte-lib",
+			["value-internal", "value-parent", "value-sibling", "value-index"],
+			{ "newlinesBetween": true },
+			"type-import",
+			"type-svelte-lib",
+			"unknown"
+		]
+	}
 }

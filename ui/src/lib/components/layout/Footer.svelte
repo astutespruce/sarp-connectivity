@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { NACC_HOME_URL } from '$lib/env'
-	import { dataVersion, dataDate } from '$lib/config/constants'
+	import { NACC_HOME_URL } from '#lib/env.js'
+	import { dataVersion, dataDate } from '#lib/config/constants.js'
 	import { resolve } from '$app/paths'
 </script>
 

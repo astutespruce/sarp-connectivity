@@ -3,8 +3,8 @@
 	import PrioritizeIcon from '@lucide/svelte/icons/search-check'
 
 	import { resolve } from '$app/paths'
-	import { MAP_SERVICES } from '$lib/config/constants'
-	import { Button } from '$lib/components/ui/button'
+	import { MAP_SERVICES } from '#lib/config/constants.js'
+	import { Button } from '#lib/components/ui/button/index.js'
 </script>
 
 <h2 class="text-2xl sm:text-3xl">Get started using this tool</h2>
@@ -51,7 +51,7 @@
 		<div>
 			<a href={resolve('/explore/', {})} aria-label="explore page">
 				<enhanced:img
-					src="$lib/assets/images/summarize.png"
+					src="#images/summarize.png"
 					alt="explore map screenshot"
 					class="border border-grey-2 mt-4"
 				/>
@@ -84,7 +84,7 @@
 		<div>
 			<a href={resolve('/priority/', {})} aria-label="prioritize page">
 				<enhanced:img
-					src="$lib/assets/images/prioritize.png"
+					src="#images/prioritize.png"
 					alt="prioritize map screenshot"
 					class="border border-grey-2 mt-4"
 				/>

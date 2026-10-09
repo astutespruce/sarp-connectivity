@@ -1,9 +1,9 @@
 <script lang="ts">
 	import WarningIcon from '@lucide/svelte/icons/triangle-alert'
 
-	import { CONTACT_EMAIL } from '$lib/env'
-	import { dataVersion } from '$lib/config/constants'
-	import { isEmptyString } from '$lib/util/string'
+	import { CONTACT_EMAIL } from '#lib/env.js'
+	import { dataVersion } from '#lib/config/constants.js'
+	import { isEmptyString } from '#lib/util/string.js'
 
 	const {
 		sarpid,

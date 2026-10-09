@@ -43,8 +43,7 @@ import {
 	WILDSCENIC_RIVER,
 	EPA_CAUSE_CODES,
 	LICENSE_EXPIRATION
-} from '$lib/config/constants'
-
+} from '#lib/config/constants.js'
 import { getEntries, hasDiadromousData } from './common'
 
 // Each filter needs to have a dimension above that matches the key here

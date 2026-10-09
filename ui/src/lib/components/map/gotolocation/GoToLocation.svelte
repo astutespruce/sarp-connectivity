@@ -2,9 +2,9 @@
 	import SearchIcon from '@lucide/svelte/icons/search'
 	import { Marker } from 'mapbox-gl/esm'
 
-	import { Button } from '$lib/components/ui/button'
-	import { truncate } from '$lib/util/format'
-	import { cn } from '$lib/utils'
+	import { Button } from '#lib/components/ui/button/index.js'
+	import { truncate } from '#lib/util/format.js'
+	import { cn } from '#lib/utils.js'
 
 	import BarrierSearch from './BarrierSearch.svelte'
 	import PlacenameSearch from './PlacenameSearch.svelte'

@@ -1,7 +1,7 @@
 <script lang="ts">
 	// style override: changed bg-border to bg-grey-3
 	import { ScrollArea as ScrollAreaPrimitive } from 'bits-ui'
-	import { cn, type WithoutChild } from '$lib/utils.js'
+	import { cn, type WithoutChild } from '#lib/utils.js'
 
 	let {
 		ref = $bindable(null),

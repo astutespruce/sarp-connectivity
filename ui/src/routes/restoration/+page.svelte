@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { summaryStats } from '$lib/config/summaryStats'
-	import { RestorationPage } from '$lib/components/restoration'
+	import { summaryStats } from '#lib/config/summaryStats.js'
+	import { RestorationPage } from '#lib/components/restoration/index.js'
 </script>
 
 <RestorationPage

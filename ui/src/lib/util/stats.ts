@@ -1,5 +1,5 @@
-import { YEAR_REMOVED_BINS } from '$lib/config/constants'
-import { isEmptyString } from '$lib/util/string'
+import { YEAR_REMOVED_BINS } from '#lib/config/constants.js'
+import { isEmptyString } from '#lib/util/string.js'
 
 const unpackYearRemoved = (text: string) => {
 	if (isEmptyString(text)) {

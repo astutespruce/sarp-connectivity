@@ -2,9 +2,9 @@
 	import LoadingIcon from '@lucide/svelte/icons/loader-circle'
 	import { createQuery } from '@tanstack/svelte-query'
 
-	import { fetchUnitDetails } from '$lib/api'
-	import { ExplorePage } from '$lib/components/explore'
-	import { NotFoundPage, PageLoadingError } from '$lib/components/layout'
+	import { fetchUnitDetails } from '#lib/api/index.js'
+	import { ExplorePage } from '#lib/components/explore/index.js'
+	import { NotFoundPage, PageLoadingError } from '#lib/components/layout/index.js'
 
 	const { data } = $props()
 
