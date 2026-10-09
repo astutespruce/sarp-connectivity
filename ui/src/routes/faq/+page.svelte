@@ -2,9 +2,11 @@
 	import FAQIcon from '@lucide/svelte/icons/circle-question-mark'
 
 	import { resolve } from '$app/paths'
-	import { CONTACT_EMAIL, NACC_HOME_URL, SITE_NAME, SITE_URL } from '$lib/env'
-	import { MAP_SERVICES, dataDate, dataVersion } from '$lib/config/constants'
-	import { HeaderImage } from '$lib/components/image'
+	import { CONTACT_EMAIL, NACC_HOME_URL } from '#lib/env.js'
+	import { HOST_URL } from '#lib/env.js'
+	import { SITE_NAME } from '#lib/config/constants.js'
+	import { MAP_SERVICES, dataDate, dataVersion } from '#lib/config/constants.js'
+	import { HeaderImage } from '#lib/components/image/index.js'
 </script>
 
 <svelte:head>
@@ -12,7 +14,7 @@
 </svelte:head>
 
 <HeaderImage author="Kazuend" url="https://unsplash.com/photos/cCthPLHmrzI">
-	<enhanced:img src="$lib/assets/images/kazuend-cCthPLHmrzI-unsplash.jpg" alt="" />
+	<enhanced:img src="#images/kazuend-cCthPLHmrzI-unsplash.jpg" alt="" />
 </HeaderImage>
 
 <div class="page-content">
@@ -111,8 +113,8 @@
 				reaches.
 				<br />
 				<br />
-				Planned future enhancements include the ability to prioritize barriers for larger species vs smaller
-				ones.
+				Planned future enhancements include the ability to prioritize barriers for larger species vs
+				smaller ones.
 				<br />
 				<br />
 				More information about how barriers are prioritized can be found
@@ -197,8 +199,8 @@
 				>
 				(NFHP). [Downloaded {new Date().toLocaleDateString()}
 				from
-				<a href={SITE_URL} target="_blank" rel="external">
-					{SITE_URL}
+				<a href={HOST_URL} target="_blank" rel="external">
+					{HOST_URL}
 				</a>].
 			</blockquote>
 		</div>
@@ -215,8 +217,8 @@
 
 			<ul class="mt-2">
 				<li>
-					<a href={MAP_SERVICES.dams} target="_blank" rel="external">Dams</a> based on networks that are
-					cut by dams and waterfalls.
+					<a href={MAP_SERVICES.dams} target="_blank" rel="external">Dams</a> based on networks that
+					are cut by dams and waterfalls.
 				</li>
 				<li>
 					<a href={MAP_SERVICES.small_barriers} target="_blank" rel="external">

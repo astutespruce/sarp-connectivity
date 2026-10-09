@@ -3,10 +3,10 @@
 	import { untrack } from 'svelte'
 	import { createQuery } from '@tanstack/svelte-query'
 
-	import { searchUnits } from '$lib/api'
-	import { SearchField } from '$lib/components/search'
-	import { LAYER_NAMES, SYSTEMS, SYSTEM_UNITS } from '$lib/config/constants'
-	import { formatNumber } from '$lib/util/format'
+	import { searchUnits } from '#lib/api/index.js'
+	import { SearchField } from '#lib/components/search/index.js'
+	import { LAYER_NAMES, SYSTEMS, SYSTEM_UNITS } from '#lib/config/constants.js'
+	import { formatNumber } from '#lib/util/format.js'
 
 	import SearchResult from './SearchResult.svelte'
 

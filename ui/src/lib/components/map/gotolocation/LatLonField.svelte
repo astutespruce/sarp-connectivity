@@ -1,8 +1,8 @@
 <script lang="ts">
 	import WarningIcon from '@lucide/svelte/icons/triangle-alert'
 
-	import SearchField from '$lib/components/search/SearchField.svelte'
-	import { Button } from '$lib/components/ui/button'
+	import SearchField from '#lib/components/search/SearchField.svelte'
+	import { Button } from '#lib/components/ui/button/index.js'
 	import { parseLatLon } from './parser'
 
 	let { value = $bindable(''), ref = $bindable(null), onSubmit } = $props()

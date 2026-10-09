@@ -1,9 +1,9 @@
 <script lang="ts">
 	import EmailIcon from '@lucide/svelte/icons/mail-warning'
-	import type { BarrierTypePlural } from '$lib/config/types'
-	import { barrierTypeLabelSingular, dataVersion } from '$lib/config/constants'
-	import { CONTACT_EMAIL } from '$lib/env'
-	import { Footer as SidebarFooter } from '$lib/components/sidebar'
+	import type { BarrierTypePlural } from '#lib/config/types.js'
+	import { barrierTypeLabelSingular, dataVersion } from '#lib/config/constants.js'
+	import { CONTACT_EMAIL } from '#lib/env.js'
+	import { Footer as SidebarFooter } from '#lib/components/sidebar/index.js'
 
 	const { barrierType, sarpid } = $props()
 

@@ -1,11 +1,11 @@
 <script lang="ts">
 	import WarningIcon from '@lucide/svelte/icons/triangle-alert'
 
-	import { STATES, barrierTypeLabels } from '$lib/config/constants'
-	import { formatNumber, pluralize, singularOrPlural } from '$lib/util/format'
-	import type { BarrierTypePlural } from '$lib/config/types'
-	import { Button } from '$lib/components/ui/button'
-	import { cn } from '$lib/utils'
+	import { STATES, barrierTypeLabels } from '#lib/config/constants.js'
+	import { formatNumber, pluralize, singularOrPlural } from '#lib/util/format.js'
+	import type { BarrierTypePlural } from '#lib/config/types.js'
+	import { Button } from '#lib/components/ui/button/index.js'
+	import { cn } from '#lib/utils.js'
 
 	const {
 		barrierType,

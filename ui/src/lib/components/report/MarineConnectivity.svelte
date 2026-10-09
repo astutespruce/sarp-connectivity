@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { formatNumber, pluralize } from '$lib/util/format'
+	import { formatNumber, pluralize } from '#lib/util/format.js'
 
 	const {
 		barrierType,

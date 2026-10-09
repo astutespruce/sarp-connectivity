@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit'
 
-import { FISH_HABITAT_PARTNERSHIPS } from '$lib/config/constants.js'
+import { FISH_HABITAT_PARTNERSHIPS } from '#lib/config/constants.js'
 
 import type { EntryGenerator } from './$types'
 
@@ -22,7 +22,7 @@ export const load = async ({ params }) => {
 
 	const logo = fhp.logo
 		? (Object.entries(
-				import.meta.glob('$lib/assets/images/*_logo.*', {
+				import.meta.glob('#images/*_logo.*', {
 					eager: true,
 					import: 'default'
 				})
@@ -33,7 +33,7 @@ export const load = async ({ params }) => {
 		: null
 
 	const { default: map } = await import(
-		`$lib/assets/images/maps/fhp/${params.id}.png?as=picture&w=500&format=avif;webp;jpeg`
+		`#images/maps/fhp/${params.id}.png?as=picture&w=500&format=avif;webp;jpeg`
 	)
 
 	return {

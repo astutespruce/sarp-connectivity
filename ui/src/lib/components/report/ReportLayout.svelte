@@ -1,8 +1,8 @@
 <script lang="ts">
 	import PrintIcon from '@lucide/svelte/icons/file-input'
 
-	import { browser } from '$app/environment'
-	import { Button } from '$lib/components/ui/button'
+	import { browser } from '$app/env'
+	import { Button } from '#lib/components/ui/button/index.js'
 
 	import Footer from './Footer.svelte'
 	import Feasibility from './Feasibility.svelte'

@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { HighlightBox } from '$lib/components/elements'
-	import { HeaderImage } from '$lib/components/image'
-	import { SITE_NAME } from '$lib/env'
+	import { HighlightBox } from '#lib/components/elements/index.js'
+	import { HeaderImage } from '#lib/components/image/index.js'
+	import { SITE_NAME } from '#lib/config/constants.js'
 
-	import LowNetworkLengthIcon from '$lib/assets/icons/length_low.svg'
-	import HighNetworkLengthIcon from '$lib/assets/icons/length_high.svg'
+	import LowNetworkLengthIcon from '#icons/length_low.svg'
+	import HighNetworkLengthIcon from '#icons/length_high.svg'
 </script>
 
 <svelte:head>
@@ -15,7 +15,7 @@
 	author="Little Tennessee River, North Carolina. U.S. Fish and Wildlife Service."
 	url="https://www.flickr.com/photos/usfwssoutheast/5149475130/in/gallery-141606341@N03-72157697846677391/"
 >
-	<enhanced:img src="$lib/assets/images/5149475130_b2334f1edd_4k.jpg" alt="" />
+	<enhanced:img src="#images/5149475130_b2334f1edd_4k.jpg" alt="" />
 </HeaderImage>
 
 <div class="page-content">

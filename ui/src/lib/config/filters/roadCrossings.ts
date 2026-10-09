@@ -1,5 +1,3 @@
-import type { ColumnTable as Table } from 'arquero'
-
 import {
 	SMALL_BARRIER_SEVERITY,
 	BOOLEAN_FIELD,
@@ -20,9 +18,10 @@ import {
 	DIADROMOUS_HABITAT,
 	WILDSCENIC_RIVER,
 	YEAR_SURVEYED_BINS
-} from '$lib/config/constants'
-
+} from '#lib/config/constants.js'
 import { getEntries } from './common'
+
+import type { ColumnTable as Table } from 'arquero'
 
 export const roadCrossings = [
 	{

@@ -50,10 +50,9 @@ def add_spatial_joins(df):
     """
 
     print("Joining to HUC12")
-    huc12 = gp.read_feather(
-        boundaries_dir / "HUC12.feather",
-        columns=["geometry", "HUC12", "name"],
-    ).rename(columns={"name": "Subwatershed"})
+    huc12 = gp.read_feather(boundaries_dir / "HUC12.feather", columns=["geometry", "HUC12", "name"]).rename(
+        columns={"name": "Subwatershed"}
+    )
 
     df = sjoin_points_to_poly(df, huc12)
 
@@ -83,20 +82,18 @@ def add_spatial_joins(df):
     df = df.join(huc6, on="HUC6").join(huc8, on="HUC8")
 
     print("Joining to counties")
+    # NOTE: this joins in states too
     counties = gp.read_feather(
         boundaries_dir / "counties.feather",
-        columns=["geometry", "County", "COUNTYFIPS", "STATEFIPS"],
-    )
+        columns=[
+            "geometry",
+            "state",
+            "name",
+            "COUNTYFIPS",
+        ],
+    ).rename(columns={"state": "State", "name": "County"})
 
     df = sjoin_points_to_poly(df, counties)
-
-    # Join in state name based on STATEFIPS from county
-    states = (
-        pd.read_feather(boundaries_dir / "states.feather", columns=["STATEFIPS", "id"])
-        .set_index("STATEFIPS")
-        .rename(columns={"id": "State"})
-    )
-    df = df.join(states, on="STATEFIPS").drop(columns=["STATEFIPS"])
 
     # Expected: not all barriers fall cleanly within the states dataset
     if df.State.isnull().sum():

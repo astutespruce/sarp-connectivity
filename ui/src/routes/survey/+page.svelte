@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { SITE_NAME } from '$lib/env'
-	import { Workflow } from '$lib/components/survey'
+	import { SITE_NAME } from '#lib/config/constants.js'
+	import { Workflow } from '#lib/components/survey/index.js'
 </script>
 
 <svelte:head>

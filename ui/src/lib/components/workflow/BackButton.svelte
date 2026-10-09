@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ChevronsLeftIcon from '@lucide/svelte/icons/chevrons-left'
-	import { Button } from '$lib/components/ui/button'
+	import { Button } from '#lib/components/ui/button/index.js'
 
 	const { label, onClick } = $props()
 </script>

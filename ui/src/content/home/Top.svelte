@@ -2,9 +2,9 @@
 	import ChartIcon from '@lucide/svelte/icons/chart-no-axes-combined'
 
 	import { resolve } from '$app/paths'
-	import { Button } from '$lib/components/ui/button'
-	import { summaryStats } from '$lib/config/summaryStats'
-	import { formatNumber } from '$lib/util/format'
+	import { Button } from '#lib/components/ui/button/index.js'
+	import { summaryStats } from '#lib/config/summaryStats.js'
+	import { formatNumber } from '#lib/util/format.js'
 
 	const {
 		dams,

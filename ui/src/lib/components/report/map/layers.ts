@@ -1,6 +1,7 @@
-import { barrierTypeLabels, pointLegends } from '$lib/config/constants'
-import type { NetworkType } from '$lib/config/types'
-import { capitalize } from '$lib/util/format'
+import { barrierTypeLabels, pointLegends } from '#lib/config/constants.js'
+import { capitalize } from '#lib/util/format.js'
+
+import type { NetworkType } from '#lib/config/types.js'
 
 export type LegendSymbol = {
 	color: string

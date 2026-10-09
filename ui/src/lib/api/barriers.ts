@@ -1,20 +1,20 @@
 import { tableFromIPC } from '@uwdata/flechette'
 
-import { API_HOST } from '$lib/env'
 import {
 	SPECIES_HABITAT_FIELDS,
 	barrierNameWhenUnknown,
 	TIER_FIELDS,
 	TIER_PACK_INFO
-} from '$lib/config/constants'
-import { captureException } from '$lib/util/log'
-import type { Filters, BarrierTypePlural } from '$lib/config/types'
-import { isEmptyString } from '$lib/util/string'
-import { unpackBits } from '$lib/util/data'
-
+} from '#lib/config/constants.js'
+import { API_URL, HOST_URL } from '#lib/env.js'
+import { unpackBits } from '#lib/util/data.js'
+import { captureException } from '#lib/util/log.js'
+import { isEmptyString } from '#lib/util/string.js'
 import { pollJob } from './job'
-import type { ProgressCallback } from './job'
 import { fetchFeather } from './request'
+
+import type { ProgressCallback } from './job'
+import type { Filters, BarrierTypePlural } from '#lib/config/types.js'
 
 // list of summary unit IDs per summary unit layer: {<layer>: [unit1,...]}
 export type SummaryUnitIdsByLayer = Record<string, string[] | number[]>
@@ -22,7 +22,7 @@ export type SummaryUnitIdsByLayer = Record<string, string[] | number[]>
 type APIQueryParams = {
 	summaryUnits: SummaryUnitIdsByLayer
 	filters?: Filters
-	includeUnranked?: boolean | null
+	rankedOnly?: boolean | null
 	sort?: string | null
 	customRank?: boolean
 }
@@ -48,7 +48,7 @@ const extractHabitat = (data: object) =>
 const apiQueryParams = ({
 	summaryUnits = {},
 	filters = {},
-	includeUnranked,
+	rankedOnly,
 	sort,
 	customRank
 }: APIQueryParams) => {
@@ -61,8 +61,8 @@ const apiQueryParams = ({
 		query += `&${filterValues.map(([k, v]) => `${k}=${Array.from(v).join(',')}`).join('&')}`
 	}
 
-	if (includeUnranked) {
-		query += '&include_unranked=1'
+	if (rankedOnly) {
+		query += '&ranked_only=1'
 	}
 	if (customRank) {
 		query += '&custom_rank=1'
@@ -81,7 +81,7 @@ export const fetchBarrierInfo = async (
 	barrierType: string,
 	summaryUnits: SummaryUnitIdsByLayer
 ) => {
-	const url = `${API_HOST}/api/v1/internal/${barrierType}/query?${apiQueryParams({
+	const url = `${API_URL}/${barrierType}/query?${apiQueryParams({
 		summaryUnits
 	})}`
 
@@ -96,7 +96,7 @@ export const fetchBarrierRanks = async (
 	summaryUnits: SummaryUnitIdsByLayer,
 	filters: Filters
 ) => {
-	const url = `${API_HOST}/api/v1/internal/${barrierType}/rank?${apiQueryParams({
+	const url = `${API_URL}/${barrierType}/rank?${apiQueryParams({
 		summaryUnits,
 		filters
 	})}`
@@ -140,7 +140,7 @@ export const fetchBarrierRanks = async (
 }
 
 export const fetchBarrierDetails = async (networkType: string, sarpid: string) => {
-	const url = `${API_HOST}/api/v1/internal/${networkType}/details/${sarpid}`
+	const url = `${API_URL}/${networkType}/details/${sarpid}`
 
 	const response = await fetch(url)
 	if (response.status === 404) {
@@ -175,7 +175,7 @@ export const fetchBarrierDetails = async (networkType: string, sarpid: string) =
 }
 
 export const searchBarriers = async (query: string) => {
-	const url = `${API_HOST}/api/v1/internal/barriers/search?query=${query}`
+	const url = `${API_URL}/barriers/search?query=${query}`
 
 	try {
 		const response = await fetch(url)
@@ -214,7 +214,7 @@ export const getDownloadURL: GetDownloadURL = async (
 		barrierType,
 		summaryUnits,
 		filters,
-		includeUnranked = null,
+		rankedOnly = null,
 		sort = null,
 		customRank = false
 	}: GetDownloadURLParams,
@@ -223,7 +223,7 @@ export const getDownloadURL: GetDownloadURL = async (
 	const params = {
 		summaryUnits,
 		filters,
-		includeUnranked: includeUnranked !== null ? includeUnranked : undefined,
+		rankedOnly: rankedOnly !== null ? rankedOnly : undefined,
 		sort: sort !== null ? sort : undefined,
 		customRank: customRank || undefined
 	}
@@ -236,12 +236,9 @@ export const getDownloadURL: GetDownloadURL = async (
 		})
 	}
 
-	const response = await fetch(
-		`${API_HOST}/api/v1/internal/${barrierType}/csv?${apiQueryParams(params)}`,
-		{
-			method: 'POST'
-		}
-	)
+	const response = await fetch(`${API_URL}/${barrierType}/csv?${apiQueryParams(params)}`, {
+		method: 'POST'
+	})
 
 	if (response.status !== 200) {
 		let error = await response.text()
@@ -277,7 +274,7 @@ export const getDownloadURL: GetDownloadURL = async (
 			})
 		}
 
-		return { url: `${API_HOST}${path}` }
+		return { url: `${HOST_URL}${path}` }
 	}
 
 	const result = await pollJob(job, onProgress)

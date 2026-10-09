@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { barrierTypeLabelSingular, EPA_CAUSE_CODES } from '$lib/config/constants'
-	import type { BarrierTypePlural } from '$lib/config/types'
-	import { formatNumber, formatPercent } from '$lib/util/format'
-	import { InfoTooltip } from '$lib/components/tooltip'
-	import { ExpandableParagraph } from '$lib/components/text'
-	import { cn } from '$lib/utils'
+	import { barrierTypeLabelSingular, EPA_CAUSE_CODES } from '#lib/config/constants.js'
+	import type { BarrierTypePlural } from '#lib/config/types.js'
+	import { formatNumber, formatPercent } from '#lib/util/format.js'
+	import { InfoTooltip } from '#lib/components/tooltip/index.js'
+	import { ExpandableParagraph } from '#lib/components/text/index.js'
+	import { cn } from '#lib/utils.js'
 	import Entry from './Entry.svelte'
 
 	const {
@@ -187,8 +187,8 @@
 					<br />
 					<br />
 					Total altered miles downstream is the sum of all altered reach lengths in the downstream mainstem
-					network in the linear flow direction immediately downstream of this network, excluding all lengths
-					within altered waterbodies.
+					network in the linear flow direction immediately downstream of this network, excluding all
+					lengths within altered waterbodies.
 				</InfoTooltip>
 			</td>
 			<td>{formatNumber(alteredmainstemupstreammiles, 2, true)}</td>

@@ -36,8 +36,8 @@ These files are served via a development server locally or via a reverse proxy o
 The backend is composed of several parts:
 
 - `/api`: FastAPI (Python) for requesting subsets and downloads
-- map tiles are served from `/tiles` using `mbtileserver` (tiles are not stored in the code repository)
-- reverse proxy: `caddy` is used to route to backend services and serve static assets of the user interface
+- map tiles are served from `/tiles` using Vite in development and Caddy on servers
+- reverse proxy: Caddy is used to route to backend services and serve static assets of the user interface
 
 ## Data processing
 

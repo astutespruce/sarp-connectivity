@@ -6,10 +6,8 @@ Limited to HUC2 == 17.
 This drops feature types that are not applicable as waterbodies.
 
 Creates the following files in `data/states/wa`:
-* `wa_waterbodies.feather`: feather file for internal use
-* `wa_waterbodies.fgb`: for use in GIS
+* `wa_waterbodies.feather`
 """
-
 
 import warnings
 from pathlib import Path
@@ -110,9 +108,9 @@ if ix.sum():
     df.loc[ix, "geometry"] = shapely.make_valid(df.loc[ix].geometry.values)
 
 
-df = pd.concat(
-    [waterbodies, df[["geometry", "altered", "source"]]], ignore_index=True, sort=False
-).reset_index(drop=True)
+df = pd.concat([waterbodies, df[["geometry", "altered", "source"]]], ignore_index=True, sort=False).reset_index(
+    drop=True
+)
 
 ### Dissolve waterbodies
 print("Dissolving contiguous waterbodies")
@@ -131,9 +129,7 @@ altered = df.loc[df.altered]
 tree = shapely.STRtree(altered.geometry.values)
 left, right = tree.query(wb.geometry.values, predicate="intersects")
 intersection = shapely.area(
-    shapely.intersection(
-        wb.geometry.values.take(left), altered.geometry.values.take(right)
-    )
+    shapely.intersection(wb.geometry.values.take(left), altered.geometry.values.take(right))
 ) / shapely.area(wb.geometry.values.take(left))
 ix = wb.index.values.take(np.unique(left[intersection >= 0.5]))
 wb["altered"] = False

@@ -8,9 +8,9 @@
 	} from 'mapbox-gl/esm'
 	import 'mapbox-gl/dist/mapbox-gl.css'
 
-	import MapboxLogo from '$lib/assets/images/mapbox-logo.png'
+	import MapboxLogo from '#images/mapbox-logo.png'
 
-	import { MAPBOX_TOKEN } from '$lib/env'
+	import { MAPBOX_TOKEN } from '#lib/env.js'
 	import {
 		rankedPointLayer,
 		damsSecondaryLayer,
@@ -19,7 +19,7 @@
 		removedBarrierPointLayer,
 		otherBarrierPointLayer,
 		unrankedPointLayer
-	} from '$lib/components/explore/layers'
+	} from '#lib/components/explore/layers.js'
 	import {
 		BasemapSelector,
 		networkLayers,
@@ -27,7 +27,7 @@
 		sources,
 		basemapLayers,
 		basemapAttribution
-	} from '$lib/components/map'
+	} from '#lib/components/map/index.js'
 	import { pointHighlightLayer } from './layers'
 	import Legend from './Legend.svelte'
 

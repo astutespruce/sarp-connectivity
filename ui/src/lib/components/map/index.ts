@@ -1,5 +1,8 @@
 import BasemapSelector from './BasemapSelector.svelte'
 import { basemapAttribution, basemapLayers, mapConfig, sources } from './config'
+import { networkLayers } from './layers'
+import Map from './Map.svelte'
+import TopBar from './TopBar.svelte'
 import {
 	interpolateExpr,
 	highlightNetwork,
@@ -13,10 +16,6 @@ import {
 	getHighlightExpr,
 	runOnceOnIdle
 } from './util'
-
-import { networkLayers } from './layers'
-import Map from './Map.svelte'
-import TopBar from './TopBar.svelte'
 
 export {
 	BasemapSelector,

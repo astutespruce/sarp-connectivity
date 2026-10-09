@@ -5,7 +5,7 @@
 		// TNC_COLDWATER_STATUS,
 		TNC_RESILIENCE,
 		TU_BROOK_TROUT_PORTFOLIO
-	} from '$lib/config/constants'
+	} from '#lib/config/constants.js'
 
 	const {
 		brooktroutportfolio,

@@ -4,7 +4,7 @@
 	import RestorationIcon from '@lucide/svelte/icons/chart-no-axes-combined'
 
 	import { resolve } from '$app/paths'
-	import { Button } from '$lib/components/ui/button'
+	import { Button } from '#lib/components/ui/button/index.js'
 
 	const { exploreURL, restorationURL, prioritizeURL } = $props()
 </script>

@@ -1,13 +1,14 @@
 import { viewport } from '@placemarkio/geo-viewport'
+
+import { barrierTypeLabelSingular, barrierNameWhenUnknown } from '#lib/config/constants.js'
+import { isEmptyString } from '#lib/util/string.js'
+
 import type {
 	Map as MapboxGLMapType,
 	ExpressionSpecification,
 	FeatureSelector
 } from 'mapbox-gl/esm'
-
-import { barrierTypeLabelSingular, barrierNameWhenUnknown } from '$lib/config/constants'
-import type { BarrierTypePlural } from '$lib/config/types'
-import { isEmptyString } from '$lib/util/string'
+import type { BarrierTypePlural } from '#lib/config/types.js'
 
 /**
  * Calculate the appropriate center and zoom to fit the bounds, given padding.

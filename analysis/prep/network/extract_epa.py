@@ -650,10 +650,10 @@ for huc2 in sorted(areas.HUC2.unique()):
     pairs = pairs.loc[pairs.keep].copy()
 
     # DEBUG:
-    write_dataframe(
-        flowlines.loc[flowlines.NHDPlusID.isin(pairs.NHDPlusID.unique())],
-        f"/tmp/region_{huc2}_keep.fgb",
-    )
+    # write_dataframe(
+    #     flowlines.loc[flowlines.NHDPlusID.isin(pairs.NHDPlusID.unique())],
+    #     f"/tmp/region_{huc2}_keep.fgb",
+    # )
     # write_dataframe(flowlines.loc[flowlines.NHDPlusID.isin(line_ids)], f"/tmp/region_{huc2}_in_epa_areas.fgb")
     # write_dataframe(flowlines, f"/tmp/region_{huc2}_flowlines.fgb")
 
@@ -701,6 +701,6 @@ flowlines["geometry"] = shapely.from_wkb(flowlines.geometry.values)
 flowlines = gp.GeoDataFrame(flowlines.join(df.set_index("NHDPlusID"), on="NHDPlusID"), geometry="geometry", crs=CRS)
 
 # DEBUG:
-write_dataframe(flowlines, "/tmp/epa_flowlines.fgb")
+# write_dataframe(flowlines, "/tmp/epa_flowlines.fgb")
 
 print("All done!")

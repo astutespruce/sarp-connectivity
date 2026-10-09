@@ -2,14 +2,14 @@
 	import { onMount } from 'svelte'
 	import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query'
 
-	import { browser } from '$app/environment'
-	import { GOOGLE_ANALYTICS_ID } from '$lib/env'
+	import { browser } from '$app/env'
+	import { GOOGLE_ANALYTICS_ID } from '#lib/env.js'
 	import { afterNavigate } from '$app/navigation'
 
-	import { Footer, Header } from '$lib/components/layout'
+	import { Footer, Header } from '#lib/components/layout/index.js'
 
 	import '../app.css'
-	import { SITE_NAME } from '$lib/env'
+	import { SITE_NAME } from '#lib/config/constants.js'
 
 	let { children } = $props()
 

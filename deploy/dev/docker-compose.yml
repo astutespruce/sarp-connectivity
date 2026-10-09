@@ -13,6 +13,7 @@ services:
       - ../../data/api/downloads:/data/api/downloads
       # must match api.settings.CUSTOM_DOWNLOAD_DIR
       - /tmp/sarp/downloads/custom:/downloads/custom
+      - $TILES_DIR:/data/tiles
 
 volumes:
   caddy_certs:

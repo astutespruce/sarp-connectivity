@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { CONTACT_EMAIL } from '$lib/env'
-	import { barrierTypeLabels, barrierTypeLabelSingular } from '$lib/config/constants'
-	import type { BarrierTypePlural } from '$lib/config/types'
+	import { CONTACT_EMAIL } from '#lib/env.js'
+	import { barrierTypeLabels, barrierTypeLabelSingular } from '#lib/config/constants.js'
+	import type { BarrierTypePlural } from '#lib/config/types.js'
 
 	import Entry from './Entry.svelte'
 

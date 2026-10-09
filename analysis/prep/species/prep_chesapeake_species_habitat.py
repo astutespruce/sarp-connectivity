@@ -504,5 +504,4 @@ out = flowlines.loc[
 ].reset_index()
 out = out.rename(columns={c: f"{c.lower().replace(' ', '_')}_habitat" for c in units})
 
-write_dataframe(out, out_dir / "chesapeake_diadromous_species_habitat.fgb")
-out.drop(columns=["geometry"]).to_feather(out_dir / "chesapeake_diadromous_species_habitat.feather")
+out.to_feather(out_dir / "chesapeake_diadromous_species_habitat.feather")

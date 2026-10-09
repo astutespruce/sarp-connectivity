@@ -146,8 +146,10 @@ trout_cols = [
     "westslope_cutthroat_trout_habitat",
     "yellowstone_cutthroat_trout_habitat",
 ]
-trout_habitat = read_dataframe(
-    out_dir / "combined_species_habitat.fgb", columns=["NHDPlusID"] + trout_cols, use_arrow=True
+trout_habitat = gp.read_feather(
+    out_dir / "combined_species_habitat_flowlines.feather",
+    columns=["geometry", "NHDPlusID"] + trout_cols,
+    use_arrow=True,
 )
 trout_habitat = trout_habitat.loc[trout_habitat[trout_cols].any(axis=1)].reset_index(drop=True)
 

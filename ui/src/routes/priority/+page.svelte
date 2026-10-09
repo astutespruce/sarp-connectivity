@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { resolve } from '$app/paths'
-	import { SITE_NAME } from '$lib/env'
-	import { Button } from '$lib/components/ui/button'
-	import PrioritizeIcon from '$lib/assets/icons/prioritize.svg'
+	import { SITE_NAME } from '#lib/config/constants.js'
+	import { Button } from '#lib/components/ui/button/index.js'
+	import PrioritizeIcon from '#icons/prioritize.svg'
 
-	import { summaryStats } from '$lib/config/summaryStats'
+	import { summaryStats } from '#lib/config/summaryStats.js'
 
 	const {
 		rankedDams,

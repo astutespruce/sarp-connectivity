@@ -112,6 +112,10 @@ start = time()
 huc2s = sorted(pd.read_feather(boundaries_dir / "HUC2.feather", columns=["HUC2"]).HUC2.values)
 
 
+print("\n\n---------------------------------------------------------------------")
+print("== Processing dams")
+print("\n\n---------------------------------------------------------------------")
+
 ### Read dams for analysis region states states and merge
 print("Reading dams in analysis region states")
 
@@ -791,7 +795,7 @@ df["dup_log"] = "not a duplicate"
 df["dup_group"] = np.nan
 df["dup_count"] = np.nan
 # duplicate sort will be assigned lower values to find preferred entry w/in dups
-df["dup_sort"] = 9999
+df["dup_sort"] = np.uint8(255)
 
 # assign duplicate status for any that were manually reviewed as such
 ix = df.ManualReview == 11

@@ -9,11 +9,15 @@
 		setBarrierHighlight,
 		getBarrierTooltip,
 		runOnceOnIdle
-	} from '$lib/components/map'
-	import type { Circle, Patch } from '$lib/components/map/legend/types'
-	import { shortBarrierTypeLabels, pointLegends, SUMMARY_UNIT_COLORS } from '$lib/config/constants'
-	import type { BarrierTypePlural, FocalBarrierType } from '$lib/config/types'
-	import { isEqual } from '$lib/util/data'
+	} from '#lib/components/map/index.js'
+	import type { Circle, Patch } from '#lib/components/map/legend/types.js'
+	import {
+		shortBarrierTypeLabels,
+		pointLegends,
+		SUMMARY_UNIT_COLORS
+	} from '#lib/config/constants.js'
+	import type { BarrierTypePlural, FocalBarrierType } from '#lib/config/types.js'
+	import { isEqual } from '#lib/util/data.js'
 	import { summaryUnitLayers, removedBarrierPointLayer, plannedProjectPointLayer } from './layers'
 
 	const barrierTypes: FocalBarrierType[] = ['dams', 'small_barriers', 'combined_barriers']

@@ -9,14 +9,13 @@ license = { file = "LICENSE" }
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Topic :: Scientific/Engineering :: GIS",
 ]
 requires-python = ">=3.12"
 dependencies = [
-    "arq",
+    "arq>=0.28.0",
     "duckdb",
     "fastapi",
     "gunicorn",
@@ -36,7 +35,7 @@ dev = [
     "numba>=0.60",
     "openpyxl",
     "pandas",
-    "pymgl",
+    "pymgl>=0.6",
     "pyogrio",
     "pytest",
     "python-calamine",
@@ -52,15 +51,20 @@ dev = [
 Homepage = "https://tool.aquaticbarriers.org"
 Repository = "https://github.com/astute-spruce/sarp-connectivity"
 
-[tool.setuptools.packages.find]
-include = ["analysis", "api"]
-
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+requires = ["uv_build<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-root = ""
+module-name = ["analysis", "api"]
+namespace = true
 
 [tool.ruff]
 line-length = 120
+
+[tool.ruff.lint]
+select = ["ERA001", "F401"]
 
 [tool.uv]
 package = true

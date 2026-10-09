@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { barrierTypeLabels } from '$lib/config/constants'
-	import type { BarrierTypePlural } from '$lib/config/types'
-	import { Search } from '$lib/components/unitsearch'
-	import { Header, Footer } from '$lib/components/sidebar'
-	import type { SummaryUnit } from '$lib/components/summaryunits/types'
-	import { formatNumber, pluralize } from '$lib/util/format'
+	import { barrierTypeLabels } from '#lib/config/constants.js'
+	import type { BarrierTypePlural } from '#lib/config/types.js'
+	import { Search } from '#lib/components/unitsearch/index.js'
+	import { Header, Footer } from '#lib/components/sidebar/index.js'
+	import type { SummaryUnit } from '#lib/components/summaryunits/types.js'
+	import { formatNumber, pluralize } from '#lib/util/format.js'
 
 	import BackButton from './BackButton.svelte'
 	import StartOverButton from './StartOverButton.svelte'

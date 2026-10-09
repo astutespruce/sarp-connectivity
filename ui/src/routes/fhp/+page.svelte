@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { resolve } from '$app/paths'
-	import { HeaderImage } from '$lib/components/image'
-	import { SITE_NAME } from '$lib/env'
-	import { FISH_HABITAT_PARTNERSHIPS } from '$lib/config/constants'
+	import { HeaderImage } from '#lib/components/image/index.js'
+	import { SITE_NAME } from '#lib/config/constants.js'
+	import { FISH_HABITAT_PARTNERSHIPS } from '#lib/config/constants.js'
 
-	import NFHPLogo from '$lib/assets/images/nfhp_logo.svg'
+	import NFHPLogo from '#images/nfhp_logo.svg'
 
-	const mapImages = import.meta.glob('$lib/assets/images/maps/fhp/*.png', {
+	const mapImages = import.meta.glob('#images/maps/fhp/*.png', {
 		eager: true,
 		import: 'default',
 		query: {
@@ -35,7 +35,7 @@
 	author="Brook trout. Photo: Jason Ross/USFWS."
 	url="https://www.flickr.com/photos/usfwsmidwest/34597621345/"
 >
-	<enhanced:img src="$lib/assets/images/34597621345_26d60382fd_o.jpg" alt="" />
+	<enhanced:img src="#images/34597621345_26d60382fd_o.jpg" alt="" />
 </HeaderImage>
 
 <div class="page-content">

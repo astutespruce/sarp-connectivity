@@ -2,10 +2,10 @@
 	import CloseIcon from '@lucide/svelte/icons/circle-x'
 	import { resolve } from '$app/paths'
 
-	import { Button } from '$lib/components/ui/button'
-	import { STATE_FIPS, STATES } from '$lib/config/constants'
-	import { formatNumber, pluralize } from '$lib/util/format'
-	import { cn } from '$lib/utils'
+	import { Button } from '#lib/components/ui/button/index.js'
+	import { STATE_FIPS, STATES } from '#lib/config/constants.js'
+	import { formatNumber, pluralize } from '#lib/util/format.js'
+	import { cn } from '#lib/utils.js'
 
 	const { barrierType, system, unit, ignore, onDelete, onZoomBounds } = $props()
 

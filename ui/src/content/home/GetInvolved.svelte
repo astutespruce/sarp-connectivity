@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { NACC_HOME_URL, CONTACT_EMAIL } from '$lib/env'
+	import { NACC_HOME_URL, CONTACT_EMAIL } from '#lib/env.js'
 </script>
 
 <h2 class="text-2xl sm:text-3xl">Get involved!</h2>

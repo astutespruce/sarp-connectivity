@@ -2,7 +2,7 @@
 	import { Popup } from 'mapbox-gl/esm'
 	import type { FeatureSelector, GeoJSONFeature, Point } from 'mapbox-gl/esm'
 
-	import { shortBarrierTypeLabels, pointLegends } from '$lib/config/constants'
+	import { shortBarrierTypeLabels, pointLegends } from '#lib/config/constants.js'
 	import {
 		Map,
 		setBarrierHighlight,
@@ -11,14 +11,18 @@
 		getInMapUnitsExpr,
 		getBarrierTooltip,
 		runOnceOnIdle
-	} from '$lib/components/map'
-	import type { Circle, Patch } from '$lib/components/map/legend/types'
+	} from '#lib/components/map/index.js'
+	import type { Circle, Patch } from '#lib/components/map/legend/types.js'
 
-	import { isEqual } from '$lib/util/data'
+	import { isEqual } from '#lib/util/data.js'
 
-	import { unitLayerConfig } from '$lib/components/workflow/config'
-	import { otherBarrierPointLayer } from '$lib/components/priority/layers'
-	import { unitLayers, unitHighlightLayers, parentOutline } from '$lib/components/workflow/layers'
+	import { unitLayerConfig } from '#lib/components/workflow/config.js'
+	import { otherBarrierPointLayer } from '#lib/components/priority/layers.js'
+	import {
+		unitLayers,
+		unitHighlightLayers,
+		parentOutline
+	} from '#lib/components/workflow/layers.js'
 
 	import { excludedPointLayer, includedPointLayer, waterfallsLayer } from './layers'
 

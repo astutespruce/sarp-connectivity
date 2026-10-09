@@ -1,5 +1,5 @@
-import { dams } from './dams'
 import { combinedBarriers } from './combinedBarriers'
+import { dams } from './dams'
 import { roadCrossings } from './roadCrossings'
 import { smallBarriers } from './smallBarriers'
 

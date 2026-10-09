@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Downloader } from '$lib/components/download'
-	import { barrierTypeLabels } from '$lib/config/constants'
+	import { Downloader } from '#lib/components/download/index.js'
+	import { barrierTypeLabels } from '#lib/config/constants.js'
 	const { stats, config, areaName = null } = $props()
 </script>
 

@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { resolve } from '$app/paths'
-	import { NACC_HOME_URL } from '$lib/env'
+	import { NACC_HOME_URL } from '#lib/env.js'
 
-	import NFHPLogo from '$lib/assets/images/nfhp_logo.svg'
-	import SARPLogo from '$lib/assets/images/sarp_logo.png'
-	import USFWSLogo from '$lib/assets/images/usfws_logo.svg'
-	import USFSLogo from '$lib/assets/images/usfs_logo.svg'
-	import TNCLogo from '$lib/assets/images/tnc_logo.svg'
-	import AmericanRiversLogo from '$lib/assets/images/american_rivers_logo.svg'
-	import TULogo from '$lib/assets/images/trout_unlimited_logo.svg'
+	import NFHPLogo from '#images/nfhp_logo.svg'
+	import SARPLogo from '#images/sarp_logo.png'
+	import USFWSLogo from '#images/usfws_logo.svg'
+	import USFSLogo from '#images/usfs_logo.svg'
+	import TNCLogo from '#images/tnc_logo.svg'
+	import AmericanRiversLogo from '#images/american_rivers_logo.svg'
+	import TULogo from '#images/trout_unlimited_logo.svg'
 </script>
 
 <div class="mt-16 text-3xl font-bold leading-tight">
@@ -112,7 +112,7 @@
 		<a href={resolve('/inventory/', {})}><b>Aquatic Barrier Inventory</b></a>.
 	</p>
 	<figure>
-		<enhanced:img src="$lib/assets/images/28274676694_1840f44362_o.jpg" alt="Flock Process dam" />
+		<enhanced:img src="#images/28274676694_1840f44362_o.jpg" alt="Flock Process dam" />
 		<figcaption>
 			Flock Process Dam, Connecticut. Removed in 2018, restoring over 4 miles of stream access to
 			diadromous species. Photo:
@@ -129,7 +129,7 @@
 
 <div class="grid sm:grid-cols-3 mt-8 gap-4">
 	<figure>
-		<enhanced:img src="$lib/assets/images/53188100355_4ac3d174a8_o.jpg" alt="Numana Dam" />
+		<enhanced:img src="#images/53188100355_4ac3d174a8_o.jpg" alt="Numana Dam" />
 		<figcaption>
 			Numana Dam, Nevada. Fish passage structure project underway. Photo:
 			<a
@@ -142,10 +142,7 @@
 		</figcaption>
 	</figure>
 	<figure>
-		<enhanced:img
-			src="$lib/assets/images/54791618987_56ea39a5db_o.jpg"
-			alt="Culvert near Graham, WA"
-		/>
+		<enhanced:img src="#images/54791618987_56ea39a5db_o.jpg" alt="Culvert near Graham, WA" />
 		<figcaption>
 			Culvert near Graham, WA replaced in 2025 for fish passage. Photo:
 			<a
@@ -159,7 +156,7 @@
 	</figure>
 	<figure>
 		<enhanced:img
-			src="$lib/assets/images/Roaring_River_dam_removal_partners_small.jpg"
+			src="#images/Roaring_River_dam_removal_partners_small.jpg"
 			alt="Roaring River Dam Removal"
 		/>
 		<figcaption>
@@ -175,8 +172,8 @@
 	<a href="https://streamcontinuity.org/" target="_blank" rel="external">
 		North Atlantic Aquatic Connectivity Collaborative
 	</a>
-	(NAACC). The North Atlantic Aquatic Connectivity Collaborative (NAACC) is a network of individuals from
-	universities, conservation organizations, and state and federal natural resource and transportation
+	(NAACC). The North Atlantic Aquatic Connectivity Collaborative (NAACC) is a network of individuals
+	from universities, conservation organizations, and state and federal natural resource and transportation
 	departments focused on improving aquatic connectivity across a thirteen-state region, from Maine to
 	West Virginia. As this protocol has expanded across the country, partners from fifteen states within
 	the southeastern region, as well as additional states in the Great Plains and Intermountain West have

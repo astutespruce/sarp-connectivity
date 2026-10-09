@@ -132,4 +132,4 @@ flowlines = gp.GeoDataFrame(
     crs=CRS,
 )
 
-write_dataframe(flowlines, working_dir / "combined_species_habitat.fgb", use_arrow=True)
+flowlines.to_feather(working_dir / "combined_species_habitat_flowlines.feather")

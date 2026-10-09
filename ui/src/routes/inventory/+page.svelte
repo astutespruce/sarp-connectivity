@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { resolve } from '$app/paths'
 
-	import DamIcon from '$lib/assets/icons/dam.svg'
-	import { CONTACT_EMAIL, NACC_HOME_URL, SITE_NAME } from '$lib/env'
-	import { HighlightBox } from '$lib/components/elements'
+	import DamIcon from '#icons/dam.svg'
+	import { CONTACT_EMAIL, NACC_HOME_URL } from '#lib/env.js'
+	import { SITE_NAME } from '#lib/config/constants.js'
+	import { HighlightBox } from '#lib/components/elements/index.js'
 </script>
 
 <svelte:head>
@@ -11,7 +12,7 @@
 </svelte:head>
 
 <div class="max-h-64 overflow-hidden relative">
-	<enhanced:img src="$lib/assets/images/zack-dutra-2d7Y5Yi3aq8-unsplash.jpg" alt="" />
+	<enhanced:img src="#images/zack-dutra-2d7Y5Yi3aq8-unsplash.jpg" alt="" />
 
 	<div class="absolute bottom-0 right-0 py-1 px-2 bg-black/75 text-white text-xs">
 		Photo: <a
@@ -108,10 +109,7 @@
 	<p class="text-lg mt-16"></p>
 	<div class="grid sm:grid-cols-[1fr_2fr] gap-8 mt-8">
 		<div>
-			<enhanced:img
-				src="$lib/assets/images/53366114257_3bbe03a419_o.jpg"
-				alt="Culvert on Ammonoosuc River"
-			/>
+			<enhanced:img src="#images/53366114257_3bbe03a419_o.jpg" alt="Culvert on Ammonoosuc River" />
 			<div class="text-xs text-grey-8 text-right">
 				Photo: Culvert on Ammonoosuc River | <a
 					href="https://www.flickr.com/photos/usfs_eastern_region/53366114257/"
@@ -163,10 +161,7 @@
 			information on aquatic barriers.
 		</p>
 		<div>
-			<enhanced:img
-				src="$lib/assets/images/8959617293_123e3f07b9_o.jpg"
-				alt="T and Y Dam bypass channel"
-			/>
+			<enhanced:img src="#images/8959617293_123e3f07b9_o.jpg" alt="T and Y Dam bypass channel" />
 			<div class="text-xs text-grey-8 text-right">
 				Photo: T and Y dam, Montana | <a
 					href="https://www.flickr.com/photos/usfwsmtnprairie/8959617293/in/album-72157633817428065"

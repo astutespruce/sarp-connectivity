@@ -1,5 +1,5 @@
 <script lang="ts">
-	import SARPLogo from '$lib/assets/images/sarp_logo.png'
+	import SARPLogo from '#images/sarp_logo.png'
 </script>
 
 <h2 class="text-2xl font-bold mt-24">Southeast Aquatic Connectivity Program</h2>
@@ -16,15 +16,15 @@
 		(SARP) was formed by the Southeastern Association of Fish and Wildlife Agencies (SEAFWA) to protect
 		aquatic resources across political boundaries as many of our river systems cross multiple jurisdictional
 		boundaries. SARP works with partners to protect, conserve, and restore aquatic resources including
-		habitats throughout the Southeast for the continuing benefit, use, and enjoyment of the American people.
-		SARP is also one of the first Fish Habitat Partnerships under the the National Fish Habitat Partnership
-		umbrella that works to conserve and protect the nation's fisheries and aquatic systems through a network
-		of 20 Fish Habitat Partnerships.
+		habitats throughout the Southeast for the continuing benefit, use, and enjoyment of the American
+		people. SARP is also one of the first Fish Habitat Partnerships under the the National Fish Habitat
+		Partnership umbrella that works to conserve and protect the nation's fisheries and aquatic systems
+		through a network of 20 Fish Habitat Partnerships.
 	</p>
 
 	<figure>
 		<enhanced:img
-			src="$lib/assets/images/6882770647_60c0d68a9c_z.jpg"
+			src="#images/6882770647_60c0d68a9c_z.jpg"
 			alt="Sam D. Hamilton Noxubee National Wildlife Refuge"
 		/>
 		<figcaption>

@@ -4,15 +4,15 @@
 	import { SvelteSet as Set } from 'svelte/reactivity'
 
 	import { resolve } from '$app/paths'
-	import { Button } from '$lib/components/ui/button'
-	import { STATE_FIPS, STATES, shortBarrierTypeLabels } from '$lib/config/constants'
-	import { formatNumber, pluralize, singularOrPlural } from '$lib/util/format'
-	import { Downloader } from '$lib/components/download'
-	import { summaryUnitLayers } from '$lib/components/explore/layers'
-	import { Search } from '$lib/components/unitsearch'
-	import { Header, Footer } from '$lib/components/sidebar'
-	import type { SummaryUnit } from '$lib/components/summaryunits/types'
-	import { cn } from '$lib/utils'
+	import { Button } from '#lib/components/ui/button/index.js'
+	import { STATE_FIPS, STATES, shortBarrierTypeLabels } from '#lib/config/constants.js'
+	import { formatNumber, pluralize, singularOrPlural } from '#lib/util/format.js'
+	import { Downloader } from '#lib/components/download/index.js'
+	import { summaryUnitLayers } from '#lib/components/explore/layers.js'
+	import { Search } from '#lib/components/unitsearch/index.js'
+	import { Header, Footer } from '#lib/components/sidebar/index.js'
+	import type { SummaryUnit } from '#lib/components/summaryunits/types.js'
+	import { cn } from '#lib/utils.js'
 
 	import Chart from './Chart.svelte'
 	import ListItem from './UnitListItem.svelte'
@@ -366,7 +366,6 @@
 					config={downloadConfig}
 					disabled={stats.dams === 0}
 					showOptions={false}
-					includeUnranked
 					triggerClass="text-sm h-auto py-1.5 px-2!"
 				/>
 			{:else if barrierType === 'small_barriers'}
@@ -376,7 +375,6 @@
 					config={downloadConfig}
 					disabled={stats.totalSmallBarriers === 0}
 					showOptions={false}
-					includeUnranked
 					triggerClass="text-sm h-auto py-1.5 px-2!"
 				/>
 			{:else if barrierType === 'combined_barriers'}
@@ -386,7 +384,6 @@
 					config={downloadConfig}
 					disabled={stats.dams + stats.totalSmallBarriers === 0}
 					showOptions={false}
-					includeUnranked
 					triggerClass="text-sm h-auto py-1.5 px-2!"
 				/>
 			{/if}

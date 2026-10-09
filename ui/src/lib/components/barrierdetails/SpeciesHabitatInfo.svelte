@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { resolve } from '$app/paths'
-	import { barrierTypeLabelSingular } from '$lib/config/constants'
-	import { ExpandableParagraph } from '$lib/components/text'
-	import { InfoTooltip } from '$lib/components/tooltip'
-	import { formatNumber } from '$lib/util/format'
+	import { barrierTypeLabelSingular } from '#lib/config/constants.js'
+	import { ExpandableParagraph } from '#lib/components/text/index.js'
+	import { InfoTooltip } from '#lib/components/tooltip/index.js'
+	import { formatNumber } from '#lib/util/format.js'
 
 	import Entry from './Entry.svelte'
-	import type { BarrierTypePlural } from '$lib/config/types'
+	import type { BarrierTypePlural } from '#lib/config/types.js'
 
 	const { barrierType, diadromoushabitat = null, habitat = [] } = $props()
 </script>

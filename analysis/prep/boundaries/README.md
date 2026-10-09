@@ -1,77 +1,54 @@
 # National Aquatic Barrier Inventory & Prioritization Tool Data Processing - Boundary Data Prep
 
-## Overall workflow
+## Analysis regions and units
 
-1. define analysis regions
-2. prepare hydrologic unit boundaries
-3. prepare administrative and ecological boundaries
-4. create boundary vector tiles
+## Analysis regions and units source data
 
-## 1. Define analysis regions
-
-The analysis region is based on 2 parts
-
-- states in the region
-- NHD HUC4s that intersect the state boundaries
-
-The analysis boundary is based on the outer edge of all HUC4s that intersect
-the states within the region (with exceptions). However, local barrier inventory
-data are only available for states within the region, and national-level
-barrier inventory data are used for the areas within the analysis boundary that
-are outside these states.
-
-The analysis regions are created using `analysis/prep/define_region.py`.
-
-This produces 5 main output files for each analysis region:
-
-- state boundaries
-- analysis state boundary (dissolved states)
-- HUC2
-- HUC4
-
-For each of above, an FGB file is written for use in GIS, and feather file
-for use later in the analysis pipeline.
-
-### States in region
-
-State boundaries (2023 version) were downloaded from CENSUS Tiger website.
-
-The predefined list of states is assigned in `analysis/constants.py`.
-
-### HUC4s in region
+Unless otherwise noted, source data are saved to `data/boundaries/source`.
 
 Watershed boundaries were extracted from the NHD WBD national dataset downloaded
-on 8/28/2024 from: http://prd-tnm.s3-website-us-west-2.amazonaws.com/?prefix=StagedProducts/Hydrography/WBD/National/GDB/
+on 9/24/2026 from: http://prd-tnm.s3-website-us-west-2.amazonaws.com/?prefix=StagedProducts/Hydrography/WBD/National/GDB/ and saved to `data/nhd/wbd/WBD_National_GDB_2026.gdb`.
+(data version 9/2/2026)
 
-## 2. Prepare hydrologic boundaries
+2025 versions of the states, counties and equivalents, and Congressional districts (119th congress) were downloaded on 9/24/2026 from CENSUS Tiger website. Congressional districts were downloaded using `analysis/prep/boundaries/download_congressional_districts.py` because they have to be downloaded individually.
 
-Hydrologic boundaries are used for summary units for visualization in the map
-and are joined to the barrier inventory during the analysis.
+Fish Habitat Partnership data were provided by Kat Hoenke via email on 8/26/2026
+(downloaded using ArcGIS from https://psmfc.maps.arcgis.com/home/item.html?id=55a44f6b38c049618820a7f55c9a1b5b).
 
-These include:
+Water resource inventory areas for Washington State were downloaded from https://geo.wa.gov/datasets/waecy::water-resource-inventory-areas-wria/about
+on 7/21/2025. These are intended to be combined with other state-level water resource areas once identified.
 
-- HUC6
-- HUC8
-- HUC12
+### Prepare analysis region and analyis unit boundaries
 
-These are extracted using `analysis/prep/boundaries/extract_watersheds.py`.
+The analysis region is all states/territories except American Samoa, Guam, and
+the Commonwealth of the Northern Mariana Islands (see `analysis/constants.py::STATES`).
 
-## 3. Prepare administrative and ecological boundaries
+Analysis units are boundaries used for selecting areas of interest and summarizing
+results in the tool. Additional datasets used to provide landscape context are
+processed in a separate step below.
 
-Additional boundaries are joined to the barrier inventory during the analysis.
-These are processed using `analysis/prep/boundaries/prep_boundaries.py`.
+The analysis regions and units are created using `analysis/prep/prep_analysis_boundaries.py`,
+which produces the following files in `data/boundaries`:
 
-### Counties
+- `states.feather`: state boundaries for all states within analysis region
+- `region_boundary.feather`: total analysis region and boundary for each region within it
+- `huc2.feather`: HUC2 boundaries within analysis region
+- `huc4.feather`: HUC4 boundaries within the HUC2s above (excluding those exclusively in Mexico where data are unavailable)
+- `huc6.feather`: HUC6 boundaries within HUC4s above
+- `huc8.feather`: HUC8 boundaries within HUC4s above
+- `huc10.feather`: HUC10 boundaries within HUC4s above
+- `huc12.feather`: HUC12 boundaries within HUC4s above
+- `counties.feather`: counties for the states above
+- `congressional_districts.feather`: congressional districts for the states above
+- `fhp_boundary.feather`: Fish Habitat Partnership boundaries
+- `state_water_resource_areas`: state water resource areas
+- `map_units.feather`: compiled map units used for search index by API
 
-County boundaries (2023 version) were downloaded from CENSUS Tiger website.
+## Ancillary / contextual boundaries
 
-### Congressional districts
+### Source data
 
-Congressional districts (2025 version / 119th congress) were downloaded from
-Census TIGER from https://www2.census.gov/geo/tiger/TIGER2025/CD/ on 01/27/2026
-using `analysis/prep/boundaries/prep_congressional_districts.py`.
-
-### Protected areas / land ownership
+#### Protected areas / land ownership
 
 PAD-US v4.1 GDB version downloaded 8/19/2025 from: https://www.usgs.gov/programs/gap-analysis-project/science/pad-us-data-download
 
@@ -86,7 +63,7 @@ ogr2ogr source_data/protected_areas/pad_us4.1.gpkg source_data/protected_areas/P
 Additional areas for Hawaii were downloaded from: https://prod-histategis.opendata.arcgis.com/datasets/HiStateGIS::reserves/about
 on 9/4/2024.
 
-#### USFS ownership and administrative boundaries
+##### USFS ownership and administrative boundaries
 
 USFS-specific surface ownership parcels were downloaded from https://data-usfs.hub.arcgis.com/datasets/24db18ef747945c49b02252ae39ec4aa_0/explore
 on 4/10/2024.
@@ -96,7 +73,7 @@ on 2/14/2025.
 
 NOTE: all USFS lands were excluded from PAD-US and superseded with the USFS specific ones above.
 
-#### Combined protected areas
+##### Combined protected areas
 
 Protected areas were processed into dissolved polygons by ownership category.
 These may include overlapping ownership categories. These are sorted in the
@@ -105,17 +82,11 @@ remaining ownership categories.
 
 Wilderness areas are extracted separately for filtering.
 
-### Fish Habitat Partnership boundaries
-
-Fish Habitat Partnership boundaries were downloaded on 4/26/2024 from
-https://www.sciencebase.gov/catalog/item/53710d71e4b07ccdd78b368e
-and are used to spatially join to barriers.
-
-### Native territories
+#### Native territories
 
 Native Territories were downloaded 4/10/2024 from https://native-land.ca/
 
-### Wild & Scenic rivers
+#### Wild & Scenic rivers
 
 Designated wild & scenic corridors were extracted from PAD-US above.
 
@@ -133,7 +104,7 @@ in the above map service, because no downloadable data could be found.
 These are buffered by 250 meters and used outside of the corridors and buffers
 above.
 
-### Priority areas
+#### Priority areas
 
 These include:
 
@@ -142,27 +113,21 @@ These include:
 
 Priority areas are only used for overlay in the maps, not filtering.
 
-### Environmental Justice Disadvantaged Communities
+#### Environmental Justice Disadvantaged Communities
 
 Environmental justice disadvantaged communities evaluated at the Census tract level
 were downloaded 2/8/2023 from: https://screeningtool.geoplatform.gov/en/downloads
+(no longer)
 
-Following the same methods as described in the tool above, Tribal areas (2022 version)
+Following the same methods as described in the tool above, American Indian Area Geographies (2022 version)
 were downloaded from the Census TIGER website.
 
-### Native territories
+#### Native territories
 
 Native territories were downloaded from Native Land Digital (https://native-land.ca/)
 on 4/10/2024.
 
-### State water resource management areas
-
-Water resource inventory areas for Washington State were downloaded from https://geo.wa.gov/datasets/waecy::water-resource-inventory-areas-wria/about
-on 7/21/2025.
-
-These are intended to be combined with other state-level water resource areas once identified.
-
-### Trout Unlimited Brook Trout Conservation Portfolio
+#### Trout Unlimited Brook Trout Conservation Portfolio
 
 The most recent Trout Unlimited Brook Trout Conservation Portfolio data were provided by Matthew Mayfield at Trout Unlimited on 7/23/2025 via email.
 
@@ -170,7 +135,11 @@ These are current as of 7/4/2022.
 
 More information available at: https://www.tu.org/science/conservation-planning-and-assessment/conservation-portfolio/
 
-## 4. Create boundary vector tiles
+### Prepare contextual areas
+
+Run `analysis/prep/boundaries/prep_contextual_boundaries.py`.
+
+## Create boundary vector tiles
 
 Vector tiles are are created for each of the boundary layers using `analysis/prep/boundaries/create_map_unit_tiles.py`.
 

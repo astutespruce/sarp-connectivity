@@ -3,7 +3,7 @@
 	import RestorationIcon from '@lucide/svelte/icons/fish'
 
 	import { resolve } from '$app/paths'
-	import { REGIONS } from '$lib/config/constants'
+	import { REGIONS } from '#lib/config/constants.js'
 
 	const regions = Object.entries(REGIONS)
 		.map(([id, { name: label, order }]) => ({ id, label, order }))

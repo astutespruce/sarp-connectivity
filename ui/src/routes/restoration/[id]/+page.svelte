@@ -2,9 +2,9 @@
 	import LoadingIcon from '@lucide/svelte/icons/loader-circle'
 	import { createQuery } from '@tanstack/svelte-query'
 
-	import { fetchUnitDetails } from '$lib/api'
-	import { RestorationPage } from '$lib/components/restoration'
-	import { NotFoundPage, PageLoadingError } from '$lib/components/layout'
+	import { fetchUnitDetails } from '#lib/api/index.js'
+	import { RestorationPage } from '#lib/components/restoration/index.js'
+	import { NotFoundPage, PageLoadingError } from '#lib/components/layout/index.js'
 
 	const { data } = $props()
 

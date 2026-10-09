@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Report } from '$lib/components/report'
+	import { Report } from '#lib/components/report/index.js'
 
 	const { params } = $props()
 </script>

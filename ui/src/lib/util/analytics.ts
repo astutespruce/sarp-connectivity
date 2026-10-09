@@ -1,4 +1,4 @@
-import { browser } from '$app/environment'
+import { browser } from '$app/env'
 
 // since some functions below may be called many times in rapid succession, we
 // use this cache to throttle tracking events sent to Google.

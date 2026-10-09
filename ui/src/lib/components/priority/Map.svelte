@@ -3,8 +3,8 @@
 	import type { FeatureSelector, GeoJSONFeature, Point } from 'mapbox-gl/esm'
 	import { untrack } from 'svelte'
 
-	import { shortBarrierTypeLabels, pointLegends } from '$lib/config/constants'
-	import type { BarrierTypePlural } from '$lib/config/types'
+	import { shortBarrierTypeLabels, pointLegends } from '#lib/config/constants.js'
+	import type { BarrierTypePlural } from '#lib/config/types.js'
 	import {
 		Map,
 		highlightNetwork,
@@ -15,13 +15,17 @@
 		getBarrierTooltip,
 		getBitFromBitsetExpr,
 		runOnceOnIdle
-	} from '$lib/components/map'
-	import type { Circle, Patch } from '$lib/components/map/legend/types'
+	} from '#lib/components/map/index.js'
+	import type { Circle, Patch } from '#lib/components/map/legend/types.js'
 
-	import { isEqual } from '$lib/util/data'
+	import { isEqual } from '#lib/util/data.js'
 
-	import { unitLayerConfig } from '$lib/components/workflow/config'
-	import { unitLayers, unitHighlightLayers, parentOutline } from '$lib/components/workflow/layers'
+	import { unitLayerConfig } from '#lib/components/workflow/config.js'
+	import {
+		unitLayers,
+		unitHighlightLayers,
+		parentOutline
+	} from '#lib/components/workflow/layers.js'
 
 	import {
 		prioritizedPointLayer,

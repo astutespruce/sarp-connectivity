@@ -47,10 +47,8 @@ an updated batch of barrier data.
 8. use `rsync` from the local workstation to transfer the contents of the local `data/api` directory to `/data2/api` on the server
 9. ssh to the staging server
 10. stop services:
-
     - `sudo service api stop`
     - `sudo service arq stop`
-    - `sudo service mbtileserver stop`
 
 11. delete all contents of `/data`: `sudo rm -rf /data/*`
 12. copy latest data to the `/data` directory: `sudo cp -aR /data2/* /data/`
@@ -61,11 +59,9 @@ an updated batch of barrier data.
 17. bring the services back up:
     - `sudo service api start`
     - `sudo service arq start`
-    - `sudo service mbtileserver start`
 18. make sure they all came up properly
     - `sudo service api status`
     - `sudo service arq status`
-    - `sudo service mbtileserver status`
 19. unmount the transfer volume: `sudo umount /data2`
 20. exit the staging server
 
@@ -82,10 +78,8 @@ more than 3 versions old.
 4. mount that as `/data2`: `sudo mount /dev/nvme2n1 /data2`
 5. use google analytics to verify that server is not actively being used; avoid any meeting times indicated by Kat. Generally try to do this in the evening Pacific time.
 6. stop services:
-
-   - `sudo service api stop`
-   - `sudo service arq stop`
-   - `sudo service mbtileserver stop`
+    - `sudo service api stop`
+    - `sudo service arq stop`
 
 7. delete all contents of `/data`: `sudo rm -rf /data/*`
 8. delete all contents of the custom download directory: `sudo rm -rf /downloads/custom/*`
@@ -97,11 +91,9 @@ more than 3 versions old.
 14. bring the services back up:
     - `sudo service api start`
     - `sudo service arq start`
-    - `sudo service mbtileserver start`
 15. make sure they all came up properly
     - `sudo service api status`
     - `sudo service arq status`
-    - `sudo service mbtileserver status`
 16. unmount the transfer volume: `sudo umount /data2`
 17. in the AWS console, detach the `transfer - data2` volume from the the production server and attach to the staging server as `/dev/sdf`
 

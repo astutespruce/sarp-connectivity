@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { CONTACT_EMAIL } from '$lib/env'
-	import { HeaderImage } from '$lib/components/image'
-	import NACCLogo from '$lib/assets/images/nacc_logo.svg'
+	import { CONTACT_EMAIL } from '#lib/env.js'
+	import { HeaderImage } from '#lib/components/image/index.js'
+	import NACCLogo from '#images/nacc_logo.svg'
 </script>
 
 <HeaderImage author="David Kovalenko" url="https://unsplash.com/photos/qYMa2-P-U0M">
-	<enhanced:img src="$lib/assets/images/david-kovalenko-qYMa2-P-U0M-unsplash.jpg" alt="" />
+	<enhanced:img src="#images/david-kovalenko-qYMa2-P-U0M-unsplash.jpg" alt="" />
 </HeaderImage>
 
 <div class="page-content">

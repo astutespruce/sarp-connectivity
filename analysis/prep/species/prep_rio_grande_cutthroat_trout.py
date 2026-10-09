@@ -264,7 +264,4 @@ print(
 )
 
 out = flowlines.loc[flowlines.rio_grande_cutthroat_trout_habitat].reset_index()
-write_dataframe(out, out_dir / "rio_grande_cutthroat_trout_habitat.fgb")
-out[["NHDPlusID", "HUC2", "rio_grande_cutthroat_trout_habitat"]].to_feather(
-    out_dir / "rio_grande_cutthroat_trout_habitat.feather"
-)
+out.to_feather(out_dir / "rio_grande_cutthroat_trout_habitat.feather")

@@ -2,9 +2,9 @@
 	import LoadingIcon from '@lucide/svelte/icons/loader-circle'
 	import { createQuery } from '@tanstack/svelte-query'
 
-	import { fetchBarrierDetails } from '$lib/api'
-	import { SITE_NAME } from '$lib/env'
-	import { NotFoundPage, PageLoadingError } from '$lib/components/layout'
+	import { fetchBarrierDetails } from '#lib/api/index.js'
+	import { SITE_NAME } from '#lib/config/constants.js'
+	import { NotFoundPage, PageLoadingError } from '#lib/components/layout/index.js'
 
 	import ReportLayout from './ReportLayout.svelte'
 

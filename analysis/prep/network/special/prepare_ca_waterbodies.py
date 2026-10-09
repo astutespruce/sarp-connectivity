@@ -5,11 +5,9 @@ Limited to HUC2 == 16,17, 18.
 
 This drops feature types that are not applicable as waterbodies.
 
-Creates the following files in `data/states/or`:
-* `ca_waterbodies.feather`: feather file for internal use
-* `ca_waterbodies.fgb`: for use in GIS
+Creates the following files in `data/states/ca`:
+* `ca_waterbodies.feather
 """
-
 
 import warnings
 from pathlib import Path
@@ -35,9 +33,7 @@ huc2_df = gp.read_feather(data_dir / "boundaries/huc2.feather")
 huc2_df = huc2_df.loc[huc2_df.HUC2.isin(huc2s)].copy()
 
 print("Reading flowlines...")
-flowlines = read_feathers(
-    [nhd_dir / huc2 / "flowlines.feather" for huc2 in huc2s], columns=[], geo=True
-)
+flowlines = read_feathers([nhd_dir / huc2 / "flowlines.feather" for huc2 in huc2s], columns=[], geo=True)
 tree = shapely.STRtree(flowlines.geometry.values)
 
 
@@ -116,9 +112,7 @@ altered = df.loc[df.altered]
 tree = shapely.STRtree(altered.geometry.values)
 left, right = tree.query(wb.geometry.values, predicate="intersects")
 intersection = shapely.area(
-    shapely.intersection(
-        wb.geometry.values.take(left), altered.geometry.values.take(right)
-    )
+    shapely.intersection(wb.geometry.values.take(left), altered.geometry.values.take(right))
 ) / shapely.area(wb.geometry.values.take(left))
 ix = wb.index.values.take(np.unique(left[intersection >= 0.5]))
 wb["altered"] = False
@@ -130,11 +124,7 @@ tree = shapely.STRtree(wb.geometry.values)
 # confirmed by hand, there are no waterbodies that show up in multiple HUC2s
 left, right = tree.query(huc2_df.geometry.values, predicate="intersects")
 
-wb = wb.join(
-    pd.DataFrame(
-        {"HUC2": huc2_df.HUC2.values.take(left)}, index=wb.index.values.take(right)
-    )
-)
+wb = wb.join(pd.DataFrame({"HUC2": huc2_df.HUC2.values.take(left)}, index=wb.index.values.take(right)))
 
 
 wb.to_feather(src_dir / "ca_waterbodies.feather")

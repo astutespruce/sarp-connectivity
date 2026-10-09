@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { formatNumber, pluralize, singularOrPlural } from '$lib/util/format'
-	import type { MetricOptionValue } from '$lib/components/restoration/types'
-	import { Chart } from '$lib/components/restoration'
+	import { formatNumber, pluralize, singularOrPlural } from '#lib/util/format.js'
+	import type { MetricOptionValue } from '#lib/components/restoration/types.js'
+	import { Chart } from '#lib/components/restoration/index.js'
 
 	const { areaName, map, stats } = $props()
 
@@ -80,7 +80,8 @@
 					<b>{formatNumber(stats.removedSmallBarriers, 0)}</b> that
 					{singularOrPlural('was', 'were', stats.removedSmallBarriers)}
 					removed or mitigated, gaining
-					<b>{formatNumber(stats.removedSmallBarriersGainMiles)} miles</b> of reconnected rivers and streams
+					<b>{formatNumber(stats.removedSmallBarriersGainMiles)} miles</b> of reconnected rivers and
+					streams
 				</li>
 			{/if}
 		</ul>

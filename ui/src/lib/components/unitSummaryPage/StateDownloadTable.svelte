@@ -2,9 +2,9 @@
 	import DownloadIcon from '@lucide/svelte/icons/download'
 
 	import { resolve } from '$app/paths'
-	import { Downloader } from '$lib/components/download'
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu'
-	import { formatNumber } from '$lib/util/format'
+	import { Downloader } from '#lib/components/download/index.js'
+	import * as DropdownMenu from '#lib/components/ui/dropdown-menu'
+	import { formatNumber } from '#lib/util/format.js'
 
 	const downloadConfig = { scenario: 'NCWC', layer: 'State' }
 

@@ -53,7 +53,6 @@ res_df = dissolve(
 
 # save for spatial joins to barriers
 res_df.to_feather(out_dir / "tnc_resilient_watersheds.feather")
-write_dataframe(res_df, out_dir / "tnc_resilient_watersheds.fgb")
 
 
 # dissolve resilient areas together at HUC2 level
@@ -104,7 +103,6 @@ temp_df = dissolve(temp_df, by=["HUC2", "cold"], grid_size=1e-3).explode(ignore_
 
 # save for spatial joins to barriers
 temp_df.to_feather(out_dir / "tnc_coldwater_refugia_watersheds.feather")
-write_dataframe(temp_df, out_dir / "tnc_coldwater_refugia_watersheds.fgb")
 
 print("Dissolving coldwater areas by HUC2")
 # extract above average watersheds based on guidance from Kat on 2/4/2025

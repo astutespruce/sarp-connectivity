@@ -2,10 +2,10 @@
 	import { untrack } from 'svelte'
 	import { createQuery } from '@tanstack/svelte-query'
 
-	import { searchBarriers } from '$lib/api'
-	import { CONTACT_EMAIL } from '$lib/env'
-	import { SearchField } from '$lib/components/search'
-	import { formatNumber } from '$lib/util/format'
+	import { searchBarriers } from '#lib/api/index.js'
+	import { CONTACT_EMAIL } from '#lib/env.js'
+	import { SearchField } from '#lib/components/search/index.js'
+	import { formatNumber } from '#lib/util/format.js'
 
 	import ListItem from './BarrierListItem.svelte'
 

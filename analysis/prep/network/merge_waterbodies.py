@@ -175,7 +175,9 @@ for huc2 in huc2s:
 
         if breaks is not None:
             breaks = shapely.get_parts(breaks)
-            write_geoms(breaks, f"/tmp/{huc2}breaks.fgb", crs=nhd.crs)
+            # DEBUG:
+            # write_geoms(breaks, f"/tmp/{huc2}breaks.fgb", crs=nhd.crs)
+
             print(f"Cutting NHD waterbodies by {len(breaks):,} breaks at dams to prevent dissolving together")
 
             # find all pairs of waterbody and breaks, aggregate
@@ -210,7 +212,6 @@ for huc2 in huc2s:
     df["km2"] = shapely.area(df.geometry.values) / 1e6
 
     df.to_feather(huc2_dir / "waterbodies.feather")
-    write_dataframe(df, huc2_dir / "waterbodies.fgb")
 
     print("--------------------")
     print(f"HUC2: {huc2} done in {time() - huc2_start:.0f}s\n\n")

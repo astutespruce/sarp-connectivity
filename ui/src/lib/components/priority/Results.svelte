@@ -1,15 +1,15 @@
 <script lang="ts">
-	import { SCENARIOS, barrierTypeLabels } from '$lib/config/constants'
-	import { Downloader } from '$lib/components/download'
-	import { Header, Footer } from '$lib/components/sidebar'
-	import { Slider } from '$lib/components/ui/slider'
-	import { ExpandableParagraph } from '$lib/components/text'
-	import { BackButton, StartOverButton } from '$lib/components/workflow'
-	import { countBy } from '$lib/util/data'
-	import { formatNumber, capitalize } from '$lib/util/format'
+	import { SCENARIOS, barrierTypeLabels } from '#lib/config/constants.js'
+	import { Downloader } from '#lib/components/download/index.js'
+	import { Header, Footer } from '#lib/components/sidebar/index.js'
+	import { Slider } from '#lib/components/ui/slider/index.js'
+	import { ExpandableParagraph } from '#lib/components/text/index.js'
+	import { BackButton, StartOverButton } from '#lib/components/workflow/index.js'
+	import { countBy } from '#lib/util/data.js'
+	import { formatNumber, capitalize } from '#lib/util/format.js'
 
 	import Histogram from './Histogram.svelte'
-	import type { BarrierTypePlural } from '$lib/config/types'
+	import type { BarrierTypePlural } from '#lib/config/types.js'
 
 	const resultTypePefix = { full: '', perennial: 'p', mainstem: 'm' }
 	const tiers = Array.from({ length: 20 }, (_, i) => i + 1)
@@ -98,8 +98,8 @@
 
 			<div class="text-xs text-muted-foreground">
 				Use this slider to control the number of tiers visible on the map. Based on the number of {barrierTypeLabel}
-				visible for your area, you may be able to identify {barrierTypeLabel} that are more feasible in
-				the top several tiers than in the top-most tier.
+				visible for your area, you may be able to identify {barrierTypeLabel} that are more feasible
+				in the top several tiers than in the top-most tier.
 			</div>
 		</div>
 

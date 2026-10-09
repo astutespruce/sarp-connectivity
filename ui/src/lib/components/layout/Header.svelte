@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { resolve } from '$app/paths'
-	import { NACC_HOME_URL } from '$lib/env'
+	import { NACC_HOME_URL } from '#lib/env.js'
 
-	import Logo from '$lib/assets/images/nacc_logo_white.svg'
+	import Logo from '#images/nacc_logo_white.svg'
 	import Nav from './Nav.svelte'
 	import MobileNav from './MobileNav.svelte'
 </script>

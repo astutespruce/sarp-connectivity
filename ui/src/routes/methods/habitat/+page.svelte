@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { resolve } from '$app/paths'
-	import { Alert } from '$lib/components/alert'
-	import { HeaderImage } from '$lib/components/image'
-	import { CONTACT_EMAIL, SITE_NAME } from '$lib/env'
+	import { Alert } from '#lib/components/alert/index.js'
+	import { HeaderImage } from '#lib/components/image/index.js'
+	import { CONTACT_EMAIL } from '#lib/env.js'
+	import { SITE_NAME } from '#lib/config/constants.js'
 </script>
 
 <svelte:head>
@@ -13,7 +14,7 @@
 	author="Brandon"
 	url="https://unsplash.com/photos/gray-fish-on-water-during-daytime-enPHTN3OPRw"
 >
-	<enhanced:img src="$lib/assets/images/brandon-enPHTN3OPRw-unsplash.jpg" alt="" />
+	<enhanced:img src="#images/brandon-enPHTN3OPRw-unsplash.jpg" alt="" />
 </HeaderImage>
 
 <div class="page-content">
@@ -35,9 +36,9 @@
 		standardized aquatic network data.
 		<br />
 		<br />
-		These estimates are intended to be a starting point for exploring and prioritizing barriers from a
-		species perspective rather than the total upstream or downstream functional networks, which may greatly
-		overestimate the amount of habitat that could be made available to particular species.
+		These estimates are intended to be a starting point for exploring and prioritizing barriers from
+		a species perspective rather than the total upstream or downstream functional networks, which may
+		greatly overestimate the amount of habitat that could be made available to particular species.
 	</p>
 
 	<Alert title="Warning" class="mt-8 mb-12 text-lg">
@@ -106,13 +107,13 @@
 				</a>
 				(January 2019 version). These habitat data are compiled by StreamNet from partners within the
 				region and are attributed to stream segments within a common regional mixed-scale hydrography
-				dataset, and may include segments that are used for one or more life stages such as spawning or
-				migration.
+				dataset, and may include segments that are used for one or more life stages such as spawning
+				or migration.
 			</p>
 
 			<figure>
 				<enhanced:img
-					src="$lib/assets/images/52633917843_8c189a8ea2_c.jpg"
+					src="#images/52633917843_8c189a8ea2_c.jpg"
 					alt="Salmon at Wildwood Recreation Site"
 				/>
 				<figcaption>
@@ -256,7 +257,7 @@
 
 			<figure>
 				<enhanced:img
-					src="$lib/assets/images/52706030122_dc2b358ec0_c.jpg"
+					src="#images/52706030122_dc2b358ec0_c.jpg"
 					alt="Coho salmon spawning in the Salmon River, 2015"
 				/>
 				<figcaption>
@@ -349,10 +350,7 @@
 				development for Wisconsin and Iowa and may be incomplete.
 			</p>
 			<figure>
-				<enhanced:img
-					src="$lib/assets/images/4752172480_74c20f37af_c.jpg"
-					alt="Eastern Brook Trout"
-				/>
+				<enhanced:img src="#images/4752172480_74c20f37af_c.jpg" alt="Eastern Brook Trout" />
 				<figcaption>
 					Eastern Brook Trout. Photo:
 					<a
@@ -465,10 +463,7 @@
 				</div>
 			</div>
 			<figure>
-				<enhanced:img
-					src="$lib/assets/images/8574372559_f05ce9e42a_c.jpg"
-					alt="Eastern Brook Trout"
-				/>
+				<enhanced:img src="#images/8574372559_f05ce9e42a_c.jpg" alt="Eastern Brook Trout" />
 				<figcaption>
 					Eastern Brook Trout. Photo:
 					<a
@@ -562,7 +557,7 @@
 			</p>
 
 			<figure>
-				<enhanced:img src="$lib/assets/images/6359207695_1d41348492_c.jpg" alt="Gulf sturgeon" />
+				<enhanced:img src="#images/6359207695_1d41348492_c.jpg" alt="Gulf sturgeon" />
 				<figcaption>
 					Gulf Sturgeon. Photo:
 					<a
@@ -589,8 +584,8 @@
 				<br />
 				However, where the upper end of habitat was based on the most-downstream dam on a given network,
 				attributing at the flowline caused the habitat to extend a short distance upstream of the dam
-				to the upper end of the flowline. This is a known issue with the methods here that attribute to
-				the entire flowline level.
+				to the upper end of the flowline. This is a known issue with the methods here that attribute
+				to the entire flowline level.
 			</li>
 			<li>
 				We visually and quantitatively compared the extracted NHDPlusHR flowlines tagged as habitat
@@ -621,7 +616,7 @@
 			</p>
 
 			<figure>
-				<enhanced:img src="$lib/assets/images/usfws-apache-trout.jpg" alt="Apache Trout" />
+				<enhanced:img src="#images/usfws-apache-trout.jpg" alt="Apache Trout" />
 				<figcaption>
 					Apache Trout. Photo:
 					<a href="https://www.fws.gov/media/apache-trout" target="_blank" rel="external">
@@ -700,7 +695,7 @@
 
 			<figure>
 				<enhanced:img
-					src="$lib/assets/images/usfws-lahontan-cutthroat-trout.jpg"
+					src="#images/usfws-lahontan-cutthroat-trout.jpg"
 					alt="Lahontan Cutthroat Trout"
 				/>
 				<figcaption>
@@ -783,10 +778,7 @@
 			</p>
 
 			<figure>
-				<enhanced:img
-					src="$lib/assets/images/usfws-releasing-cutthroat.jpg"
-					alt="Cutthroat Trout"
-				/>
+				<enhanced:img src="#images/usfws-releasing-cutthroat.jpg" alt="Cutthroat Trout" />
 				<figcaption>
 					Cutthroat Trout. Photo:
 					<a href="https://www.fws.gov/media/releasing-cutthroat" target="_blank" rel="external">

@@ -30,4 +30,3 @@ df = merged.reset_index(drop=True)
 # NOTE: these are not dissolved due to GEOS errors
 
 df.to_feather(out_dir / "nhd_marine.feather")
-write_dataframe(df, out_dir / "nhd_marine.fgb")

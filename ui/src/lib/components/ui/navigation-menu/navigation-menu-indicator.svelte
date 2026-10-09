@@ -2,7 +2,7 @@
 	// style override: remove animation
 	// change bg-border to bg-white
 	import { NavigationMenu as NavigationMenuPrimitive } from 'bits-ui'
-	import { cn } from '$lib/utils.js'
+	import { cn } from '#lib/utils.js'
 
 	let {
 		ref = $bindable(null),

@@ -1,5 +1,5 @@
-import { pointColors } from '$lib/config/constants'
-import { getHighlightExpr } from '$lib/components/map'
+import { getHighlightExpr } from '#lib/components/map/index.js'
+import { pointColors } from '#lib/config/constants.js'
 
 export const summaryUnitLayers = [
 	{

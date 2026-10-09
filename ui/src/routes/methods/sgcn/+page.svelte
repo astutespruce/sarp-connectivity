@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { HeaderImage } from '$lib/components/image'
-	import { SITE_NAME } from '$lib/env'
+	import { HeaderImage } from '#lib/components/image/index.js'
+	import { SITE_NAME } from '#lib/config/constants.js'
 </script>
 
 <svelte:head>
@@ -11,7 +11,7 @@
 	author="Appalachian elktoe. Photo: U.S. Fish & Wildlife Service Southeast Region."
 	url="https://www.flickr.com/photos/usfwssoutheast/33643109826/"
 >
-	<enhanced:img src="$lib/assets/images/33643109826_51296358b0_k.jpg" alt="" />
+	<enhanced:img src="#images/33643109826_51296358b0_k.jpg" alt="" />
 </HeaderImage>
 
 <div class="page-content">

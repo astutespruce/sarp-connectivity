@@ -1,12 +1,12 @@
-import camelcaseKeys from 'camelcase-keys'
 import { tableFromIPC } from '@uwdata/flechette'
+import camelcaseKeys from 'camelcase-keys'
 
-import { API_HOST } from '$lib/env'
-import { captureException } from '$lib/util/log'
-import { extractYearRemovedStats } from '$lib/util/stats'
+import { API_URL } from '#lib/env.js'
+import { captureException } from '#lib/util/log.js'
+import { extractYearRemovedStats } from '#lib/util/stats.js'
 
 export const fetchUnitDetails = async (layer: string, id: string | number) => {
-	const url = `${API_HOST}/api/v1/internal/units/${layer}/details/${id}`
+	const url = `${API_URL}/units/${layer}/details/${id}`
 
 	try {
 		const response = await fetch(url)
@@ -36,7 +36,7 @@ export const fetchUnitDetails = async (layer: string, id: string | number) => {
 }
 
 export const searchUnits = async (layers: string[], query: string) => {
-	const url = `${API_HOST}/api/v1/internal/units/search?layer=${layers.join(',')}&query=${query}`
+	const url = `${API_URL}/units/search?layer=${layers.join(',')}&query=${query}`
 
 	try {
 		const response = await fetch(url)
@@ -59,7 +59,7 @@ export const searchUnits = async (layers: string[], query: string) => {
 }
 
 export const fetchUnitList = async (layer: string, ids: string[]) => {
-	const url = `${API_HOST}/api/v1/internal/units/${layer}/list?id=${ids.join(',')}`
+	const url = `${API_URL}/units/${layer}/list?id=${ids.join(',')}`
 
 	try {
 		const response = await fetch(url)

@@ -84,5 +84,4 @@ for col in spp_cols:
     # DEBUG:
     write_dataframe(flowlines.loc[flowlines[col]], f"/tmp/{col}.fgb")
 
-write_dataframe(flowlines, out_dir / "southeast_diadromous_habitat.fgb")
-flowlines[["NHDPlusID", "HUC2"] + spp_cols].to_feather(out_dir / "southeast_diadromous_habitat.feather")
+flowlines.to_feather(out_dir / "southeast_diadromous_habitat.feather")

@@ -3,8 +3,8 @@ import BarrierStats from './BarrierStats.svelte'
 import DataProviders from './DataProviders.svelte'
 import DownloadBar from './DownloadBar.svelte'
 import GetInvolved from './GetInvolved.svelte'
-import StateDownloadTable from './StateDownloadTable.svelte'
 import SARPConnectivityProgram from './SARPConnectivityProgram.svelte'
+import StateDownloadTable from './StateDownloadTable.svelte'
 
 export {
 	ActionBar,

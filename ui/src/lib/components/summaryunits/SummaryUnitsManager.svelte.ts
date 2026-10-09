@@ -1,12 +1,12 @@
-import { SvelteSet } from 'svelte/reactivity'
 import { getQueryClientContext } from '@tanstack/svelte-query'
-import type { QueryClient } from '@tanstack/svelte-query'
+import { SvelteSet } from 'svelte/reactivity'
 
-import { fetchUnitDetails } from '$lib/api'
-import { extractYearRemovedStats } from '$lib/util/stats'
-import { captureException } from '$lib/util/log'
+import { fetchUnitDetails } from '#lib/api/index.js'
+import { captureException } from '#lib/util/log.js'
+import { extractYearRemovedStats } from '#lib/util/stats.js'
 
 import type { SummaryUnit } from './types'
+import type { QueryClient } from '@tanstack/svelte-query'
 
 export class SummaryUnitManager {
 	#ids = new SvelteSet()

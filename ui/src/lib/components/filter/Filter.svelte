@@ -4,8 +4,8 @@
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down'
 	import { SvelteSet } from 'svelte/reactivity'
 
-	import { Button } from '$lib/components/ui/button'
-	import { cn } from '$lib/utils'
+	import { Button } from '#lib/components/ui/button/index.js'
+	import { cn } from '#lib/utils.js'
 	import FilterBars from './FilterBars.svelte'
 
 	type Datum = {

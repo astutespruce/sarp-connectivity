@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { SITE_NAME } from '$lib/env'
+	import { SITE_NAME } from '#lib/config/constants.js'
 </script>
 
 <svelte:head>
@@ -8,11 +8,7 @@
 
 <div class="relative w-full h-full">
 	<div class="hidden md:block absolute top-0 bottom-0 left-0 right-0 overflow-hidden">
-		<enhanced:img
-			src="$lib/assets/images/25898720604_f380ee9709_k.jpg"
-			alt=""
-			class="brightness-80"
-		/>
+		<enhanced:img src="#images/25898720604_f380ee9709_k.jpg" alt="" class="brightness-80" />
 		<div class="sticky bottom-0">
 			<div class="absolute bottom-0 right-0 bg-black/65 text-white px-2 text-sm">
 				Photo: students looking for macroinvertebrates in Cartoogechaye Creek, NC |

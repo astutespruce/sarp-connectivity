@@ -3,7 +3,7 @@
 	// add gap-2 text-lg
 	// remove bg-background text-accent usage text-sm
 	// change chevron to size-5
-	import { cn } from '$lib/utils.js'
+	import { cn } from '#lib/utils.js'
 	import { tv } from 'tailwind-variants'
 
 	export const navigationMenuTriggerStyle = tv({

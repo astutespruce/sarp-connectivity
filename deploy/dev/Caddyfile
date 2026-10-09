@@ -16,9 +16,11 @@
   # header Access-Control-Request-Method *
   # header Access-Control-Request-Headers *
 
-  route /services* {
-      header Cache-Control "public, max-age=3600, must-revalidate"
-      reverse_proxy host.docker.internal:8001
+  route /tiles/* {
+    uri strip_prefix /tiles
+    header Cache-Control "public, max-age=3600, must-revalidate"
+    root /data/tiles
+    file_server
   }
 
   route /downloads/national/* {
@@ -50,6 +52,7 @@
       }
     }
 
+    # proxy to API on host
     reverse_proxy host.docker.internal:5000
   }
 
@@ -72,13 +75,6 @@
       not path */_app/immutable/* *.html *.webmanifest */page-data/* / /priority/* /survey/* /explore/* /methods/* /regions/* /states/* /fhp/* /report/* /terms-of-use/* /statistics/*
     }
     header @default_files Cache-Control "public,max-age=3600,must-revalidate"
-
-      # Capture client only routes and route through correct page to force loading on client side
-    # NOTE: the 404 page is the pre-rended fallback, it will route correctly to the dynamic routes
-    # rewrite /report/dams/* /404.html
-    # rewrite /report/combined_barriers/* /404.html
-    # rewrite /report/largefish_barriers/* /404.html
-    # rewrite /report/smallfish_barriers/* /404.html
 
     encode zstd gzip
     root * /var/www

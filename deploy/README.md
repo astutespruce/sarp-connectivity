@@ -32,7 +32,7 @@ sudo swapon /swapfile
 
 Add this to `/etc/fstab`: `/swapfile none swap sw 0 0`
 
-### Format and mount 60 GB secondary volume, used for tiles
+### Format and mount 60 GB secondary volume, used for data and tiles
 
 se `lsblk` to list volumes; it may be listed as `nvme1n1`
 
@@ -94,17 +94,16 @@ API_DATA_PATH=/data/api
 Create a `ui/.env.production` file with the following:
 
 ```
-PUBLIC_MAPBOX_API_TOKEN = <token>
-PUBLIC_SENTRY_DSN = <dsn>
-PUBLIC_GOOGLE_ANALYTICS_ID = <ga id>
-PUBLIC_API_HOST = <root URL of API host>
-PUBLIC_TILE_HOST = <root URL of tile host>
-PUBLIC_SITE_URL=https://tool.aquaticbarriers.org  # or https://staging.tool.aquaticbarriers.org
-PUBLIC_MAILCHIMP_URL=https://mc.us19.list-manage.com/subscribe/landing-page
-PUBLIC_MAILCHIMP_USER_ID=<user id>
-PUBLIC_MAILCHIMP_FORM_ID=<form id>
-PUBLIC_MAILCHIMP_FORM_ID2=<form id2>
-PUBLIC_NACC_URL=https://aquaticbarriers.org  # or https://staging.aquaticbarriers.org
+MAPBOX_API_TOKEN = <token>
+SENTRY_DSN = <dsn>
+GOOGLE_ANALYTICS_ID = <ga id>
+DEPLOY_ENV="production" # or "staging"
+CONTACT_EMAIL=<email address of contact person used throughout site>
+NACC_HOME_URL=https://aquaticbarriers.org  # or https://staging.aquaticbarriers.org
+MAILCHIMP_URL=https://mc.us19.list-manage.com/subscribe/landing-page
+MAILCHIMP_USER_ID=<user id>
+MAILCHIMP_FORM_ID=<form id>
+MAILCHIMP_FORM_ID2=<form id2>
 ```
 
 ## Clone NACC homepage repository and setup environment files
@@ -120,13 +119,11 @@ cd nacc-home
 Create a `.env.production` in the root of the repository with the following:
 
 ```bash
-PUBLIC_GOOGLE_ANALYTICS_ID=<google analytics ID>
-PUBLIC_SENTRY_DSN=<sentry DSN>
-PUBLIC_DEPLOY_ENV="production" # or staging
-PUBLIC_CONTACT_EMAIL=<contact email>
-PUBLIC_PRIORITIZATION_TOOL_URL="https://tool.aquaticbarriers.org" # or https://staging.tool.aquaticbarriers.org
-PUBLIC_TOOL_UI_DATA_PATH="/home/app/sarp-connectivity/ui/data"
-
+GOOGLE_ANALYTICS_ID=<google analytics ID>
+SENTRY_DSN=<sentry DSN>
+DEPLOY_ENV="production" # or staging
+CONTACT_EMAIL=<contact email>
+PRIORITIZATION_TOOL_URL="https://tool.aquaticbarriers.org" # or https://staging.tool.aquaticbarriers.org
 ```
 
 ## Clone NACC Training Portal repository and setup environment files
@@ -159,14 +156,12 @@ cd nacc-training
 Create a `.env.production` file with the following:
 
 ```bash
-PUBLIC_GOOGLE_ANALYTICS_ID=<google analytics ID>
-PUBLIC_SENTRY_DSN=<sentry DSN>
-PUBLIC_DEPLOY_ENV="production" # or staging
-PUBLIC_NACC_HOME_URL=https://aquaticbarriers.org # or https://staging.aquaticbarriers.org
-PUBLIC_API_HOST=TODO:
-PUBLIC_API_PATH="/api/v1"
-PUBLIC_CONTACT_EMAIL=<contact email: person that should be contacted for general support>
-PUBLIC_ADMIN_EMAIL=<admin email: person that should be contacted for login / site issues>
+GOOGLE_ANALYTICS_ID=<google analytics ID>
+SENTRY_DSN=<sentry DSN>
+DEPLOY_ENV="production" # or staging
+NACC_HOME_URL=https://aquaticbarriers.org # or https://staging.aquaticbarriers.org
+CONTACT_EMAIL=<contact email: person that should be contacted for general support>
+ADMIN_EMAIL=<admin email: person that should be contacted for login / site issues>
 ```
 
 As `ubuntu` user:
@@ -257,39 +252,6 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 source $HOME/.local/bin/env
 uv venv --python 3.12
 uv sync --frozen
-```
-
-## Install mbtileserver
-
-- as `ubuntu` user, in `/tmp` directory
-- install `unzip`: `sudo apt-get update && sudo apt-get install -y unzip`
-- Find the latest release on https://github.com/consbio/mbtileserver/releases and download the zip file for the correct architecture (`curl -L -o /tmp/mbtileserver_v0.11.0_linux_arm64.zip https://github.com/consbio/mbtileserver/releases/download/v0.11.0/mbtileserver_v0.11.0_linux_arm64.zip`).
-
-```bash
-unzip mbtileserver_v0.11.0_linux_arm64.zip
-sudo chmod 777 mbtileserver_v0.11.0_linux_arm64
-sudo mv mbtileserver_v0.11.0_linux_arm64 /usr/bin/mbtileserver
-```
-
-Verify it starts up properly (error about no tiles is OK):
-
-```bash
-mbtileserver -d /data/tiles -p 8001
-```
-
-Setup and enable service (will be restarted after uploading tiles):
-
-```bash
-sudo cp /home/app/sarp-connectivity/deploy/<environment>/service/mbtileserver.service /etc/systemd/system
-sudo systemctl enable mbtileserver
-```
-
-(where environment is staging or production)
-
-Verify that it loaded as a service correctly:
-
-```bash
-sudo service mbtileserver status
 ```
 
 ## Install Caddy
@@ -437,7 +399,7 @@ valid JSON.
 
 ## Verify services
 
-Verify that each service runs properly. For `caddy`, `mbtileserver`, `api` services:
+Verify that each service runs properly. For `caddy` and `api` services:
 
 As `ubuntu` user:
 
@@ -457,7 +419,7 @@ After that, test the first few steps of the prioritization workflow here: https:
 
 1. Select state as unit
 2. Select a state
-3. If it shows the filters, everything is working as expected. Otherwise, if it is not showing state boundaries for selection, there is a problem with `mbtileserver`. If it is not showing filters, there is a problem with `api` service. If you can't even boot the application, it is a problem with the `caddy` service or the underlying built JS.
+3. If it shows the filters, everything is working as expected. Otherwise, if it is not showing state boundaries for selection, there is a problem with the tiles (either the tiles themselves or routing to them via `caddy`). If it is not showing filters, there is a problem with `api` service. If you can't even boot the application, it is a problem with the `caddy` service or the underlying built JS.
 
 ## Data updates
 

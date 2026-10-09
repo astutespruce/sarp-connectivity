@@ -29,9 +29,20 @@ from api.lib.extract import get_record_count
 from api.lib.progress import get_progress, set_progress
 from api.logger import log, log_request
 from api.metadata import get_readme, get_terms
-from api.settings import CUSTOM_DOWNLOAD_DIR, LOGO_PATH, MAX_IMMEDIATE_DOWNLOAD_RECORDS, REDIS, REDIS_QUEUE
+from api.settings import (
+    CUSTOM_DOWNLOAD_DIR,
+    LOGO_PATH,
+    MAX_IMMEDIATE_DOWNLOAD_RECORDS,
+    PROVIDE_DOWNLOAD_ENDPOINTS,
+    REDIS,
+    REDIS_QUEUE,
+)
 
 router = APIRouter()
+
+# on servers, these are served directly from /downloads folder; on dev these
+# are provided by API
+download_prefix = "/api/v1" if PROVIDE_DOWNLOAD_ENDPOINTS else ""
 
 
 @router.post("/{barrier_type}/{format}")
@@ -42,17 +53,17 @@ async def download(
     unit_ids: get_unit_ids = Depends(),
     filters: get_filter_params = Depends(),
     custom_rank: bool = False,
-    include_unranked: bool = False,
+    ranked_only: bool = False,
     sort: Scenarios = Scenarios.NCWC,
 ):
     """Download subset of barrier_type data.
 
-    If `include_unranked` is `True`, all barriers in the summary units are downloaded.
+    By default all barriers in the summary units are downloaded.
 
     Query parameters:
     * one more more ids (comma delimited) for each of the unit types, e.g., State=OR,WA (see get_unit_ids())
     * custom_rank: bool (default: False); set to true to perform custom ranking of subset defined here
-    * include_unranked: bool (default: False); set to true to include unranked barriers in output
+    * ranked_only: bool (default: False); set to true to limit output to ranked barriers
     * sort: Scenarios
     * filters are defined using a lowercased version of column name and a comma-delimited list of values (see get_filters())
     """
@@ -65,10 +76,9 @@ async def download(
             detail="At least one summary unit layer must have ids present or at least one filter must be defined",
         )
 
+    # always ignore it for road crossings
     if barrier_type == "road_crossings":
         ranked_only = False
-    else:
-        ranked_only = not include_unranked
 
     count = get_record_count(barrier_type, unit_ids=unit_ids, filters=filters, ranked_only=ranked_only)
     download_message = f"selected {count:,} {barrier_type.replace('_', ' ')}"
@@ -166,7 +176,10 @@ async def download(
             zf.write(LOGO_PATH, LOGO_PATH.name)
 
         return JSONResponse(
-            content={"status": "success", "path": f"/downloads/custom/{tmp_dir.name}/{barrier_type}.zip"}
+            content={
+                "status": "success",
+                "path": f"{download_prefix}/downloads/custom/{tmp_dir.name}/{barrier_type}.zip",
+            }
         )
 
 
@@ -330,7 +343,7 @@ async def get_download_job_status(job_id: str):
                     return JSONResponse(
                         content={
                             "status": "success",
-                            "path": f"/downloads/custom/{zip_filename}",
+                            "path": f"{download_prefix}/downloads/custom/{zip_filename}",
                         }
                     )
 

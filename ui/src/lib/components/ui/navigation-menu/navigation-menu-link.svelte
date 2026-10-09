@@ -3,7 +3,7 @@
 	// remove flex-col text-sm text-accent usage
 	// add text-white no-underline items-center leading-none text-lg
 	import { NavigationMenu as NavigationMenuPrimitive } from 'bits-ui'
-	import { cn } from '$lib/utils.js'
+	import { cn } from '#lib/utils.js'
 
 	let {
 		ref = $bindable(null),

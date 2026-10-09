@@ -2,11 +2,11 @@
 	import CloseIcon from '@lucide/svelte/icons/circle-x'
 	import WarningIcon from '@lucide/svelte/icons/triangle-alert'
 
-	import { STATE_FIPS, STATES, barrierTypeLabels } from '$lib/config/constants'
-	import { Button } from '$lib/components/ui/button'
-	import type { BarrierTypePlural } from '$lib/config/types'
-	import { formatNumber, pluralize } from '$lib/util/format'
-	import { cn } from '$lib/utils'
+	import { STATE_FIPS, STATES, barrierTypeLabels } from '#lib/config/constants.js'
+	import { Button } from '#lib/components/ui/button/index.js'
+	import type { BarrierTypePlural } from '#lib/config/types.js'
+	import { formatNumber, pluralize } from '#lib/util/format.js'
+	import { cn } from '#lib/utils.js'
 
 	const { barrierType, layer, unit, onDelete, onZoomBounds } = $props()
 

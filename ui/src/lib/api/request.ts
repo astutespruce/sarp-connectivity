@@ -1,46 +1,8 @@
-import { fromArrow } from 'arquero'
-import camelcaseKeys from 'camelcase-keys'
 import { tableFromIPC } from '@uwdata/flechette'
+import { fromArrow } from 'arquero'
 
-import { API_HOST } from '$lib/env'
-import { encodeParams } from '$lib/util/dom'
-import { captureException } from '$lib/util/log'
-
-export const fetchJSON = async (path: string) => {
-	try {
-		const response = await fetch(`${API_HOST}/${path}`, {
-			method: 'GET',
-			credentials: 'include'
-		})
-
-		if (response.status === 200) {
-			return await camelcaseKeys(response.json())
-		}
-
-		try {
-			const { detail = null, ...rest } = await response.json()
-
-			return {
-				error: detail,
-				status: response.status,
-				...rest
-			}
-		} catch (ex) {
-			console.error('unhandled error parsing JSON from API', ex)
-		}
-
-		return {
-			error: 'SERVER_ERROR',
-			status: response.status
-		}
-	} catch (ex) {
-		console.error('UNHANDLED_ERROR', ex)
-		return {
-			error: 'UNHANDLED_ERROR',
-			status: 500
-		}
-	}
-}
+import { encodeParams } from '#lib/util/dom.js'
+import { captureException } from '#lib/util/log.js'
 
 let jsonpCounter = 1
 
@@ -115,49 +77,6 @@ export const fetchFeather = async (url: string, options?: RequestInit, asTable =
 		return {
 			error: err,
 			data: null
-		}
-	}
-}
-
-export const postJSON = async (path: string, data: object) => {
-	try {
-		const response = await fetch(`${API_HOST}/${path}`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(data),
-			credentials: 'include'
-		})
-
-		if (response.status === 200) {
-			return await camelcaseKeys(response.json())
-		}
-
-		try {
-			const { detail = null, ...rest } = await response.json()
-
-			if (response.status === 422) {
-				// indicates implementation error; passed invalid parameters to API
-				console.error('IMPLEMENTATION ERROR: submitted incorrect data to API', detail)
-			}
-
-			return {
-				error: detail,
-				status: response.status,
-				...rest
-			}
-		} catch (ex) {
-			console.error('unhandled error from API', ex)
-		}
-
-		return {
-			error: 'SERVER_ERROR',
-			status: response.status
-		}
-	} catch (ex) {
-		console.error('UNHANDLED_ERROR', ex)
-		return {
-			error: 'UNHANDLED_ERROR',
-			status: 500
 		}
 	}
 }

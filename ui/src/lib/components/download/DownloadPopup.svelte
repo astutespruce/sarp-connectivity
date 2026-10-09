@@ -5,20 +5,21 @@
 	import { v4 as uuid } from 'uuid'
 
 	import { resolve } from '$app/paths'
-	import { Alert } from '$lib/components/alert'
-	import { Button } from '$lib/components/ui/button'
-	import { Checkbox } from '$lib/components/ui/checkbox'
-	import * as Dialog from '$lib/components/ui/dialog'
-	import { Label } from '$lib/components/ui/label'
-	import { Progress } from '$lib/components/ui/progress'
+	import { Alert } from '#lib/components/alert/index.js'
+	import { Button } from '#lib/components/ui/button/index.js'
+	import { Checkbox } from '#lib/components/ui/checkbox/index.js'
+	import * as Dialog from '#lib/components/ui/dialog/index.js'
+	import { Label } from '#lib/components/ui/label/index.js'
+	import { Progress } from '#lib/components/ui/progress/index.js'
 
-	import { getDownloadURL } from '$lib/api'
-	import type { ProgressCallback } from '$lib/api'
-	import { CONTACT_EMAIL, API_HOST } from '$lib/env'
-	import { trackDownload } from '$lib/util/analytics'
-	import { cn } from '$lib/utils'
-	import { shortBarrierTypeLabels } from '$lib/config/constants'
-	import type { BarrierTypePlural } from '$lib/config/types'
+	import { getDownloadURL } from '#lib/api/index.js'
+	import type { ProgressCallback } from '#lib/api/index.js'
+	import { CONTACT_EMAIL } from '#lib/env.js'
+	import { HOST_URL } from '#lib/env.js'
+	import { trackDownload } from '#lib/util/analytics.js'
+	import { cn } from '#lib/utils.js'
+	import { shortBarrierTypeLabels } from '#lib/config/constants.js'
+	import type { BarrierTypePlural } from '#lib/config/types.js'
 
 	type Status = {
 		inProgress: boolean
@@ -43,13 +44,13 @@
 		areaName,
 		config = {},
 		customRank = false,
-		includeUnranked: initialIncludeUnranked = false,
+		rankedOnly: initialRankedOnly = false,
 		showOptions = true
 	} = $props()
 
 	const barrierTypeLabel = $derived(shortBarrierTypeLabels[barrierType as BarrierTypePlural])
 
-	let includeUnranked = $derived(initialIncludeUnranked)
+	let rankedOnly = $derived(initialRankedOnly)
 	let status: Status = $state(initialStatus)
 	let downloadURL: string | null = $state(null)
 
@@ -65,7 +66,7 @@
 		// clear status on both open / close
 		status = initialStatus
 		downloadURL = null
-		includeUnranked = initialIncludeUnranked
+		rankedOnly = initialRankedOnly
 	})
 
 	const handleClose = () => {
@@ -100,7 +101,7 @@
 				details += `, scenario: ${scenario}`
 			}
 			if (barrierType !== 'road_crossings') {
-				details += `, include unranked: ${includeUnranked}`
+				details += `, ranked only: ${rankedOnly}`
 			}
 
 			trackDownload({
@@ -115,7 +116,7 @@
 					barrierType,
 					summaryUnits,
 					filters,
-					includeUnranked: barrierType !== 'road_crossings' ? includeUnranked : null,
+					rankedOnly: barrierType !== 'road_crossings' ? rankedOnly : null,
 					sort: scenario ? scenario.toUpperCase() : null,
 					customRank
 				},
@@ -137,7 +138,7 @@
 		} else {
 			// download pre-created national zip file
 			trackDownload({ barrierType, unitType: 'national', details: '' })
-			url = `${API_HOST}/downloads/national/${barrierType}.zip`
+			url = `${HOST_URL}/downloads/national/${barrierType}.zip`
 		}
 
 		status = {
@@ -204,20 +205,24 @@
 		{:else}
 			{#if showOptions && barrierType !== 'road_crossings'}
 				<div class="flex gap-2 items-center">
-					<Checkbox id={checkboxId} bind:checked={includeUnranked} />
+					<Checkbox id={checkboxId} bind:checked={rankedOnly} />
 					<Label for={checkboxId} class="font-bold text-lg"
-						>Include unranked {barrierTypeLabel}?</Label
+						>Include only ranked {barrierTypeLabel}?</Label
 					>
 				</div>
-				<div class="text-muted-foreground text-sm ml-7 -mt-4 mb-2">
-					This will include {barrierTypeLabel} within your selected geographic area that were not prioritized
-					in the analysis. These include any
-					{barrierTypeLabel} that were not located on the aquatic network
-					{customRank ? ', ' : ' and'} any that have been removed
-					{customRank ? ', and any that you filtered out during your prioritization' : ''}.
-					{barrierType === 'small_barriers'
-						? '  These data only include road/stream crossings that have been surveyed for impacts to aquatic organisms.'
-						: ''}
+				<div class="text-muted-foreground text-sm ml-7 -mt-4 mb-2 flex">
+					By default, downloads include all {barrierTypeLabel} within your selected geographic area,
+					including those that were not prioritized in the analysis ({barrierTypeLabel} not located on
+					the aquatic network{customRank ? ', ' : ' and'} any that have been removed{customRank
+						? ', and any that you filtered out during your prioritization'
+						: ''}). Choose this option to limit your download to ranked {barrierTypeLabel}.
+				</div>
+			{/if}
+
+			{#if barrierType === 'small_barriers'}
+				<div class="font-bold pb-2">
+					These data only include road/stream crossings that have been surveyed for impacts to
+					aquatic organisms.
 				</div>
 			{/if}
 

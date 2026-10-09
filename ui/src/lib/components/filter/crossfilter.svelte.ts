@@ -1,13 +1,14 @@
 import { op, agg, escape } from 'arquero'
-import type { ColumnTable as Table } from 'arquero'
-import type { RowObject } from 'arquero/dist/types/table/types'
 import { SvelteSet } from 'svelte/reactivity'
 
-import { filters as allFilterConfig } from '$lib/config/filters'
-import type { BarrierTypePlural } from '$lib/config/types'
-import { sum } from '$lib/util/data'
+import { filters as allFilterConfig } from '#lib/config/filters/index.js'
+import { sum } from '#lib/util/data.js'
 import { applyFilters, createDimensions, countByDimension } from './util'
+
 import type { Dimension, Dimensions, FilterConfig } from './types'
+import type { ColumnTable as Table } from 'arquero'
+import type { RowObject } from 'arquero/dist/types/table/types'
+import type { BarrierTypePlural } from '#lib/config/types.js'
 
 export class Crossfilter {
 	#networkType: BarrierTypePlural | null = $state(null)

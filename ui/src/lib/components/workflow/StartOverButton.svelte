@@ -11,8 +11,8 @@
 		Footer,
 		Cancel,
 		Action
-	} from '$lib/components/ui/alert-dialog'
-	import { buttonVariants } from '$lib/components/ui/button'
+	} from '#lib/components/ui/alert-dialog'
+	import { buttonVariants } from '#lib/components/ui/button/index.js'
 
 	const { onStartOver } = $props()
 </script>

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { CONTACT_EMAIL } from '$lib/env'
-	import { Alert } from '$lib/components/alert'
+	import { CONTACT_EMAIL } from '#lib/env.js'
+	import { Alert } from '#lib/components/alert/index.js'
 </script>
 
 <Alert title="Oh no!" class="text-lg mt-8">

@@ -304,7 +304,6 @@ for huc2 in huc2s:
     print(f"Serializing {len(flowlines):,} flowlines")
     flowlines = flowlines.reset_index()
     flowlines.to_feather(huc2_dir / "flowlines.feather")
-    write_dataframe(flowlines, huc2_dir / "flowlines.fgb")
     joins.reset_index(drop=True).to_feather(huc2_dir / "flowline_joins.feather")
 
     print(f"Serializing {len(waterbodies):,} waterbodies")
@@ -312,12 +311,10 @@ for huc2 in huc2s:
     waterbodies.set_crs(flowlines.crs, inplace=True, allow_override=True)
     waterbodies = waterbodies.reset_index()
     waterbodies.to_feather(huc2_dir / "waterbodies.feather")
-    write_dataframe(waterbodies, huc2_dir / "waterbodies.fgb")
     wb_joins.reset_index(drop=True).to_feather(huc2_dir / "waterbody_flowline_joins.feather")
 
     print(f"Serializing {len(drains):,} drain points")
     drains.to_feather(huc2_dir / "waterbody_drain_points.feather")
-    write_dataframe(drains, huc2_dir / "waterbody_drain_points.fgb")
 
     print(f"------------------\nRegion done in {time() - region_start:.2f}s\n------------------\n")
 

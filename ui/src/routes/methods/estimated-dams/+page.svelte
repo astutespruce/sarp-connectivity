@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { HeaderImage } from '$lib/components/image'
-	import { SITE_NAME } from '$lib/env'
+	import { HeaderImage } from '#lib/components/image/index.js'
+	import { SITE_NAME } from '#lib/config/constants.js'
 </script>
 
 <svelte:head>
@@ -11,7 +11,7 @@
 	author="Amelie"
 	url="https://unsplash.com/photos/a-group-of-penguins-on-rocks-by-a-body-of-water-Q3oEolT9ZQE"
 >
-	<enhanced:img src="$lib/assets/images/amelie-Q3oEolT9ZQE-unsplash.jpg" alt="" />
+	<enhanced:img src="#images/amelie-Q3oEolT9ZQE-unsplash.jpg" alt="" />
 </HeaderImage>
 
 <div class="page-content">

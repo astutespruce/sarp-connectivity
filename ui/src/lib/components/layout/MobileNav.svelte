@@ -3,10 +3,10 @@
 	import PrioritizeIcon from '@lucide/svelte/icons/search-check'
 	import SurveyIcon from '@lucide/svelte/icons/pencil-ruler'
 
-	import { browser } from '$app/environment'
+	import { browser } from '$app/env'
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
-	import { Root, Trigger, Content } from '$lib/components/ui/sheet'
+	import { Root, Trigger, Content } from '#lib/components/ui/sheet/index.js'
 
 	import SummarizeDownloadNav from './SummarizeDownloadNav.svelte'
 	import LearnMoreNav from './LearnMoreNav.svelte'

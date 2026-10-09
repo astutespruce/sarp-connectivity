@@ -84,7 +84,6 @@ for huc2 in huc2s:
     df["id"] = df.index.values.astype("uint32") + 1 + int(huc2) * 1000000
 
     df.to_feather(huc2_dir / "wetlands.feather")
-    write_dataframe(df, huc2_dir / "wetlands.fgb")
 
     print("--------------------")
     print(f"HUC2: {huc2} done in {time() - huc2_start:.0f}s\n\n")

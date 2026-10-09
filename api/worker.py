@@ -28,9 +28,7 @@ class ArqLogFilter(logging.Filter):
 
     def filter(self, record):
         # suppress logging of cron jobs
-        if record.levelname == "INFO" and "cron:" in record.getMessage():
-            return False
-        return True
+        return not (record.levelname == "INFO" and "cron:" in record.getMessage())
 
 
 if SENTRY_DSN:
@@ -49,9 +47,8 @@ ctx : arq ctx (unused)
 async def cleanup_files(ctx):
     # delete directories and their contents
     for path in CUSTOM_DOWNLOAD_DIR.rglob("*"):
-        if path.stat().st_mtime < time() - FILE_RETENTION_TIME:
-            if path.is_dir():
-                shutil.rmtree(path)
+        if path.stat().st_mtime < time() - FILE_RETENTION_TIME and path.is_dir():
+            shutil.rmtree(path)
 
 
 async def startup(ctx):

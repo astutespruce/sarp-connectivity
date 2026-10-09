@@ -5,10 +5,10 @@ import {
 	getDownloadURL,
 	searchBarriers
 } from './barriers'
-import type { ProgressCallback } from './job'
-
 import { fetchJSONP } from './request'
 import { fetchUnitDetails, fetchUnitList, searchUnits } from './units'
+
+import type { ProgressCallback } from './job'
 
 export {
 	fetchBarrierDetails,

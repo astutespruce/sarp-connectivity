@@ -5,15 +5,15 @@
 	import { SvelteSet } from 'svelte/reactivity'
 
 	import { resolve } from '$app/paths'
-	import { Button } from '$lib/components/ui/button'
-	import { STATE_FIPS, STATES, barrierTypeLabels } from '$lib/config/constants'
-	import { formatNumber, pluralize, singularOrPlural } from '$lib/util/format'
-	import { Downloader } from '$lib/components/download'
-	import { summaryUnitLayers } from '$lib/components/explore/layers'
-	import type { SummaryUnit } from '$lib/components/summaryunits/types'
-	import { Search } from '$lib/components/unitsearch'
-	import { Header, Footer } from '$lib/components/sidebar'
-	import { cn } from '$lib/utils'
+	import { Button } from '#lib/components/ui/button/index.js'
+	import { STATE_FIPS, STATES, barrierTypeLabels } from '#lib/config/constants.js'
+	import { formatNumber, pluralize, singularOrPlural } from '#lib/util/format.js'
+	import { Downloader } from '#lib/components/download/index.js'
+	import { summaryUnitLayers } from '#lib/components/explore/layers.js'
+	import type { SummaryUnit } from '#lib/components/summaryunits/types.js'
+	import { Search } from '#lib/components/unitsearch/index.js'
+	import { Header, Footer } from '#lib/components/sidebar/index.js'
+	import { cn } from '#lib/utils.js'
 
 	import ListItem from './UnitListItem.svelte'
 
@@ -419,8 +419,7 @@
 					label={`Download ${barrierTypeLabels.dams}`}
 					config={downloadConfig}
 					disabled={stats.dams === 0}
-					showOptions={false}
-					includeUnranked
+					showOptions={true}
 					triggerClass="text-sm h-auto py-1.5 px-2!"
 				/>
 			{:else if barrierType === 'small_barriers'}
@@ -430,8 +429,7 @@
 					triggerLabel="surveyed"
 					config={downloadConfig}
 					disabled={stats.totalSmallBarriers === 0}
-					showOptions={false}
-					includeUnranked
+					showOptions={true}
 					triggerClass="text-sm h-auto py-1.5 px-2!"
 				/>
 
@@ -444,7 +442,6 @@
 					}}
 					disabled={stats.totalRoadCrossings === 0 || stats.totalRoadCrossings > MAX_DOWNLOAD_COUNT}
 					showOptions={false}
-					includeUnranked
 					triggerClass="text-sm h-auto py-1.5 px-2!"
 				/>
 			{:else if barrierType === 'combined_barriers'}
@@ -453,8 +450,7 @@
 					label={`Download ${barrierTypeLabels.combined_barriers}`}
 					config={downloadConfig}
 					disabled={stats.dams + stats.totalSmallBarriers === 0}
-					showOptions={false}
-					includeUnranked
+					showOptions={true}
 					triggerClass="text-sm h-auto py-1.5 px-2!"
 				/>
 			{/if}

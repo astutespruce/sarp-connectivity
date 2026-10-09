@@ -10,7 +10,7 @@ from api.settings import API_DATA_PATH, CUSTOM_DOWNLOAD_DIR
 router = APIRouter()
 
 
-@router.get("/downloads/national/{filename}")
+@router.get("/national/{filename}")
 async def get_national_csv_zip(request: Request, filename: str):
     """Return pre-created zipped CSV downloads created in aggregate_networks.py
 
@@ -26,7 +26,7 @@ async def get_national_csv_zip(request: Request, filename: str):
     return FileResponse(path, media_type="application/zip", filename=filename)
 
 
-@router.get("/downloads/custom/{tmp_dir}/{filename}")
+@router.get("/custom/{tmp_dir}/{filename}")
 async def get_custom_csv_zip(request: Request, tmp_dir: str, filename: str):
     """Return custom zipped downloads created in api.internal.barriers.downloads
 

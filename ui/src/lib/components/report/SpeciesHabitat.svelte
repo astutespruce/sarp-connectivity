@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { resolve } from '$app/paths'
-	import { barrierTypeLabelSingular } from '$lib/config/constants'
-	import type { BarrierTypePlural } from '$lib/config/types'
-	import { formatNumber } from '$lib/util/format'
+	import { barrierTypeLabelSingular } from '#lib/config/constants.js'
+	import type { BarrierTypePlural } from '#lib/config/types.js'
+	import { formatNumber } from '#lib/util/format.js'
 
 	const { barrierType, diadromoushabitat, habitat } = $props()
 	const sources = $derived(

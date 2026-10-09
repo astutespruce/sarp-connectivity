@@ -2,13 +2,13 @@
 	import ChevronsRightIcon from '@lucide/svelte/icons/chevrons-right'
 
 	import { resolve } from '$app/paths'
-	import { STATES, barrierTypeLabels } from '$lib/config/constants'
-	import type { BarrierTypePlural } from '$lib/config/types'
-	import { formatNumber, pluralize } from '$lib/util/format'
-	import { Downloader } from '$lib/components/download'
-	import { Search } from '$lib/components/unitsearch'
-	import { Footer } from '$lib/components/sidebar'
-	import { cn } from '$lib/utils'
+	import { STATES, barrierTypeLabels } from '#lib/config/constants.js'
+	import type { BarrierTypePlural } from '#lib/config/types.js'
+	import { formatNumber, pluralize } from '#lib/util/format.js'
+	import { Downloader } from '#lib/components/download/index.js'
+	import { Search } from '#lib/components/unitsearch/index.js'
+	import { Footer } from '#lib/components/sidebar/index.js'
+	import { cn } from '#lib/utils.js'
 
 	import Chart from './Chart.svelte'
 
@@ -189,7 +189,6 @@
 					label={`Download removed ${barrierTypeLabels[barrierType as BarrierTypePlural]}`}
 					config={downloadConfig}
 					showOptions={false}
-					includeUnranked
 					triggerClass="text-sm h-auto py-1.5 px-2!"
 				/>
 			</div>

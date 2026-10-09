@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { CROSSING_TYPE, ROAD_TYPE, barrierTypeLabelSingular } from '$lib/config/constants'
-	import type { BarrierTypePlural } from '$lib/config/types'
-	import { isEmptyString } from '$lib/util/string'
+	import { CROSSING_TYPE, ROAD_TYPE, barrierTypeLabelSingular } from '#lib/config/constants.js'
+	import type { BarrierTypePlural } from '#lib/config/types.js'
+	import { isEmptyString } from '#lib/util/string.js'
 
 	import Entry from './Entry.svelte'
 	import Section from './Section.svelte'

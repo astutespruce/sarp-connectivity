@@ -1,4 +1,4 @@
-import { TILE_HOST } from '$lib/env'
+import { TILES_URL } from '#lib/env.js'
 
 export const mapConfig = {
 	bounds: [-187.65, 17.62, -64.51, 71.44],
@@ -11,67 +11,84 @@ export const mapConfig = {
 export const sources = {
 	map_units: {
 		type: 'vector',
-		maxzoom: 12,
-		tiles: [`${TILE_HOST}/services/map_units_summary/tiles/{z}/{x}/{y}.pbf`]
+		url: `${TILES_URL}/map_units_summary.pmtiles`,
+		provider: 'pmtiles',
+		maxzoom: 12
+	},
+	// same actual source as map_units, but using maxzoom 6 to allow overzooming lowres mask
+	mask_lowres: {
+		type: 'vector',
+		url: `${TILES_URL}/map_units_summary.pmtiles`,
+		provider: 'pmtiles',
+		maxzoom: 6
 	},
 	dams: {
 		type: 'vector',
-		tiles: [`${TILE_HOST}/services/dams/tiles/{z}/{x}/{y}.pbf`],
+		url: `${TILES_URL}/dams.pmtiles`,
+		provider: 'pmtiles',
 		minzoom: 2,
 		maxzoom: 16,
 		promoteId: 'id'
 	},
 	small_barriers: {
 		type: 'vector',
-		tiles: [`${TILE_HOST}/services/small_barriers/tiles/{z}/{x}/{y}.pbf`],
+		url: `${TILES_URL}/small_barriers.pmtiles`,
+		provider: 'pmtiles',
 		minzoom: 2,
 		maxzoom: 16,
 		promoteId: 'id'
 	},
 	combined_barriers: {
 		type: 'vector',
-		tiles: [`${TILE_HOST}/services/combined_barriers/tiles/{z}/{x}/{y}.pbf`],
+		url: `${TILES_URL}/combined_barriers.pmtiles`,
+		provider: 'pmtiles',
 		minzoom: 2,
 		maxzoom: 16,
 		promoteId: 'id'
 	},
 	largefish_barriers: {
 		type: 'vector',
-		tiles: [`${TILE_HOST}/services/largefish_barriers/tiles/{z}/{x}/{y}.pbf`],
+		url: `${TILES_URL}/largefish_barriers.pmtiles`,
+		provider: 'pmtiles',
 		minzoom: 2,
 		maxzoom: 16,
 		promoteId: 'id'
 	},
 	smallfish_barriers: {
 		type: 'vector',
-		tiles: [`${TILE_HOST}/services/smallfish_barriers/tiles/{z}/{x}/{y}.pbf`],
+		url: `${TILES_URL}/smallfish_barriers.pmtiles`,
+		provider: 'pmtiles',
 		minzoom: 2,
 		maxzoom: 16,
 		promoteId: 'id'
 	},
 	road_crossings: {
 		type: 'vector',
-		tiles: [`${TILE_HOST}/services/road_crossings/tiles/{z}/{x}/{y}.pbf`],
+		url: `${TILES_URL}/road_crossings.pmtiles`,
+		provider: 'pmtiles',
 		minzoom: 3,
 		maxzoom: 16
 	},
 	waterfalls: {
 		type: 'vector',
-		tiles: [`${TILE_HOST}/services/waterfalls/tiles/{z}/{x}/{y}.pbf`],
+		url: `${TILES_URL}/waterfalls.pmtiles`,
+		provider: 'pmtiles',
 		minzoom: 9,
 		maxzoom: 16,
 		promoteId: 'id'
 	},
 	networks: {
 		type: 'vector',
-		tiles: [`${TILE_HOST}/services/networks/tiles/{z}/{x}/{y}.pbf`],
+		url: `${TILES_URL}/networks.pmtiles`,
+		provider: 'pmtiles',
 		minzoom: 3,
 		maxzoom: 16
 	},
 	priority_areas: {
 		type: 'vector',
-		maxzoom: 12,
-		tiles: [`${TILE_HOST}/services/priority_areas/tiles/{z}/{x}/{y}.pbf`]
+		url: `${TILES_URL}/priority_areas.pmtiles`,
+		provider: 'pmtiles',
+		maxzoom: 12
 	}
 }
 

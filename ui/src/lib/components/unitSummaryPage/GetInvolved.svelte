@@ -1,8 +1,8 @@
 <script lang="ts">
 	import ExternalLinkIcon from '@lucide/svelte/icons/external-link'
-	import { CONTACT_EMAIL } from '$lib/env'
-	import { cn } from '$lib/utils'
-	import TeamIcon from '$lib/assets/icons/team.svg'
+	import { CONTACT_EMAIL } from '#lib/env.js'
+	import { cn } from '#lib/utils.js'
+	import TeamIcon from '#icons/team.svg'
 
 	const { team = null, teams = null } = $props()
 </script>

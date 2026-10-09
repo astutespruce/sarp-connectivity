@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { CONTACT_EMAIL } from '$lib/env'
-	import { barrierTypeLabelSingular, dataVersion } from '$lib/config/constants'
-	import type { BarrierTypePlural } from '$lib/config/types'
-	import { formatNumber, formatPercent } from '$lib/util/format'
-	import { cn } from '$lib/utils'
+	import { CONTACT_EMAIL } from '#lib/env.js'
+	import { barrierTypeLabelSingular, dataVersion } from '#lib/config/constants.js'
+	import type { BarrierTypePlural } from '#lib/config/types.js'
+	import { formatNumber, formatPercent } from '#lib/util/format.js'
+	import { cn } from '#lib/utils.js'
 
 	const {
 		barrierType,
@@ -293,11 +293,11 @@
 			watersheds with slighly above average or greater cold temperature scores (TNC, March 2024). -->
 			<br />
 			<br />
-			Unaltered lakes and ponds include any that intersect a stream reach in the upstream functional network,
-			and exclude any specifically marked by their data provider as altered as well as any that are associated
-			with dams in this inventory. Unaltered freshwater wetlands are derived from the National Wetlands
-			Inventory (freshwater scrub-shrub, freshwater forested, freshwater emergent) and NHD (swamp/marsh)
-			and exclude any specifically marked by their data provider as altered.
+			Unaltered lakes and ponds include any that intersect a stream reach in the upstream functional
+			network, and exclude any specifically marked by their data provider as altered as well as any that
+			are associated with dams in this inventory. Unaltered freshwater wetlands are derived from the
+			National Wetlands Inventory (freshwater scrub-shrub, freshwater forested, freshwater emergent)
+			and NHD (swamp/marsh) and exclude any specifically marked by their data provider as altered.
 		</div>
 	{/if}
 </section>

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { barrierTypeLabelSingular } from '$lib/config/constants'
-	import type { BarrierTypePlural } from '$lib/config/types'
+	import { barrierTypeLabelSingular } from '#lib/config/constants.js'
+	import type { BarrierTypePlural } from '#lib/config/types.js'
 
 	const { barrierType, invasive, invasivenetwork } = $props()
 	const barrierTypeLabel = $derived(barrierTypeLabelSingular[barrierType as BarrierTypePlural])

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { CONTACT_EMAIL } from '$lib/env'
+	import { CONTACT_EMAIL } from '#lib/env.js'
 	import {
 		HAZARD,
 		CONDITION,
@@ -11,7 +11,7 @@
 		PASSABILITY,
 		barrierTypeLabelSingular,
 		dataVersion
-	} from '$lib/config/constants'
+	} from '#lib/config/constants.js'
 
 	import Entry from './Entry.svelte'
 	import Section from './Section.svelte'

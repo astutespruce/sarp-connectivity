@@ -42,10 +42,7 @@ ix = np.unique(tree.query(huc4_df.geometry.values, predicate="intersects")[1])
 prev_nid = prev_nid.iloc[ix].copy()
 
 nid = (
-    read_dataframe(src_dir / "nid_2_25_2022.gpkg")
-    .to_crs(CRS)
-    .rename(columns={"federalId": "NIDID"})
-    .set_index("NIDID")
+    read_dataframe(src_dir / "nid_2_25_2022.gpkg").to_crs(CRS).rename(columns={"federalId": "NIDID"}).set_index("NIDID")
 )
 tree = shapely.STRtree(nid.geometry.values)
 ix = np.unique(tree.query(huc4_df.geometry.values, predicate="intersects")[1])
@@ -58,9 +55,7 @@ df = nid.join(nabd.geometry.rename("nabd_geometry"), how="inner").join(
 )
 df["update_dist"] = shapely.distance(df.geometry.values, df.prev_geometry.values)
 df["cur_nabd_dist"] = shapely.distance(df.geometry.values, df.nabd_geometry.values)
-df["prev_nabd_dist"] = shapely.distance(
-    df.prev_geometry.values, df.nabd_geometry.values
-)
+df["prev_nabd_dist"] = shapely.distance(df.prev_geometry.values, df.nabd_geometry.values)
 
 # any that moved less than 10m in NABD can be ignored from NABD (not useful)
 # any that moved over 100m in NABD can be ignored from NABD (too risky)
@@ -75,4 +70,3 @@ df = df.loc[~ix].copy()
 nabd = nabd.loc[nabd.index.isin(df.index)].reset_index()
 
 nabd.to_feather(src_dir / "nabd.feather")
-write_dataframe(nabd, src_dir / "nabd.fgb")
