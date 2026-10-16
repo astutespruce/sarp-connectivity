@@ -51,13 +51,13 @@ STYLE = {
         "dams": {
             "type": "vector",
             "url": f"pmtiles://file://{dam_tiles}",
-            "minzoom": 2,
+            "minzoom": 0,
             "maxzoom": 16,
         },
         "small_barriers": {
             "type": "vector",
             "url": f"pmtiles://file://{small_barrier_tiles}",
-            "minzoom": 2,
+            "minzoom": 0,
             "maxzoom": 16,
         },
     },
@@ -70,8 +70,8 @@ STYLE = {
             "type": "circle",
             "paint": {
                 "circle-radius": {
-                    "base": 0.5,
-                    "stops": [[2, 0.5], [4, 1.5], [6, 2], [8, 3]],
+                    "base": 1.5,
+                    "stops": [[4, 1.5], [6, 2], [8, 3]],
                 },
                 "circle-opacity": 1,
                 "circle-color": "#1891ac",
@@ -84,8 +84,8 @@ STYLE = {
             "type": "circle",
             "paint": {
                 "circle-radius": {
-                    "base": 0.25,
-                    "stops": [[2, 0.25], [4, 1.1], [6, 1.5], [8, 2]],
+                    "base": 1.1,
+                    "stops": [[4, 1.1], [6, 1.5], [8, 2]],
                 },
                 "circle-opacity": 1,
                 "circle-color": "#1891ac",

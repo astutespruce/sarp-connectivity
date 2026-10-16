@@ -691,7 +691,6 @@ df = combine_sarpid_name(df)
 fill_na_fields(df)
 
 # # Below zoom 8, we only need filter fields and only show on-network crossings
-# print("Creating tiles for road crossings for zooms 3-7")
 tmp = df.loc[df.OnNetwork][["geometry"] + ROAD_CROSSING_TILE_FILTER_FIELDS + ["symbol"]]
 # snap to a 500m grid (aggressive!) and drop duplicate points
 tmp["geometry"] = shapely.set_precision(tmp.geometry.values, 500)
