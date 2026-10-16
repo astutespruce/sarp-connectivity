@@ -46,7 +46,9 @@ import {
 	WILDSCENIC_RIVER,
 	YEAR_SURVEYED_BINS,
 	EPA_CAUSE_CODES,
-	LICENSE_EXPIRATION
+	LICENSE_EXPIRATION,
+	EMERGENCY_ACTION_PLAN,
+	NACC_PROTOCOL
 } from '#lib/config/constants.js'
 import { getEntries, hasDiadromousData } from './common'
 
@@ -272,6 +274,12 @@ export const combinedBarriers = [
 				...getEntries(HAZARD)
 			},
 			{
+				field: 'emergencyactionplan',
+				title: 'Has emergency action plan?',
+				help: 'Emergency action plan information is derived from the National Inventory of Dams and is only available for a small number of dams.',
+				...getEntries(EMERGENCY_ACTION_PLAN)
+			},
+			{
 				field: 'purpose',
 				title: 'Dam purpose',
 				sort: false,
@@ -314,6 +322,13 @@ export const combinedBarriers = [
 				field: 'constriction',
 				title: 'Type of constriction',
 				...getEntries(CONSTRICTION)
+			},
+			{
+				field: 'naccprotocol',
+				title: 'Was it surveyed using a NACC protocol?',
+				sort: false,
+				hideMissingValues: false,
+				...getEntries(NACC_PROTOCOL)
 			},
 			{
 				field: 'yearsurveyedclass',

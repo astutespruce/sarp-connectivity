@@ -10,12 +10,7 @@ import shapely
 from dotenv import load_dotenv
 from httpx import Limits
 
-from analysis.constants import (
-    CRS,
-    DAM_FS_COLS,
-    SMALL_BARRIER_COLS,
-    WATERFALL_COLS,
-)
+from analysis.constants import CRS
 from analysis.prep.barriers.lib.arcgis import download_fs, get_attachments
 
 # Load the token from the .env file in the root of this project
@@ -62,66 +57,67 @@ PRIVATE_WATERFALLS_URL = (
 )
 
 
-async def download_dams(token, private_token):
-    async with httpx.AsyncClient(timeout=httpx.Timeout(60.0, connect=60.0), http2=True) as client:
-        df = await download_fs(client, DAMS_URL, fields=DAM_FS_COLS, token=token)
-        df["svc"] = "public"
-        df["Private"] = "Public"
+# async def download_dams(token, private_token):
+#     async with httpx.AsyncClient(timeout=httpx.Timeout(60.0, connect=60.0), http2=True) as client:
+#         df = await download_fs(client, DAMS_URL, fields=DAM_COLS, token=token)
+#         df["svc"] = "public"
+#         df["Private"] = "Public"
 
-        private_df = await download_fs(client, PRIVATE_DAMS_URL, fields=DAM_FS_COLS, token=private_token)
-        private_df["svc"] = "private"
-        private_df["Private"] = "Private"
-        df = pd.concat([df, private_df], ignore_index=True, sort=True)
+#         private_df = await download_fs(client, PRIVATE_DAMS_URL, fields=DAM_COLS, token=private_token)
+#         private_df["svc"] = "private"
+#         private_df["Private"] = "Private"
+#         df = pd.concat([df, private_df], ignore_index=True, sort=True)
 
-        missing = [c for c in DAM_FS_COLS if c not in df.columns]
-        if len(missing):
-            print(f"Download is missing columns: {', '.join(missing)}")
-            for col in missing:
-                df[col] = np.nan
+#         missing = [c for c in DAM_COLS if c not in df.columns]
+#         if len(missing):
+#             print(f"Download is missing columns: {', '.join(missing)}")
+#             for col in missing:
+#                 df[col] = np.nan
 
-        df = df.rename(
-            columns={
-                "SARPUniqueID": "SARPID",
-                "SourceDBID": "SourceID",
-                "Link": "SourceLink",
-                "UNIQUE_ID": "PartnerID",
-                "FEDERAL_ID": "NIDFederalID",
-                "PotentialFeasibility": "Feasibility",
-                "Barrier_Name": "Name",
-                "Other_Barrier_Name": "OtherName",
-                "DB_Source": "Source",
-                "RIVER": "River",
-                "YEAR_COMPLETED": "YearCompleted",
-                "Year_Removed": "YearRemoved",
-                "ConstructionMaterial": "Construction",
-                "PurposeCategory": "Purpose",
-                "StructureCondition": "Condition",
-                "LowheadDam1": "LowheadDam",
-                "OwnerType": "BarrierOwnerType",
-                "StateAbbreviation": "SourceState",
-                "FERC_Dam": "FERCRegulated",
-                "NRCS_Dam": "NRCSDam",
-                "Fed_Regulatory_Agency": "FedRegulatoryAgency",
-                "STATE_REGULATED": "StateRegulated",
-                "Water_Right": "WaterRight",
-                "Water_Right_Status": "WaterRightStatus",
-                "Beneficial_Use": "BeneficialUse",
-                "HEIGHT": "Height",
-                "WIDTH": "Width",
-                "LENGTH": "Length",
-                "Priority_Identified": "IsPriority",
-                "NORMSTOR": "StorageVolume",
-                "Last_Updated": "EditDate",
-                "Active150": "ActiveList",
-                "Year_Reconned": "YearSurveyed",
-            }
-        )
+#         # FIXME: this is out of sync with the latest fields and will need to be updated against new master service
+#         df = df.rename(
+#             columns={
+#                 "SARPUniqueID": "SARPID",
+#                 "SourceDBID": "SourceID",
+#                 "Link": "SourceLink",
+#                 "UNIQUE_ID": "PartnerID",
+#                 "FEDERAL_ID": "NIDFederalID",
+#                 "PotentialFeasibility": "Feasibility",
+#                 "Barrier_Name": "Name",
+#                 "Other_Barrier_Name": "OtherName",
+#                 "DB_Source": "Source",
+#                 "RIVER": "River",
+#                 "YEAR_COMPLETED": "YearCompleted",
+#                 "Year_Removed": "YearRemoved",
+#                 "ConstructionMaterial": "Construction",
+#                 "PurposeCategory": "Purpose",
+#                 "StructureCondition": "Condition",
+#                 "LowheadDam1": "LowheadDam",
+#                 "OwnerType": "BarrierOwnerType",
+#                 "StateAbbreviation": "SourceState",
+#                 "FERC_Dam": "FERCRegulated",
+#                 "NRCS_Dam": "NRCSDam",
+#                 "Fed_Regulatory_Agency": "FedRegulatoryAgency",
+#                 "STATE_REGULATED": "StateRegulated",
+#                 "Water_Right": "WaterRight",
+#                 "Water_Right_Status": "WaterRightStatus",
+#                 "Beneficial_Use": "BeneficialUse",
+#                 "HEIGHT": "Height",
+#                 "WIDTH": "Width",
+#                 "LENGTH": "Length",
+#                 "Priority_Identified": "IsPriority",
+#                 "NORMSTOR": "StorageVolume",
+#                 "Last_Updated": "EditDate",
+#                 "Active150": "ActiveList",
+#                 "Year_Reconned": "YearSurveyed",
+#             }
+#         )
 
-        print("Projecting dams...")
+#         print("Projecting dams...")
 
-        df = df.to_crs(CRS)
+#         df = df.to_crs(CRS)
 
-        return df
+#         return df
 
 
 async def download_snapped_dams(token):
@@ -137,13 +133,12 @@ async def download_snapped_dams(token):
                 "duplicate",
                 "snapped",
                 "EditDate",
-                "Editor",
             ],
             token=token,
         )
 
         print("Projecting manually snapped dams...")
-        df = df.loc[df.geometry.notnull()].to_crs(CRS).reset_index(drop=True)
+        df = df.loc[df.geometry.notnull()].to_crs(CRS).reset_index(drop=True).rename(columns={"EditDate": "QAQC_Date"})
 
         # drop any that do not have SARPID
         df = df.dropna(subset=["SARPID"])
@@ -151,73 +146,70 @@ async def download_snapped_dams(token):
         df.ManualReview = df.ManualReview.fillna(0).astype("uint8")
 
         # dates are either blank or strings MM/DD/YYYY
-        df["EditDate"] = df.EditDate.str.strip()
+        df["QAQC_Date"] = df.QAQC_Date.str.strip()
 
         return df
 
 
-async def download_small_barriers(token, private_token):
-    async with httpx.AsyncClient(timeout=httpx.Timeout(60.0, connect=60.0), http2=True) as client:
-        df = await download_fs(client, SMALL_BARRIERS_URL, fields=SMALL_BARRIER_COLS, token=token)
-        df["svc"] = "public"
-        df["Private"] = "Public"
-        private_df = await download_fs(client, PRIVATE_BARRIERS_URL, fields=SMALL_BARRIER_COLS, token=private_token)
-        private_df["svc"] = "private"
-        private_df["Private"] = "Private"
-        df = pd.concat([df, private_df], ignore_index=True, sort=True)
+# async def download_small_barriers(token, private_token):
+#     async with httpx.AsyncClient(timeout=httpx.Timeout(60.0, connect=60.0), http2=True) as client:
+#         df = await download_fs(client, SMALL_BARRIERS_URL, fields=SMALL_BARRIER_COLS, token=token)
+#         df["svc"] = "public"
+#         df["Private"] = "Public"
+#         private_df = await download_fs(client, PRIVATE_BARRIERS_URL, fields=SMALL_BARRIER_COLS, token=private_token)
+#         private_df["svc"] = "private"
+#         private_df["Private"] = "Private"
+#         df = pd.concat([df, private_df], ignore_index=True, sort=True)
 
-        # fill missing fields
-        missing = [c for c in SMALL_BARRIER_COLS if c not in df.columns]
-        if len(missing):
-            print(f"Download is missing columns: {', '.join(missing)}")
-            for col in missing:
-                df[col] = np.nan
+#         # fill missing fields
+#         missing = [c for c in SMALL_BARRIER_COLS if c not in df.columns]
+#         if len(missing):
+#             print(f"Download is missing columns: {', '.join(missing)}")
+#             for col in missing:
+#                 df[col] = np.nan
 
-        df = df.rename(
-            columns={
-                "LocalID": "SourceID",
-                "Link": "SourceLink",
-                "UNIQUE_ID": "PartnerID",
-                "Crossing_Code": "CrossingCode",
-                "Potential_Project": "PotentialProject",
-                "SARPUniqueID": "SARPID",
-                "CrossingTypeId": "CrossingType",
-                "RoadTypeId": "RoadType",
-                "CrossingConditionId": "Condition",
-                "StreamName": "River",
-                "Year_Removed": "YearRemoved",
-                "OwnerType": "BarrierOwnerType",
-                "Protocol_Used": "ProtocolUsed",
-                "Priority_Identified": "IsPriority",
-                "Year_Surveyed": "YearSurveyed",
-            }
-        )
+#         df = df.rename(
+#             columns={
+#                 "LocalID": "SourceID",
+#                 "Link": "SourceLink",
+#                 "UNIQUE_ID": "PartnerID",
+#                 "Crossing_Code": "CrossingCode",
+#                 "Potential_Project": "PotentialProject",
+#                 "SARPUniqueID": "SARPID",
+#                 "CrossingTypeId": "CrossingType",
+#                 "RoadTypeId": "RoadType",
+#                 "CrossingConditionId": "Condition",
+#                 "StreamName": "River",
+#                 "Year_Removed": "YearRemoved",
+#                 "OwnerType": "BarrierOwnerType",
+#                 "Protocol_Used": "ProtocolUsed",
+#                 "Priority_Identified": "IsPriority",
+#                 "Year_Surveyed": "YearSurveyed",
+#             }
+#         )
 
-        # convert from ESRI format to string
-        df["EditDate"] = pd.to_datetime(df.EditDate, unit="ms").dt.strftime("%m/%d/%Y")
+#         # convert from ESRI format to string
+#         df["EditDate"] = pd.to_datetime(df.EditDate, unit="ms").dt.strftime("%m/%d/%Y")
 
-        ix = df.geometry.isnull()
-        if ix.sum():
-            print(f"WARNING: {ix.sum()} small barriers are missing geometry values")
-            df = df.loc[~ix].copy()
+#         ix = df.geometry.isnull()
+#         if ix.sum():
+#             print(f"WARNING: {ix.sum()} small barriers are missing geometry values")
+#             df = df.loc[~ix].copy()
 
-        df = df.to_crs(CRS).reset_index(drop=True)
+#         df = df.to_crs(CRS).reset_index(drop=True)
 
-        return df
+#         return df
 
 
-async def download_small_barrier_survey_photo_urls(token, private_token):
+async def download_small_barrier_survey_photo_urls():
     async with httpx.AsyncClient(timeout=httpx.Timeout(60.0, connect=60.0), http2=True) as client:
         merged = None
         for id, survey_url in SMALL_BARRIER_SURVEY_URLS.items():
-            token = private_token if id == "Combined protocols" else token
-
             print(f"Downloading attachments from: {id}")
             df = await download_fs(
                 client,
                 survey_url,
                 fields=["OBJECTID" if id == "Southeast (pre 2019)" else "objectid", "Crossing_Code", "DateObserved"],
-                token=token,
             )
 
             df = df.rename(columns={"OBJECTID": "objectid"})
@@ -228,7 +220,7 @@ async def download_small_barrier_survey_photo_urls(token, private_token):
             # drop duplicates
             df = df.loc[df.geometry != shapely.Point(0, 0)].drop_duplicates(subset="geometry")
 
-            attachments = await get_attachments(client, survey_url, token)
+            attachments = await get_attachments(client, survey_url)
             df = df.join(attachments, on="objectid", how="inner").drop(columns=["objectid"])
             df["source"] = id
 
@@ -265,77 +257,77 @@ async def download_great_lakes_barrier_survey_photo_urls():
         return df.to_crs(CRS)
 
 
-async def download_waterfalls(token, private_token):
-    async with httpx.AsyncClient(timeout=httpx.Timeout(60.0, connect=60.0), http2=True) as client:
-        df = await download_fs(client, WATERFALLS_URL, fields=WATERFALL_COLS, token=token)
-        df["svc"] = "public"
-        df["Private"] = "Public"
+# async def download_waterfalls(token, private_token):
+#     async with httpx.AsyncClient(timeout=httpx.Timeout(60.0, connect=60.0), http2=True) as client:
+#         df = await download_fs(client, WATERFALLS_URL, fields=WATERFALL_COLS, token=token)
+#         df["svc"] = "public"
+#         df["Private"] = "Public"
 
-        private_df = await download_fs(client, PRIVATE_WATERFALLS_URL, fields=WATERFALL_COLS, token=private_token)
-        private_df["svc"] = "private"
-        private_df["Private"] = "Private"
-        df = pd.concat([df, private_df], ignore_index=True, sort=False)
+#         private_df = await download_fs(client, PRIVATE_WATERFALLS_URL, fields=WATERFALL_COLS, token=private_token)
+#         private_df["svc"] = "private"
+#         private_df["Private"] = "Private"
+#         df = pd.concat([df, private_df], ignore_index=True, sort=False)
 
-        # fill missing fields
-        missing = [c for c in WATERFALL_COLS if c not in df.columns]
-        if len(missing):
-            print(f"Download is missing columns: {', '.join(missing)}")
-            for col in missing:
-                df[col] = np.nan
+#         # fill missing fields
+#         missing = [c for c in WATERFALL_COLS if c not in df.columns]
+#         if len(missing):
+#             print(f"Download is missing columns: {', '.join(missing)}")
+#             for col in missing:
+#                 df[col] = np.nan
 
-        df = df.rename(
-            columns={
-                "SARPUniqueId": "SARPID",
-                "LocalID": "SourceID",
-                "Link": "SourceLink",
-                "UNIQUE_ID": "PartnerID",
-                "gnis_name_": "GNIS_Name",
-                "watercours": "River",
-                "name": "Name",
-                "Year_Removed": "YearRemoved",
-            }
-        )
-        df = df.loc[df.geometry.notnull()].to_crs(CRS).reset_index(drop=True)
+#         df = df.rename(
+#             columns={
+#                 "SARPUniqueId": "SARPID",
+#                 "LocalID": "SourceID",
+#                 "Link": "SourceLink",
+#                 "UNIQUE_ID": "PartnerID",
+#                 "gnis_name_": "GNIS_Name",
+#                 "watercours": "River",
+#                 "name": "Name",
+#                 "Year_Removed": "YearRemoved",
+#             }
+#         )
+#         df = df.loc[df.geometry.notnull()].to_crs(CRS).reset_index(drop=True)
 
-        # gnis_name_ may be completely null and thus dropped during download,
-        # but GNIS_Name is used during prep and needs to be present
-        if "GNIS_Name" not in df.columns:
-            df["GNIS_Name"] = ""
+#         # gnis_name_ may be completely null and thus dropped during download,
+#         # but GNIS_Name is used during prep and needs to be present
+#         if "GNIS_Name" not in df.columns:
+#             df["GNIS_Name"] = ""
 
-        return df
+#         return df
 
 
 out_dir = Path("data/barriers/source")
 
 start = time()
 
-### Download national dams
-print("\n---- Downloading National Dams ----")
-download_start = time()
-df = asyncio.run(download_dams(TOKEN, PRIVATE_TOKEN))
-print(f"Downloaded {len(df):,} dams in {time() - download_start:.2f}s")
+# ### Download national dams
+# print("\n---- Downloading National Dams ----")
+# download_start = time()
+# df = asyncio.run(download_dams(TOKEN, PRIVATE_TOKEN))
+# print(f"Downloaded {len(df):,} dams in {time() - download_start:.2f}s")
 
-for svc in ["public", "private"]:
-    ix = (df.SARPID.isnull() | (df.SARPID == "")) & (df.svc == svc)
-    if ix.any():
-        print(
-            f"--------------------------\nWARNING: {ix.sum():,} {svc} dams are missing SARPID\n----------------------------"
-        )
-        print(df.loc[ix].groupby("SourceState", dropna=False).size())
-
-
-# DEBUG ONLY - SARPID must be present; follow up with SARP if not
-df.SARPID = df.SARPID.fillna("").astype("str")
+# for svc in ["public", "private"]:
+#     ix = (df.SARPID.isnull() | (df.SARPID == "")) & (df.svc == svc)
+#     if ix.any():
+#         print(
+#             f"--------------------------\nWARNING: {ix.sum():,} {svc} dams are missing SARPID\n----------------------------"
+#         )
+#         print(df.loc[ix].groupby("SourceState", dropna=False).size())
 
 
-for svc in ["public", "private"]:
-    s = df.loc[df.svc == svc].groupby("SARPID").size()
-    ids = s[s > 1].index
-    if len(ids):
-        print(f"WARNING: multiple {svc.upper()} dams with same SARPID: {', '.join(ids)}")
+# # DEBUG ONLY - SARPID must be present; follow up with SARP if not
+# df.SARPID = df.SARPID.fillna("").astype("str")
 
 
-df.to_feather(out_dir / "sarp_dams.feather")
+# for svc in ["public", "private"]:
+#     s = df.loc[df.svc == svc].groupby("SARPID").size()
+#     ids = s[s > 1].index
+#     if len(ids):
+#         print(f"WARNING: multiple {svc.upper()} dams with same SARPID: {', '.join(ids)}")
+
+
+# df.to_feather(out_dir / "sarp_dams.feather")
 
 
 # ### Download manually snapped dams
@@ -351,37 +343,38 @@ if s.max() > 1:
 
 df.to_feather(out_dir / "manually_snapped_dams.feather")
 
-### Download small barriers
-print("\n---- Downloading Small Barriers ----")
-download_start = time()
-df = asyncio.run(download_small_barriers(TOKEN, PRIVATE_TOKEN))
-print(f"Downloaded {len(df):,} small barriers in {time() - download_start:.2f}s")
 
-for svc in ["public", "private"]:
-    ix = (df.SARPID.isnull() | (df.SARPID == "")) & (df.svc == svc)
-    if ix.max():
-        print(
-            f"--------------------------\nWARNING: {ix.sum():,} {svc} small barriers are missing SARPID\n----------------------------"
-        )
+# ### Download small barriers
+# print("\n---- Downloading Small Barriers ----")
+# download_start = time()
+# df = asyncio.run(download_small_barriers(TOKEN, PRIVATE_TOKEN))
+# print(f"Downloaded {len(df):,} small barriers in {time() - download_start:.2f}s")
 
-# # DEBUG ONLY - SARPID must be present; follow up with SARP if not
-df.SARPID = df.SARPID.fillna("").astype("str")
+# for svc in ["public", "private"]:
+#     ix = (df.SARPID.isnull() | (df.SARPID == "")) & (df.svc == svc)
+#     if ix.max():
+#         print(
+#             f"--------------------------\nWARNING: {ix.sum():,} {svc} small barriers are missing SARPID\n----------------------------"
+#         )
 
-for svc in ["public", "private"]:
-    s = df.loc[df.svc == svc].groupby("SARPID").size()
-    ids = s[s > 1].index
-    if len(ids):
-        print(f"WARNING: multiple {svc.upper()} small barriers with same SARPID: {', '.join(ids)}\n")
+# # # DEBUG ONLY - SARPID must be present; follow up with SARP if not
+# df.SARPID = df.SARPID.fillna("").astype("str")
+
+# for svc in ["public", "private"]:
+#     s = df.loc[df.svc == svc].groupby("SARPID").size()
+#     ids = s[s > 1].index
+#     if len(ids):
+#         print(f"WARNING: multiple {svc.upper()} small barriers with same SARPID: {', '.join(ids)}\n")
 
 
-df.to_feather(out_dir / "sarp_small_barriers.feather")
+# df.to_feather(out_dir / "sarp_small_barriers.feather")
 
-print("\n")
+# print("\n")
 
 
 ### Download small barrier survey photo URLs
 download_start = time()
-df = asyncio.run(download_small_barrier_survey_photo_urls(TOKEN, PRIVATE_TOKEN))
+df = asyncio.run(download_small_barrier_survey_photo_urls())
 print(f"Downloaded {len(df):,} small barrier records with photo URLs in {time() - download_start:.2f}s")
 
 df.to_feather(out_dir / "sarp_small_barrier_survey_urls.feather")
@@ -395,28 +388,28 @@ print(f"Downloaded {len(df):,} Great Lakes survey records with photo URLs in {ti
 df.to_feather(out_dir / "great_lakes_survey_urls.feather")
 
 
-### Download waterfalls
-download_start = time()
-print("\n---- Downloading waterfalls ----")
-df = asyncio.run(download_waterfalls(TOKEN, PRIVATE_TOKEN))
-print(f"Downloaded {len(df):,} waterfalls in {time() - download_start:.2f}s")
+# ### Download waterfalls
+# download_start = time()
+# print("\n---- Downloading waterfalls ----")
+# df = asyncio.run(download_waterfalls(TOKEN, PRIVATE_TOKEN))
+# print(f"Downloaded {len(df):,} waterfalls in {time() - download_start:.2f}s")
 
-ix = df.SARPID.isnull() | (df.SARPID == "")
-if ix.max():
-    print(
-        f"--------------------------\nWARNING: {ix.sum():,} waterfalls are missing SARPID\n----------------------------"
-    )
+# ix = df.SARPID.isnull() | (df.SARPID == "")
+# if ix.max():
+#     print(
+#         f"--------------------------\nWARNING: {ix.sum():,} waterfalls are missing SARPID\n----------------------------"
+#     )
 
-df.SARPID = df.SARPID.fillna("").astype("str")
+# df.SARPID = df.SARPID.fillna("").astype("str")
 
-for svc in ["public", "private"]:
-    s = df.loc[df.svc == svc].groupby("SARPID").size()
-    ids = s[s > 1].index
-    if len(ids):
-        print(f"WARNING: multiple {svc.upper()} waterfalls with same SARPID: {', '.join(ids)}")
+# for svc in ["public", "private"]:
+#     s = df.loc[df.svc == svc].groupby("SARPID").size()
+#     ids = s[s > 1].index
+#     if len(ids):
+#         print(f"WARNING: multiple {svc.upper()} waterfalls with same SARPID: {', '.join(ids)}")
 
 
-df.to_feather(out_dir / "waterfalls.feather")
+# df.to_feather(out_dir / "waterfalls.feather")
 
 
 print(f"---------------\nAll done in {time() - start:.2f}s")

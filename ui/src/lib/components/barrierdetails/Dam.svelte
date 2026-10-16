@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { CONTACT_EMAIL } from '#lib/env.js'
 	import {
+		EMERGENCY_ACTION_PLAN,
 		HAZARD,
 		CONDITION,
 		CONSTRUCTION,
@@ -39,6 +40,7 @@
 		habitat = [],
 		hasnetwork = false,
 		hazard = null,
+		emergencyactionplan = null,
 		height = null,
 		invasive = null,
 		lowheaddam = null,
@@ -133,6 +135,14 @@
 	{#if hazard > 0 && HAZARD[hazard as keyof typeof HAZARD]}
 		<Entry label="Hazard rating">
 			{HAZARD[hazard as keyof typeof HAZARD].toLowerCase()}
+		</Entry>
+	{/if}
+
+	{#if emergencyactionplan > 0 && EMERGENCY_ACTION_PLAN[emergencyactionplan as keyof typeof EMERGENCY_ACTION_PLAN]}
+		<Entry label="Has emergency action plan?">
+			{EMERGENCY_ACTION_PLAN[
+				emergencyactionplan as keyof typeof EMERGENCY_ACTION_PLAN
+			].toLowerCase()}
 		</Entry>
 	{/if}
 

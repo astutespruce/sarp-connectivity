@@ -94,7 +94,7 @@ API_DATA_PATH=/data/api
 Create a `ui/.env.production` file with the following:
 
 ```
-MAPBOX_API_TOKEN = <token>
+MAPBOX_TOKEN = <token>
 SENTRY_DSN = <dsn>
 GOOGLE_ANALYTICS_ID = <ga id>
 DEPLOY_ENV="production" # or "staging"

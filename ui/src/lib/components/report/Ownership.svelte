@@ -1,6 +1,7 @@
 <script lang="ts">
 	import WarningIcon from '@lucide/svelte/icons/triangle-alert'
 	import {
+		EMERGENCY_ACTION_PLAN,
 		HAZARD,
 		CONDITION,
 		CONSTRUCTION,
@@ -33,6 +34,7 @@
 		nrcsdam,
 		waterright,
 		hazard,
+		emergencyactionplan,
 		construction,
 		purpose,
 		condition,
@@ -188,6 +190,14 @@
 					<div>Hazard rating: {HAZARD[hazard as keyof typeof HAZARD].toLowerCase()}</div>
 				{/if}
 
+				{#if emergencyactionplan > 0 && EMERGENCY_ACTION_PLAN[emergencyactionplan as keyof typeof EMERGENCY_ACTION_PLAN]}
+					<div>
+						Has emergency action plan: {EMERGENCY_ACTION_PLAN[
+							emergencyactionplan as keyof typeof EMERGENCY_ACTION_PLAN
+						].toLowerCase()}
+					</div>
+				{/if}
+
 				{#if condition !== null && condition >= 0}
 					<div>
 						Structural condition: {CONDITION[condition as keyof typeof CONDITION].toLowerCase()}
@@ -232,7 +242,7 @@
 
 				{#if !removed && barrierseverity !== null}
 					<div>
-						Severity: {SMALL_BARRIER_SEVERITY[
+						General barrier severity: {SMALL_BARRIER_SEVERITY[
 							barrierseverity as keyof typeof SMALL_BARRIER_SEVERITY
 						]}
 					</div>
@@ -240,7 +250,7 @@
 
 				{#if !removed && sarp_score >= 0}
 					<div>
-						SARP Aquatic Organism Passage Score:
+						NACC Aquatic Organism Passage Score:
 						{formatNumber(sarp_score, 1)} ({classifySARPScore(sarp_score)})
 
 						{#if !isEmptyString(protocolused)}

@@ -64,6 +64,7 @@ from analysis.constants import (
     REMOVED_RECON,
     STATEREGULATED_TO_DOMAIN,
     YEAR_SURVEYED_BINS,
+    verify_domain,
 )
 from analysis.lib.io import read_arrow_tables
 from analysis.prep.barriers.lib.duplicates import (
@@ -257,11 +258,6 @@ df = df.drop(columns=["InvasiveSpecies"])
 # convert IsPriority to 0 vs 1  (1 = Yes, Null/0/2 = No / not set)
 df["IsPriority"] = df.IsPriority.map({1: 1, 0: 0, np.nan: 0, 2: 0}).fillna(0).astype("uint8")
 
-# convert Private to bool
-df["Private"] = (
-    df.Private.fillna("").map({"Public": False, "0": False, "Private": True, "1": True, "": False}).astype("bool")
-)
-
 
 ### Set data types
 for column in (
@@ -273,8 +269,7 @@ for column in (
     "OtherName",
     "SourceID",
     "PartnerID",
-    "Editor",
-    "EditDate",
+    "QAQC_Date",
     "SourceLink",
     "FedRegulatoryAgency",
 ):
@@ -314,12 +309,16 @@ for column in (
     "ScreenType",
     "StructureCategory",
     "Fatality",
+    "EmergencyActionPlan",
 ):
     df[column] = df[column].fillna(0).astype("uint8")
 
 
 for column in ("YearCompleted", "YearRemoved", "YearSurveyed", "YearFishPass", "StructureClass"):
     df[column] = df[column].fillna(0).astype("uint16")
+
+# Fix bad values for YearSurveyed
+df.loc[(df.YearSurveyed < 1900) | (df.YearSurveyed > datetime.today().year), "YearSurveyed"] = np.uint16(0)
 
 
 df["YearSurveyedClass"] = np.asarray(
@@ -439,11 +438,11 @@ df.loc[df.FedRegulatoryAgency == "Forest Service, Natural Resources Conservation
 )
 
 
-missing = [x for x in df.FedRegulatoryAgency.fillna("").unique() if x not in FEDREGULATORYAGENCY_TO_DOMAIN]
-if len(missing):
-    raise ValueError(f"Unexpected FedRegulatoryAgency values: {','.join(missing)}")
-df["FedRegulatoryAgencyGroup"] = df.FedRegulatoryAgency.fillna("").map(FEDREGULATORYAGENCY_TO_DOMAIN).astype("uint8")
-
+df["FedRegulatoryAgencyGroup"] = df.FedRegulatoryAgency.fillna("")
+verify_domain(df.FedRegulatoryAgencyGroup, FEDREGULATORYAGENCY_TO_DOMAIN)
+df["FedRegulatoryAgencyGroup"] = (
+    df.FedRegulatoryAgencyGroup.fillna("").map(FEDREGULATORYAGENCY_TO_DOMAIN).astype("uint8")
+)
 
 # if FedRegulatoryAgency is FERC, set FERC_Regulated per direction from Kat (3/7/2024)
 ix = df.FedRegulatoryAgency.str.contains("Federal Energy Regulatory Commission")
@@ -537,7 +536,6 @@ df.loc[(~df.PassageFacility.isin([0, 9, 24])), "HasPassageFacilityClass"] = 1
 
 df["PassageFacilityClass"] = df.PassageFacility.map(PASSAGEFACILITY_TO_PASSAGEFACILITYCLASS).astype("uint8")
 
-
 df["FeasibilityClass"] = df.Feasibility.map(FEASIBILITY_TO_FEASIBILITYCLASS_DOMAIN).astype("uint8")
 
 
@@ -559,19 +557,24 @@ df.loc[df.RelicensingYear == 0, "LicenseExpirationClass"] = np.uint8(0)
 
 
 # Convert BarrierSeverity to a domain and call it Passability
-df["Passability"] = (
-    df.BarrierSeverity.fillna("unknown").str.strip().str.lower().map(DAM_BARRIER_SEVERITY_TO_DOMAIN).astype("uint8")
-)
+df["Passability"] = df.BarrierSeverity.fillna("unknown").str.strip().str.lower()
+verify_domain(df.Passability, DAM_BARRIER_SEVERITY_TO_DOMAIN)
+df["Passability"] = df.Passability.map(DAM_BARRIER_SEVERITY_TO_DOMAIN).astype("uint8")
 df = df.drop(columns=["BarrierSeverity"])
 
 # Recode BarrierOwnerType
-df.BarrierOwnerType = df.BarrierOwnerType.fillna(0).map(BARRIEROWNERTYPE_TO_DOMAIN).astype("uint8")
+df["BarrierOwnerType"] = df.BarrierOwnerType.fillna(0)
+verify_domain(df.BarrierOwnerType, BARRIEROWNERTYPE_TO_DOMAIN)
+df["BarrierOwnerType"] = df.BarrierOwnerType.map(BARRIEROWNERTYPE_TO_DOMAIN).astype("uint8")
 
 # Cleanup FERCRegulated and StateRegulated
-df["FERCRegulated"] = df.FERCRegulated.fillna(0).astype("uint8").map(FERCREGULATED_TO_DOMAIN).astype("uint8")
+df["FERCRegulated"] = df.FERCRegulated.fillna(0).astype("uint8")
+verify_domain(df.FERCRegulated, FERCREGULATED_TO_DOMAIN)
+df["FERCRegulated"] = df.FERCRegulated.map(FERCREGULATED_TO_DOMAIN).astype("uint8")
 
-df["StateRegulated"] = df.StateRegulated.fillna("0")
-df["StateRegulated"] = df.StateRegulated.str.lower().map(STATEREGULATED_TO_DOMAIN).astype("uint8")
+df["StateRegulated"] = df.StateRegulated.fillna("0").str.lower()
+verify_domain(df.StateRegulated, STATEREGULATED_TO_DOMAIN)
+df["StateRegulated"] = df.StateRegulated.map(STATEREGULATED_TO_DOMAIN).astype("uint8")
 
 # per direction from Kat (11/7/2024) fill all nulls with "No"
 df["NRCSDam"] = df.NRCSDam.fillna(2).astype("uint8")

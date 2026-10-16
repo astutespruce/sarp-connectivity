@@ -1,6 +1,6 @@
 # National Aquatic Barrier Inventory & Prioritization Tool Data Processing - Aquatic Barriers
 
-This is the main data flow for updating barrier data, each time new barriers need to be processed for use in the tool.
+This is the main data flow for updating barrier data each time new barriers need to be processed for use in the tool.
 
 Barriers are extracted from multiple sources for the network connectivity and barrier prioritization analyses.
 These are processed in the following order.
@@ -19,9 +19,8 @@ WARNING: There are many duplicate dams within the inventory. Some occur very nea
 
 ## Data sources:
 
-- Dams: hosted on FWS ArcGIS Online
+- Dams, waterfalls, and surveyed road crossings: provided as a data snapshot by SARP for each data release
 - Surveyed road/stream crossings: hosted on ArcGIS Online in FWS organization (public barriers) and SARP organization (private barriers); services include related crossing survey photos
-- Waterfalls: hosted on FWS ArcGIS Online
 - Modeled road crossings: downloaded from USGS in Feb 2022 and provided directly by Kat from USFS and 3rd party data sources.
 - National Anthropogenic Barriers Database (NABD): obtained by Kat and provided on 1/22/2021
 - OpenStreetMap
@@ -34,15 +33,23 @@ See [analysis/prep/barriers/special/README.md](./special/README.md) for steps th
 
 ---
 
-## Barrier data download for each data release
+## Barrier data snapshot for each data release
 
-Dams, surveyed road-related barriers, and waterfalls are downloaded from ArcGIS Online using `analysis/prep/barriers/download.py`. This requires AGOL tokens to be set properly (below).
+The core data are provided by SARP in a data snapshot for each release (provided via email), which includes public and private dams, waterfalls, and surveyed road crossings.
 
-This is run at the beginning of each data update cycle. This script will check for duplicate SARPIDs, which must be fixed by Kat in the master services and re-downloaded.
+This is processed using `analysis/prep/barriers/extract_barriers.py`.
 
-The date of this download is used as the publish date of this data release cycle.
+The date of this snapshot is used as the publish date of this data release cycle.
 
-### ArcGIS Online token
+### Ancillary barrier data download
+
+Manually snapped dams and URLs for survey photos of surveyed road crossings are downloaded from ArcGIS feature services using `analysis/prep/barriers/download.py`.
+
+Survey photos are still downloaded
+
+**The following steps in this section are TEMPORARILY OUTDATED.**
+
+Dams, surveyed road-related barriers, and waterfalls are downloaded from ArcGIS Online using `analysis/prep/barriers/download.py`.
 
 Your `.env` file in the root of the project must contain:
 

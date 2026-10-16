@@ -405,6 +405,7 @@ DAM_FILTER_FIELDS = FILTER_FIELDS + [
     "IsPriority",
     "FatalityClass",
     "LicenseExpirationClass",
+    "EmergencyActionPlan",
 ]
 DAM_FILTER_FIELD_MAP = {f.lower(): f for f in DAM_FILTER_FIELDS}
 
@@ -416,6 +417,7 @@ SB_FILTER_FIELDS = FILTER_FIELDS + [
     "Removed",
     "IsPriority",
     "Resurveyed",
+    "NACCProtocol",
 ]
 SB_FILTER_FIELD_MAP = {f.lower(): f for f in SB_FILTER_FIELDS}
 
@@ -545,6 +547,7 @@ DAM_CORE_FIELDS = (
         "WaterbodyAcres",
         "Fatality",
         "RelicensingYear",
+        "EmergencyActionPlan",
     ]
     + GENERAL_API_FIELDS2
 )
@@ -619,7 +622,7 @@ SB_EXPORT_FIELDS = unique(SB_CORE_FIELDS + HUC8_TIER_FIELDS + CUSTOM_TIER_FIELDS
 
 SB_API_FIELDS = unique(
     SB_CORE_FIELDS
-    + ["PlannedProject"]
+    + ["PlannedProject", "SE_AOP"]
     + HUC8_TIER_FIELDS
     + SB_FILTER_FIELDS
     + ["upNetID", "downNetID", "COUNTYFIPS", "Unranked", "in_network_type", "attachments"]
@@ -1086,6 +1089,22 @@ BARRIER_SEVERITY_DOMAIN = {
     9: "No upstream habitat",
 }
 
+SE_AOP_DOMAIN = {
+    -1: "Not applicable (dam)",
+    0: "Unknown",
+    1: "Severe barrier",
+    2: "Significant barrier",
+    3: "Moderate barrier",
+    4: "Minor barrier",
+    5: "Insignificant barrier",
+    6: "No barrier",
+    7: "No crossing",
+    8: "No upstream channel",
+    9: "Buried stream",
+    10: "Inaccessible",
+    11: "Removed/mitigated crossing",
+}
+
 PASSABILITY_DOMAIN = {
     0: "Unknown",
     1: "Complete barrier",
@@ -1345,6 +1364,13 @@ IS_PRIORITY_DOMAIN = {
 ACTIVE_LIST_DOMAIN = {0: "Not reviewed", 1: "Yes", 2: "No - dropped", 3: "In queue", 5: "Unsure"}
 KEEP_ON_ACTIVE_LIST_DOMAIN = {0: "Not reviewed", 1: "Yes", 2: "No"}
 
+EMERGENCY_ACTION_PLAN_DOMAIN = {
+    -1: "Not applicable",  # small barriers only
+    0: "Unknown",
+    1: "Yes",
+    2: "No",
+}
+
 
 # symbol domain - not used but included here as a reference for the codes used
 # SYMBOL_DOMAIN = {
@@ -1535,6 +1561,7 @@ DOMAINS = {
     "WaterbodySizeClass": WATERBODY_SIZECLASS_DOMAIN,
     "Estimated": BOOLEAN_DOMAIN,
     "IsPriority": IS_PRIORITY_DOMAIN,
+    "EmergencyActionPlan": EMERGENCY_ACTION_PLAN_DOMAIN,
     # barrier fields
     "BarrierSeverity": BARRIER_SEVERITY_DOMAIN,
     "Constriction": CONSTRICTION_DOMAIN,
@@ -1615,6 +1642,7 @@ FIELD_DEFINITIONS = {
     "StorageVolume": "Identifies the reported normal storage volume (acre/feet) of the impounded waterbody, from NID NormStor attribute, if known.",
     "WaterbodyAcres": "area in acres of waterbody associated with dam.  -1 = no associated waterbody",
     "Fatality": "number of fatalities recorded at this location from Locations of Fatalities at Submerged Hydraulic Jumps (https://krcproject.groups.et.byu.net/browse.php)",
+    "EmergencyActionPlan": "Identifies if the dam is known to have an emergency action plan in the National Inventory of Dams.  Note: emergency action plan information is only available for a small number of dams.",
     # barrier-specific fields
     "CrossingCode": "crossing identifier.",
     "SurveyID": "NACC Survey ID for this {type}; includes NAACC Survey ID",
@@ -1626,7 +1654,7 @@ FIELD_DEFINITIONS = {
     "Constriction": "type of constriction at road/stream crossing, if known.",
     "PotentialProject": "reconnaissance information about the crossing, including severity of the barrier and / or potential for removal project.",
     "BarrierSeverity": "barrier severity of the {type}, if known.   Note: assessment dates are not known.",
-    "SARP_Score": "The best way to consider the aquatic passability scores is that they represent the degree to which crossings deviate from an ideal crossing. We assume that those crossings that are very close to the ideal (scores > 0.6) will present only a minor or insignificant barrier to aquatic organisms. Those structures that are farthest from the ideal (scores < 0.4) are likely to be either significant or severe barriers. These are, however, arbitrary distinctions imposed on a continuous scoring system and should be used with that in mind. -1 = not available.",
+    "SARP_Score": "The best way to consider the aquatic passability scores is that they represent the degree to which crossings deviate from an ideal crossing. We assume that those crossings that are very close to the ideal (scores > 0.6) will present only a minor or insignificant barrier to aquatic organisms. Those structures that are farthest from the ideal (scores < 0.4) are likely to be either significant or severe barriers. These are, however, arbitrary distinctions imposed on a continuous scoring system and should be used with that in mind.  Only available for NACC, NAACC, and SARP protocols. -1 = not available.",
     "ProtocolUsed": "Name of survey protocol used",
     "Resurveyed": "indicates if barrier was known to have been resurveyed",
     # crossing-specific fields

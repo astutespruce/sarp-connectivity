@@ -118,7 +118,7 @@ Create `/ui/.env.development` with the following contents:
 ```
 SENTRY_DSN=
 GOOGLE_ANALYTICS_ID=
-MAPBOX_API_TOKEN=<token>
+MAPBOX_TOKEN=<token>
 DEPLOY_ENV="local"
 CONTACT_EMAIL=<email address of contact person used throughout site>
 NACC_HOME_URL=<root URL to the NACC homepage, likely https://aquaticbarriers.org unless also running locally>

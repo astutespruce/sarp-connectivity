@@ -118,19 +118,21 @@
 	{/if}
 
 	{#if !removed && barrierseverity !== null}
-		<Entry label="Severity" isUnknown={barrierseverity === 0}>
+		<Entry label="General Barrier Severity" isUnknown={barrierseverity === 0}>
 			{SMALL_BARRIER_SEVERITY[barrierseverity as keyof typeof SMALL_BARRIER_SEVERITY]}
 		</Entry>
 	{/if}
 
-	{#if !removed && sarp_score >= 0}
-		<Entry label="SARP Aquatic Organism Passage score">
-			{formatNumber(sarp_score, 1)}
-			<div class="text-xs text-muted-foreground">
-				({classifySARPScore(sarp_score)})
-			</div>
-		</Entry>
-		{#if isEmptyString(protocolused)}
+	{#if !removed}
+		{#if sarp_score >= 0}
+			<Entry label="NACC Aquatic Organism Passage score">
+				{formatNumber(sarp_score, 1)}
+				<div class="text-xs text-muted-foreground">
+					({classifySARPScore(sarp_score)})
+				</div>
+			</Entry>
+		{/if}
+		{#if !isEmptyString(protocolused)}
 			<Entry label="Protocol used">{protocolused}</Entry>
 		{/if}
 	{/if}

@@ -59,9 +59,11 @@ from analysis.constants import (
     REMOVED_POTENTIAL_PROJECT,
     REMOVED_RECON,
     ROAD_TYPE_TO_DOMAIN,
+    SE_AOP_TO_DOMAIN,
     SMALL_BARRIERS_ID_OFFSET,
     UNRANKED_POTENTIAL_PROJECT,
     YEAR_SURVEYED_BINS,
+    verify_domain,
 )
 from analysis.lib.io import read_arrow_tables
 from analysis.prep.barriers.lib.duplicates import export_duplicate_areas, find_duplicates
@@ -248,17 +250,9 @@ df["PotentialProject"] = (
     .replace("Completed Projct", "Completed Project")
 )
 
-# per guidance from Kat, anything where SARP_Score is 0 and potential project is
-# not severe barrier is not set correctly, set it to -1 (null)
-df.loc[(df.SARP_Score == 0) & (df.PotentialProject != "Severe Barrier"), "SARP_Score"] = -1
 
 # convert IsPriority to 0 vs 1  (1 = Yes, Null/0/2 = No / not set)
 df["IsPriority"] = df.IsPriority.map({1: 1, 0: 0, np.nan: 0, 2: 0}).fillna(0).astype("uint8")
-
-# convert Private to bool
-df["Private"] = (
-    df.Private.fillna("").map({"Public": False, "0": False, "Private": True, "1": True, "": False}).astype("bool")
-)
 
 
 # Fix mixed casing of values and discard meaningless unknown values
@@ -312,7 +306,7 @@ for column in ["SourceID", "PartnerID", "CrossingCode", "Source", "SourceLink", 
 # if SourceID is negative, assume it is null (per guidance from Kat on 2/16/2024)
 df.loc[df.SourceID.str.startswith("-"), "SourceID"] = ""
 
-for column in ["Editor", "EditDate"]:
+for column in ["QAQC_Date"]:
     df[column] = df[column].fillna("")
 
 for column in ["PassageFacility", "Resurveyed"]:
@@ -334,19 +328,29 @@ df["BarrierSeverity"] = (
     df.PotentialProject.str.replace("  ", " ").str.lower().map(POTENTIALPROJECT_TO_SEVERITY).astype("uint8")
 )
 
-# per guidance from Kat, if SARP_Score != -1, assign as likely barrier
-df.loc[
-    df.PotentialProject.isin(["Potential Project", "Proposed Project"]) & (df.SARP_Score != -1),
-    "BarrierSeverity",
-] = 6
+df["SE_AOP"] = (
+    df.SE_AOP.fillna("")
+    .str.strip()
+    .str.lower()
+    .replace("1", "no barrier")
+    .str.replace("  ", " ")
+    .str.replace(" drop", " barrier")
+    .str.replace("insignficant", "insignificant")
+    .replace("unknown", "")
+)
+verify_domain(df.SE_AOP, SE_AOP_TO_DOMAIN)
+df["SE_AOP"] = df.SE_AOP.map(SE_AOP_TO_DOMAIN).astype("int8")
 
 
 # Cleanup ProtocolUsed
 df["ProtocolUsed"] = (
-    df.ProtocolUsed.str.strip(".")
+    df.ProtocolUsed.str.strip(".\r\n")
     .str.replace("  ", "")
+    .replace("<Null>", "")
     .str.replace("Protocol", "", case=False)
+    .str.replace("Judgment", "judgement", case=False)
     .str.replace("Judgement", "judgement")
+    .replace("Best Professional judgement Rapid", "Best Professional judgement - Rapid")
     .str.replace(" 2009", " (2009)")
     .str.replace(" 2001", " (2001)")
     .str.replace("Crossings2003", "Crossings (2003)")
@@ -364,8 +368,22 @@ df["ProtocolUsed"] = (
     .str.strip(" ")
 )
 
-# per guidance from Kat (7/25/2024), when protocol used isn't SARP, set SARP score to -1
-df.loc[~df.ProtocolUsed.str.contains("SARP"), "SARP_Score"] = -1
+# per guidance from Kat (10/15/2026), when protocol used isn't NACC, SARP, or NAACC,
+# but not ARSN (at least temporarily) set SARP score to -1
+nacc_protocol_ix = df.ProtocolUsed.str.contains(r"SARP|NACC|NAACC", regex=True) & ~df.ProtocolUsed.str.contains("ARSN")
+df["NACCProtocol"] = np.uint8(0)
+df.loc[nacc_protocol_ix, "NACCProtocol"] = np.uint8(1)
+df.loc[~nacc_protocol_ix, "SARP_Score"] = -1
+
+# per guidance from Kat, anything where SARP_Score is 0 and potential project is
+# not severe barrier is not set correctly, set it to -1 (null)
+df.loc[(df.SARP_Score == 0) & (df.PotentialProject != "Severe Barrier"), "SARP_Score"] = -1
+
+# per guidance from Kat, if SARP_Score != -1, assign as likely barrier
+df.loc[
+    df.PotentialProject.isin(["Potential Project", "Proposed Project"]) & (df.SARP_Score != -1),
+    "BarrierSeverity",
+] = 6
 
 
 # Calculate PassageFacility class

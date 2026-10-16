@@ -237,7 +237,7 @@ def load_flowlines(huc2s):
     # environmental justice joins on NHDPlusID
     environmental_justice = (
         dataset(
-            data_dir / "boundaries/derived/environmental_justice_flowlines.feather",
+            data_dir / "boundaries/environmental_justice_flowlines.feather",
             format="feather",
         )
         .to_table(filter=pc.field("HUC2").isin(huc2s), columns=["NHDPlusID", "EJTract", "EJTribal"])

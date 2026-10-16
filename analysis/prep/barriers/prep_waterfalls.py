@@ -65,7 +65,7 @@ print("\n\n---------------------------------------------------------------------
 print("== Processing waterfalls")
 print("\n\n---------------------------------------------------------------------")
 
-df = gp.read_feather(src_dir / "waterfalls.feather").rename(columns={"fall_type": "FallType"})
+df = gp.read_feather(src_dir / "waterfalls.feather")
 
 # TODO: remove once field is added to ArcGIS service
 if "PartnerID" not in df.columns:
@@ -97,20 +97,8 @@ df.loc[df.Name.str.lower().isin(["unknown"]), "Name"] = ""
 df.SourceID = df.SourceID.fillna("").str.strip()
 df.River = df.River.fillna("").str.strip()
 
-df.GNIS_Name = df.GNIS_Name.fillna("").str.strip()
-ix = (df.River == "") & (df.GNIS_Name != "")
-df.loc[ix, "River"] = df.loc[ix].GNIS_Name
-
-df = df.drop(columns=["GNIS_Name"])
-
 df["Recon"] = df.Recon.fillna(0).astype("uint8")
 df["ManualReview"] = df.ManualReview.fillna(0).astype("uint8")
-
-
-# convert Private to bool
-df["Private"] = (
-    df.Private.fillna("").map({"Public": False, "0": False, "Private": True, "1": True, "": False}).astype("bool")
-)
 
 
 ### Add tracking fields

@@ -206,127 +206,6 @@ SIZECLASSES = ["1a", "1b", "2", "3a", "3b", "4", "5"]
 FLOWLINE_JOIN_TYPES = ["origin", "terminal", "internal", "huc_in", "huc2_join", "huc2_drain", "former_pipeline_join"]
 
 
-# NOTE: not all feature services have all columns
-DAM_FS_COLS = [
-    "SourceDBID",
-    "UNIQUE_ID",  # PartnerID
-    "DB_Source",
-    "SARPUniqueID",
-    "NIDID",
-    "Barrier_Name",
-    "Other_Barrier_Name",
-    "StateAbbreviation",
-    "RIVER",
-    "Editor",
-    "YEAR_COMPLETED",
-    "HEIGHT",
-    "WIDTH",
-    "LENGTH",
-    "StructureCategory",
-    "StructureClass",
-    "PurposeCategory",
-    "OwnerType",
-    "Hazard",
-    "ImpoundmentType",
-    "BarrierStatus",
-    "StructureCondition",
-    "ConstructionMaterial",
-    "PassageFacility",
-    "PotentialFeasibility",  # only present in some states, backfilled from Recon
-    "Recon",
-    "Recon2",
-    "Recon3",
-    "InvasiveSpecies",
-    "Year_Removed",
-    "YearFishPass",
-    "Diversion",
-    "FishScreen",
-    "ScreenType",
-    "BarrierSeverity",
-    "LowheadDam",
-    "FERC_Dam",
-    "Fed_Regulatory_Agency",
-    "STATE_REGULATED",
-    "Regulatory_Agency",
-    "Water_Right",
-    "Water_Right_Status",
-    "Beneficial_Use",
-    "Link",
-    "ManualReview",
-    "Last_Updated",
-    "Priority_Identified",
-    "NORMSTOR",
-    "FEDERAL_ID",  # new NID federal ID
-    "Fatality",
-    "NRCS_Dam",
-    "Active150",
-    "KeepOnActiveList",
-    "Year_Reconned",
-    "RelicensingDate",
-]
-
-
-SMALL_BARRIER_COLS = [
-    "SARPUniqueID",
-    "UNIQUE_ID",  # PartnerID
-    "LocalID",
-    "SurveyID",  # NAACC specific survey ID
-    "Recon",
-    "ManualReview",
-    "Crossing_Code",
-    "StreamName",
-    "Road",
-    "RoadTypeId",
-    "CrossingTypeId",
-    "CrossingConditionId",
-    "Potential_Project",
-    "Source",
-    "SARP_Score",
-    "Protocol_Used",
-    "Year_Removed",
-    "YearFishPass",
-    "EditDate",
-    "Editor",
-    "OwnerType",
-    "Constriction",
-    "PassageFacility",
-    "Link",
-    # "Private", # set by service downloaded from
-    "Priority_Identified",
-    "ActiveList",
-    "KeepOnActiveList",
-    "Year_Surveyed",
-    "Resurveyed",
-    # Not used:
-    # "NumberOfStructures",
-    # "CrossingComment",
-    # "Assessed", # check me
-    # "SRI_Score",
-    # "Coffman_Strong",
-    # "Coffman_Medium",
-    # "Coffman_Weak",
-    # "SE_AOP",
-    # "NumberRareSpeciesHUC12", # we add this later
-]
-
-WATERFALL_COLS = [
-    "SARPUniqueId",
-    "UNIQUE_ID",  # PartnerID
-    "LocalID",
-    "fall_id",
-    "fall_type",
-    "Source",
-    "name",
-    "gnis_name_",
-    "watercours",
-    "Recon",
-    "ManualReview",
-    "BarrierSeverity",
-    "Link",
-    "Year_Removed",
-]
-
-
 # Used to filter small barriers by Potential_Project (small barriers)
 # based on guidance from Kat; others are intentionally excluded
 KEEP_POTENTIAL_PROJECT = [
@@ -344,7 +223,7 @@ REMOVED_POTENTIAL_PROJECT = ["Past Project", "Completed Project", "Removed Cross
 PLANNED_PROJECT_POTENTIAL_PROJECT = ["Proposed Project"]
 # These are DROPPED from all analysis and mapping
 # NA are modeled road / stream crossings from WDFW, drop them per direction from Kat (8/1/2024)
-DROP_POTENTIAL_PROJECT = ["No Crossing", "NA"]
+DROP_POTENTIAL_PROJECT = ["No Crossing", "NA", "Error-Delete"]
 
 # NOTE: everything other than above is marked as excluded from analysis
 
@@ -617,6 +496,7 @@ DAM_BARRIER_SEVERITY_TO_DOMAIN = {
     "severe barrier": 1,
     "complete barrier": 1,
     "partial": 2,
+    "partial barrier": 2,
     "partial passability - non salmonid": 3,
     "partial passibility - non salmonid": 3,
     "partial passability - salmonid": 4,
@@ -679,6 +559,7 @@ POTENTIALPROJECT_TO_SEVERITY = {
     "no crossing": 8,
     "no upstream channel": 9,
     "no upstream habitat": 9,
+    # FIXME: update this; per direction from Kat on 10/16/2026, change this to severe barrier
     "buried stream": 8,
     "not scored": 0,
     "no": 8,
@@ -698,6 +579,25 @@ POTENTIALPROJECT_TO_SEVERITY = {
     "no score - missing data": 0,
     "error-delete": 0,
     "dry - skipped": 0,
+}
+
+# NOTE: values are lowercased, typos are fixed, and Drop=>Barrier is done before using this
+SE_AOP_TO_DOMAIN = {
+    "": 0,
+    "not scored": 0,
+    "severe barrier": 1,
+    "significant barrier": 2,
+    "moderate barrier": 3,
+    "minor barrier": 4,
+    "insignificant barrier": 5,
+    "no barrier": 6,
+    "no crossing": 7,
+    "no upstream channel": 8,
+    "no upstream habitat": 8,
+    "buried stream": 9,
+    "inaccessible": 10,
+    "completed project": 11,
+    "removed crossing": 11,
 }
 
 
@@ -926,6 +826,14 @@ TU_BROOK_TROUT_PORTFOLIO_TO_DOMAIN = {
     "Persistent": 2,
     "Stronghold": 3,
 }
+
+
+def verify_domain(series, domain):
+    """Raise an error for any values in series not present in domain"""
+    values = series.unique()
+    missing = {v for v in values if v not in domain}
+    if missing:
+        raise ValueError(f"{series.name} unexpected values: {missing}")
 
 
 # List of NHDPlusIDs to convert from loops to non-loops;

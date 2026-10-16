@@ -368,14 +368,17 @@ fill_columns = [
     "Fatality",
     "FatalityClass",
     "LicenseExpirationClass",
+    "EmergencyActionPlan",
     "CostClass",  # limited to dams for now
     # small barrier columns
     "Constriction",
     "CrossingType",
     "RoadType",
     "SARP_Score",
+    "SE_AOP",
     "BarrierSeverity",
     "Resurveyed",
+    "NACCProtocol",
 ]
 
 dtypes = (

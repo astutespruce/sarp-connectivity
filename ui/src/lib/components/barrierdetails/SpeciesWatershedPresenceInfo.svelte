@@ -57,7 +57,7 @@
 		{:else}
 			<div class="text-muted-foreground">none recorded</div>
 		{/if}
-		<div class="text-muted-foreground">
+		<div class="text-muted-foreground mt-4">
 			Information on these species is limited and comprehensive information has not been provided
 			for all states at this time. Brook trout habitat data are currently under development for
 			Wisconsin and Iowa and may be incomplete.

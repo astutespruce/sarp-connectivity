@@ -1202,6 +1202,12 @@ export const SMALL_BARRIER_SEVERITY = {
 	9: 'no upstream habitat'
 }
 
+export const NACC_PROTOCOL = {
+	'-1': 'not applicable (dam)',
+	0: 'no',
+	1: 'yes'
+}
+
 export const LOWHEAD_DAM = {
 	'-1': 'not applicable (road/stream crossing)',
 	0: 'unknown',
@@ -1419,6 +1425,13 @@ export const EPA_CAUSE_CODES = {
 	t: 'temperature',
 	// x: 'flow alterations', // not present for any flowlines
 	y: 'hydrologic alteration'
+}
+
+export const EMERGENCY_ACTION_PLAN = {
+	'-1': 'not applicable',
+	0: 'unknown',
+	1: 'yes',
+	2: 'no'
 }
 
 // NOTE: these are encoded into a comma-delimited field

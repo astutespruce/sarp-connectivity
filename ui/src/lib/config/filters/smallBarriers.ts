@@ -32,7 +32,8 @@ import {
 	DIADROMOUS_HABITAT,
 	WILDSCENIC_RIVER,
 	YEAR_SURVEYED_BINS,
-	EPA_CAUSE_CODES
+	EPA_CAUSE_CODES,
+	NACC_PROTOCOL
 } from '#lib/config/constants.js'
 import { getEntries, hasDiadromousData } from './common'
 
@@ -172,6 +173,13 @@ export const smallBarriers = [
 				hideMissingValues: true,
 				help: 'Fish passage facility information is only available for a small number of dams.  Not all data sources recorded this information.',
 				...getEntries(PASSAGEFACILITY_CLASS)
+			},
+			{
+				field: 'naccprotocol',
+				title: 'Was it surveyed using a NACC protocol?',
+				sort: false,
+				hideMissingValues: false,
+				...getEntries(NACC_PROTOCOL, (v) => v >= 0)
 			},
 			{
 				field: 'yearsurveyedclass',

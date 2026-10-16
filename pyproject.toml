@@ -1,7 +1,7 @@
 [project]
 name = "sarp-connectivity"
 # version must be kept in sync with ui/package.json
-version = "4.3.0"
+version = "4.4.0"
 description = "National Aquatic Barrier Inventory & Prioritization Tool"
 readme = "README.md"
 authors = [{ name = "Brendan C. Ward", email = "bcward@astutespruce.com" }]
@@ -35,7 +35,7 @@ dev = [
     "numba>=0.60",
     "openpyxl",
     "pandas",
-    "pymgl>=0.6",
+    "pymgl>=0.6.1",
     "pyogrio",
     "pytest",
     "python-calamine",

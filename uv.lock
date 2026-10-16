@@ -681,21 +681,22 @@ wheels = [
 
 [[package]]
 name = "pymgl"
-version = "0.6.0"
+version = "0.6.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "packaging" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/2b/8a/f703afa39dfac855c415504b2462a7353f6a1bae477aaadc6f7d02e099ef/pymgl-0.6.0-cp312-cp312-macosx_14_0_universal2.whl", hash = "sha256:eccd1755b89fe8fb89e9684236d38cac822921a7d0b848d0304d5e25ded0f8ee", size = 3820149, upload-time = "2026-09-19T17:00:26.535Z" },
-    { url = "https://files.pythonhosted.org/packages/29/10/8b8334075af379b8bc49827b6b8268f2f6b00c56fb6a41de5dbcfcc31d76/pymgl-0.6.0-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:884747a53fe08dd455ccb650e55b59fefe9232c37c3485a47fefb98fc65bc357", size = 24962553, upload-time = "2026-09-19T17:00:28.977Z" },
-    { url = "https://files.pythonhosted.org/packages/89/da/ccd724b92adc787ef7cfc69bdd015433d0bd170b0f5ead1abb68603fb305/pymgl-0.6.0-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:9eae4e42615515df666aafd49bafc03678e9e55e554cfb19c8dc825d25bc0ee5", size = 25892962, upload-time = "2026-09-19T17:00:31.671Z" },
-    { url = "https://files.pythonhosted.org/packages/18/01/a14cf0dc2bb684e6c7471dc232cf198348060c11b89382a00e06967a0702/pymgl-0.6.0-cp313-cp313-macosx_14_0_universal2.whl", hash = "sha256:f0feac134079c23f3292d89e18bd74fba545316e7328609cf8321f6e04279c9d", size = 3820138, upload-time = "2026-09-19T17:00:34.038Z" },
-    { url = "https://files.pythonhosted.org/packages/e6/6d/10db41dcc8fc7ed864dbb03afdf5c14bb9fcced57f6f43a72d4a60301a2c/pymgl-0.6.0-cp313-cp313-manylinux_2_28_aarch64.whl", hash = "sha256:2360c2af69259d3d7a9c0b12b0eced828264c6f635c7760321c697c1b4c731b0", size = 24962498, upload-time = "2026-09-19T17:00:36.091Z" },
-    { url = "https://files.pythonhosted.org/packages/ef/db/794d21ccfd147594a1dd7acab7131b602bc3c58934ced0416768861bcd0f/pymgl-0.6.0-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:de59573fd68f3b18219dfcb5d135d851c79b596ff92c1bb211e2455938aa2204", size = 25893120, upload-time = "2026-09-19T17:00:39.037Z" },
-    { url = "https://files.pythonhosted.org/packages/c6/03/e80949e91b0f56b37319590b6977cf50f01f69c4dc02b57c7076c4809bb4/pymgl-0.6.0-cp314-cp314-macosx_26_0_arm64.whl", hash = "sha256:d6e80140728d47f2c5d3e1a256363d57bd2fb9469a088c46cddc93c11563fb67", size = 3820570, upload-time = "2026-09-19T17:00:42.041Z" },
-    { url = "https://files.pythonhosted.org/packages/2c/6b/2ba37f7c3befcda3193eb7d77175e52892b4cd0f3de21b59d327ef9b6938/pymgl-0.6.0-cp314-cp314-manylinux_2_28_aarch64.whl", hash = "sha256:47c2833a3081a728a310b7b8f22f56704561a80dae14194ddd6e67d7cfe95b57", size = 24962603, upload-time = "2026-09-19T17:00:44.274Z" },
-    { url = "https://files.pythonhosted.org/packages/82/2f/d05e9462143395cea2d1bbeb0716948f0d61b2ec7607b6ecd3aa538d4a2f/pymgl-0.6.0-cp314-cp314-manylinux_2_28_x86_64.whl", hash = "sha256:3ad5823941240b1f1d112a00c79c2ee753828767303636147550a173e58eef70", size = 25893314, upload-time = "2026-09-19T17:00:47.287Z" },
+    { url = "https://files.pythonhosted.org/packages/32/fa/86a38481c7db6e8597154ebb1b3891b021c49a66a8038097093f877999a8/pymgl-0.6.1-cp312-cp312-macosx_14_0_universal2.whl", hash = "sha256:7b33df77654023cbfb7558947733b59b59fec9bb2494facfae73bf5f70fe2ba3", size = 3786903, upload-time = "2026-10-12T21:35:59.551Z" },
+    { url = "https://files.pythonhosted.org/packages/b0/14/0c76dc8b5909662b9b27238b9aa174239ab262ac5c744c68ef8ff213110d/pymgl-0.6.1-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:bc8edda7614c2b862de87037288e78d881060b111d544c8349877b84bc0b7e44", size = 24962557, upload-time = "2026-10-12T21:36:02.225Z" },
+    { url = "https://files.pythonhosted.org/packages/a8/e1/c7d60c37cf3e9d4bcedff9764cde883e6dbef0afcfc9a834b3acc97ce9fb/pymgl-0.6.1-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:4cfdd6615bbee3360ba3227ad1bb85c415461938912b30419b0b42bf44b4825a", size = 25892966, upload-time = "2026-10-12T21:36:05.024Z" },
+    { url = "https://files.pythonhosted.org/packages/61/95/74e8d3c87d168bf11cff38da620435eb592ff2562f0a073121aae63e8a7d/pymgl-0.6.1-cp313-cp313-macosx_14_0_universal2.whl", hash = "sha256:dcaae20c09239ec152072a78722c63aaa8d02323e2b75df2d4d070d033957f84", size = 3820143, upload-time = "2026-10-12T21:36:07.257Z" },
+    { url = "https://files.pythonhosted.org/packages/ca/24/4d7014125c140c6b64bb739bf5962d0f5267bc2cbf7e885ab4e69555542a/pymgl-0.6.1-cp313-cp313-manylinux_2_28_aarch64.whl", hash = "sha256:3e97689cfbd0137ade27ca8a55107db8573ba49d81573b6df1239c303e24f957", size = 24962504, upload-time = "2026-10-12T21:36:09.22Z" },
+    { url = "https://files.pythonhosted.org/packages/ef/64/31da9585ac2f8795818fcd96c8b83b810fbf7003222788345e16e94bed9b/pymgl-0.6.1-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:b7fb6e66d2898c49c1167637ce469981bf4987a039a56fdb9db68dabb32524fa", size = 25893125, upload-time = "2026-10-12T21:36:11.743Z" },
+    { url = "https://files.pythonhosted.org/packages/6c/73/d9e10000227b5577fd7d61eef0342c69e32ce22c4bcd520fe5f41d52cecf/pymgl-0.6.1-cp314-cp314-macosx_15_0_arm64.whl", hash = "sha256:3b399da57a250cbe7077b1ae60c2357f548a1812432b4f0e9c8ed30faea25650", size = 3786896, upload-time = "2026-10-12T21:36:13.988Z" },
+    { url = "https://files.pythonhosted.org/packages/bc/0d/67ce95fb340b41000463e77dc5a83cad49e28e03a3e5b5060bcbcf7a6e4f/pymgl-0.6.1-cp314-cp314-macosx_26_0_arm64.whl", hash = "sha256:c5eee63e998003a7dace05a0085e07f66b1a1b00948dad02407a3e8ccd65aadb", size = 3820577, upload-time = "2026-10-12T21:36:15.907Z" },
+    { url = "https://files.pythonhosted.org/packages/7c/81/b2fcbcb63364145d81a09b33fe27ffb417a3e007bc5007cb1e0c41661ca5/pymgl-0.6.1-cp314-cp314-manylinux_2_28_aarch64.whl", hash = "sha256:b9fe7c9746ff3b994710db979a40b15836abed5d78ea176bdd2b4f4b0def7873", size = 24962607, upload-time = "2026-10-12T21:36:17.825Z" },
+    { url = "https://files.pythonhosted.org/packages/ca/1a/ccb39f96787fd1ea1235944f9adaa5ae8ba0c232d43bcc0be6572fb3c70d/pymgl-0.6.1-cp314-cp314-manylinux_2_28_x86_64.whl", hash = "sha256:abfd0270b85e341c603c2196141ebfd3d9d25cc768fa935d028159a9abad4aac", size = 25893318, upload-time = "2026-10-12T21:36:20.265Z" },
 ]
 
 [[package]]
@@ -980,7 +981,7 @@ requires-dist = [
     { name = "openpyxl", marker = "extra == 'dev'" },
     { name = "pandas", marker = "extra == 'dev'" },
     { name = "pyarrow" },
-    { name = "pymgl", marker = "extra == 'dev'", specifier = ">=0.6" },
+    { name = "pymgl", marker = "extra == 'dev'", specifier = ">=0.6.1" },
     { name = "pyogrio", marker = "extra == 'dev'" },
     { name = "pytest", marker = "extra == 'dev'" },
     { name = "python-calamine", marker = "extra == 'dev'" },

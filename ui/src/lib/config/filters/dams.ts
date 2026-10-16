@@ -42,7 +42,8 @@ import {
 	DIADROMOUS_HABITAT,
 	WILDSCENIC_RIVER,
 	EPA_CAUSE_CODES,
-	LICENSE_EXPIRATION
+	LICENSE_EXPIRATION,
+	EMERGENCY_ACTION_PLAN
 } from '#lib/config/constants.js'
 import { getEntries, hasDiadromousData } from './common'
 
@@ -236,6 +237,12 @@ export const dams = [
 				title: 'Hazard rating',
 				help: 'Hazard rating information is only available for a small number of dams.  Not all data sources recorded this information.',
 				...getEntries(HAZARD, (v) => v >= 0)
+			},
+			{
+				field: 'emergencyactionplan',
+				title: 'Has emergency action plan?',
+				help: 'Emergency action plan information is derived from the National Inventory of Dams and is only available for a small number of dams.',
+				...getEntries(EMERGENCY_ACTION_PLAN, (v) => v >= 0)
 			},
 			{
 				field: 'condition',
