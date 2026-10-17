@@ -6,6 +6,8 @@
 		BARRIEROWNERTYPE,
 		FERC_REGULATED,
 		STATE_REGULATED,
+		HAZARD,
+		EMERGENCY_ACTION_PLAN,
 		WATER_RIGHT,
 		STREAM_SIZECLASS,
 		STREAM_SIZECLASS_DRAINAGE_AREA,
@@ -45,6 +47,8 @@
 		costoutofbounds = false,
 		ejtract = null,
 		ejtribal = null,
+		hazard = null,
+		emergencyactionplan = null,
 		fishhabitatpartnership = null,
 		nativeterritories = null,
 		intermittent = null,
@@ -183,6 +187,18 @@
 
 {#if nrcsdam === 1}
 	<Entry label="NRCS flood control dam status">This is a NRCS flood control dam</Entry>
+{/if}
+
+{#if hazard > 0 && HAZARD[hazard as keyof typeof HAZARD]}
+	<Entry label="Hazard rating">
+		{HAZARD[hazard as keyof typeof HAZARD].toLowerCase()}
+	</Entry>
+{/if}
+
+{#if emergencyactionplan > 0 && EMERGENCY_ACTION_PLAN[emergencyactionplan as keyof typeof EMERGENCY_ACTION_PLAN]}
+	<Entry label="Has emergency action plan?">
+		{EMERGENCY_ACTION_PLAN[emergencyactionplan as keyof typeof EMERGENCY_ACTION_PLAN].toLowerCase()}
+	</Entry>
 {/if}
 
 {#if waterright > 0}

@@ -107,6 +107,18 @@
 				<div>This is a NRCS flood control dam</div>
 			{/if}
 
+			{#if hazard > 0}
+				<div>Hazard rating: {HAZARD[hazard as keyof typeof HAZARD].toLowerCase()}</div>
+			{/if}
+
+			{#if emergencyactionplan > 0 && EMERGENCY_ACTION_PLAN[emergencyactionplan as keyof typeof EMERGENCY_ACTION_PLAN]}
+				<div>
+					Has emergency action plan: {EMERGENCY_ACTION_PLAN[
+						emergencyactionplan as keyof typeof EMERGENCY_ACTION_PLAN
+					].toLowerCase()}
+				</div>
+			{/if}
+
 			{#if waterright > 0}
 				<div>
 					Has an associated water right:
@@ -182,18 +194,6 @@
 					<div>
 						Construction material: {CONSTRUCTION[
 							construction as keyof typeof CONSTRUCTION
-						].toLowerCase()}
-					</div>
-				{/if}
-
-				{#if hazard > 0}
-					<div>Hazard rating: {HAZARD[hazard as keyof typeof HAZARD].toLowerCase()}</div>
-				{/if}
-
-				{#if emergencyactionplan > 0 && EMERGENCY_ACTION_PLAN[emergencyactionplan as keyof typeof EMERGENCY_ACTION_PLAN]}
-					<div>
-						Has emergency action plan: {EMERGENCY_ACTION_PLAN[
-							emergencyactionplan as keyof typeof EMERGENCY_ACTION_PLAN
 						].toLowerCase()}
 					</div>
 				{/if}
