@@ -178,7 +178,8 @@
 	const downloadConfig = $derived({
 		// aggregate summary unit ids to list per summary unit layer
 		summaryUnits: summaryUnitsForDownload,
-		scenario: 'ncwc'
+		scenario: 'ncwc',
+		filters: { removed: new Set([true]) }
 	})
 
 	const handleZoomBounds = () => {
